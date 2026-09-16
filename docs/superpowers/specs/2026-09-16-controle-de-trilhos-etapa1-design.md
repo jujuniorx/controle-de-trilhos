@@ -1,8 +1,9 @@
 # Controle de Trilhos — Spec de Design: Etapa 1 (Fundação)
 
 - Data: 2026-09-16
-- Status: aguardando autorização explícita para iniciar a implementação
+- Status: todas as decisões da Etapa 1 confirmadas — aguardando revisão do plano de implementação e autorização explícita para começar
 - Escopo deste documento: **apenas a Etapa 1 (Fundação)**. Etapas 2–5 são citadas só como contexto de roadmap (seção 15).
+- PostgreSQL gerenciado: **Neon** (confirmado em 2026-09-16)
 
 ## 1. Contexto e objetivo
 
@@ -276,13 +277,19 @@ Toda criação e alteração relevante grava uma linha em `HistoricoAlteracao` (
 - [ ] Todos os testes da seção 12 escritos e passando.
 - [ ] Checkpoint de `security-review` sem pendências críticas.
 
-## 14. Decisão necessária para iniciar a Etapa 1
+## 14. Decisões confirmadas
 
-Apenas uma decisão bloqueia o início:
+Todas as decisões necessárias para iniciar a Etapa 1 estão fechadas:
 
-**Provedor de PostgreSQL gerenciado.** A Etapa 1 provisiona o banco e roda as migrations iniciais — preciso de uma string de conexão real. Recomendo **Neon** (Postgres serverless, branching de banco para desenvolvimento/preview, connection pooling nativo para funções serverless, camada gratuita para começar). Se a empresa já tiver um provedor definido ou exigido por política interna, me informe e eu adapto — a escolha não muda o schema, só a configuração de conexão.
+- **PostgreSQL gerenciado: Neon.** Confirmado — Postgres serverless, branching de banco para desenvolvimento/preview, connection pooling nativo para funções serverless.
+- **ORM: Prisma**, conforme proposto.
+- **Acesso do Pátio: PIN compartilhado** + nome do responsável por lançamento (seção 7).
+- **Administrativo: papel único `ADMIN`**, sem hierarquia adicional (seção 7).
+- **Fabricante: texto livre com sugestões**, sem lista fechada (seção 6).
+- **Offline: local-first com Dexie/IndexedDB**, sincronização por `clientId` (seção 8).
+- **Peso pendente de sucata em Remetidos não bloqueia o registro** (`statusPeso` independente de `Movimentacao.status`, seção 6).
 
-Tudo o mais já está resolvido ou formalmente adiado sem bloquear o início:
+Nada mais bloqueia o início. O que segue formalmente adiado, sem impedir a Etapa 1:
 
 - **Storage de anexos** — decisão adiada para a Etapa 3. Comparativo objetivo entre as opções que fazem sentido para este projeto:
 
