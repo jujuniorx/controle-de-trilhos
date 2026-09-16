@@ -97,6 +97,14 @@ model LoginAttempt {
   atualizadoEm  DateTime  @updatedAt
 }
 
+model PatioAcessoToken {
+  id         String    @id @default(cuid())
+  tokenHash  String    @unique
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime
+  revokedAt  DateTime?
+}
+
 model Movimentacao {
   id               String              @id @default(cuid())
   clientId         String              @unique   // gerado no dispositivo, chave de idempotência
@@ -202,6 +210,8 @@ Decisões de modelagem que respondem diretamente ao que você definiu hoje:
 4. O nome do responsável continua sendo pedido em **cada lançamento** (`Movimentacao.responsavelPatio`) — o PIN nunca substitui essa identificação.
 5. Trocar o PIN é só atualizar a configuração; nenhuma tela de administração de PIN é necessária nesta etapa.
 
+O cookie de acesso do Pátio referencia um registro em `PatioAcessoToken` (hash do token, expiração, revogação) em vez de guardar um valor auto-suficiente — mesmo padrão usado em `Session` para o Administrativo, o que permite revogar acessos e mantém a checagem de autorização sempre no servidor.
+
 Autorização sempre revalidada no servidor (middleware + checagem em cada ação), nunca só escondida na UI. IDs não sequenciais (`cuid`) para reduzir risco de IDOR por enumeração.
 
 ## 8. PWA e estratégia offline/sincronização
@@ -254,14 +264,14 @@ Toda criação e alteração relevante grava uma linha em `HistoricoAlteracao` (
 /tests
   /unit (Vitest)
   /integration
-  /e2e (Playwright, incl. offline/)
+  /e2e (Playwright — fluxos de navegador: login, PIN)
 ```
 
 ## 12. Estratégia de testes da Etapa 1
 
 - **Unitários**: fator/peso (3 casas), soma de metros, limites exatos de SC-1/2/3 (6,99/7,00 e 2,99/3,00), validação "reemprego ≥ 7m", geração/validação de `clientId`.
 - **Integração**: login (sucesso/falha/bloqueio), revogação de sessão, gate de PIN do Pátio (acesso negado sem PIN, liberado após PIN correto), upsert idempotente por `clientId` (teste de duplicidade).
-- **Offline (Playwright)**: emular rede offline, criar registro, confirmar persistência local, reconectar, confirmar sincronização sem duplicata.
+- **Offline (unitário + integração)**: gravação no Dexie, motor de sincronização (sucesso marca sincronizado, falha de rede mantém pendente), upsert idempotente por `clientId` sem duplicar. Um teste E2E de navegador real para esse fluxo completo fica para a Etapa 2, quando existir uma tela de lançamento real para disparar a gravação offline — nesta etapa não há formulário de negócio para acionar através do navegador sem antecipar essa UI.
 - **Segurança**: rota `/admin` bloqueada sem sessão, rota `/patio` bloqueada sem PIN, headers de segurança presentes nas respostas.
 
 ## 13. Critérios de conclusão (Definition of Done) da Etapa 1
@@ -271,7 +281,7 @@ Toda criação e alteração relevante grava uma linha em `HistoricoAlteracao` (
 - [ ] Login administrativo funcional (sucesso, falha, bloqueio por tentativas, logout, revogação de sessão).
 - [ ] Gate de PIN do Pátio funcional, com cookie de acesso.
 - [ ] PWA instalável, com Service Worker ativo e app shell funcionando offline.
-- [ ] Fila offline (Dexie) funcional: criar localmente, sincronizar ao reconectar, sem duplicar.
+- [ ] Fila local, motor de sincronização e idempotência por `clientId` comprovados por testes automatizados (unitário + integração).
 - [ ] `HistoricoAlteracao` gravando criação de registros.
 - [ ] Headers de segurança e CORS configurados.
 - [ ] Todos os testes da seção 12 escritos e passando.
