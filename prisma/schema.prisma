@@ -12,3 +12,194 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum TipoMovimentacao {
+  RECEBIMENTO
+  REMETIDO
+}
+
+enum StatusMovimentacao {
+  PENDENTE_CONFERENCIA
+  CONFERIDO
+}
+
+enum TipoTransporte {
+  CAMINHAO
+  VAGAO
+  OUTRO
+}
+
+enum TipoRemetido {
+  VENDA
+  TRANS
+  INDUS
+}
+
+enum PerfilTrilho {
+  TR22
+  TR32
+  TR37
+  TR40
+  TR45
+  TR50
+  TR54
+  TR55
+  TR57
+  TR60
+  TR68
+}
+
+enum TipoMaterial {
+  NOVO
+  REEMPREGO
+  SUCATA
+}
+
+enum ClassificacaoReemprego {
+  G1
+  G2
+  G3
+}
+
+enum ClassificacaoSC {
+  SC1
+  SC2
+  SC3
+}
+
+enum StatusPeso {
+  CALCULADO
+  PENDENTE
+  CONFIRMADO
+}
+
+enum ModoMedicao {
+  INDIVIDUAL
+  QTD_COMPRIMENTO
+}
+
+enum Role {
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  nome          String
+  email         String    @unique
+  senhaHash     String
+  role          Role      @default(ADMIN)
+  ativo         Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  ultimoLoginEm DateTime?
+  sessions      Session[]
+}
+
+model Session {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  tokenHash String    @unique
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+  revokedAt DateTime?
+}
+
+model LoginAttempt {
+  id            String    @id @default(cuid())
+  identificador String    @unique
+  tentativas    Int       @default(0)
+  bloqueadoAte  DateTime?
+  atualizadoEm  DateTime  @updatedAt
+}
+
+model PatioAcessoToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+  revokedAt DateTime?
+}
+
+model Movimentacao {
+  id               String             @id @default(cuid())
+  clientId         String             @unique
+  tipo             TipoMovimentacao
+  tipoDocumento    String
+  numeroDocumento  String
+  tipoTransporte   TipoTransporte
+  placaCavalo      String?
+  placaCarreta     String?
+  origem           String?
+  destino          String?
+  responsavelPatio String
+  status           StatusMovimentacao @default(PENDENTE_CONFERENCIA)
+  createdAt        DateTime           @default(now())
+  conferidoPorId   String?
+  conferidoEm      DateTime?
+
+  remetidoDetalhe RemetidoDetalhe?
+  grupos          Grupo[]
+  anexos          Anexo[]
+  historico       HistoricoAlteracao[]
+}
+
+model RemetidoDetalhe {
+  movimentacaoId String       @id
+  movimentacao   Movimentacao @relation(fields: [movimentacaoId], references: [id])
+  tipoRemetido   TipoRemetido
+}
+
+model Grupo {
+  id             String                  @id @default(cuid())
+  clientId       String                  @unique
+  movimentacaoId String
+  movimentacao   Movimentacao            @relation(fields: [movimentacaoId], references: [id])
+  perfil         PerfilTrilho
+  tipoMaterial   TipoMaterial
+  classificacao  ClassificacaoReemprego?
+  fabricante     String?
+  metrosTotal    Decimal                 @default(0)
+  pesoCalculado  Decimal                 @default(0)
+  statusPeso     StatusPeso              @default(CALCULADO)
+  pesoReal       Decimal?
+
+  medicoes Medicao[]
+  anexos   Anexo[]
+}
+
+model Medicao {
+  id              String           @id @default(cuid())
+  clientId        String           @unique
+  grupoId         String
+  grupo           Grupo            @relation(fields: [grupoId], references: [id])
+  modo            ModoMedicao
+  quantidade      Int              @default(1)
+  comprimento     Decimal
+  metros          Decimal
+  classificacaoSC ClassificacaoSC?
+}
+
+model Anexo {
+  id             String       @id @default(cuid())
+  movimentacaoId String
+  movimentacao   Movimentacao @relation(fields: [movimentacaoId], references: [id])
+  grupoId        String?
+  grupo          Grupo?       @relation(fields: [grupoId], references: [id])
+  tipo           String
+  url            String
+  uploadedById   String
+  uploadedAt     DateTime     @default(now())
+}
+
+model HistoricoAlteracao {
+  id             String       @id @default(cuid())
+  movimentacaoId String
+  movimentacao   Movimentacao @relation(fields: [movimentacaoId], references: [id])
+  usuarioId      String?
+  usuarioNome    String
+  acao           String
+  campo          String?
+  valorAntigo    String?
+  valorNovo      String?
+  timestamp      DateTime     @default(now())
+}
