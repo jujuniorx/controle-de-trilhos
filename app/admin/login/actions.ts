@@ -23,3 +23,7 @@ export async function login(formData: FormData): Promise<{ ok: boolean; erro?: s
 
   redirect('/admin');
 }
+
+export async function loginAction(formData: FormData): Promise<void> {
+  await login(formData);
+}
