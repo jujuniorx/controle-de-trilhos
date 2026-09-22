@@ -3,8 +3,6 @@ const APP_SHELL = [
   '/',
   '/patio/acesso',
   '/admin/login',
-  '/patio',
-  '/admin',
   '/manifest.json',
 ];
 
