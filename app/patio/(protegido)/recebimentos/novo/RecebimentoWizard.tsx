@@ -9,9 +9,11 @@ import {
   PLACA_REGEX,
   MARCAS,
   MARCA_LABEL,
+  type RecebimentoCaminhaoInput,
 } from '@/lib/validation/recebimento';
 import { validarReemprego } from '@/lib/domain/regras';
-import { criarRecebimento } from './actions';
+import { salvarRecebimentoLocal } from '@/lib/offline/db';
+import { sincronizarPendentes } from '@/lib/offline/sync';
 
 type TipoMaterial = 'NOVO' | 'REEMPREGO' | 'SUCATA';
 type ModoMedicao = 'INDIVIDUAL' | 'QTD_COMPRIMENTO';
@@ -217,13 +219,27 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
       })),
     };
 
-    const resultado = await criarRecebimento(payload);
-    setEnviando(false);
-    if (!resultado.ok) {
-      setErroFinal(resultado.erro ?? 'Não foi possível salvar o recebimento.');
+    try {
+      // Gravação local (IndexedDB via Dexie) — sempre sucede, mesmo offline. É o
+      // único caminho de escrita: não há mais uma Server Action síncrona separada.
+      // (payload é construído a partir do estado do wizard, ainda não validado por
+      // Zod — igual ao que a Server Action antiga recebia como `unknown`; a validação
+      // de schema acontece no servidor, em /api/sync, via sincronizarPendentes.)
+      await salvarRecebimentoLocal(payload as RecebimentoCaminhaoInput);
+    } catch {
+      setEnviando(false);
+      setErroFinal('Não foi possível salvar o recebimento neste dispositivo. Tente novamente.');
       return;
     }
-    router.push(`/patio/recebimentos/${resultado.id}/confirmado`);
+
+    // Tentativa de sincronização best-effort: não bloqueia a navegação esperando a
+    // rede. Se falhar (ou estiver offline), o registro já está salvo localmente e a
+    // página de confirmação mostra o status; uma nova tentativa acontece depois
+    // (retry manual na página, ou o indicador de sincronização de vida longa da Task 7).
+    void sincronizarPendentes().catch(() => {});
+
+    setEnviando(false);
+    router.push(`/patio/recebimentos/${payload.clientId}/confirmado`);
   }
 
   return (

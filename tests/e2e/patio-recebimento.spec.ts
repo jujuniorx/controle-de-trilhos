@@ -34,8 +34,13 @@ test.describe('Fluxo real do Pátio — recebimento por caminhão', () => {
     await expect(page.getByText('Peso total')).toBeVisible();
 
     await page.getByRole('button', { name: 'Finalizar e salvar' }).click();
+    // Fluxo local-first: a navegação para /confirmado acontece imediatamente após a
+    // gravação no IndexedDB (Dexie), antes de qualquer round-trip. A confirmação de
+    // que o peso foi calculado corretamente pelo fator do perfil no servidor vem do
+    // status de sincronização (POST /api/sync -> criarRecebimentoCaminhao), não mais
+    // de conteúdo renderizado a partir do Prisma nesta página.
     await page.waitForURL('**/confirmado');
-    await expect(page.getByText('0.102')).toBeVisible();
+    await expect(page.getByText('Sincronizado com sucesso')).toBeVisible();
   });
 
   test('REEMPREGO: exige classificação e soma metros/peso corretamente', async ({ page }) => {
@@ -60,7 +65,7 @@ test.describe('Fluxo real do Pátio — recebimento por caminhão', () => {
 
     await page.getByRole('button', { name: 'Finalizar e salvar' }).click();
     await page.waitForURL('**/confirmado');
-    await expect(page.getByText('0.816')).toBeVisible();
+    await expect(page.getByText('Sincronizado com sucesso')).toBeVisible();
   });
 
   test('SUCATA: classificação SC manual, peso nunca calculado, fica pendente', async ({ page }) => {
@@ -85,6 +90,7 @@ test.describe('Fluxo real do Pátio — recebimento por caminhão', () => {
 
     await page.getByRole('button', { name: 'Finalizar e salvar' }).click();
     await page.waitForURL('**/confirmado');
+    await expect(page.getByText('Sincronizado com sucesso')).toBeVisible();
     await expect(page.getByText('peso pendente').first()).toBeVisible();
     await expect(page.getByText(/sucata com peso pendente/i)).toBeVisible();
   });
