@@ -7,6 +7,8 @@ import {
   CLASSIFICACOES_REEMPREGO,
   CLASSIFICACOES_SC,
   PLACA_REGEX,
+  MARCAS,
+  MARCA_LABEL,
 } from '@/lib/validation/recebimento';
 import { validarReemprego } from '@/lib/domain/regras';
 import { criarRecebimento } from './actions';
@@ -23,12 +25,15 @@ interface MedicaoLocal {
   classificacaoSC?: ClassificacaoSC;
 }
 
+type Marca = (typeof MARCAS)[number];
+
 interface GrupoLocal {
   clientId: string;
   perfil: string;
   tipoMaterial: TipoMaterial;
   classificacao?: 'G1' | 'G2' | 'G3';
-  fabricante?: string;
+  marca?: Marca;
+  fabricanteOutro?: string;
   medicoes: MedicaoLocal[];
 }
 
@@ -38,6 +43,7 @@ interface Dados {
   origem: string;
   placaCavalo: string;
   placaCarreta: string;
+  transportadora: string;
   responsavelPatio: string;
 }
 
@@ -67,8 +73,9 @@ function validarDados(d: Dados) {
   if (!d.data) erros.data = 'Informe a data do recebimento.';
   if (!/^\d{1,9}$/.test(d.numeroDocumento)) erros.numeroDocumento = 'Informe a nota fiscal, somente números.';
   if (!d.origem.trim()) erros.origem = 'Informe a origem do material.';
+  // Placa do cavalo é o mínimo aceitável; a da carreta só é validada se preenchida (opcional).
   if (!PLACA_REGEX.test(d.placaCavalo)) erros.placaCavalo = 'Placa inválida. Ex.: ABC1D23';
-  if (!PLACA_REGEX.test(d.placaCarreta)) erros.placaCarreta = 'Placa inválida. Ex.: ABC1D23';
+  if (d.placaCarreta && !PLACA_REGEX.test(d.placaCarreta)) erros.placaCarreta = 'Placa inválida. Ex.: ABC1D23';
   if (d.responsavelPatio.trim().length < 3) erros.responsavelPatio = 'Informe quem está preenchendo.';
   return erros;
 }
@@ -84,6 +91,7 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
     origem: '',
     placaCavalo: '',
     placaCarreta: '',
+    transportadora: '',
     responsavelPatio: '',
   });
   const [grupos, setGrupos] = useState<GrupoLocal[]>([]);
@@ -174,20 +182,31 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
   }
 
   const grupoIncompleto = (g: GrupoLocal) =>
-    g.medicoes.length === 0 || (g.tipoMaterial === 'REEMPREGO' && !g.classificacao);
+    g.medicoes.length === 0 ||
+    (g.tipoMaterial === 'REEMPREGO' && !g.classificacao) ||
+    (g.tipoMaterial === 'NOVO' && g.marca === 'OUTROS' && !g.fabricanteOutro?.trim());
 
   async function finalizar() {
     setErroFinal('');
     setEnviando(true);
     const payload = {
       clientId,
-      dados,
+      dados: {
+        ...dados,
+        placaCarreta: dados.placaCarreta || undefined,
+        transportadora: dados.transportadora || undefined,
+      },
       grupos: grupos.map((g) => ({
         clientId: g.clientId,
         perfil: g.perfil,
         tipoMaterial: g.tipoMaterial,
         ...(g.tipoMaterial === 'REEMPREGO' ? { classificacao: g.classificacao } : {}),
-        ...(g.tipoMaterial === 'NOVO' ? { fabricante: g.fabricante || undefined } : {}),
+        ...(g.tipoMaterial === 'NOVO'
+          ? {
+              ...(g.marca ? { marca: g.marca } : {}),
+              ...(g.marca === 'OUTROS' ? { fabricanteOutro: g.fabricanteOutro || undefined } : {}),
+            }
+          : {}),
         medicoes: g.medicoes.map((m) => ({
           clientId: m.clientId,
           modo: m.modo,
@@ -260,7 +279,7 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
               {errosDados.placaCavalo && <p className="text-sm text-red-600">{errosDados.placaCavalo}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium" htmlFor="f-carreta">Placa da carreta</label>
+              <label className="block text-sm font-medium" htmlFor="f-carreta">Placa da carreta (opcional)</label>
               <input
                 id="f-carreta"
                 maxLength={7}
@@ -270,6 +289,16 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
               />
               {errosDados.placaCarreta && <p className="text-sm text-red-600">{errosDados.placaCarreta}</p>}
             </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium" htmlFor="f-transportadora">Transportadora (opcional)</label>
+            <input
+              id="f-transportadora"
+              className="mt-1 h-11 w-full rounded border px-3"
+              placeholder="Nome da empresa transportadora, não o veículo"
+              value={dados.transportadora}
+              onChange={(e) => setDados({ ...dados, transportadora: e.target.value })}
+            />
           </div>
           <div>
             <label className="block text-sm font-medium" htmlFor="f-resp">Responsável pelo preenchimento</label>
@@ -319,13 +348,40 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
                 </div>
               )}
               {g.tipoMaterial === 'NOVO' && (
-                <div className="mt-2">
-                  <label className="block text-sm">Fabricante (opcional)</label>
-                  <input
-                    className="mt-1 h-10 w-full rounded border px-2"
-                    value={g.fabricante ?? ''}
-                    onChange={(e) => atualizarGrupo(g.clientId, { fabricante: e.target.value })}
-                  />
+                <div className="mt-2 space-y-2">
+                  <div>
+                    <label className="block text-sm">Marca (opcional)</label>
+                    <select
+                      aria-label={`Marca do Grupo ${grupos.indexOf(g) + 1}`}
+                      className="mt-1 h-10 w-full rounded border px-2"
+                      value={g.marca ?? ''}
+                      onChange={(e) => {
+                        const marca = (e.target.value || undefined) as Marca | undefined;
+                        atualizarGrupo(g.clientId, {
+                          marca,
+                          fabricanteOutro: marca === 'OUTROS' ? g.fabricanteOutro : undefined,
+                        });
+                      }}
+                    >
+                      <option value="">Não informado</option>
+                      {MARCAS.map((m) => (
+                        <option key={m} value={m}>
+                          {m === 'OUTROS' ? 'Outros' : MARCA_LABEL[m]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {g.marca === 'OUTROS' && (
+                    <div>
+                      <label className="block text-sm">Qual fabricante?</label>
+                      <input
+                        aria-label={`Fabricante (outros) do Grupo ${grupos.indexOf(g) + 1}`}
+                        className="mt-1 h-10 w-full rounded border px-2"
+                        value={g.fabricanteOutro ?? ''}
+                        onChange={(e) => atualizarGrupo(g.clientId, { fabricanteOutro: e.target.value })}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
               <p className="mt-2 text-sm text-neutral-600">
@@ -448,8 +504,9 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
             <p>NF: {dados.numeroDocumento}</p>
             <p>Origem: {dados.origem}</p>
             <p>
-              Placas: {dados.placaCavalo} / {dados.placaCarreta}
+              Placas: {dados.placaCavalo} / {dados.placaCarreta || '—'}
             </p>
+            {dados.transportadora && <p>Transportadora: {dados.transportadora}</p>}
             <p>Responsável: {dados.responsavelPatio}</p>
           </div>
 

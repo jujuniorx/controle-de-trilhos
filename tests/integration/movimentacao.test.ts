@@ -27,7 +27,7 @@ describe('criarRecebimentoCaminhao', () => {
           clientId: uuid(),
           perfil: 'TR22',
           tipoMaterial: 'NOVO',
-          fabricante: 'ARCELORMITTAL',
+          marca: 'NIPPON',
           medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 4.65 }],
         },
       ],
@@ -39,8 +39,66 @@ describe('criarRecebimentoCaminhao', () => {
     expect(mov.grupos).toHaveLength(1);
     const grupo = mov.grupos[0];
     expect(grupo.tipoMaterial).toBe('NOVO');
-    expect(grupo.fabricante).toBe('ARCELORMITTAL');
+    expect(grupo.fabricante).toBe('Nippon');
     expect(Number(grupo.pesoCalculado)).toBe(0.102);
+  });
+
+  it('cria um recebimento com grupo NOVO e marca OUTROS, gravando o texto livre em fabricante', async () => {
+    const input = recebimentoCaminhaoSchema.parse({
+      clientId: uuid(),
+      dados: dadosBase(),
+      grupos: [
+        {
+          clientId: uuid(),
+          perfil: 'TR22',
+          tipoMaterial: 'NOVO',
+          marca: 'OUTROS',
+          fabricanteOutro: 'ARCELORMITTAL',
+          medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 4.65 }],
+        },
+      ],
+    });
+
+    const mov = await criarRecebimentoCaminhao(input);
+    const grupo = mov.grupos[0];
+    expect(grupo.fabricante).toBe('ARCELORMITTAL');
+  });
+
+  it('cria um recebimento só com placaCavalo (sem placaCarreta), persistindo placaCarreta nulo', async () => {
+    const input = recebimentoCaminhaoSchema.parse({
+      clientId: uuid(),
+      dados: { ...dadosBase(), placaCarreta: undefined },
+      grupos: [
+        {
+          clientId: uuid(),
+          perfil: 'TR22',
+          tipoMaterial: 'NOVO',
+          medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 4.65 }],
+        },
+      ],
+    });
+
+    const mov = await criarRecebimentoCaminhao(input);
+    expect(mov.placaCavalo).toBe('ABC1D23');
+    expect(mov.placaCarreta).toBeNull();
+  });
+
+  it('persiste a transportadora informada', async () => {
+    const input = recebimentoCaminhaoSchema.parse({
+      clientId: uuid(),
+      dados: { ...dadosBase(), transportadora: 'Translog Transportes' },
+      grupos: [
+        {
+          clientId: uuid(),
+          perfil: 'TR22',
+          tipoMaterial: 'NOVO',
+          medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 4.65 }],
+        },
+      ],
+    });
+
+    const mov = await criarRecebimentoCaminhao(input);
+    expect(mov.transportadora).toBe('Translog Transportes');
   });
 
   it('cria um recebimento com grupo REEMPREGO exigindo classificação e soma metros/peso corretamente', async () => {

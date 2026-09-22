@@ -152,4 +152,124 @@ describe('recebimentoCaminhaoSchema', () => {
     });
     expect(resultado.success).toBe(false);
   });
+
+  it('aceita placaCarreta ausente quando placaCavalo está presente', () => {
+    const dados = { ...dadosValidos(), placaCarreta: undefined };
+    const resultado = recebimentoCaminhaoSchema.safeParse({
+      clientId: uuid(),
+      dados,
+      grupos: [
+        {
+          clientId: uuid(),
+          perfil: 'TR22',
+          tipoMaterial: 'NOVO',
+          medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 8.73 }],
+        },
+      ],
+    });
+    expect(resultado.success).toBe(true);
+  });
+
+  it('rejeita quando nenhuma das duas placas está presente', () => {
+    const dados = { ...dadosValidos(), placaCavalo: undefined, placaCarreta: undefined };
+    const resultado = recebimentoCaminhaoSchema.safeParse({
+      clientId: uuid(),
+      dados,
+      grupos: [
+        {
+          clientId: uuid(),
+          perfil: 'TR22',
+          tipoMaterial: 'NOVO',
+          medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 8.73 }],
+        },
+      ],
+    });
+    expect(resultado.success).toBe(false);
+  });
+
+  it('aceita transportadora ausente', () => {
+    const dados = { ...dadosValidos(), transportadora: undefined };
+    const resultado = recebimentoCaminhaoSchema.safeParse({
+      clientId: uuid(),
+      dados,
+      grupos: [
+        {
+          clientId: uuid(),
+          perfil: 'TR22',
+          tipoMaterial: 'NOVO',
+          medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 8.73 }],
+        },
+      ],
+    });
+    expect(resultado.success).toBe(true);
+  });
+
+  it('aceita transportadora presente', () => {
+    const dados = { ...dadosValidos(), transportadora: 'Translog Transportes' };
+    const resultado = recebimentoCaminhaoSchema.safeParse({
+      clientId: uuid(),
+      dados,
+      grupos: [
+        {
+          clientId: uuid(),
+          perfil: 'TR22',
+          tipoMaterial: 'NOVO',
+          medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 8.73 }],
+        },
+      ],
+    });
+    expect(resultado.success).toBe(true);
+  });
+
+  it('aceita marca NIPPON sem fabricanteOutro em grupo NOVO', () => {
+    const resultado = recebimentoCaminhaoSchema.safeParse({
+      clientId: uuid(),
+      dados: dadosValidos(),
+      grupos: [
+        {
+          clientId: uuid(),
+          perfil: 'TR22',
+          tipoMaterial: 'NOVO',
+          marca: 'NIPPON',
+          medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 8.73 }],
+        },
+      ],
+    });
+    expect(resultado.success).toBe(true);
+  });
+
+  it('rejeita marca OUTROS sem fabricanteOutro em grupo NOVO', () => {
+    const resultado = recebimentoCaminhaoSchema.safeParse({
+      clientId: uuid(),
+      dados: dadosValidos(),
+      grupos: [
+        {
+          clientId: uuid(),
+          perfil: 'TR22',
+          tipoMaterial: 'NOVO',
+          marca: 'OUTROS',
+          medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 8.73 }],
+        },
+      ],
+    });
+    expect(resultado.success).toBe(false);
+  });
+
+  it('rejeita fabricanteOutro presente quando marca é NIPPON', () => {
+    const resultado = recebimentoCaminhaoSchema.safeParse({
+      clientId: uuid(),
+      dados: dadosValidos(),
+      grupos: [
+        {
+          clientId: uuid(),
+          perfil: 'TR22',
+          tipoMaterial: 'NOVO',
+          marca: 'NIPPON',
+          fabricanteOutro: 'Outro fabricante qualquer',
+          medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 8.73 }],
+        },
+      ],
+    });
+    expect(resultado.success).toBe(false);
+  });
 });

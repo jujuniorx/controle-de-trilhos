@@ -3,7 +3,15 @@ import { prisma } from '@/lib/db';
 import { calcularMetros, calcularPeso } from '@/lib/services/calculo';
 import { arredondar3 } from '@/lib/domain/regras';
 import { registrarHistorico } from '@/lib/services/historico';
-import type { RecebimentoCaminhaoInput } from '@/lib/validation/recebimento';
+import { MARCA_LABEL, type RecebimentoCaminhaoInput } from '@/lib/validation/recebimento';
+
+/** Deriva o texto gravado em Grupo.fabricante a partir da marca fechada (ou do texto livre quando "OUTROS"). */
+function resolverFabricante(
+  grupo: Extract<RecebimentoCaminhaoInput['grupos'][number], { tipoMaterial: 'NOVO' }>,
+): string | null {
+  if (!grupo.marca) return null;
+  return grupo.marca === 'OUTROS' ? grupo.fabricanteOutro ?? null : MARCA_LABEL[grupo.marca];
+}
 
 interface GrupoParaCriar {
   clientId: string;
@@ -58,7 +66,7 @@ async function prepararGrupos(input: RecebimentoCaminhaoInput): Promise<GrupoPar
       perfil: grupo.perfil,
       tipoMaterial: grupo.tipoMaterial,
       classificacao: grupo.tipoMaterial === 'REEMPREGO' ? grupo.classificacao : null,
-      fabricante: grupo.tipoMaterial === 'NOVO' ? grupo.fabricante ?? null : null,
+      fabricante: grupo.tipoMaterial === 'NOVO' ? resolverFabricante(grupo) : null,
       metrosTotal,
       pesoCalculado,
       medicoes: grupo.medicoes.map((m, i) => ({
@@ -93,7 +101,8 @@ export async function criarRecebimentoCaminhao(input: RecebimentoCaminhaoInput) 
         numeroDocumento: input.dados.numeroDocumento,
         tipoTransporte: 'CAMINHAO',
         placaCavalo: input.dados.placaCavalo,
-        placaCarreta: input.dados.placaCarreta,
+        placaCarreta: input.dados.placaCarreta ?? null,
+        transportadora: input.dados.transportadora ?? null,
         origem: input.dados.origem,
         responsavelPatio: input.dados.responsavelPatio,
         dataMovimentacao: new Date(`${input.dados.data}T00:00:00`),

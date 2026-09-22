@@ -123,6 +123,7 @@ model Movimentacao {
   tipoTransporte   TipoTransporte
   placaCavalo      String?
   placaCarreta     String?
+  transportadora   String?
   origem           String?
   destino          String?
   responsavelPatio String
