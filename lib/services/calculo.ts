@@ -1,28 +1,21 @@
-export type Perfil = 'TR22' | 'TR32' | 'TR37' | 'TR40' | 'TR45' | 'TR50' | 'TR54' | 'TR55' | 'TR57' | 'TR60' | 'TR68';
+import { prisma } from '@/lib/db';
+import { arredondar3, type Perfil } from '@/lib/domain/regras';
 
-export function fatorPerfil(perfil: Perfil): number {
-  const numero = Number(perfil.replace('TR', ''));
-  return numero / 1000;
+export type { Perfil } from '@/lib/domain/regras';
+export { calcularMetros, validarReemprego, arredondar3 } from '@/lib/domain/regras';
+
+export async function fatorPerfil(perfil: Perfil): Promise<number> {
+  const registro = await prisma.fatorPerfil.findUnique({ where: { perfil } });
+  if (!registro) throw new Error(`Fator do perfil ${perfil} ainda não cadastrado.`);
+  return Number(registro.fator);
 }
 
-export function calcularPeso(metros: number, perfil: Perfil): number {
-  const peso = metros * fatorPerfil(perfil);
-  return Math.round(peso * 1000) / 1000;
+export async function calcularPeso(metros: number, perfil: Perfil): Promise<number> {
+  const fator = await fatorPerfil(perfil);
+  return arredondar3(metros * fator);
 }
 
-export function calcularMetros(quantidade: number, comprimento: number): number {
-  return Math.round(quantidade * comprimento * 100) / 100;
-}
-
-export type ClassificacaoSC = 'SC1' | 'SC2' | 'SC3';
-
-export function classificarSC(comprimento: number): ClassificacaoSC {
-  if (comprimento >= 7.0 && comprimento <= 12.0) return 'SC1';
-  if (comprimento >= 3.0 && comprimento < 7.0) return 'SC2';
-  if (comprimento >= 0 && comprimento < 3.0) return 'SC3';
-  throw new Error(`Comprimento fora da faixa válida para sucata: ${comprimento}`);
-}
-
-export function validarReemprego(comprimento: number): boolean {
-  return comprimento >= 7.0;
+export async function listarFatoresCadastrados(): Promise<Partial<Record<Perfil, number>>> {
+  const registros = await prisma.fatorPerfil.findMany();
+  return Object.fromEntries(registros.map((r) => [r.perfil, Number(r.fator)])) as Partial<Record<Perfil, number>>;
 }

@@ -3,6 +3,8 @@ import { prisma } from '@/lib/db';
 import { registrarHistorico } from '@/lib/services/historico';
 
 describe('registrarHistorico', () => {
+  const movimentacaoIds: string[] = [];
+
   it('grava uma entrada de histórico para uma movimentação', async () => {
     const mov = await prisma.movimentacao.create({
       data: {
@@ -12,8 +14,10 @@ describe('registrarHistorico', () => {
         numeroDocumento: '000001',
         tipoTransporte: 'CAMINHAO',
         responsavelPatio: 'Teste',
+        dataMovimentacao: new Date(),
       },
     });
+    movimentacaoIds.push(mov.id);
 
     await registrarHistorico({ movimentacaoId: mov.id, usuarioNome: 'Teste', acao: 'CRIACAO' });
 
@@ -23,6 +27,8 @@ describe('registrarHistorico', () => {
   });
 
   afterAll(async () => {
+    await prisma.historicoAlteracao.deleteMany({ where: { movimentacaoId: { in: movimentacaoIds } } });
+    await prisma.movimentacao.deleteMany({ where: { id: { in: movimentacaoIds } } });
     await prisma.$disconnect();
   });
 });

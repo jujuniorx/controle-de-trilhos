@@ -67,12 +67,6 @@ enum ClassificacaoSC {
   SC3
 }
 
-enum StatusPeso {
-  CALCULADO
-  PENDENTE
-  CONFIRMADO
-}
-
 enum ModoMedicao {
   INDIVIDUAL
   QTD_COMPRIMENTO
@@ -132,10 +126,12 @@ model Movimentacao {
   origem           String?
   destino          String?
   responsavelPatio String
+  dataMovimentacao DateTime
   status           StatusMovimentacao @default(PENDENTE_CONFERENCIA)
   createdAt        DateTime           @default(now())
   conferidoPorId   String?
   conferidoEm      DateTime?
+  pesoSucataReal   Decimal?
 
   remetidoDetalhe RemetidoDetalhe?
   grupos          Grupo[]
@@ -159,9 +155,7 @@ model Grupo {
   classificacao  ClassificacaoReemprego?
   fabricante     String?
   metrosTotal    Decimal                 @default(0)
-  pesoCalculado  Decimal                 @default(0)
-  statusPeso     StatusPeso              @default(CALCULADO)
-  pesoReal       Decimal?
+  pesoCalculado  Decimal?
 
   medicoes Medicao[]
   anexos   Anexo[]
@@ -189,6 +183,11 @@ model Anexo {
   url            String
   uploadedById   String
   uploadedAt     DateTime     @default(now())
+}
+
+model FatorPerfil {
+  perfil PerfilTrilho @id
+  fator  Decimal
 }
 
 model HistoricoAlteracao {
