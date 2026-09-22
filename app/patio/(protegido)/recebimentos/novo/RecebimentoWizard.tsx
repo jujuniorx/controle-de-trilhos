@@ -9,7 +9,7 @@ import {
   PLACA_REGEX,
   MARCAS,
   MARCA_LABEL,
-  type RecebimentoCaminhaoInput,
+  recebimentoCaminhaoSchema,
 } from '@/lib/validation/recebimento';
 import { validarReemprego } from '@/lib/domain/regras';
 import { salvarRecebimentoLocal } from '@/lib/offline/db';
@@ -219,13 +219,21 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
       })),
     };
 
+    // Portão de validação local, ANTES de qualquer escrita no Dexie — roda mesmo
+    // offline (é só Zod, sem rede). Sem isso, um payload malformado seria salvo,
+    // navegado como se fosse sucesso, e só apareceria depois como ERRO não recuperável
+    // (reenviar o mesmo payload inválido para /api/sync falharia do mesmo jeito).
+    const parsed = recebimentoCaminhaoSchema.safeParse(payload);
+    if (!parsed.success) {
+      setEnviando(false);
+      setErroFinal('Dados inválidos. Revise os campos e tente novamente.');
+      return;
+    }
+
     try {
       // Gravação local (IndexedDB via Dexie) — sempre sucede, mesmo offline. É o
       // único caminho de escrita: não há mais uma Server Action síncrona separada.
-      // (payload é construído a partir do estado do wizard, ainda não validado por
-      // Zod — igual ao que a Server Action antiga recebia como `unknown`; a validação
-      // de schema acontece no servidor, em /api/sync, via sincronizarPendentes.)
-      await salvarRecebimentoLocal(payload as RecebimentoCaminhaoInput);
+      await salvarRecebimentoLocal(parsed.data);
     } catch {
       setEnviando(false);
       setErroFinal('Não foi possível salvar o recebimento neste dispositivo. Tente novamente.');
@@ -239,7 +247,7 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
     void sincronizarPendentes().catch(() => {});
 
     setEnviando(false);
-    router.push(`/patio/recebimentos/${payload.clientId}/confirmado`);
+    router.push(`/patio/recebimentos/${parsed.data.clientId}/confirmado`);
   }
 
   return (

@@ -141,4 +141,48 @@ describe('sincronizarPendentes', () => {
     expect(registro?.syncStatus).toBe('SINCRONIZADO');
     expect(registro?.serverId).toBe('ja-sincronizado');
   });
+
+  it('reclama um registro preso em SINCRONIZANDO além do limite (aba fechada/refresh/requisição travada) e o resincroniza com sucesso na mesma chamada', async () => {
+    const payload = montarPayload();
+    // Simula um registro órfão: entrou em SINCRONIZANDO numa sessão anterior (aba
+    // fechada, hard refresh, requisição que nunca voltou) e nunca mais foi tocado.
+    await db.recebimentos.put({
+      clientId: payload.clientId,
+      payload,
+      syncStatus: 'SINCRONIZANDO',
+      criadoEm: Date.now(),
+      syncIniciadoEm: Date.now() - 5 * 60 * 1000, // 5 minutos atrás — bem além do limite
+    });
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ ok: true, id: 'recuperado' }),
+    });
+
+    await sincronizarPendentes(fetchMock as unknown as typeof fetch);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const registro = await db.recebimentos.get(payload.clientId);
+    expect(registro?.syncStatus).toBe('SINCRONIZADO');
+    expect(registro?.serverId).toBe('recuperado');
+  });
+
+  it('não reclama um registro SINCRONIZANDO recente (pode ser uma requisição genuinamente em andamento nesta mesma sessão)', async () => {
+    const payload = montarPayload();
+    await db.recebimentos.put({
+      clientId: payload.clientId,
+      payload,
+      syncStatus: 'SINCRONIZANDO',
+      criadoEm: Date.now(),
+      syncIniciadoEm: Date.now(), // acabou de começar
+    });
+
+    const fetchMock = vi.fn();
+    await sincronizarPendentes(fetchMock as unknown as typeof fetch);
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    const registro = await db.recebimentos.get(payload.clientId);
+    expect(registro?.syncStatus).toBe('SINCRONIZANDO');
+  });
 });

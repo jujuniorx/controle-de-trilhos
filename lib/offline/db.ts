@@ -10,6 +10,11 @@ export interface RecebimentoLocal {
   erro?: string;
   criadoEm: number;
   serverId?: string;
+  // Timestamp (Date.now()) de quando o registro entrou em SINCRONIZANDO pela última
+  // vez. Usado por sincronizarPendentes (lib/offline/sync.ts) para reclamar registros
+  // órfãos — presos em SINCRONIZANDO porque a aba fechou/recarregou ou a requisição
+  // nunca retornou — de volta para PENDENTE.
+  syncIniciadoEm?: number;
 }
 
 class TrilhosDB extends Dexie {
