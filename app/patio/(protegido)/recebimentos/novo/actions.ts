@@ -2,6 +2,7 @@
 
 import { recebimentoCaminhaoSchema, type RecebimentoCaminhaoInput } from '@/lib/validation/recebimento';
 import { criarRecebimentoCaminhao } from '@/lib/services/movimentacao';
+import { requirePatioAcesso } from '@/lib/services/requirePatioAcesso';
 
 export interface CriarRecebimentoResultado {
   ok: boolean;
@@ -10,6 +11,8 @@ export interface CriarRecebimentoResultado {
 }
 
 export async function criarRecebimento(input: unknown): Promise<CriarRecebimentoResultado> {
+  await requirePatioAcesso();
+
   const parsed = recebimentoCaminhaoSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, erro: 'Dados inválidos. Revise os campos e tente novamente.' };
