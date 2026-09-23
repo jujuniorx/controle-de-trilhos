@@ -35,7 +35,8 @@ export default async function AdminHomePage() {
                 <td className="p-2">{m.numeroDocumento}</td>
                 <td className="p-2">{m.origem}</td>
                 <td className="p-2">
-                  {m.placaCavalo} / {m.placaCarreta}
+                  {m.placaCavalo}
+                  {m.placaCarreta ? ` / ${m.placaCarreta}` : ''}
                 </td>
                 <td className="p-2">{m.responsavelPatio}</td>
                 <td className="p-2">{m.status}</td>

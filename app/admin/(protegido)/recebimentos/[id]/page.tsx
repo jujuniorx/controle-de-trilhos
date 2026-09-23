@@ -71,7 +71,8 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
           <dd>{mov.tipoTransporte}</dd>
           <dt className="text-neutral-500">Caminhão (cavalo / carreta)</dt>
           <dd>
-            {mov.placaCavalo} / {mov.placaCarreta}
+            {mov.placaCavalo}
+            {mov.placaCarreta ? ` / ${mov.placaCarreta}` : ''}
           </dd>
           <dt className="text-neutral-500">Responsável (Pátio)</dt>
           <dd>{mov.responsavelPatio}</dd>

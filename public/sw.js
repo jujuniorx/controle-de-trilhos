@@ -1,4 +1,8 @@
-const CACHE_NAME = 'trilhos-app-shell-v1';
+// v2: o handler de fetch passou a recusar HTML/RSC autenticado, mas qualquer
+// tablet que rodou a versão anterior ainda tem esse conteúdo gravado em disco no
+// cache 'trilhos-app-shell-v1'. Trocar o nome faz o handler de `activate` abaixo
+// apagar o cache antigo inteiro na próxima ativação — é o que completa a correção.
+const CACHE_NAME = 'trilhos-app-shell-v2';
 const APP_SHELL = [
   '/',
   '/patio/acesso',
