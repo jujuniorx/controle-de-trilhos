@@ -1,5 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+/**
+ * Gera um nonce aleatório por requisição, Edge-safe (Web Crypto API + btoa —
+ * sem o módulo `crypto` do Node, que não está disponível no Edge Runtime).
+ * Usado para permitir um Content-Security-Policy estrito (`script-src` sem
+ * 'unsafe-inline') liberando apenas os scripts inline que o próprio
+ * Next.js injeta (payload de RSC) e que carregam este nonce.
+ */
+function gerarNonce(): string {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  let binario = '';
+  for (const byte of bytes) {
+    binario += String.fromCharCode(byte);
+  }
+  return btoa(binario);
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -15,7 +32,30 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  const nonce = gerarNonce();
+  const csp = [
+    "default-src 'self'",
+    "img-src 'self' data:",
+    "style-src 'self' 'unsafe-inline'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+  ].join('; ');
+
+  // Propaga o nonce e o CSP na própria requisição: é assim que o Next.js
+  // sabe qual nonce carimbar nos scripts inline que ele mesmo gera durante o
+  // SSR (ver "Nonce Processing Flow" na doc de CSP do Next.js).
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-nonce', nonce);
+  requestHeaders.set('Content-Security-Policy', csp);
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  response.headers.set('Content-Security-Policy', csp);
+
+  return response;
 }
 
-export const config = { matcher: ['/admin/:path*', '/patio/:path*'] };
+export const config = {
+  // Aplica a todas as rotas (páginas, rotas de API, etc.) exceto assets
+  // estáticos do build, que não precisam de CSP com nonce — mesma exclusão
+  // recomendada pela documentação do Next.js para este padrão.
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+};

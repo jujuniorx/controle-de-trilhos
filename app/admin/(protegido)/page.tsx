@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { listarPendentesConferencia } from '@/lib/services/movimentacao';
+import { requireAdmin } from '@/lib/services/requireAdmin';
 
 function fmtData(d: Date): string {
   return d.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
 }
 
 export default async function AdminHomePage() {
+  await requireAdmin();
   const movimentacoes = await listarPendentesConferencia();
 
   return (

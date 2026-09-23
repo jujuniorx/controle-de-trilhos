@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { buscarMovimentacaoDetalhe, resumoPeso } from '@/lib/services/movimentacao';
+import { requireAdmin } from '@/lib/services/requireAdmin';
 import { ConferenciaPainel } from './ConferenciaPainel';
 import { DocumentoPesagemPainel } from './DocumentoPesagemPainel';
 
@@ -30,6 +31,7 @@ const ACAO_LABEL: Record<string, string> = {
 };
 
 export default async function RecebimentoDetalhePage({ params }: { params: Promise<{ id: string }> }) {
+  await requireAdmin();
   const { id } = await params;
   const mov = await buscarMovimentacaoDetalhe(id);
   if (!mov) notFound();

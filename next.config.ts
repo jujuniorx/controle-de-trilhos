@@ -24,11 +24,11 @@ const nextConfig: NextConfig = {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains; preload",
           },
-          {
-            key: "Content-Security-Policy",
-            value:
-              "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'",
-          },
+          // Content-Security-Policy is intentionally NOT set here: it requires a
+          // per-request nonce (script-src 'nonce-<value>' 'strict-dynamic') to allow
+          // Next.js's inline RSC flight scripts without 'unsafe-inline'. A static
+          // value in next.config.ts can't carry a per-request nonce, so it's
+          // generated and set in middleware.ts instead. See middleware.ts.
         ],
       },
     ];
