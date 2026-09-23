@@ -131,6 +131,23 @@ describe('POST /api/sync', () => {
     expect(total).toBe(0);
   });
 
+  it('corpo que não é JSON válido → 400 limpo (não um 500 do handler padrão do Next)', async () => {
+    const token = await tokenAcessoValido();
+    comCookie(token);
+
+    const requisicao = new NextRequest('http://localhost/api/sync', {
+      method: 'POST',
+      body: 'isto não é json {',
+      headers: { 'content-type': 'application/json' },
+    });
+
+    const res = await POST(requisicao);
+
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(typeof json.erro).toBe('string');
+  });
+
   afterAll(async () => {
     await prisma.patioAcessoToken.deleteMany({ where: { id: { in: tokenIdsCriados } } });
     const ids = (

@@ -128,6 +128,77 @@ describe('sincronizarPendentes', () => {
     expect(registro?.erro).toBe('Fator do perfil não cadastrado.');
   });
 
+  it('volta para PENDENTE quando o servidor responde 503 (infraestrutura, recuperável) — e reenvia na chamada seguinte', async () => {
+    const payload = montarPayload();
+    await salvarRecebimentoLocal(payload);
+
+    const fetchIndisponivel = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 503,
+      json: async () => ({ ok: false, erro: 'Falha temporária ao sincronizar. Tentaremos novamente.' }),
+    });
+
+    await sincronizarPendentes(fetchIndisponivel as unknown as typeof fetch);
+
+    const aposFalha = await db.recebimentos.get(payload.clientId);
+    expect(aposFalha?.syncStatus).toBe('PENDENTE');
+    expect(aposFalha?.erro).toBeUndefined();
+
+    // O ponto da correção: continuar em PENDENTE é o que faz um gatilho posterior
+    // (evento `online`, intervalo de 30s) realmente reprocessar o registro.
+    const fetchRecuperado = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ ok: true, id: 'recuperado-apos-503' }),
+    });
+
+    await sincronizarPendentes(fetchRecuperado as unknown as typeof fetch);
+
+    expect(fetchRecuperado).toHaveBeenCalledTimes(1);
+    const aposRetry = await db.recebimentos.get(payload.clientId);
+    expect(aposRetry?.syncStatus).toBe('SINCRONIZADO');
+    expect(aposRetry?.serverId).toBe('recuperado-apos-503');
+  });
+
+  it.each([500, 502, 504, 408, 429])(
+    'volta para PENDENTE quando o servidor responde %i (falha transitória)',
+    async (status) => {
+      const payload = montarPayload();
+      await salvarRecebimentoLocal(payload);
+
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: false,
+        status,
+        json: async () => ({}),
+      });
+
+      await sincronizarPendentes(fetchMock as unknown as typeof fetch);
+
+      const registro = await db.recebimentos.get(payload.clientId);
+      expect(registro?.syncStatus).toBe('PENDENTE');
+    },
+  );
+
+  it('não reenvia indefinidamente um 400: mantém ERRO e para de tentar nas chamadas seguintes', async () => {
+    const payload = montarPayload();
+    await salvarRecebimentoLocal(payload);
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ erro: 'Corpo da requisição não é um JSON válido.' }),
+    });
+
+    await sincronizarPendentes(fetchMock as unknown as typeof fetch);
+    await sincronizarPendentes(fetchMock as unknown as typeof fetch);
+
+    // Uma única tentativa nas duas passagens — ERRO é terminal e não volta para a fila.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const registro = await db.recebimentos.get(payload.clientId);
+    expect(registro?.syncStatus).toBe('ERRO');
+    expect(registro?.erro).toBe('Corpo da requisição não é um JSON válido.');
+  });
+
   it('só tenta sincronizar registros PENDENTE, ignorando os já SINCRONIZADO', async () => {
     const payload = montarPayload();
     await salvarRecebimentoLocal(payload);

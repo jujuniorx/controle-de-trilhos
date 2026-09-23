@@ -1,12 +1,15 @@
 import { prisma } from '@/lib/db';
 import { arredondar3, type Perfil } from '@/lib/domain/regras';
+import { ErroRegraNegocio } from '@/lib/services/errors';
 
 export type { Perfil } from '@/lib/domain/regras';
 export { calcularMetros, validarReemprego, arredondar3 } from '@/lib/domain/regras';
 
 export async function fatorPerfil(perfil: Perfil): Promise<number> {
   const registro = await prisma.fatorPerfil.findUnique({ where: { perfil } });
-  if (!registro) throw new Error(`Fator do perfil ${perfil} ainda não cadastrado.`);
+  // Regra de negócio, não falha de infraestrutura: o fator precisa ser cadastrado
+  // por um admin. Reenviar o mesmo recebimento não resolve — ver ErroRegraNegocio.
+  if (!registro) throw new ErroRegraNegocio(`Fator do perfil ${perfil} ainda não cadastrado.`);
   return Number(registro.fator);
 }
 
