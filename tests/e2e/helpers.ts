@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 export async function entrarNoPatio(page: Page) {
   await page.goto('/patio/acesso');
@@ -9,6 +9,14 @@ export async function entrarNoPatio(page: Page) {
 
 export async function preencherDadosPatio(page: Page, nf: string, responsavel = 'Teste E2E') {
   await page.goto('/patio/recebimentos/novo');
+
+  // O wizard é um Client Component: o HTML do SSR aparece antes de o React hidratar,
+  // e o que for digitado nessa janela nunca chega ao estado do React (o campo mostra o
+  // texto, mas a validação continua vendo vazio). A data de hoje é um valor exclusivo
+  // do cliente (snapshot de servidor vazio), então o campo preenchido é justamente o
+  // sinal de que a página já hidratou e aceita digitação.
+  await expect(page.locator('#f-data')).not.toHaveValue('');
+
   await page.locator('#f-nf').fill(nf);
   await page.locator('#f-origem').fill('Rondonópolis');
   await page.locator('#f-cavalo').fill('ABC1D23');

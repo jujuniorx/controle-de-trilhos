@@ -40,6 +40,10 @@ async function criarRecebimentoMistoPeloPatio(page: import('@playwright/test').P
   await page.getByRole('button', { name: 'Ver resumo' }).click();
   await page.getByRole('button', { name: 'Finalizar e salvar' }).click();
   await page.waitForURL('**/confirmado');
+  // Fluxo local-first: a navegação acontece assim que o registro entra no IndexedDB,
+  // ANTES do POST /api/sync. O Administrativo lê do Postgres, então é preciso esperar
+  // a sincronização concluir — senão o recebimento ainda não existe para o admin.
+  await expect(page.getByText('Sincronizado com sucesso')).toBeVisible();
 }
 
 test.describe('Administrativo — conferência, peso real e documento de pesagem', () => {

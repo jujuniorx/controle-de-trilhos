@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   PERFIS,
@@ -53,6 +53,25 @@ function novoUuid(): string {
   return crypto.randomUUID();
 }
 
+/** A data de hoje não muda sozinha enquanto a tela está aberta: nada a assinar. */
+function semInscricao(): () => void {
+  return () => {};
+}
+
+/**
+ * Data de hoje no fuso do próprio tablet, em YYYY-MM-DD.
+ *
+ * Não usar `toISOString()`: ele converte para UTC, então num fuso negativo
+ * (BRT = UTC-3/-4) toda captura feita à noite já sairia com a data do dia
+ * seguinte — o recebimento seria registrado no dia errado.
+ */
+function dataDeHojeLocal(): string {
+  const agora = new Date();
+  const mes = String(agora.getMonth() + 1).padStart(2, '0');
+  const dia = String(agora.getDate()).padStart(2, '0');
+  return `${agora.getFullYear()}-${mes}-${dia}`;
+}
+
 function parseComprimento(texto: string): { valor?: number; erro?: string } {
   const t = texto.trim().replace(',', '.');
   if (!t) return { erro: 'Digite o comprimento, por exemplo 8,10.' };
@@ -87,8 +106,18 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
   const [clientId] = useState(novoUuid);
   const [step, setStep] = useState(1);
   const [attemptStep1, setAttemptStep1] = useState(false);
-  const [dados, setDados] = useState<Dados>({
-    data: new Date().toISOString().slice(0, 10),
+  const [dataTocada, setDataTocada] = useState(false);
+  // Data de hoje como valor exclusivamente do cliente: o snapshot de servidor é ''
+  // e o do cliente é o dia no fuso do tablet. Calcular a data durante a renderização
+  // faria servidor e cliente produzirem strings diferentes no MESMO input, e o React
+  // descarta a árvore SSR inteira num mismatch de hidratação — apagando, junto, tudo
+  // que o operador já tivesse digitado antes de a hidratação terminar.
+  const hoje = useSyncExternalStore(semInscricao, dataDeHojeLocal, () => '');
+  // `data` vazio na raiz significa "ainda não escolhida"; nesse caso o wizard exibe e
+  // usa `hoje`. Depois que o operador mexe no campo, o valor dele manda — inclusive
+  // se ele limpar o campo (a validação então cobra a data, como antes).
+  const [dadosBrutos, setDados] = useState<Dados>({
+    data: '',
     numeroDocumento: '',
     origem: '',
     placaCavalo: '',
@@ -102,6 +131,11 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
   const [modoDraft, setModoDraft] = useState<ModoMedicao>('INDIVIDUAL');
   const [enviando, setEnviando] = useState(false);
   const [erroFinal, setErroFinal] = useState('');
+
+  const dados = useMemo<Dados>(
+    () => (dataTocada ? dadosBrutos : { ...dadosBrutos, data: dadosBrutos.data || hoje }),
+    [dadosBrutos, dataTocada, hoje],
+  );
 
   const errosDados = attemptStep1 ? validarDados(dados) : {};
   const grupoAtivo = grupos.find((g) => g.clientId === activeGrupoId) ?? null;
@@ -264,7 +298,10 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
               type="date"
               className="mt-1 h-11 w-full rounded border px-3"
               value={dados.data}
-              onChange={(e) => setDados({ ...dados, data: e.target.value })}
+              onChange={(e) => {
+                setDataTocada(true);
+                setDados({ ...dados, data: e.target.value });
+              }}
             />
             {errosDados.data && <p className="text-sm text-red-600">{errosDados.data}</p>}
           </div>
