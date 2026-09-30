@@ -29,9 +29,13 @@ describe('autenticar', () => {
   });
 
   afterAll(async () => {
-    await prisma.session.deleteMany({});
-    await prisma.loginAttempt.deleteMany({});
-    await prisma.user.deleteMany({ where: { email: { in: ['login-teste@example.com', 'login-teste-2@example.com'] } } });
+    // Escopado aos registros criados por este teste — nunca apagar sessões ou
+    // tentativas de login (lockouts) de terceiros.
+    const emails = ['login-teste@example.com', 'login-teste-2@example.com'];
+    const usuarios = await prisma.user.findMany({ where: { email: { in: emails } }, select: { id: true } });
+    await prisma.session.deleteMany({ where: { userId: { in: usuarios.map((u) => u.id) } } });
+    await prisma.loginAttempt.deleteMany({ where: { identificador: { in: emails } } });
+    await prisma.user.deleteMany({ where: { email: { in: emails } } });
     await prisma.$disconnect();
   });
 });
