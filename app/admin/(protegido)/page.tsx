@@ -1,27 +1,34 @@
 import Link from 'next/link';
 import { listarPendentesConferencia } from '@/lib/services/movimentacao';
+import { listarAguardandoChegada } from '@/lib/services/remetido';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 
-function fmtData(d: Date): string {
-  return d.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+function fmtData(d: Date | null): string {
+  return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
 }
 
 export default async function AdminHomePage() {
   await requireAdmin();
-  const movimentacoes = await listarPendentesConferencia();
+  const [movimentacoes, aguardandoChegada] = await Promise.all([listarPendentesConferencia(), listarAguardandoChegada()]);
 
   return (
-    <main className="mx-auto max-w-4xl p-6">
-      <h1 className="text-lg font-semibold">Recebimentos pendentes de conferência</h1>
-      <p className="mt-1 text-sm text-neutral-600">{movimentacoes.length} recebimento(s) aguardando conferência.</p>
+    <main className="mx-auto max-w-4xl space-y-6 p-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-semibold">Movimentações pendentes de conferência</h1>
+        <Link href="/admin/remetidos/novo" className="rounded bg-neutral-900 px-3 py-2 text-sm font-medium text-white">
+          + Novo remetido
+        </Link>
+      </div>
+      <p className="text-sm text-neutral-600">{movimentacoes.length} movimentação(ões) aguardando conferência.</p>
 
-      <div className="mt-4 overflow-x-auto rounded border">
+      <div className="overflow-x-auto rounded border">
         <table className="w-full text-sm">
           <thead className="bg-neutral-100 text-left">
             <tr>
+              <th className="p-2">Tipo</th>
               <th className="p-2">Data</th>
               <th className="p-2">NF</th>
-              <th className="p-2">Origem</th>
+              <th className="p-2">Origem/Destino</th>
               <th className="p-2">Caminhão</th>
               <th className="p-2">Responsável</th>
               <th className="p-2">Status</th>
@@ -31,9 +38,10 @@ export default async function AdminHomePage() {
           <tbody>
             {movimentacoes.map((m) => (
               <tr key={m.id} className="border-t">
+                <td className="p-2">{m.tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'}</td>
                 <td className="p-2">{fmtData(m.dataMovimentacao)}</td>
-                <td className="p-2">{m.numeroDocumento}</td>
-                <td className="p-2">{m.origem}</td>
+                <td className="p-2">{m.numeroDocumento ?? 'Em aberto'}</td>
+                <td className="p-2">{m.tipo === 'RECEBIMENTO' ? m.origem : m.destino}</td>
                 <td className="p-2">
                   {m.placaCavalo}
                   {m.placaCarreta ? ` / ${m.placaCarreta}` : ''}
@@ -41,7 +49,10 @@ export default async function AdminHomePage() {
                 <td className="p-2">{m.responsavelPatio}</td>
                 <td className="p-2">{m.status}</td>
                 <td className="p-2 text-right">
-                  <Link href={`/admin/recebimentos/${m.id}`} className="text-blue-700 underline">
+                  <Link
+                    href={m.tipo === 'RECEBIMENTO' ? `/admin/recebimentos/${m.id}` : `/admin/remetidos/${m.id}`}
+                    className="text-blue-700 underline"
+                  >
                     Ver detalhes
                   </Link>
                 </td>
@@ -49,13 +60,51 @@ export default async function AdminHomePage() {
             ))}
             {movimentacoes.length === 0 && (
               <tr>
-                <td colSpan={7} className="p-4 text-center text-neutral-500">
-                  Nenhum recebimento pendente de conferência.
+                <td colSpan={8} className="p-4 text-center text-neutral-500">
+                  Nenhuma movimentação pendente de conferência.
                 </td>
               </tr>
             )}
           </tbody>
         </table>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold">Remetidos aguardando chegada</h2>
+        <p className="text-sm text-neutral-600">{aguardandoChegada.length} pré-cadastro(s) aguardando o Pátio confirmar.</p>
+        <div className="mt-2 overflow-x-auto rounded border">
+          <table className="w-full text-sm">
+            <thead className="bg-neutral-100 text-left">
+              <tr>
+                <th className="p-2">Reserva/Pedido</th>
+                <th className="p-2">Destino</th>
+                <th className="p-2">NF</th>
+                <th className="p-2" />
+              </tr>
+            </thead>
+            <tbody>
+              {aguardandoChegada.map((r) => (
+                <tr key={r.id} className="border-t">
+                  <td className="p-2">{r.reservaPedido}</td>
+                  <td className="p-2">{r.destino}</td>
+                  <td className="p-2">{r.numeroDocumento ?? 'Em aberto'}</td>
+                  <td className="p-2 text-right">
+                    <Link href={`/admin/remetidos/${r.id}`} className="text-blue-700 underline">
+                      Ver detalhes
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+              {aguardandoChegada.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="p-4 text-center text-neutral-500">
+                    Nenhum remetido aguardando chegada.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </main>
   );

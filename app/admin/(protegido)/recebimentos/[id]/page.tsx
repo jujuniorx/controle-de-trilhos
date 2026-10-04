@@ -5,8 +5,8 @@ import { requireAdmin } from '@/lib/services/requireAdmin';
 import { ConferenciaPainel } from './ConferenciaPainel';
 import { DocumentoPesagemPainel } from './DocumentoPesagemPainel';
 
-function fmtData(d: Date): string {
-  return d.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+function fmtData(d: Date | null): string {
+  return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
 }
 
 function fmtDataHora(d: Date): string {
@@ -174,7 +174,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
       {/* 6. Conferência */}
       <ConferenciaPainel
         movimentacaoId={mov.id}
-        status={mov.status}
+        status={mov.status as 'PENDENTE_CONFERENCIA' | 'CONFERIDO'}
         temSucata={resumo.temSucata}
         pesoSucataReal={resumo.pesoSucataReal}
       />

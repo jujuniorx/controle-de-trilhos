@@ -19,6 +19,7 @@ enum TipoMovimentacao {
 }
 
 enum StatusMovimentacao {
+  AGUARDANDO_CHEGADA
   PENDENTE_CONFERENCIA
   CONFERIDO
 }
@@ -119,15 +120,16 @@ model Movimentacao {
   clientId         String             @unique
   tipo             TipoMovimentacao
   tipoDocumento    String
-  numeroDocumento  String
+  numeroDocumento  String?
   tipoTransporte   TipoTransporte
   placaCavalo      String?
   placaCarreta     String?
   transportadora   String?
   origem           String?
   destino          String?
-  responsavelPatio String
-  dataMovimentacao DateTime
+  reservaPedido    String?
+  responsavelPatio String?
+  dataMovimentacao DateTime?
   status           StatusMovimentacao @default(PENDENTE_CONFERENCIA)
   createdAt        DateTime           @default(now())
   conferidoPorId   String?
@@ -157,6 +159,8 @@ model Grupo {
   fabricante     String?
   metrosTotal    Decimal                 @default(0)
   pesoCalculado  Decimal?
+  pesoInformado  Decimal?
+  tampao         Boolean                 @default(false)
 
   medicoes Medicao[]
   anexos   Anexo[]
