@@ -15,9 +15,14 @@ export default async function AdminHomePage() {
     <main className="mx-auto max-w-4xl space-y-6 p-6">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold">Movimentações pendentes de conferência</h1>
-        <Link href="/admin/remetidos/novo" className="rounded bg-neutral-900 px-3 py-2 text-sm font-medium text-white">
-          + Novo remetido
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/admin/relatorios" className="rounded border border-neutral-900 px-3 py-2 text-sm font-medium text-neutral-900">
+            Relatórios
+          </Link>
+          <Link href="/admin/remetidos/novo" className="rounded bg-neutral-900 px-3 py-2 text-sm font-medium text-white">
+            + Novo remetido
+          </Link>
+        </div>
       </div>
       <p className="text-sm text-neutral-600">{movimentacoes.length} movimentação(ões) aguardando conferência.</p>
 
