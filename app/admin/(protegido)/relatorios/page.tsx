@@ -100,6 +100,9 @@ export default async function RelatoriosPage({
   const [movimentacoes, pendencias] = await Promise.all([buscarMovimentacoesRelatorio(filtros), listarPendencias()]);
   const resumo = resumoRelatorio(movimentacoes);
   const temFiltro = Object.values(filtros).some((v) => v !== undefined);
+  const queryString = new URLSearchParams(
+    Object.entries(filtros).filter((entry): entry is [string, string] => entry[1] !== undefined),
+  ).toString();
 
   return (
     <main className="mx-auto max-w-5xl space-y-6 p-6">
@@ -202,9 +205,17 @@ export default async function RelatoriosPage({
       </div>
 
       <section className="space-y-2">
-        <h2 className="font-semibold text-neutral-800">
-          Movimentações <span className="font-normal text-neutral-500">({movimentacoes.length})</span>
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-semibold text-neutral-800">
+            Movimentações <span className="font-normal text-neutral-500">({movimentacoes.length})</span>
+          </h2>
+          <a
+            href={`/api/relatorios/exportar${queryString ? `?${queryString}` : ''}`}
+            className="rounded border border-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-900"
+          >
+            Exportar Excel
+          </a>
+        </div>
         <div className="overflow-x-auto rounded border bg-white">
           <table className="w-full text-sm">
             <thead className="bg-neutral-100 text-left">
