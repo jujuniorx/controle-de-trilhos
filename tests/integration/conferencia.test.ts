@@ -3,6 +3,8 @@ import { prisma } from '@/lib/db';
 import { criarRecebimentoCaminhao, buscarMovimentacaoDetalhe, resumoPeso } from '@/lib/services/movimentacao';
 import { informarPesoSucataReal, conferirRecebimento, ConferenciaError } from '@/lib/services/conferencia';
 import { recebimentoCaminhaoSchema } from '@/lib/validation/recebimento';
+import { criarPreCadastroRemetido, confirmarRemetido } from '@/lib/services/remetido';
+import { preCadastroRemetidoSchema, confirmacaoRemetidoSchema } from '@/lib/validation/remetido';
 
 const uuid = () => crypto.randomUUID();
 const RESPONSAVEL = 'Teste Integração Conferencia';
@@ -180,6 +182,35 @@ describe('informarPesoSucataReal', () => {
     await expect(informarPesoSucataReal(mov.id, 1, ADMIN)).rejects.toThrow(/não possui grupo de sucata/);
   });
 
+  it('rejeita informar peso passando o id de um Remetido (endurecimento contra confusão de tipo)', async () => {
+    const preCadastro = await criarPreCadastroRemetido(
+      crypto.randomUUID(),
+      preCadastroRemetidoSchema.parse({ tipoRemetido: 'VENDA', reservaPedido: 'TESTE-CONFERENCIA-REMETIDO', destino: 'X' }),
+    );
+    const remetido = await confirmarRemetido(
+      preCadastro.id,
+      confirmacaoRemetidoSchema.parse({
+        dados: {
+          data: '2026-10-04',
+          numeroDocumento: String(Math.floor(Math.random() * 900000) + 100000),
+          placaCavalo: 'ABC1D23',
+          responsavelPatio: RESPONSAVEL,
+        },
+        grupos: [
+          {
+            clientId: crypto.randomUUID(),
+            perfil: 'TR22',
+            tipoMaterial: 'SUCATA',
+            pesoInformado: 1,
+            medicoes: [{ clientId: crypto.randomUUID(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 8, classificacaoSC: 'SC1' }],
+          },
+        ],
+      }),
+    );
+
+    await expect(informarPesoSucataReal(remetido.id, 1, ADMIN)).rejects.toThrow(/não encontrado/i);
+  });
+
   it('16. toda alteração de peso registra usuário e data/hora no histórico', async () => {
     const mov = await criarComUmaSucata();
     await informarPesoSucataReal(mov.id, 1.25, ADMIN);
@@ -218,6 +249,7 @@ afterAll(async () => {
   await prisma.anexo.deleteMany({ where: { movimentacaoId: { in: ids } } });
   await prisma.medicao.deleteMany({ where: { grupo: { movimentacaoId: { in: ids } } } });
   await prisma.grupo.deleteMany({ where: { movimentacaoId: { in: ids } } });
+  await prisma.remetidoDetalhe.deleteMany({ where: { movimentacaoId: { in: ids } } });
   await prisma.movimentacao.deleteMany({ where: { id: { in: ids } } });
   await prisma.$disconnect();
 });

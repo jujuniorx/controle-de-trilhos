@@ -51,7 +51,7 @@ export async function confirmarRemetido(
   input: ConfirmacaoRemetidoInput,
 ): Promise<MovimentacaoRemetidoComGrupos> {
   const existente = await prisma.movimentacao.findUnique({ where: { id: movimentacaoId } });
-  if (!existente) throw new ErroRegraNegocio('Remetido não encontrado.');
+  if (!existente || existente.tipo !== 'REMETIDO') throw new ErroRegraNegocio('Remetido não encontrado.');
   if (existente.status !== 'AGUARDANDO_CHEGADA') {
     throw new ErroRegraNegocio('Este remetido não está mais aguardando chegada.');
   }
@@ -139,7 +139,7 @@ export async function informarNumeroDocumentoRemetido(
   usuario: UsuarioAdmin,
 ): Promise<void> {
   const mov = await prisma.movimentacao.findUnique({ where: { id: movimentacaoId } });
-  if (!mov) throw new ErroRegraNegocio('Remetido não encontrado.');
+  if (!mov || mov.tipo !== 'REMETIDO') throw new ErroRegraNegocio('Remetido não encontrado.');
 
   const valorAnterior = mov.numeroDocumento;
   const reabrindo = mov.status === 'CONFERIDO';

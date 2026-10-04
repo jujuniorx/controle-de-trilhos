@@ -29,7 +29,7 @@ export async function informarPesoSucataReal(
     where: { id: movimentacaoId },
     include: { grupos: { select: { tipoMaterial: true } } },
   });
-  if (!mov) throw new ConferenciaError('Recebimento não encontrado.');
+  if (!mov || mov.tipo !== 'RECEBIMENTO') throw new ConferenciaError('Recebimento não encontrado.');
 
   const temSucata = mov.grupos.some((g) => g.tipoMaterial === 'SUCATA');
   if (!temSucata) throw new ConferenciaError('Este recebimento não possui grupo de sucata.');

@@ -3,6 +3,8 @@ import { prisma } from '@/lib/db';
 import { preCadastroRemetidoSchema, confirmacaoRemetidoSchema } from '@/lib/validation/remetido';
 import { criarPreCadastroRemetido, confirmarRemetido, informarNumeroDocumentoRemetido } from '@/lib/services/remetido';
 import { conferirRecebimento } from '@/lib/services/conferencia';
+import { criarRecebimentoCaminhao } from '@/lib/services/movimentacao';
+import { recebimentoCaminhaoSchema } from '@/lib/validation/recebimento';
 
 const uuid = () => crypto.randomUUID();
 const RESERVA_MARCADOR = 'TESTE-INTEGRACAO-REMETIDO';
@@ -19,6 +21,30 @@ function preCadastroBase(overrides: Record<string, unknown> = {}) {
 
 async function criarPreCadastro(overrides: Record<string, unknown> = {}) {
   return criarPreCadastroRemetido(uuid(), preCadastroBase(overrides));
+}
+
+/** Um Recebimento marcado, usado só para testar que as funções de Remetido rejeitam ids de outro tipo. */
+async function criarRecebimentoMarcado() {
+  return criarRecebimentoCaminhao(
+    recebimentoCaminhaoSchema.parse({
+      clientId: uuid(),
+      dados: {
+        data: '2026-10-04',
+        numeroDocumento: String(Math.floor(Math.random() * 900000) + 100000),
+        origem: RESERVA_MARCADOR,
+        placaCavalo: 'ABC1D23',
+        responsavelPatio: 'Teste Integração Remetido',
+      },
+      grupos: [
+        {
+          clientId: uuid(),
+          perfil: 'TR22',
+          tipoMaterial: 'NOVO',
+          medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 10 }],
+        },
+      ],
+    }),
+  );
 }
 
 function dadosConfirmacaoBase() {
@@ -161,6 +187,24 @@ describe('confirmarRemetido', () => {
     await expect(confirmarRemetido(preCadastro.id, input)).rejects.toThrow(/aguardando chegada/i);
   });
 
+  it('rejeita confirmar passando o id de um Recebimento (endurecimento contra confusão de tipo)', async () => {
+    const recebimento = await criarRecebimentoMarcado();
+    const input = confirmacaoRemetidoSchema.parse({
+      dados: dadosConfirmacaoBase(),
+      grupos: [
+        {
+          clientId: uuid(),
+          perfil: 'TR22',
+          tipoMaterial: 'NOVO',
+          pesoInformado: 5,
+          medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 4.65 }],
+        },
+      ],
+    });
+
+    await expect(confirmarRemetido(recebimento.id, input)).rejects.toThrow(/não encontrado/i);
+  });
+
   it('persiste grupo SUCATA com pesoInformado e classificacaoSC por medição', async () => {
     const preCadastro = await criarPreCadastro();
     const input = confirmacaoRemetidoSchema.parse({
@@ -252,10 +296,15 @@ describe('informarNumeroDocumentoRemetido', () => {
     expect(reaberto.numeroDocumento).toBe('222000');
   });
 
+  it('rejeita informar NF passando o id de um Recebimento (endurecimento contra confusão de tipo)', async () => {
+    const recebimento = await criarRecebimentoMarcado();
+    await expect(informarNumeroDocumentoRemetido(recebimento.id, '123456', ADMIN)).rejects.toThrow(/não encontrado/i);
+  });
+
   afterAll(async () => {
     const ids = (
       await prisma.movimentacao.findMany({
-        where: { reservaPedido: { startsWith: RESERVA_MARCADOR } },
+        where: { OR: [{ reservaPedido: { startsWith: RESERVA_MARCADOR } }, { origem: RESERVA_MARCADOR }] },
         select: { id: true },
       })
     ).map((m) => m.id);
