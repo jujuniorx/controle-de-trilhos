@@ -6,8 +6,18 @@ export async function hashSegredo(valor: string): Promise<string> {
   return argon2.hash(valor);
 }
 
+/**
+ * Nunca deixa um erro do argon2 (ex.: hash mal configurado/corrompido no
+ * ambiente) vazar como exceção não tratada — isso derrubaria a Server Action
+ * antes mesmo de registrar a tentativa no controle de força bruta. Falha
+ * fechado: hash inválido é tratado como "não bate", nunca como sucesso.
+ */
 export async function verificarSegredo(valor: string, hash: string): Promise<boolean> {
-  return argon2.verify(hash, valor);
+  try {
+    return await argon2.verify(hash, valor);
+  } catch {
+    return false;
+  }
 }
 
 function hashToken(token: string): string {

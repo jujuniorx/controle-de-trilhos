@@ -7,4 +7,10 @@ describe('hashSegredo/verificarSegredo', () => {
     expect(await verificarSegredo('senha-correta', hash)).toBe(true);
     expect(await verificarSegredo('senha-errada', hash)).toBe(false);
   });
+
+  it('trata hash mal formado (ex.: configurado com escape indevido) como "não bate", sem lançar exceção', async () => {
+    const hashValido = await hashSegredo('senha-correta');
+    const hashComEscapeIndevido = hashValido.replaceAll('$', '\\$');
+    await expect(verificarSegredo('senha-correta', hashComEscapeIndevido)).resolves.toBe(false);
+  });
 });
