@@ -1,5 +1,10 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Produção
+
+- URL: https://controle-de-trilhos.vercel.app
+- Branch de produção na Vercel: `claude/vibrant-feynman-bdpcbc` (não `master` — `master` só guarda documentação por convenção deste projeto). Um push nesta branch dispara deploy automático.
+
 ## Getting Started
 
 First, run the development server:
