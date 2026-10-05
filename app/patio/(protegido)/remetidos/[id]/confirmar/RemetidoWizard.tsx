@@ -417,13 +417,13 @@ export function RemetidoWizard({ movimentacaoId, numeroDocumentoPreCadastrado }:
                 <div className="mt-2 rounded border p-2">
                   <div className="flex gap-2 text-sm">
                     <button
-                      className={`rounded px-2 py-1 ${modoDraft === 'INDIVIDUAL' ? 'bg-neutral-900 text-white' : 'border'}`}
+                      className={`rounded px-2 py-1 ${modoDraft === 'INDIVIDUAL' ? 'bg-steel text-white' : 'border'}`}
                       onClick={() => setModoDraft('INDIVIDUAL')}
                     >
                       Individual
                     </button>
                     <button
-                      className={`rounded px-2 py-1 ${modoDraft === 'QTD_COMPRIMENTO' ? 'bg-neutral-900 text-white' : 'border'}`}
+                      className={`rounded px-2 py-1 ${modoDraft === 'QTD_COMPRIMENTO' ? 'bg-steel text-white' : 'border'}`}
                       onClick={() => setModoDraft('QTD_COMPRIMENTO')}
                     >
                       Qtd × comprimento
@@ -459,7 +459,7 @@ export function RemetidoWizard({ movimentacaoId, numeroDocumentoPreCadastrado }:
                         ))}
                       </select>
                     )}
-                    <button className="h-10 rounded bg-neutral-900 px-3 text-white" onClick={adicionarMedicao}>
+                    <button className="h-10 rounded bg-steel px-3 text-white" onClick={adicionarMedicao}>
                       Adicionar
                     </button>
                   </div>
@@ -493,7 +493,7 @@ export function RemetidoWizard({ movimentacaoId, numeroDocumentoPreCadastrado }:
             <option value="REEMPREGO">REEMPREGO</option>
             <option value="SUCATA">SUCATA</option>
           </select>
-          <button className="h-11 rounded bg-neutral-900 px-3 text-white" onClick={adicionarGrupo} disabled={!draftPerfil}>
+          <button className="h-11 rounded bg-steel px-3 text-white" onClick={adicionarGrupo} disabled={!draftPerfil}>
             Adicionar grupo
           </button>
         </div>
@@ -506,7 +506,7 @@ export function RemetidoWizard({ movimentacaoId, numeroDocumentoPreCadastrado }:
 
       {erroFinal && <p role="alert" className="text-sm text-red-600">{erroFinal}</p>}
       <button
-        className="h-12 w-full rounded bg-neutral-900 font-medium text-white disabled:bg-neutral-300"
+        className="h-12 w-full rounded bg-steel font-medium text-white disabled:bg-neutral-300"
         disabled={enviando}
         onClick={confirmar}
       >

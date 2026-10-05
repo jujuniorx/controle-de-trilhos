@@ -88,7 +88,7 @@ export function ConferenciaPainel({ movimentacaoId, status, temSucata, pesoSucat
               }}
             />
             <button
-              className="h-11 rounded bg-neutral-900 px-4 text-white disabled:bg-neutral-300"
+              className="h-11 rounded bg-steel px-4 text-white disabled:bg-neutral-300"
               disabled={salvandoPeso}
               onClick={salvarPeso}
             >
@@ -101,7 +101,7 @@ export function ConferenciaPainel({ movimentacaoId, status, temSucata, pesoSucat
 
       <div className="mt-3">
         <button
-          className="h-12 w-full rounded bg-neutral-900 font-medium text-white disabled:bg-neutral-300"
+          className="h-12 w-full rounded bg-steel font-medium text-white disabled:bg-neutral-300"
           disabled={!podeConferir || conferindo}
           onClick={conferir}
         >

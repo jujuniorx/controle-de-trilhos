@@ -9,13 +9,13 @@ export default function PatioHomePage() {
       </p>
       <Link
         href="/patio/recebimentos/novo"
-        className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-lg bg-neutral-900 px-4 font-medium text-white"
+        className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-lg bg-steel px-4 font-medium text-white"
       >
         Novo recebimento
       </Link>
       <Link
         href="/patio/remetidos"
-        className="mt-3 inline-flex h-12 w-full items-center justify-center rounded-lg border border-neutral-900 px-4 font-medium text-neutral-900"
+        className="mt-3 inline-flex h-12 w-full items-center justify-center rounded-lg border border-steel px-4 font-medium text-steel-dark"
       >
         Remetidos aguardando chegada
       </Link>

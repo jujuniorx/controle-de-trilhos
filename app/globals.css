@@ -1,22 +1,27 @@
 @import "tailwindcss";
 
+/* Design sempre claro, independente de prefers-color-scheme do dispositivo
+   (decisão explícita — ver prototipos/). Um tablet de pátio ou celular com
+   modo escuro do sistema não deve mudar a aparência do app. */
 :root {
+  color-scheme: light;
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1e262e;
+
+  /* Azul-aço da identidade visual (prototipos/patio/controle-de-trilhos-patio.html) */
+  --steel: #2f6690;
+  --steel-dark: #234e70;
+  --steel-light: #e1ecf5;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-steel: var(--steel);
+  --color-steel-dark: var(--steel-dark);
+  --color-steel-light: var(--steel-light);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {

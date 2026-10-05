@@ -9,13 +9,13 @@ export default function Home() {
       <div className="mt-6 w-full space-y-3">
         <Link
           href="/patio/acesso"
-          className="flex h-12 w-full items-center justify-center rounded-lg bg-neutral-900 px-4 font-medium text-white"
+          className="flex h-12 w-full items-center justify-center rounded-lg bg-steel px-4 font-medium text-white"
         >
           Acesso do Pátio
         </Link>
         <Link
           href="/admin/login"
-          className="flex h-12 w-full items-center justify-center rounded-lg border border-neutral-900 px-4 font-medium text-neutral-900"
+          className="flex h-12 w-full items-center justify-center rounded-lg border border-steel px-4 font-medium text-steel-dark"
         >
           Login do Administrativo
         </Link>

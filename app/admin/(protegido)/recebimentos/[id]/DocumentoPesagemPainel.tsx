@@ -90,7 +90,7 @@ export function DocumentoPesagemPainel({ movimentacaoId, anexo }: Props) {
       <div className="mt-3 flex items-center gap-2">
         <input ref={inputRef} type="file" accept={FORMATOS_ACEITOS} className="text-sm" />
         <button
-          className="h-10 rounded bg-neutral-900 px-4 text-sm text-white disabled:bg-neutral-300"
+          className="h-10 rounded bg-steel px-4 text-sm text-white disabled:bg-neutral-300"
           disabled={enviando}
           onClick={enviar}
         >

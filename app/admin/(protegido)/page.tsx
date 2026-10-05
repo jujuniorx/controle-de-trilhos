@@ -16,10 +16,10 @@ export default async function AdminHomePage() {
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold">Movimentações pendentes de conferência</h1>
         <div className="flex gap-2">
-          <Link href="/admin/relatorios" className="rounded border border-neutral-900 px-3 py-2 text-sm font-medium text-neutral-900">
+          <Link href="/admin/relatorios" className="rounded border border-steel px-3 py-2 text-sm font-medium text-steel-dark">
             Relatórios
           </Link>
-          <Link href="/admin/remetidos/novo" className="rounded bg-neutral-900 px-3 py-2 text-sm font-medium text-white">
+          <Link href="/admin/remetidos/novo" className="rounded bg-steel px-3 py-2 text-sm font-medium text-white">
             + Novo remetido
           </Link>
         </div>

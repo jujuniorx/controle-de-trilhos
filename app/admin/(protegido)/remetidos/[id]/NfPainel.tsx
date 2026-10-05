@@ -39,7 +39,7 @@ export function NfPainel({ movimentacaoId }: { movimentacaoId: string }) {
           }}
         />
         <button
-          className="h-11 rounded bg-neutral-900 px-4 text-white disabled:bg-neutral-300"
+          className="h-11 rounded bg-steel px-4 text-white disabled:bg-neutral-300"
           disabled={salvando}
           onClick={salvar}
         >

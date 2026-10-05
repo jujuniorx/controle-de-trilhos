@@ -371,7 +371,7 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
             />
             {errosDados.responsavelPatio && <p className="text-sm text-red-600">{errosDados.responsavelPatio}</p>}
           </div>
-          <button className="h-12 w-full rounded bg-neutral-900 font-medium text-white" onClick={proximoDeDados}>
+          <button className="h-12 w-full rounded bg-steel font-medium text-white" onClick={proximoDeDados}>
             Próximo
           </button>
         </section>
@@ -464,7 +464,7 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
               Voltar
             </button>
             <button
-              className="h-12 flex-1 rounded bg-neutral-900 font-medium text-white disabled:bg-neutral-300"
+              className="h-12 flex-1 rounded bg-steel font-medium text-white disabled:bg-neutral-300"
               disabled={grupos.length === 0}
               onClick={() => irPara(4)}
             >
@@ -485,13 +485,13 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
 
           <div className="flex gap-2">
             <button
-              className={`h-10 flex-1 rounded border ${modoDraft === 'INDIVIDUAL' ? 'bg-neutral-900 text-white' : ''}`}
+              className={`h-10 flex-1 rounded border ${modoDraft === 'INDIVIDUAL' ? 'bg-steel text-white' : ''}`}
               onClick={() => setModoDraft('INDIVIDUAL')}
             >
               Individual
             </button>
             <button
-              className={`h-10 flex-1 rounded border ${modoDraft === 'QTD_COMPRIMENTO' ? 'bg-neutral-900 text-white' : ''}`}
+              className={`h-10 flex-1 rounded border ${modoDraft === 'QTD_COMPRIMENTO' ? 'bg-steel text-white' : ''}`}
               onClick={() => setModoDraft('QTD_COMPRIMENTO')}
             >
               Quantidade × comprimento
@@ -529,7 +529,7 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
                 ))}
               </select>
             )}
-            <button className="h-11 rounded bg-neutral-900 px-4 text-white" onClick={adicionarMedicao}>
+            <button className="h-11 rounded bg-steel px-4 text-white" onClick={adicionarMedicao}>
               Adicionar
             </button>
           </div>
@@ -551,7 +551,7 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
           </ol>
 
           <p className="text-right font-medium">Total do grupo: {metrosDoGrupo(grupoAtivo).toFixed(2)} m</p>
-          <button className="h-12 w-full rounded bg-neutral-900 font-medium text-white" onClick={() => irPara(2)}>
+          <button className="h-12 w-full rounded bg-steel font-medium text-white" onClick={() => irPara(2)}>
             Voltar aos grupos
           </button>
         </section>
@@ -618,7 +618,7 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
               Voltar
             </button>
             <button
-              className="h-12 flex-1 rounded bg-neutral-900 font-medium text-white disabled:bg-neutral-300"
+              className="h-12 flex-1 rounded bg-steel font-medium text-white disabled:bg-neutral-300"
               disabled={enviando || grupos.length === 0 || grupos.some(grupoIncompleto)}
               onClick={finalizar}
             >
@@ -667,7 +667,7 @@ function NovoGrupoForm({ onAdd }: { onAdd: (perfil: string, tipoMaterial: TipoMa
         </select>
       </div>
       <button
-        className="h-10 rounded bg-neutral-900 px-4 text-white disabled:bg-neutral-300"
+        className="h-10 rounded bg-steel px-4 text-white disabled:bg-neutral-300"
         disabled={!perfil}
         onClick={() => {
           if (!perfil) return;

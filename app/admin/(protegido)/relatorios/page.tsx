@@ -174,7 +174,7 @@ export default async function RelatoriosPage({
           </div>
         </div>
         <div className="mt-3 flex gap-2">
-          <button type="submit" className="h-10 rounded bg-neutral-900 px-4 text-sm font-medium text-white">
+          <button type="submit" className="h-10 rounded bg-steel px-4 text-sm font-medium text-white">
             Filtrar
           </button>
           {temFiltro && (
@@ -211,7 +211,7 @@ export default async function RelatoriosPage({
           </h2>
           <a
             href={`/api/relatorios/exportar${queryString ? `?${queryString}` : ''}`}
-            className="rounded border border-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-900"
+            className="rounded border border-steel px-3 py-1.5 text-sm font-medium text-steel-dark"
           >
             Exportar Excel
           </a>

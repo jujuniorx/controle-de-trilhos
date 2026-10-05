@@ -81,7 +81,7 @@ export default function NovoRemetidoPage() {
         <button
           type="submit"
           disabled={enviando}
-          className="h-12 w-full rounded bg-neutral-900 font-medium text-white disabled:bg-neutral-300"
+          className="h-12 w-full rounded bg-steel font-medium text-white disabled:bg-neutral-300"
         >
           {enviando ? 'Salvando...' : 'Criar pré-cadastro'}
         </button>
