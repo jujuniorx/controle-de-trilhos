@@ -8,10 +8,85 @@
   --background: #ffffff;
   --foreground: #1e262e;
 
-  /* Azul-aço da identidade visual (prototipos/patio/controle-de-trilhos-patio.html) */
+  /* Azul-aço (alias de --patio-steel, mesmo valor) — mantido por compatibilidade
+     com páginas do Pátio que já usam bg-steel/text-steel-dark diretamente. */
   --steel: #2f6690;
   --steel-dark: #234e70;
   --steel-light: #e1ecf5;
+
+  /* Admin — valores exatos de prototipos/administrativo/style.css */
+  --admin-navy: #0b1b31;
+  --admin-blue: #0f5fcc;
+  --admin-blue-dark: #0a4ba6;
+  --admin-blue-light: #e6eefa;
+  --admin-ok: #1e8449;
+  --admin-ok-light: #dcf2e3;
+  --admin-ok-dark: #176b3b;
+  --admin-warn: #f0a020;
+  --admin-warn-light: #fdebcb;
+  --admin-warn-dark: #9a5300;
+  --admin-bad: #c63b2e;
+  --admin-bad-light: #fce6e3;
+  --admin-line: #dfe5ec;
+
+  /* Pátio — valores exatos de prototipos/patio/controle-de-trilhos-patio.html */
+  --patio-gr: #1e262e;
+  --patio-steel: #2f6690;
+  --patio-steel-dark: #234e70;
+  --patio-steel-light: #e1ecf5;
+  --patio-mist: #eef1f4;
+  --patio-line: #d5dce3;
+  --patio-ok: #1f8a5b;
+  --patio-ok-light: #ddf1e6;
+  --patio-ok-dark: #17683f;
+  --patio-warn: #e39b1b;
+  --patio-warn-light: #fbefd3;
+  --patio-warn-dark: #7d5200;
+  --patio-bad: #c4392d;
+  --patio-bad-light: #fbe4e1;
+
+  /* Semânticos — o que components/ui/* consome. Default = paleta Admin;
+     .area-patio redefine abaixo por cascata (sem duplicar componente). */
+  --primary: var(--admin-blue);
+  --primary-dark: var(--admin-blue-dark);
+  --primary-light: var(--admin-blue-light);
+  --surface: #ffffff;
+  --line: var(--admin-line);
+  --ink: #14202e;
+  --ink-muted: #5e6c7c;
+  --ok: var(--admin-ok);
+  --ok-light: var(--admin-ok-light);
+  --ok-dark: var(--admin-ok-dark);
+  --warn: var(--admin-warn);
+  --warn-light: var(--admin-warn-light);
+  --warn-dark: var(--admin-warn-dark);
+  --bad: var(--admin-bad);
+  --bad-light: var(--admin-bad-light);
+  --card-radius: 8px;
+  --card-shadow: 0 1px 2px rgba(15, 35, 65, .05), 0 4px 14px -6px rgba(15, 35, 65, .10);
+}
+
+/* Pátio redefine a camada semântica — qualquer componente de components/ui/
+   usado dentro de um elemento com esta classe (PatioShell, /patio/acesso)
+   sai com a paleta do Pátio automaticamente. */
+.area-patio {
+  --primary: var(--patio-steel);
+  --primary-dark: var(--patio-steel-dark);
+  --primary-light: var(--patio-steel-light);
+  --surface: #ffffff;
+  --line: var(--patio-line);
+  --ink: #1e262e;
+  --ink-muted: #5b6773;
+  --ok: var(--patio-ok);
+  --ok-light: var(--patio-ok-light);
+  --ok-dark: var(--patio-ok-dark);
+  --warn: var(--patio-warn);
+  --warn-light: var(--patio-warn-light);
+  --warn-dark: var(--patio-warn-dark);
+  --bad: var(--patio-bad);
+  --bad-light: var(--patio-bad-light);
+  --card-radius: 12px;
+  --card-shadow: none;
 }
 
 @theme inline {
@@ -20,12 +95,48 @@
   --color-steel: var(--steel);
   --color-steel-dark: var(--steel-dark);
   --color-steel-light: var(--steel-light);
-  --font-sans: var(--font-geist-sans);
+
+  --color-admin-navy: var(--admin-navy);
+  --color-admin-blue: var(--admin-blue);
+  --color-admin-blue-dark: var(--admin-blue-dark);
+  --color-admin-blue-light: var(--admin-blue-light);
+
+  --color-patio-gr: var(--patio-gr);
+  --color-patio-steel: var(--patio-steel);
+  --color-patio-steel-dark: var(--patio-steel-dark);
+  --color-patio-steel-light: var(--patio-steel-light);
+  --color-patio-mist: var(--patio-mist);
+
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-light: var(--primary-light);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ok: var(--ok);
+  --color-ok-light: var(--ok-light);
+  --color-ok-dark: var(--ok-dark);
+  --color-warn: var(--warn);
+  --color-warn-light: var(--warn-light);
+  --color-warn-dark: var(--warn-dark);
+  --color-bad: var(--bad);
+  --color-bad-light: var(--bad-light);
+
+  --radius-card: var(--card-radius);
+  --shadow-card: var(--card-shadow);
+
+  --font-sans: var(--font-barlow);
+  --font-condensed: var(--font-barlow-condensed);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-condensed), var(--font-sans), Arial, Helvetica, sans-serif;
 }
