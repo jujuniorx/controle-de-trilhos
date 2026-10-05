@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { buscarRemetidoDetalhe } from '@/lib/services/remetido';
-import { RemetidoWizard } from './RemetidoWizard';
+import { RemetidoWizard } from '../../RemetidoWizard';
 
 const TIPO_REMETIDO_LABEL: Record<string, string> = {
   VENDA: 'Venda',
@@ -21,7 +21,7 @@ export default async function ConfirmarRemetidoPage({ params }: { params: Promis
         {TIPO_REMETIDO_LABEL[remetido.remetidoDetalhe?.tipoRemetido ?? ''] ?? '—'} · Destino: {remetido.destino}
       </p>
 
-      <RemetidoWizard movimentacaoId={remetido.id} numeroDocumentoPreCadastrado={remetido.numeroDocumento} />
+      <RemetidoWizard modo="confirmar" movimentacaoId={remetido.id} numeroDocumentoPreCadastrado={remetido.numeroDocumento} />
     </main>
   );
 }

@@ -2,10 +2,22 @@
 
 import { useMemo, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
-import { CLASSIFICACOES_REEMPREGO_REMETIDO, confirmacaoRemetidoSchema } from '@/lib/validation/remetido';
+import {
+  CLASSIFICACOES_REEMPREGO_REMETIDO,
+  TIPOS_REMETIDO,
+  confirmacaoRemetidoSchema,
+  lancamentoDiretoRemetidoSchema,
+} from '@/lib/validation/remetido';
 import { PERFIS, MARCAS, MARCA_LABEL, PLACA_REGEX, CLASSIFICACOES_SC } from '@/lib/validation/recebimento';
 import { validarReemprego } from '@/lib/domain/regras';
-import { confirmarRemetidoAction } from './actions';
+import { confirmarRemetidoAction } from './[id]/confirmar/actions';
+import { criarRemetidoDiretoAction } from './novo/actions';
+
+const TIPO_REMETIDO_LABEL: Record<(typeof TIPOS_REMETIDO)[number], string> = {
+  VENDA: 'Venda',
+  TRANS: 'Transferência',
+  INDUS: 'Industrialização',
+};
 
 type TipoMaterial = 'NOVO' | 'REEMPREGO' | 'SUCATA';
 type ModoMedicao = 'INDIVIDUAL' | 'QTD_COMPRIMENTO';
@@ -84,15 +96,36 @@ function validarDados(d: Dados) {
   return erros;
 }
 
-interface Props {
-  movimentacaoId: string;
-  numeroDocumentoPreCadastrado: string | null;
+type TipoRemetido = (typeof TIPOS_REMETIDO)[number];
+
+interface Identificacao {
+  tipoRemetido: TipoRemetido | '';
+  reservaPedido: string;
+  destino: string;
 }
 
-export function RemetidoWizard({ movimentacaoId, numeroDocumentoPreCadastrado }: Props) {
+function validarIdentificacao(i: Identificacao) {
+  const erros: Partial<Record<keyof Identificacao, string>> = {};
+  if (!i.tipoRemetido) erros.tipoRemetido = 'Selecione o tipo de remetido.';
+  if (!i.reservaPedido.trim()) erros.reservaPedido = 'Informe a reserva/pedido.';
+  if (!i.destino.trim()) erros.destino = 'Informe o destino.';
+  return erros;
+}
+
+type Props =
+  | { modo: 'novo' }
+  | { modo: 'confirmar'; movimentacaoId: string; numeroDocumentoPreCadastrado: string | null };
+
+export function RemetidoWizard(props: Props) {
   const router = useRouter();
+  const numeroDocumentoPreCadastrado = props.modo === 'confirmar' ? props.numeroDocumentoPreCadastrado : null;
   const hoje = useSyncExternalStore(semInscricao, dataDeHojeLocal, () => '');
   const [dataTocada, setDataTocada] = useState(false);
+  const [identificacao, setIdentificacao] = useState<Identificacao>({
+    tipoRemetido: '',
+    reservaPedido: '',
+    destino: '',
+  });
   const [dadosBrutos, setDados] = useState<Dados>({
     data: '',
     numeroDocumento: numeroDocumentoPreCadastrado ?? '',
@@ -116,6 +149,7 @@ export function RemetidoWizard({ movimentacaoId, numeroDocumentoPreCadastrado }:
     [dadosBrutos, dataTocada, hoje],
   );
   const errosDados = attemptSubmit ? validarDados(dados) : {};
+  const errosIdentificacao = attemptSubmit && props.modo === 'novo' ? validarIdentificacao(identificacao) : {};
   const grupoAtivo = grupos.find((g) => g.clientId === activeGrupoId) ?? null;
 
   const pesoTotal = useMemo(
@@ -194,52 +228,70 @@ export function RemetidoWizard({ movimentacaoId, numeroDocumentoPreCadastrado }:
     setAttemptSubmit(true);
     setErroFinal('');
     if (Object.keys(validarDados(dados)).length > 0) return;
+    if (props.modo === 'novo' && Object.keys(validarIdentificacao(identificacao)).length > 0) return;
     if (!podeConfirmar) {
       setErroFinal('Complete todos os grupos (medições, peso da NF e classificação) antes de confirmar.');
       return;
     }
 
-    const payload = {
-      dados: {
-        ...dados,
-        numeroDocumento: dados.numeroDocumento || undefined,
-        placaCavalo: dados.placaCavalo || undefined,
-        placaCarreta: dados.placaCarreta || undefined,
-        transportadora: dados.transportadora || undefined,
-      },
-      grupos: grupos.map((g) => ({
-        clientId: g.clientId,
-        perfil: g.perfil,
-        tipoMaterial: g.tipoMaterial,
-        pesoInformado: Number(g.pesoInformado.replace(',', '.')),
-        ...(g.tipoMaterial === 'REEMPREGO' ? { classificacao: g.classificacao, tampao: g.tampao } : {}),
-        ...(g.tipoMaterial === 'NOVO'
-          ? {
-              ...(g.marca ? { marca: g.marca } : {}),
-              ...(g.marca === 'OUTROS' ? { fabricanteOutro: g.fabricanteOutro || undefined } : {}),
-            }
-          : {}),
-        medicoes: g.medicoes.map((m) => ({
-          clientId: m.clientId,
-          modo: m.modo,
-          quantidade: m.quantidade,
-          comprimento: m.comprimento,
-          ...(g.tipoMaterial === 'SUCATA' ? { classificacaoSC: m.classificacaoSC } : {}),
-        })),
-      })),
+    const dadosPayload = {
+      ...dados,
+      numeroDocumento: dados.numeroDocumento || undefined,
+      placaCavalo: dados.placaCavalo || undefined,
+      placaCarreta: dados.placaCarreta || undefined,
+      transportadora: dados.transportadora || undefined,
     };
-
-    const parsed = confirmacaoRemetidoSchema.safeParse(payload);
-    if (!parsed.success) {
-      setErroFinal('Dados inválidos. Revise os campos e tente novamente.');
-      return;
-    }
+    const gruposPayload = grupos.map((g) => ({
+      clientId: g.clientId,
+      perfil: g.perfil,
+      tipoMaterial: g.tipoMaterial,
+      pesoInformado: Number(g.pesoInformado.replace(',', '.')),
+      ...(g.tipoMaterial === 'REEMPREGO' ? { classificacao: g.classificacao, tampao: g.tampao } : {}),
+      ...(g.tipoMaterial === 'NOVO'
+        ? {
+            ...(g.marca ? { marca: g.marca } : {}),
+            ...(g.marca === 'OUTROS' ? { fabricanteOutro: g.fabricanteOutro || undefined } : {}),
+          }
+        : {}),
+      medicoes: g.medicoes.map((m) => ({
+        clientId: m.clientId,
+        modo: m.modo,
+        quantidade: m.quantidade,
+        comprimento: m.comprimento,
+        ...(g.tipoMaterial === 'SUCATA' ? { classificacaoSC: m.classificacaoSC } : {}),
+      })),
+    }));
 
     setEnviando(true);
-    const resultado = await confirmarRemetidoAction(movimentacaoId, parsed.data);
+    let resultado: { ok: boolean; erro?: string };
+
+    if (props.modo === 'novo') {
+      const parsed = lancamentoDiretoRemetidoSchema.safeParse({
+        tipoRemetido: identificacao.tipoRemetido,
+        reservaPedido: identificacao.reservaPedido,
+        destino: identificacao.destino,
+        dados: dadosPayload,
+        grupos: gruposPayload,
+      });
+      if (!parsed.success) {
+        setEnviando(false);
+        setErroFinal('Dados inválidos. Revise os campos e tente novamente.');
+        return;
+      }
+      resultado = await criarRemetidoDiretoAction(parsed.data);
+    } else {
+      const parsed = confirmacaoRemetidoSchema.safeParse({ dados: dadosPayload, grupos: gruposPayload });
+      if (!parsed.success) {
+        setEnviando(false);
+        setErroFinal('Dados inválidos. Revise os campos e tente novamente.');
+        return;
+      }
+      resultado = await confirmarRemetidoAction(props.movimentacaoId, parsed.data);
+    }
+
     setEnviando(false);
     if (!resultado.ok) {
-      setErroFinal(resultado.erro ?? 'Não foi possível confirmar o remetido.');
+      setErroFinal(resultado.erro ?? 'Não foi possível salvar o remetido.');
       return;
     }
     router.push('/patio/remetidos');
@@ -247,6 +299,48 @@ export function RemetidoWizard({ movimentacaoId, numeroDocumentoPreCadastrado }:
 
   return (
     <div className="mt-4 space-y-4">
+      {props.modo === 'novo' && (
+        <section className="space-y-3 rounded-lg border bg-white p-3">
+          <h2 className="font-semibold text-neutral-800">Identificação do remetido</h2>
+          <p className="text-sm text-neutral-600">Sem pré-cadastro — preencha o que normalmente vem do Administrativo.</p>
+          <div>
+            <label className="block text-sm font-medium" htmlFor="f-tipo-remetido">Tipo de remetido</label>
+            <select
+              id="f-tipo-remetido"
+              className="mt-1 h-11 w-full rounded border px-3"
+              value={identificacao.tipoRemetido}
+              onChange={(e) => setIdentificacao({ ...identificacao, tipoRemetido: e.target.value as TipoRemetido })}
+            >
+              <option value="" disabled>Selecione</option>
+              {TIPOS_REMETIDO.map((t) => (
+                <option key={t} value={t}>{TIPO_REMETIDO_LABEL[t]}</option>
+              ))}
+            </select>
+            {errosIdentificacao.tipoRemetido && <p className="text-sm text-red-600">{errosIdentificacao.tipoRemetido}</p>}
+          </div>
+          <div>
+            <label className="block text-sm font-medium" htmlFor="f-reserva-pedido">Reserva/Pedido</label>
+            <input
+              id="f-reserva-pedido"
+              className="mt-1 h-11 w-full rounded border px-3"
+              value={identificacao.reservaPedido}
+              onChange={(e) => setIdentificacao({ ...identificacao, reservaPedido: e.target.value })}
+            />
+            {errosIdentificacao.reservaPedido && <p className="text-sm text-red-600">{errosIdentificacao.reservaPedido}</p>}
+          </div>
+          <div>
+            <label className="block text-sm font-medium" htmlFor="f-destino">Destino</label>
+            <input
+              id="f-destino"
+              className="mt-1 h-11 w-full rounded border px-3"
+              value={identificacao.destino}
+              onChange={(e) => setIdentificacao({ ...identificacao, destino: e.target.value })}
+            />
+            {errosIdentificacao.destino && <p className="text-sm text-red-600">{errosIdentificacao.destino}</p>}
+          </div>
+        </section>
+      )}
+
       <section className="space-y-3 rounded-lg border bg-white p-3">
         <h2 className="font-semibold text-neutral-800">Dados da chegada</h2>
         <div>
@@ -510,7 +604,9 @@ export function RemetidoWizard({ movimentacaoId, numeroDocumentoPreCadastrado }:
         disabled={enviando}
         onClick={confirmar}
       >
-        {enviando ? 'Confirmando...' : 'Confirmar chegada e salvar'}
+        {enviando
+          ? (props.modo === 'novo' ? 'Lançando...' : 'Confirmando...')
+          : (props.modo === 'novo' ? 'Lançar remetido' : 'Confirmar chegada e salvar')}
       </button>
     </div>
   );

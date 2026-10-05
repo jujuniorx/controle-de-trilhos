@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { preCadastroRemetidoSchema, confirmacaoRemetidoSchema } from '@/lib/validation/remetido';
+import { preCadastroRemetidoSchema, confirmacaoRemetidoSchema, lancamentoDiretoRemetidoSchema } from '@/lib/validation/remetido';
 
 const uuid = () => crypto.randomUUID();
 
@@ -219,6 +219,67 @@ describe('confirmacaoRemetidoSchema', () => {
       dados: dadosConfirmacaoValidos(),
       grupos: [grupo],
     });
+    expect(resultado.success).toBe(false);
+  });
+});
+
+describe('lancamentoDiretoRemetidoSchema', () => {
+  function lancamentoValido(overrides: Record<string, unknown> = {}) {
+    return {
+      tipoRemetido: 'VENDA',
+      reservaPedido: 'PED-2026-002',
+      destino: 'Usina Rondonópolis',
+      dados: dadosConfirmacaoValidos(),
+      grupos: [grupoValido()],
+      ...overrides,
+    };
+  }
+
+  it('aceita um lançamento direto válido (identificação + dados + grupos juntos)', () => {
+    const resultado = lancamentoDiretoRemetidoSchema.safeParse(lancamentoValido());
+    expect(resultado.success).toBe(true);
+  });
+
+  it('rejeita tipoRemetido ausente', () => {
+    const { tipoRemetido, ...resto } = lancamentoValido();
+    const resultado = lancamentoDiretoRemetidoSchema.safeParse(resto);
+    expect(resultado.success).toBe(false);
+  });
+
+  it('rejeita destino vazio', () => {
+    const resultado = lancamentoDiretoRemetidoSchema.safeParse(lancamentoValido({ destino: '' }));
+    expect(resultado.success).toBe(false);
+  });
+
+  it('rejeita reservaPedido vazio', () => {
+    const resultado = lancamentoDiretoRemetidoSchema.safeParse(lancamentoValido({ reservaPedido: '' }));
+    expect(resultado.success).toBe(false);
+  });
+
+  it('aceita numeroDocumento ausente em dados (NF ainda não conhecida)', () => {
+    const dados = { ...dadosConfirmacaoValidos(), numeroDocumento: undefined };
+    const resultado = lancamentoDiretoRemetidoSchema.safeParse(lancamentoValido({ dados }));
+    expect(resultado.success).toBe(true);
+  });
+
+  it('rejeita sem nenhum grupo', () => {
+    const resultado = lancamentoDiretoRemetidoSchema.safeParse(lancamentoValido({ grupos: [] }));
+    expect(resultado.success).toBe(false);
+  });
+
+  it('aplica as mesmas regras de grupo da confirmação: tampão só pode ser G1 ou G2', () => {
+    const resultado = lancamentoDiretoRemetidoSchema.safeParse(
+      lancamentoValido({
+        grupos: [
+          grupoValido({
+            tipoMaterial: 'REEMPREGO',
+            classificacao: 'G3',
+            tampao: true,
+            medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 7.5 }],
+          }),
+        ],
+      }),
+    );
     expect(resultado.success).toBe(false);
   });
 });

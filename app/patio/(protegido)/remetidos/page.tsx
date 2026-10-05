@@ -17,6 +17,13 @@ export default async function RemetidosAguardandoPage() {
         Pré-cadastrados pelo Administrativo. Toque num deles quando o caminhão chegar para confirmar o carregamento.
       </p>
 
+      <Link
+        href="/patio/remetidos/novo"
+        className="mt-4 inline-flex h-12 w-full items-center justify-center rounded-lg bg-steel px-4 font-medium text-white"
+      >
+        + Novo remetido
+      </Link>
+
       <div className="mt-4 space-y-2">
         {remetidos.map((r) => (
           <Link

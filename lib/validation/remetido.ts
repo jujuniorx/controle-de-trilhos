@@ -14,7 +14,7 @@ export const preCadastroRemetidoSchema = z.object({
 
 export type PreCadastroRemetidoInput = z.infer<typeof preCadastroRemetidoSchema>;
 
-const dadosConfirmacaoSchema = z
+export const dadosConfirmacaoSchema = z
   .object({
     data: z.string().min(1, 'Informe a data.'),
     numeroDocumento: z.string().regex(/^\d{1,9}$/, 'Informe a nota fiscal, somente números.').optional(),
@@ -99,3 +99,19 @@ export const confirmacaoRemetidoSchema = z.object({
 });
 
 export type ConfirmacaoRemetidoInput = z.infer<typeof confirmacaoRemetidoSchema>;
+
+/**
+ * Lançamento direto pelo Pátio, sem pré-cadastro prévio do Administrativo: reúne numa
+ * tela só os campos que normalmente vêm do pré-cadastro (tipoRemetido/reservaPedido/
+ * destino) com os da confirmação (dados + grupos) — a Movimentacao nasce direto em
+ * PENDENTE_CONFERENCIA, pulando AGUARDANDO_CHEGADA.
+ */
+export const lancamentoDiretoRemetidoSchema = z.object({
+  tipoRemetido: z.enum(TIPOS_REMETIDO),
+  reservaPedido: z.string().trim().min(1, 'Informe a reserva/pedido.'),
+  destino: z.string().trim().min(1, 'Informe o destino.'),
+  dados: dadosConfirmacaoSchema,
+  grupos: z.array(grupoRemetidoSchema).min(1, 'Adicione ao menos um grupo antes de finalizar.'),
+});
+
+export type LancamentoDiretoRemetidoInput = z.infer<typeof lancamentoDiretoRemetidoSchema>;

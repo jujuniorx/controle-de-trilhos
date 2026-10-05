@@ -1,7 +1,12 @@
 import { describe, it, expect, afterAll } from 'vitest';
 import { prisma } from '@/lib/db';
-import { preCadastroRemetidoSchema, confirmacaoRemetidoSchema } from '@/lib/validation/remetido';
-import { criarPreCadastroRemetido, confirmarRemetido, informarNumeroDocumentoRemetido } from '@/lib/services/remetido';
+import { preCadastroRemetidoSchema, confirmacaoRemetidoSchema, lancamentoDiretoRemetidoSchema } from '@/lib/validation/remetido';
+import {
+  criarPreCadastroRemetido,
+  confirmarRemetido,
+  informarNumeroDocumentoRemetido,
+  criarRemetidoDireto,
+} from '@/lib/services/remetido';
 import { conferirRecebimento } from '@/lib/services/conferencia';
 import { criarRecebimentoCaminhao } from '@/lib/services/movimentacao';
 import { recebimentoCaminhaoSchema } from '@/lib/validation/recebimento';
@@ -252,6 +257,111 @@ describe('confirmarRemetido', () => {
     const conferido = await prisma.movimentacao.findUniqueOrThrow({ where: { id: confirmado.id } });
     expect(conferido.status).toBe('CONFERIDO');
     expect(conferido.pesoSucataReal).toBeNull();
+  });
+});
+
+describe('criarRemetidoDireto', () => {
+  function lancamentoDiretoBase(overrides: Record<string, unknown> = {}) {
+    return lancamentoDiretoRemetidoSchema.parse({
+      tipoRemetido: 'VENDA',
+      reservaPedido: `${RESERVA_MARCADOR}-${Math.floor(Math.random() * 1_000_000)}`,
+      destino: 'Usina Rondonópolis',
+      dados: dadosConfirmacaoBase(),
+      grupos: [
+        {
+          clientId: uuid(),
+          perfil: 'TR22',
+          tipoMaterial: 'NOVO',
+          pesoInformado: 9.4,
+          medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 4.65 }],
+        },
+      ],
+      ...overrides,
+    });
+  }
+
+  it('cria a Movimentacao já em PENDENTE_CONFERENCIA, pulando AGUARDANDO_CHEGADA', async () => {
+    const mov = await criarRemetidoDireto(uuid(), lancamentoDiretoBase());
+    expect(mov.status).toBe('PENDENTE_CONFERENCIA');
+    expect(mov.tipo).toBe('REMETIDO');
+    expect(mov.grupos).toHaveLength(1);
+    expect(Number(mov.grupos[0].pesoInformado)).toBe(9.4);
+    expect(mov.grupos[0].pesoCalculado).toBeNull();
+  });
+
+  it('persiste tipoRemetido, reservaPedido e destino preenchidos pelo próprio Pátio', async () => {
+    const reservaPedido = `${RESERVA_MARCADOR}-${Math.floor(Math.random() * 1_000_000)}`;
+    const mov = await criarRemetidoDireto(
+      uuid(),
+      lancamentoDiretoBase({ tipoRemetido: 'INDUS', reservaPedido, destino: 'Pátio de Sucata' }),
+    );
+    expect(mov.remetidoDetalhe?.tipoRemetido).toBe('INDUS');
+    expect(mov.reservaPedido).toBe(reservaPedido);
+    expect(mov.destino).toBe('Pátio de Sucata');
+  });
+
+  it('aceita NF ainda não conhecida (numeroDocumento ausente) e permite completá-la depois', async () => {
+    const dados = { ...dadosConfirmacaoBase(), numeroDocumento: undefined };
+    const mov = await criarRemetidoDireto(uuid(), lancamentoDiretoBase({ dados }));
+    expect(mov.numeroDocumento).toBeNull();
+
+    await informarNumeroDocumentoRemetido(mov.id, '777444', ADMIN);
+    const atualizado = await prisma.movimentacao.findUniqueOrThrow({ where: { id: mov.id } });
+    expect(atualizado.numeroDocumento).toBe('777444');
+  });
+
+  it('aceita só placaCavalo (sem placaCarreta), igual à confirmação de pré-cadastro', async () => {
+    const dados = { ...dadosConfirmacaoBase(), placaCarreta: undefined };
+    const mov = await criarRemetidoDireto(uuid(), lancamentoDiretoBase({ dados }));
+    expect(mov.placaCavalo).toBe('ABC1D23');
+    expect(mov.placaCarreta).toBeNull();
+  });
+
+  it('persiste grupo de tampão (REEMPREGO + tampao=true) com classificação G1', async () => {
+    const mov = await criarRemetidoDireto(
+      uuid(),
+      lancamentoDiretoBase({
+        grupos: [
+          {
+            clientId: uuid(),
+            perfil: 'TR57',
+            tipoMaterial: 'REEMPREGO',
+            classificacao: 'G1',
+            tampao: true,
+            pesoInformado: 3.2,
+            medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 7.5 }],
+          },
+        ],
+      }),
+    );
+    expect(mov.grupos[0].tampao).toBe(true);
+    expect(mov.grupos[0].classificacao).toBe('G1');
+  });
+
+  it('persiste grupo SUCATA com classificacaoSC por medição', async () => {
+    const mov = await criarRemetidoDireto(
+      uuid(),
+      lancamentoDiretoBase({
+        grupos: [
+          {
+            clientId: uuid(),
+            perfil: 'TR57',
+            tipoMaterial: 'SUCATA',
+            pesoInformado: 2.4,
+            medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 8.1, classificacaoSC: 'SC1' }],
+          },
+        ],
+      }),
+    );
+    expect(mov.grupos[0].tipoMaterial).toBe('SUCATA');
+    expect(mov.grupos[0].medicoes[0].classificacaoSC).toBe('SC1');
+  });
+
+  it('o remetido lançado direto é conferível normalmente pelo Administrativo', async () => {
+    const mov = await criarRemetidoDireto(uuid(), lancamentoDiretoBase());
+    await conferirRecebimento(mov.id, ADMIN);
+    const conferido = await prisma.movimentacao.findUniqueOrThrow({ where: { id: mov.id } });
+    expect(conferido.status).toBe('CONFERIDO');
   });
 });
 
