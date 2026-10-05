@@ -24,6 +24,27 @@ export async function login(formData: FormData): Promise<{ ok: boolean; erro?: s
   redirect('/admin');
 }
 
-export async function loginAction(formData: FormData): Promise<void> {
-  await login(formData);
+/**
+ * Estado do formulário de login — `erro` é a única coisa que a página renderiza.
+ * Só o tipo mora aqui (tipos são apagados na compilação): um arquivo 'use server'
+ * não pode exportar nada além de funções async, então o valor inicial é declarado
+ * na própria página.
+ */
+export interface EstadoLogin {
+  erro?: string;
+}
+
+/**
+ * Assinatura de `useActionState` (estado anterior + FormData → novo estado). Em
+ * caso de sucesso `login` faz `redirect()`, que lança NEXT_REDIRECT e nunca chega
+ * no `return` — o estado só é usado no caminho de falha.
+ *
+ * Antes esta função (`loginAction`) devolvia `Promise<void>` e descartava o
+ * resultado, então nenhum erro chegava ao administrativo: nem "E-mail ou senha
+ * inválidos", nem a mensagem de bloqueio após 5 tentativas. O botão simplesmente
+ * não fazia nada — mesma classe de bug já corrigida em patio/acesso/actions.ts.
+ */
+export async function loginAction(_estadoAnterior: EstadoLogin, formData: FormData): Promise<EstadoLogin> {
+  const resultado = await login(formData);
+  return { erro: resultado.erro ?? 'Não foi possível entrar. Tente novamente.' };
 }
