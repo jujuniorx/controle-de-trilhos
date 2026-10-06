@@ -1,6 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
-import { calcularMetros } from '@/lib/services/calculo';
+import { calcularMetros, calcularPeso } from '@/lib/services/calculo';
 import { registrarHistorico } from '@/lib/services/historico';
 import { arredondar3 } from '@/lib/domain/regras';
 import { ErroRegraNegocio } from '@/lib/services/errors';
@@ -60,6 +60,10 @@ async function criarGruposEMedicoes(
   for (const grupo of grupos) {
     const metrosPorMedicao = grupo.medicoes.map((m) => calcularMetros(m.quantidade, m.comprimento));
     const metrosTotal = metrosPorMedicao.reduce((a, b) => a + b, 0);
+    // Sem peso da NF informado pelo Pátio: estimativa provisória, mesma fórmula
+    // do Reemprego (metros x fator do perfil) — sinalizada "a confirmar" na
+    // Conferência enquanto pesoInformado continuar nulo.
+    const pesoCalculado = grupo.pesoInformado == null ? await calcularPeso(metrosTotal, grupo.perfil) : null;
 
     const grupoCriado = await tx.grupo.create({
       data: {
@@ -71,8 +75,8 @@ async function criarGruposEMedicoes(
         tampao: grupo.tipoMaterial === 'REEMPREGO' ? Boolean(grupo.tampao) : false,
         fabricante: grupo.tipoMaterial === 'NOVO' ? resolverFabricante(grupo) : null,
         metrosTotal,
-        pesoCalculado: null,
-        pesoInformado: grupo.pesoInformado,
+        pesoCalculado,
+        pesoInformado: grupo.pesoInformado ?? null,
       },
     });
 
@@ -244,9 +248,11 @@ export async function informarNumeroDocumentoRemetido(
   });
 }
 
-/** Soma simples do pesoInformado de cada grupo — Remetido nunca calcula por fator nem tem peso pendente. */
+/** Soma o pesoInformado de cada grupo; sem peso informado, cai na estimativa (pesoCalculado) — "a confirmar". */
 export function resumoPesoRemetido(movimentacao: MovimentacaoRemetidoComGrupos): number {
-  return arredondar3(movimentacao.grupos.reduce((acc, g) => acc + Number(g.pesoInformado ?? 0), 0));
+  return arredondar3(
+    movimentacao.grupos.reduce((acc, g) => acc + Number(g.pesoInformado ?? g.pesoCalculado ?? 0), 0),
+  );
 }
 
 export function buscarRemetidoDetalhe(id: string): Promise<MovimentacaoRemetidoComGrupos | null> {

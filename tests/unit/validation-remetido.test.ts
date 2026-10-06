@@ -97,7 +97,7 @@ describe('confirmacaoRemetidoSchema', () => {
     expect(resultado.success).toBe(true);
   });
 
-  it('rejeita grupo sem pesoInformado', () => {
+  it('aceita grupo sem pesoInformado — campo passa a ser opcional (o Pátio normalmente não sabe o peso da NF)', () => {
     const grupo = grupoValido();
     delete (grupo as Record<string, unknown>).pesoInformado;
     const resultado = confirmacaoRemetidoSchema.safeParse({
@@ -105,7 +105,10 @@ describe('confirmacaoRemetidoSchema', () => {
       dados: dadosConfirmacaoValidos(),
       grupos: [grupo],
     });
-    expect(resultado.success).toBe(false);
+    expect(resultado.success).toBe(true);
+    if (resultado.success) {
+      expect(resultado.data.grupos[0].pesoInformado).toBeUndefined();
+    }
   });
 
   it('rejeita pesoInformado zero ou negativo', () => {
@@ -208,7 +211,7 @@ describe('confirmacaoRemetidoSchema', () => {
     expect(resultado.success).toBe(false);
   });
 
-  it('rejeita grupo SUCATA sem pesoInformado', () => {
+  it('aceita grupo SUCATA sem pesoInformado — mesma regra: o campo é opcional para todo tipo de material', () => {
     const grupo = grupoValido({
       tipoMaterial: 'SUCATA',
       medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 8.1, classificacaoSC: 'SC1' }],
@@ -219,7 +222,7 @@ describe('confirmacaoRemetidoSchema', () => {
       dados: dadosConfirmacaoValidos(),
       grupos: [grupo],
     });
-    expect(resultado.success).toBe(false);
+    expect(resultado.success).toBe(true);
   });
 });
 

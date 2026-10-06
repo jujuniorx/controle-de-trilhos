@@ -41,7 +41,12 @@ const medicaoRemetidoSchema = z.object({
   classificacaoSC: z.enum(CLASSIFICACOES_SC).optional(),
 });
 
-const pesoInformadoSchema = z.number().positive('Informe o peso da nota fiscal, maior que zero.');
+// Opcional: o Pátio normalmente não sabe o peso da NF (ler/digitar peso de nota
+// fiscal é função do Administrativo/faturamento, não do Pátio). Quando ausente,
+// um peso provisório é calculado por metros x fator do perfil (mesma fórmula do
+// Reemprego) e sinalizado "a confirmar" até o Administrativo completar com o
+// peso real da nota, na conferência — ver lib/services/remetido.ts.
+const pesoInformadoSchema = z.number().positive('Informe o peso da nota fiscal, maior que zero.').optional();
 
 const grupoRemetidoBaseSchema = z.object({
   clientId: z.string().uuid(),
