@@ -10,11 +10,19 @@ interface Props {
   status: 'PENDENTE_CONFERENCIA' | 'CONFERIDO';
   temSucata: boolean;
   pesoSucataReal: number | null;
+  /** Estimativa calculada (metros x fator) — usada só para pré-preencher o campo quando ainda não há peso real. */
+  pesoSucataEstimado?: number;
 }
 
-export function ConferenciaPainel({ movimentacaoId, status, temSucata, pesoSucataReal }: Props) {
+export function ConferenciaPainel({ movimentacaoId, status, temSucata, pesoSucataReal, pesoSucataEstimado = 0 }: Props) {
   const router = useRouter();
-  const [pesoTexto, setPesoTexto] = useState(pesoSucataReal != null ? String(pesoSucataReal).replace('.', ',') : '');
+  const [pesoTexto, setPesoTexto] = useState(
+    pesoSucataReal != null
+      ? String(pesoSucataReal).replace('.', ',')
+      : pesoSucataEstimado > 0
+        ? String(pesoSucataEstimado).replace('.', ',')
+        : '',
+  );
   const [erroPeso, setErroPeso] = useState('');
   const [salvandoPeso, setSalvandoPeso] = useState(false);
 
@@ -75,6 +83,11 @@ export function ConferenciaPainel({ movimentacaoId, status, temSucata, pesoSucat
           <label className="block text-sm font-medium text-neutral-700" htmlFor="peso-sucata">
             Peso real da sucata (t) — com base no documento de pesagem
           </label>
+          {pesoSucataReal == null && pesoSucataEstimado > 0 && (
+            <p className="mb-1 text-xs text-neutral-500">
+              Valor sugerido pelo cálculo automático (metros × fator do perfil). Confirme ou corrija com o peso real da pesagem.
+            </p>
+          )}
           <div className="mt-1 flex gap-2">
             <input
               id="peso-sucata"

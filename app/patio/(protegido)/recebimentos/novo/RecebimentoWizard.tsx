@@ -210,6 +210,15 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
         return acc + Math.round(metrosDoGrupo(g) * fator * 1000) / 1000;
       }, 0);
   }, [grupos, fatoresCadastrados]);
+  const pesoSucataEstimado = useMemo(() => {
+    return grupos
+      .filter((g) => g.tipoMaterial === 'SUCATA')
+      .reduce((acc, g) => {
+        const fator = fatoresCadastrados[g.perfil];
+        if (fator == null) return acc;
+        return acc + Math.round(metrosDoGrupo(g) * fator * 1000) / 1000;
+      }, 0);
+  }, [grupos, fatoresCadastrados]);
 
   function irPara(n: number) {
     setStep(n);
@@ -656,7 +665,7 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
               {grupos.map((g, i) => {
                 const fator = fatoresCadastrados[g.perfil];
                 const metros = metrosDoGrupo(g);
-                const peso = g.tipoMaterial === 'SUCATA' ? null : fator != null ? Math.round(metros * fator * 1000) / 1000 : null;
+                const peso = fator != null ? Math.round(metros * fator * 1000) / 1000 : null;
                 return (
                   <tr key={g.clientId} className="border-t">
                     <td>
@@ -665,11 +674,15 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
                     <td>{g.tipoMaterial}</td>
                     <td className="text-right">{metros.toFixed(2)} m</td>
                     <td className="text-right">
-                      {g.tipoMaterial === 'SUCATA'
-                        ? 'PENDENTE'
-                        : peso != null
-                          ? `${peso.toFixed(3)} t`
-                          : 'Fator não cadastrado'}
+                      {peso == null ? (
+                        'Fator não cadastrado'
+                      ) : g.tipoMaterial === 'SUCATA' ? (
+                        <>
+                          {peso.toFixed(3)} t <span className="text-xs text-amber-700">(estimado)</span>
+                        </>
+                      ) : (
+                        `${peso.toFixed(3)} t`
+                      )}
                     </td>
                   </tr>
                 );
@@ -680,7 +693,11 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
           <div className="rounded bg-neutral-100 p-3 text-right">
             <p className="text-sm text-neutral-600">{temSucataPendente ? 'Peso até agora' : 'Peso total'}</p>
             <p className="text-xl font-semibold">{pesoNovoReemprego.toFixed(3)} t</p>
-            {temSucataPendente && <p className="text-sm text-amber-700">SUCATA: PENDENTE</p>}
+            {temSucataPendente && (
+              <p className="text-sm text-amber-700">
+                SUCATA: {pesoSucataEstimado.toFixed(3)} t (estimado, a confirmar)
+              </p>
+            )}
           </div>
 
           {erroFinal && <p className="text-sm text-red-600">{erroFinal}</p>}

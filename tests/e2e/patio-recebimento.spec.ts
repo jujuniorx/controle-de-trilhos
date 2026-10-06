@@ -85,7 +85,9 @@ test.describe('Fluxo real do Pátio — recebimento por caminhão', () => {
     await page.getByRole('button', { name: 'Voltar aos grupos', exact: true }).click();
     await page.getByRole('button', { name: 'Ver resumo' }).click();
 
-    await expect(page.getByText('PENDENTE').first()).toBeVisible();
+    // TR57 fator 0.057 x 8.10m = 0.4617 -> arredondado para 0.462t (estimativa, mesma fórmula do Reemprego).
+    await expect(page.getByText('0.462 t').first()).toBeVisible();
+    await expect(page.getByText('(estimado)')).toBeVisible();
     await expect(page.getByText('Peso até agora')).toBeVisible();
 
     await page.getByRole('button', { name: 'Finalizar e salvar' }).click();

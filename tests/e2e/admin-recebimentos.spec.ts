@@ -92,15 +92,16 @@ test.describe('Administrativo — listagem e detalhe de recebimentos pendentes',
     await expect(page.getByText('Classificação: G2')).toBeVisible();
     await expect(page.getByText('0.816 t')).toBeVisible();
 
-    // Grupo SUCATA
+    // Grupo SUCATA — TR57 fator 0.057 x 8.10m = 0.462t (estimativa, mesma fórmula do Reemprego).
     await expect(page.getByText('TR57 — SUCATA')).toBeVisible();
-    await expect(page.getByText('Peso pendente').first()).toBeVisible();
+    await expect(page.getByText('0.462 t').first()).toBeVisible();
+    await expect(page.getByText('(estimado, a confirmar)').first()).toBeVisible();
     await expect(page.getByText('SC1')).toBeVisible();
 
-    // Resumo: NUNCA "Peso total" enquanto a sucata está pendente
+    // Resumo: NUNCA "Peso total" enquanto o peso REAL da sucata está pendente.
     await expect(page.getByText('Peso até agora')).toBeVisible();
     await expect(page.getByText('Peso total')).toHaveCount(0);
     await expect(page.getByText('0.918 t')).toBeVisible(); // 0.102 + 0.816, sem a sucata
-    await expect(page.getByText('SUCATA — Peso pendente')).toBeVisible();
+    await expect(page.getByText(/SUCATA — peso estimado/)).toBeVisible();
   });
 });

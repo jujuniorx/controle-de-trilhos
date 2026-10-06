@@ -96,7 +96,10 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
                 <span className="ml-2 text-neutral-500">{fmtMetros(g.metrosTotal)} m</span>
               </div>
               {g.tipoMaterial === 'SUCATA' ? (
-                <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Peso pendente</span>
+                <span className="text-right">
+                  <span className="font-medium">{fmtPeso(Number(g.pesoCalculado ?? 0))} t</span>{' '}
+                  <span className="text-xs text-amber-700">(estimado, a confirmar)</span>
+                </span>
               ) : (
                 <span className="font-medium">{fmtPeso(Number(g.pesoCalculado ?? 0))} t</span>
               )}
@@ -140,7 +143,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
             <p className="text-2xl font-semibold">{fmtPeso(resumo.pesoNovoReemprego)} t</p>
             <p className="text-xs text-neutral-500">NOVO + REEMPREGO</p>
             <div className="mt-2 rounded bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              SUCATA — <b>Peso pendente</b>
+              SUCATA — peso estimado <b>{fmtPeso(resumo.pesoSucataEstimado)} t</b> (a confirmar)
             </div>
           </div>
         ) : (
@@ -177,6 +180,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
         status={mov.status as 'PENDENTE_CONFERENCIA' | 'CONFERIDO'}
         temSucata={resumo.temSucata}
         pesoSucataReal={resumo.pesoSucataReal}
+        pesoSucataEstimado={resumo.pesoSucataEstimado}
       />
 
       {/* 7. Histórico */}
