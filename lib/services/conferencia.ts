@@ -83,18 +83,19 @@ export async function informarPesoSucataReal(
 export async function conferirRecebimento(movimentacaoId: string, usuario: UsuarioAdmin): Promise<void> {
   const mov = await prisma.movimentacao.findUnique({
     where: { id: movimentacaoId },
-    include: { grupos: { select: { tipoMaterial: true, pesoInformado: true } } },
+    include: { grupos: { select: { tipoMaterial: true } } },
   });
   if (!mov) throw new ConferenciaError('Recebimento não encontrado.');
   if (mov.status !== 'PENDENTE_CONFERENCIA') {
     throw new ConferenciaError('Este recebimento não está pendente de conferência.');
   }
 
-  // No Recebimento, sucata nunca tem pesoInformado — o peso real só existe depois,
-  // em Movimentacao.pesoSucataReal. No Remetido, sucata já chega com pesoInformado
-  // (vem da própria NF de saída), então não há nada "pendente" a aguardar aqui.
-  const sucataSemPeso = mov.grupos.some((g) => g.tipoMaterial === 'SUCATA' && g.pesoInformado == null);
-  if (sucataSemPeso && mov.pesoSucataReal == null) {
+  // Este gate é EXCLUSIVO do Recebimento: só lá o peso real da sucata vive à
+  // parte, em Movimentacao.pesoSucataReal (pendente até o Admin pesar e informar).
+  // No Remetido, o peso de cada grupo (informado ou estimado) já fica resolvido
+  // no próprio Grupo desde a criação (Tasks 5-6) — nunca bloqueia a conferência.
+  const temSucata = mov.tipo === 'RECEBIMENTO' && mov.grupos.some((g) => g.tipoMaterial === 'SUCATA');
+  if (temSucata && mov.pesoSucataReal == null) {
     throw new ConferenciaError('O peso da sucata está pendente. Informe o peso real antes de conferir.');
   }
 

@@ -211,6 +211,37 @@ describe('informarPesoSucataReal', () => {
     await expect(informarPesoSucataReal(remetido.id, 1, ADMIN)).rejects.toThrow(/não encontrado/i);
   });
 
+  it('conferirRecebimento NÃO bloqueia um REMETIDO com grupo SUCATA sem pesoInformado (regra de sucata pendente é só do Recebimento)', async () => {
+    const preCadastro = await criarPreCadastroRemetido(
+      crypto.randomUUID(),
+      preCadastroRemetidoSchema.parse({ tipoRemetido: 'VENDA', reservaPedido: 'TESTE-CONFERENCIA-REMETIDO-SEM-PESO', destino: 'X' }),
+    );
+    const remetido = await confirmarRemetido(
+      preCadastro.id,
+      confirmacaoRemetidoSchema.parse({
+        dados: {
+          data: '2026-10-04',
+          numeroDocumento: String(Math.floor(Math.random() * 900000) + 100000),
+          placaCavalo: 'ABC1D23',
+          responsavelPatio: RESPONSAVEL,
+        },
+        grupos: [
+          {
+            clientId: crypto.randomUUID(),
+            perfil: 'TR22',
+            tipoMaterial: 'SUCATA',
+            medicoes: [{ clientId: crypto.randomUUID(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 8, classificacaoSC: 'SC1' }],
+          },
+        ],
+      }),
+    );
+
+    await conferirRecebimento(remetido.id, ADMIN);
+
+    const atualizado = await prisma.movimentacao.findUniqueOrThrow({ where: { id: remetido.id } });
+    expect(atualizado.status).toBe('CONFERIDO');
+  });
+
   it('16. toda alteração de peso registra usuário e data/hora no histórico', async () => {
     const mov = await criarComUmaSucata();
     await informarPesoSucataReal(mov.id, 1.25, ADMIN);
