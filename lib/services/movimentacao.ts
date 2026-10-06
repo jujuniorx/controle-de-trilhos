@@ -38,6 +38,14 @@ async function prepararGrupos(input: RecebimentoCaminhaoInput): Promise<GrupoPar
     const metrosPorMedicao = grupo.medicoes.map((m) => calcularMetros(m.quantidade, m.comprimento));
     const metrosTotal = metrosPorMedicao.reduce((a, b) => a + b, 0);
 
+    // O peso de TODOS os materiais (NOVO, REEMPREGO e agora também SUCATA) é
+    // calculado pelo mesmo fator cadastrado do perfil: metros x fator. Para
+    // SUCATA, esse valor é só uma ESTIMATIVA — o peso REAL, tirado da balança,
+    // continua vivendo em Movimentacao.pesoSucataReal (um único valor para o
+    // caminhão inteiro, preenchido pelo Admin na Conferência). O Pátio nunca
+    // pode ficar bloqueado por isso: ver resumoPeso()/conferirRecebimento().
+    const pesoCalculado = await calcularPeso(metrosTotal, grupo.perfil);
+
     if (grupo.tipoMaterial === 'SUCATA') {
       gruposParaCriar.push({
         clientId: grupo.clientId,
@@ -46,7 +54,7 @@ async function prepararGrupos(input: RecebimentoCaminhaoInput): Promise<GrupoPar
         classificacao: null,
         fabricante: null,
         metrosTotal,
-        pesoCalculado: null, // nunca calculado para sucata — fica pendente no nível da Movimentacao
+        pesoCalculado,
         medicoes: grupo.medicoes.map((m, i) => ({
           clientId: m.clientId,
           modo: m.modo,
@@ -59,8 +67,6 @@ async function prepararGrupos(input: RecebimentoCaminhaoInput): Promise<GrupoPar
       continue;
     }
 
-    // NOVO e REEMPREGO: peso sempre calculado pelo fator cadastrado do perfil.
-    const pesoCalculado = await calcularPeso(metrosTotal, grupo.perfil);
     gruposParaCriar.push({
       clientId: grupo.clientId,
       perfil: grupo.perfil,
@@ -181,12 +187,14 @@ export interface ResumoPeso {
   pesoReemprego: number;
   /** Soma de NOVO + REEMPREGO — mantido para compatibilidade com o resumo já usado na conferência. */
   pesoNovoReemprego: number;
+  /** Estimativa (metros x fator) para os grupos SUCATA — "a confirmar" até o Admin informar pesoSucataReal. */
+  pesoSucataEstimado: number;
   pesoSucataReal: number | null;
   pendente: boolean;
   pesoTotal: number | null;
 }
 
-function somaPeso(movimentacao: MovimentacaoComGrupos, tipo: 'NOVO' | 'REEMPREGO'): number {
+function somaPeso(movimentacao: MovimentacaoComGrupos, tipo: 'NOVO' | 'REEMPREGO' | 'SUCATA'): number {
   return arredondar3(
     movimentacao.grupos
       .filter((g) => g.tipoMaterial === tipo)
@@ -199,8 +207,9 @@ export function resumoPeso(movimentacao: MovimentacaoComGrupos): ResumoPeso {
   const pesoNovo = somaPeso(movimentacao, 'NOVO');
   const pesoReemprego = somaPeso(movimentacao, 'REEMPREGO');
   const pesoNovoReemprego = arredondar3(pesoNovo + pesoReemprego);
+  const pesoSucataEstimado = somaPeso(movimentacao, 'SUCATA');
   const pesoSucataReal = movimentacao.pesoSucataReal != null ? Number(movimentacao.pesoSucataReal) : null;
   const pendente = temSucata && pesoSucataReal == null;
   const pesoTotal = pendente ? null : arredondar3(pesoNovoReemprego + (pesoSucataReal ?? 0));
-  return { temSucata, pesoNovo, pesoReemprego, pesoNovoReemprego, pesoSucataReal, pendente, pesoTotal };
+  return { temSucata, pesoNovo, pesoReemprego, pesoNovoReemprego, pesoSucataEstimado, pesoSucataReal, pendente, pesoTotal };
 }

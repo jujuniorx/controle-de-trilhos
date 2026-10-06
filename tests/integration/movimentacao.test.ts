@@ -126,7 +126,7 @@ describe('criarRecebimentoCaminhao', () => {
     expect(Number(grupo.pesoCalculado)).toBe(4.896); // (12 + 60) * 0.068
   });
 
-  it('cria um recebimento com grupo SUCATA sem calcular peso, mantendo pesoSucataReal nulo', async () => {
+  it('cria um recebimento com grupo SUCATA calculando um peso ESTIMADO (mesma fórmula do Reemprego), mantendo pesoSucataReal nulo até o Admin confirmar', async () => {
     const input = recebimentoCaminhaoSchema.parse({
       clientId: uuid(),
       dados: dadosBase(),
@@ -144,9 +144,11 @@ describe('criarRecebimentoCaminhao', () => {
     });
 
     const mov = await criarRecebimentoCaminhao(input);
+    // O peso REAL (confirmado pelo Admin a partir da pesagem) continua pendente —
+    // só o que muda é que agora existe uma ESTIMATIva, não mais null.
     expect(mov.pesoSucataReal).toBeNull();
     const grupo = mov.grupos[0];
-    expect(grupo.pesoCalculado).toBeNull();
+    expect(Number(grupo.pesoCalculado)).toBe(0.604); // (8.1 + 2.5) * 0.057 = 0.6042 -> arredondado
     expect(grupo.medicoes.map((m) => m.classificacaoSC).sort()).toEqual(['SC1', 'SC3']);
   });
 
