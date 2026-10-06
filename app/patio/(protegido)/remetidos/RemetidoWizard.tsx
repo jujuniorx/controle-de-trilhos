@@ -218,7 +218,6 @@ export function RemetidoWizard(props: Props) {
 
   const grupoIncompleto = (g: GrupoLocal) =>
     g.medicoes.length === 0 ||
-    !g.pesoInformado ||
     (g.tipoMaterial === 'REEMPREGO' && !g.classificacao) ||
     (g.tipoMaterial === 'NOVO' && g.marca === 'OUTROS' && !g.fabricanteOutro?.trim());
 
@@ -245,7 +244,7 @@ export function RemetidoWizard(props: Props) {
       clientId: g.clientId,
       perfil: g.perfil,
       tipoMaterial: g.tipoMaterial,
-      pesoInformado: Number(g.pesoInformado.replace(',', '.')),
+      pesoInformado: g.pesoInformado.trim() ? Number(g.pesoInformado.replace(',', '.')) : undefined,
       ...(g.tipoMaterial === 'REEMPREGO' ? { classificacao: g.classificacao, tampao: g.tampao } : {}),
       ...(g.tipoMaterial === 'NOVO'
         ? {
@@ -481,10 +480,10 @@ export function RemetidoWizard(props: Props) {
             )}
 
             <div className="mt-2">
-              <label className="block text-sm font-medium">Peso da NF (t) — para este grupo</label>
+              <label className="block text-sm font-medium">Peso da NF (t) — opcional, deixe em branco se não souber</label>
               <input
                 inputMode="decimal"
-                placeholder="Ex.: 12,500"
+                placeholder="Ex.: 12,500 (ou deixe em branco)"
                 className="mt-1 h-10 w-full rounded border px-2"
                 value={g.pesoInformado}
                 onChange={(e) => atualizarGrupo(g.clientId, { pesoInformado: e.target.value })}
@@ -594,7 +593,7 @@ export function RemetidoWizard(props: Props) {
       </section>
 
       <section className="rounded-lg border bg-white p-3">
-        <p className="text-sm text-neutral-500">PESO TOTAL (soma das NFs dos grupos)</p>
+        <p className="text-sm text-neutral-500">PESO TOTAL (soma do que foi informado; sem peso da NF, usa uma estimativa a confirmar)</p>
         <p className="text-2xl font-semibold">{pesoTotal.toFixed(3)} t</p>
       </section>
 
