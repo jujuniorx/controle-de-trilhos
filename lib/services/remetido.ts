@@ -1,6 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
-import { calcularMetros, calcularPeso } from '@/lib/services/calculo';
+import { calcularMetros, calcularPesoEstimado } from '@/lib/services/calculo';
 import { registrarHistorico } from '@/lib/services/historico';
 import { arredondar3 } from '@/lib/domain/regras';
 import { ErroRegraNegocio } from '@/lib/services/errors';
@@ -63,7 +63,7 @@ async function criarGruposEMedicoes(
     // Sem peso da NF informado pelo Pátio: estimativa provisória, mesma fórmula
     // do Reemprego (metros x fator do perfil) — sinalizada "a confirmar" na
     // Conferência enquanto pesoInformado continuar nulo.
-    const pesoCalculado = grupo.pesoInformado == null ? await calcularPeso(metrosTotal, grupo.perfil) : null;
+    const pesoCalculado = grupo.pesoInformado == null ? await calcularPesoEstimado(metrosTotal, grupo.perfil) : null;
 
     const grupoCriado = await tx.grupo.create({
       data: {

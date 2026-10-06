@@ -152,6 +152,30 @@ describe('criarRecebimentoCaminhao', () => {
     expect(grupo.medicoes.map((m) => m.classificacaoSC).sort()).toEqual(['SC1', 'SC3']);
   });
 
+  it('cria um recebimento com grupo SUCATA de perfil SEM fator cadastrado, salvando com pesoCalculado null (nunca bloqueia)', async () => {
+    const original = await prisma.fatorPerfil.findUniqueOrThrow({ where: { perfil: 'TR32' } });
+    await prisma.fatorPerfil.delete({ where: { perfil: 'TR32' } });
+    try {
+      const input = recebimentoCaminhaoSchema.parse({
+        clientId: uuid(),
+        dados: dadosBase(),
+        grupos: [
+          {
+            clientId: uuid(),
+            perfil: 'TR32',
+            tipoMaterial: 'SUCATA',
+            medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 8.1, classificacaoSC: 'SC1' }],
+          },
+        ],
+      });
+
+      const mov = await criarRecebimentoCaminhao(input);
+      expect(mov.grupos[0].pesoCalculado).toBeNull();
+    } finally {
+      await prisma.fatorPerfil.create({ data: { perfil: original.perfil, fator: original.fator } });
+    }
+  });
+
   it('rejeita grupo NOVO/REEMPREGO com perfil sem fator cadastrado, sem criar nada no banco', async () => {
     const original = await prisma.fatorPerfil.findUniqueOrThrow({ where: { perfil: 'TR32' } });
     await prisma.fatorPerfil.delete({ where: { perfil: 'TR32' } });

@@ -1,6 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
-import { calcularMetros, calcularPeso } from '@/lib/services/calculo';
+import { calcularMetros, calcularPeso, calcularPesoEstimado } from '@/lib/services/calculo';
 import { arredondar3 } from '@/lib/domain/regras';
 import { registrarHistorico } from '@/lib/services/historico';
 import { MARCA_LABEL, type RecebimentoCaminhaoInput } from '@/lib/validation/recebimento';
@@ -38,15 +38,12 @@ async function prepararGrupos(input: RecebimentoCaminhaoInput): Promise<GrupoPar
     const metrosPorMedicao = grupo.medicoes.map((m) => calcularMetros(m.quantidade, m.comprimento));
     const metrosTotal = metrosPorMedicao.reduce((a, b) => a + b, 0);
 
-    // O peso de TODOS os materiais (NOVO, REEMPREGO e agora também SUCATA) é
-    // calculado pelo mesmo fator cadastrado do perfil: metros x fator. Para
-    // SUCATA, esse valor é só uma ESTIMATIVA — o peso REAL, tirado da balança,
-    // continua vivendo em Movimentacao.pesoSucataReal (um único valor para o
-    // caminhão inteiro, preenchido pelo Admin na Conferência). O Pátio nunca
-    // pode ficar bloqueado por isso: ver resumoPeso()/conferirRecebimento().
-    const pesoCalculado = await calcularPeso(metrosTotal, grupo.perfil);
-
     if (grupo.tipoMaterial === 'SUCATA') {
+      // Estimativa (metros x fator) — NUNCA pode bloquear o salvamento do Pátio.
+      // Se o fator do perfil não estiver cadastrado, fica sem estimativa (null),
+      // igual ao comportamento anterior a esta estimativa existir. O peso REAL
+      // continua vivendo em Movimentacao.pesoSucataReal (ver resumoPeso()/conferirRecebimento()).
+      const pesoCalculado = await calcularPesoEstimado(metrosTotal, grupo.perfil);
       gruposParaCriar.push({
         clientId: grupo.clientId,
         perfil: grupo.perfil,
@@ -67,6 +64,9 @@ async function prepararGrupos(input: RecebimentoCaminhaoInput): Promise<GrupoPar
       continue;
     }
 
+    // NOVO e REEMPREGO: peso é obrigatório — perfil sem fator cadastrado bloqueia
+    // de propósito (regra de negócio já existente e testada).
+    const pesoCalculado = await calcularPeso(metrosTotal, grupo.perfil);
     gruposParaCriar.push({
       clientId: grupo.clientId,
       perfil: grupo.perfil,

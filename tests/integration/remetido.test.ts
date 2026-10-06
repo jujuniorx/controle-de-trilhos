@@ -357,6 +357,30 @@ describe('criarRemetidoDireto', () => {
     expect(mov.grupos[0].medicoes[0].classificacaoSC).toBe('SC1');
   });
 
+  it('salva um grupo sem pesoInformado e com perfil SEM fator cadastrado, com pesoCalculado null (nunca bloqueia o salvar)', async () => {
+    const original = await prisma.fatorPerfil.findUniqueOrThrow({ where: { perfil: 'TR32' } });
+    await prisma.fatorPerfil.delete({ where: { perfil: 'TR32' } });
+    try {
+      const mov = await criarRemetidoDireto(
+        uuid(),
+        lancamentoDiretoBase({
+          grupos: [
+            {
+              clientId: uuid(),
+              perfil: 'TR32',
+              tipoMaterial: 'NOVO',
+              medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 4.65 }],
+            },
+          ],
+        }),
+      );
+      expect(mov.grupos[0].pesoInformado).toBeNull();
+      expect(mov.grupos[0].pesoCalculado).toBeNull();
+    } finally {
+      await prisma.fatorPerfil.create({ data: { perfil: original.perfil, fator: original.fator } });
+    }
+  });
+
   it('o remetido lançado direto é conferível normalmente pelo Administrativo', async () => {
     const mov = await criarRemetidoDireto(uuid(), lancamentoDiretoBase());
     await conferirRecebimento(mov.id, ADMIN);
