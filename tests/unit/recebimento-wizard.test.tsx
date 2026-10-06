@@ -2,10 +2,20 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { RecebimentoWizard } from '@/app/patio/(protegido)/recebimentos/novo/RecebimentoWizard';
 
-const { pushMock, salvarRecebimentoLocalMock, sincronizarPendentesMock } = vi.hoisted(() => ({
+const {
+  pushMock,
+  salvarRecebimentoLocalMock,
+  sincronizarPendentesMock,
+  salvarRascunhoRecebimentoMock,
+  lerRascunhoRecebimentoMock,
+  limparRascunhoRecebimentoMock,
+} = vi.hoisted(() => ({
   pushMock: vi.fn(),
   salvarRecebimentoLocalMock: vi.fn().mockResolvedValue(undefined),
   sincronizarPendentesMock: vi.fn().mockResolvedValue(undefined),
+  salvarRascunhoRecebimentoMock: vi.fn().mockResolvedValue(undefined),
+  lerRascunhoRecebimentoMock: vi.fn().mockResolvedValue(undefined),
+  limparRascunhoRecebimentoMock: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -14,6 +24,9 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/lib/offline/db', () => ({
   salvarRecebimentoLocal: salvarRecebimentoLocalMock,
+  salvarRascunhoRecebimento: salvarRascunhoRecebimentoMock,
+  lerRascunhoRecebimento: lerRascunhoRecebimentoMock,
+  limparRascunhoRecebimento: limparRascunhoRecebimentoMock,
 }));
 
 vi.mock('@/lib/offline/sync', () => ({
@@ -25,6 +38,9 @@ describe('RecebimentoWizard — portão de validação local antes de gravar no 
     pushMock.mockClear();
     salvarRecebimentoLocalMock.mockClear();
     sincronizarPendentesMock.mockClear();
+    salvarRascunhoRecebimentoMock.mockClear();
+    limparRascunhoRecebimentoMock.mockClear();
+    lerRascunhoRecebimentoMock.mockReset().mockResolvedValue(undefined);
   });
 
   it('bloqueia a gravação local e mostra o erro inline quando o payload não passa no schema, mesmo tendo passado pelas validações de UI dos passos 1-4', async () => {

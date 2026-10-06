@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   PERFIS,
@@ -12,7 +12,12 @@ import {
   recebimentoCaminhaoSchema,
 } from '@/lib/validation/recebimento';
 import { validarReemprego } from '@/lib/domain/regras';
-import { salvarRecebimentoLocal } from '@/lib/offline/db';
+import {
+  salvarRecebimentoLocal,
+  salvarRascunhoRecebimento,
+  lerRascunhoRecebimento,
+  limparRascunhoRecebimento,
+} from '@/lib/offline/db';
 import { sincronizarPendentes } from '@/lib/offline/sync';
 
 type TipoMaterial = 'NOVO' | 'REEMPREGO' | 'SUCATA';
@@ -47,6 +52,24 @@ interface Dados {
   placaCarreta: string;
   transportadora: string;
   responsavelPatio: string;
+}
+
+interface RascunhoWizard {
+  clientId: string;
+  step: number;
+  dadosBrutos: Dados;
+  dataTocada: boolean;
+  grupos: GrupoLocal[];
+  activeGrupoId: string | null;
+}
+
+function ehRascunhoValido(v: unknown): v is RascunhoWizard {
+  return (
+    typeof v === 'object' &&
+    v !== null &&
+    Array.isArray((v as { grupos?: unknown }).grupos) &&
+    typeof (v as { dadosBrutos?: unknown }).dadosBrutos === 'object'
+  );
 }
 
 function novoUuid(): string {
@@ -103,7 +126,11 @@ function validarDados(d: Dados) {
 
 export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: Partial<Record<string, number>> }) {
   const router = useRouter();
-  const [clientId] = useState(novoUuid);
+  const [clientId, setClientId] = useState(novoUuid);
+  // true até a leitura do rascunho no Dexie terminar — enquanto isso, o efeito
+  // que GRAVA o rascunho fica pausado, para não sobrescrever um rascunho salvo
+  // com o estado em branco do primeiro render.
+  const [restaurando, setRestaurando] = useState(true);
   const [step, setStep] = useState(1);
   const [attemptStep1, setAttemptStep1] = useState(false);
   const [dataTocada, setDataTocada] = useState(false);
@@ -131,6 +158,39 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
   const [modoDraft, setModoDraft] = useState<ModoMedicao>('INDIVIDUAL');
   const [enviando, setEnviando] = useState(false);
   const [erroFinal, setErroFinal] = useState('');
+
+  useEffect(() => {
+    let ativo = true;
+    lerRascunhoRecebimento().then((registro) => {
+      if (!ativo) return;
+      if (registro && ehRascunhoValido(registro.rascunho)) {
+        const r = registro.rascunho;
+        setClientId(registro.clientId);
+        setStep(r.step);
+        setDados(r.dadosBrutos);
+        setDataTocada(r.dataTocada);
+        setGrupos(r.grupos);
+        setActiveGrupoId(r.activeGrupoId);
+      }
+      setRestaurando(false);
+    });
+    return () => {
+      ativo = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (restaurando) return;
+    void salvarRascunhoRecebimento(clientId, {
+      clientId,
+      step,
+      dadosBrutos,
+      dataTocada,
+      grupos,
+      activeGrupoId,
+    });
+  }, [restaurando, clientId, step, dadosBrutos, dataTocada, grupos, activeGrupoId]);
 
   const dados = useMemo<Dados>(
     () => (dataTocada ? dadosBrutos : { ...dadosBrutos, data: dadosBrutos.data || hoje }),
@@ -273,6 +333,11 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
       setErroFinal('Não foi possível salvar o recebimento neste dispositivo. Tente novamente.');
       return;
     }
+
+    // Rascunho cumpriu seu papel — o recebimento já está na tabela definitiva
+    // (`recebimentos`). Limpar agora evita que o PRÓXIMO caminhão abra o wizard
+    // e encontre, por engano, os dados do caminhão que acabou de ser salvo.
+    await limparRascunhoRecebimento();
 
     // Tentativa de sincronização best-effort: não bloqueia a navegação esperando a
     // rede. Se falhar (ou estiver offline), o registro já está salvo localmente e a
