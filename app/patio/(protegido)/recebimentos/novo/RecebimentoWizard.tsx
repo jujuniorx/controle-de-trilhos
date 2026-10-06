@@ -337,7 +337,14 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
     // Rascunho cumpriu seu papel — o recebimento já está na tabela definitiva
     // (`recebimentos`). Limpar agora evita que o PRÓXIMO caminhão abra o wizard
     // e encontre, por engano, os dados do caminhão que acabou de ser salvo.
-    await limparRascunhoRecebimento();
+    // Best-effort: o recebimento já foi salvo com sucesso acima — uma falha ao
+    // limpar o rascunho não pode impedir a navegação para a confirmação.
+    try {
+      await limparRascunhoRecebimento();
+    } catch {
+      // Ignorado de propósito — o recebimento já está salvo localmente. Uma falha
+      // ao limpar o rascunho (e.g., Dexie error) é apenas um problema cosmético.
+    }
 
     // Tentativa de sincronização best-effort: não bloqueia a navegação esperando a
     // rede. Se falhar (ou estiver offline), o registro já está salvo localmente e a
