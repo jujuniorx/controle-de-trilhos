@@ -14,6 +14,7 @@ async function criarRecebimentoMistoPeloPatio(page: import('@playwright/test').P
   await page.getByLabel('Perfil do novo grupo').selectOption('TR22');
   await page.getByLabel('Tipo de material do novo grupo').selectOption('NOVO');
   await page.getByRole('button', { name: 'Adicionar grupo' }).click();
+  await page.getByLabel('Marca do Grupo 1').selectOption('NIPPON');
   await page.getByRole('button', { name: 'Lançar medidas' }).click();
   await page.getByLabel('Comprimento').fill('4,65');
   await page.getByRole('button', { name: 'Adicionar' }).click();

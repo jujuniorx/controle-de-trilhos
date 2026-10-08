@@ -12,6 +12,7 @@ async function criarRecebimentoMistoPeloPatio(page: import('@playwright/test').P
   await page.getByLabel('Perfil do novo grupo').selectOption('TR22');
   await page.getByLabel('Tipo de material do novo grupo').selectOption('NOVO');
   await page.getByRole('button', { name: 'Adicionar grupo' }).click();
+  await page.getByLabel('Marca do Grupo 1').selectOption('NIPPON');
   await page.getByRole('button', { name: 'Lançar medidas' }).click();
   await page.getByLabel('Comprimento').fill('4,65');
   await page.getByRole('button', { name: 'Adicionar' }).click();
@@ -66,7 +67,7 @@ test.describe('Administrativo — listagem e detalhe de recebimentos pendentes',
     await expect(page.getByRole('cell', { name: nf })).toBeVisible();
     const row = page.locator('tr', { has: page.getByRole('cell', { name: nf }) });
     await expect(row.getByText('Rondonópolis')).toBeVisible();
-    await expect(row.getByText('ABC1D23 / XYZ9E88')).toBeVisible();
+    await expect(row.getByText('XYZ9E88 / ABC1D23')).toBeVisible();
     await expect(row.getByText(RESPONSAVEL)).toBeVisible();
     await expect(row.getByText('PENDENTE_CONFERENCIA')).toBeVisible();
   });

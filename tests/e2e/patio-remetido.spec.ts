@@ -45,6 +45,7 @@ test.describe('Fluxo real do Remetido — pré-cadastro (Admin) + confirmação 
 
     await page.locator('select').first().selectOption('TR22'); // Perfil do novo grupo
     await page.getByRole('button', { name: 'Adicionar grupo' }).click();
+    await page.getByLabel('Marca do Grupo 1').selectOption('NIPPON');
 
     // O grupo recém-criado já fica ativo (activeGrupoId), então o bloco de
     // lançar medidas já aparece aberto — sem precisar clicar "Lançar medidas".
@@ -86,6 +87,7 @@ test.describe('Fluxo real do Remetido — pré-cadastro (Admin) + confirmação 
 
     await page.locator('select').nth(1).selectOption('TR22'); // Perfil do novo grupo
     await page.getByRole('button', { name: 'Adicionar grupo' }).click();
+    await page.getByLabel('Marca do Grupo 1').selectOption('NIPPON');
     await page.getByPlaceholder('Comprimento (m)').fill('4,65');
     await page.getByRole('button', { name: 'Adicionar', exact: true }).click();
     await expect(page.getByText('4.65 m', { exact: true })).toBeVisible();
@@ -121,8 +123,10 @@ test.describe('Fluxo real do Remetido — pré-cadastro (Admin) + confirmação 
     expect(remetidos).toBeDefined();
 
     const linhas = remetidos.getRows(2, remetidos.rowCount - 1) ?? [];
-    const linha = linhas.find((r) => String(r.getCell(4).value) === MARCADOR); // Reserva/Pedido
+    // Reserva/Pedido (coluna 6) sai maiúsculo no Excel (Bloco 5.2) — MARCADOR já é
+    // só maiúsculas/dígitos/hífen, então a comparação direta continua válida.
+    const linha = linhas.find((r) => String(r.getCell(6).value) === MARCADOR); // Reserva/Pedido
     expect(linha, 'linha do Remetido recém-criado não encontrada na planilha').toBeDefined();
-    expect(linha!.getCell(11).value).toBe('TR22'); // Perfil
+    expect(linha!.getCell(10).value).toBe('TR22'); // Perfil
   });
 });
