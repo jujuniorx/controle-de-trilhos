@@ -1,0 +1,24 @@
+import { describe, it, expect, afterEach } from 'vitest';
+import { render, screen, cleanup } from '@testing-library/react';
+import { AdminShell } from '@/components/admin/AdminShell';
+
+describe('AdminShell', () => {
+  afterEach(cleanup);
+
+  it('renderiza só os dois destinos reais do menu (Pendências e Relatórios)', () => {
+    render(<AdminShell nome="Fulano de Tal">conteúdo</AdminShell>);
+    expect(screen.getByRole('link', { name: 'Pendências' })).toHaveAttribute('href', '/admin');
+    expect(screen.getByRole('link', { name: 'Relatórios' })).toHaveAttribute('href', '/admin/relatorios');
+    // Itens do protótipo sem página real — nunca devem aparecer como link.
+    expect(screen.queryByRole('link', { name: 'Conferência' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Histórico' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Configurações' })).toBeNull();
+  });
+
+  it('mostra o nome do admin logado, o link de trocar senha e renderiza os filhos', () => {
+    render(<AdminShell nome="Fulano de Tal">área de conteúdo</AdminShell>);
+    expect(screen.getByText('Fulano de Tal')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Trocar minha senha' })).toHaveAttribute('href', '/admin/trocar-senha');
+    expect(screen.getByText('área de conteúdo')).toBeTruthy();
+  });
+});

@@ -1,12 +1,7 @@
 import { requirePatioAcesso } from '@/lib/services/requirePatioAcesso';
-import { IndicadorSincronizacao } from '@/components/IndicadorSincronizacao';
+import { PatioShell } from '@/components/patio/PatioShell';
 
 export default async function PatioLayout({ children }: { children: React.ReactNode }) {
   await requirePatioAcesso();
-  return (
-    <>
-      <IndicadorSincronizacao />
-      {children}
-    </>
-  );
+  return <PatioShell>{children}</PatioShell>;
 }
