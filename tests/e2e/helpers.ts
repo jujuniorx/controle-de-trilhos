@@ -27,7 +27,7 @@ export async function preencherDadosPatio(page: Page, nf: string, responsavel = 
 
 export async function entrarNoAdmin(page: Page) {
   await page.goto('/admin/login');
-  await page.locator('input[name="email"]').fill(process.env.ADMIN_EMAIL ?? 'admin-teste@controle-trilhos.local');
+  await page.locator('input[name="identificador"]').fill(process.env.ADMIN_EMAIL ?? 'admin-teste@controle-trilhos.local');
   await page.locator('input[name="senha"]').fill(process.env.ADMIN_SENHA_INICIAL ?? 'SenhaTeste123!');
   await page.getByRole('button', { name: 'Entrar' }).click();
   await page.waitForURL('**/admin');

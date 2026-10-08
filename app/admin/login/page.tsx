@@ -11,17 +11,17 @@ export default function LoginPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center p-6">
       <h1 className="text-xl font-semibold text-neutral-900">Login do Administrativo</h1>
-      <p className="mt-1 text-sm text-neutral-600">Entre com seu e-mail e senha para continuar.</p>
+      <p className="mt-1 text-sm text-neutral-600">Entre com seu usuário (ou e-mail) e senha para continuar.</p>
 
       <form action={formAction} className="mt-4 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-neutral-700" htmlFor="email">
-            E-mail
+          <label className="block text-sm font-medium text-neutral-700" htmlFor="identificador">
+            Usuário ou e-mail
           </label>
           <input
-            id="email"
-            name="email"
-            type="email"
+            id="identificador"
+            name="identificador"
+            type="text"
             required
             className="mt-1 h-12 w-full rounded border px-3"
           />

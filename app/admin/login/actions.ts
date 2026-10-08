@@ -5,10 +5,10 @@ import { redirect } from 'next/navigation';
 import { autenticar } from '@/lib/services/loginService';
 
 export async function login(formData: FormData): Promise<{ ok: boolean; erro?: string }> {
-  const email = String(formData.get('email') ?? '');
+  const identificador = String(formData.get('identificador') ?? '');
   const senha = String(formData.get('senha') ?? '');
 
-  const resultado = await autenticar(email, senha);
+  const resultado = await autenticar(identificador, senha);
   if (!resultado.ok || !resultado.token || !resultado.expiresAt) {
     return { ok: false, erro: resultado.erro };
   }

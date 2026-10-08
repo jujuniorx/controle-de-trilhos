@@ -19,6 +19,19 @@ describe('sessão administrativa', () => {
     expect(await validarSessao(token)).toBeNull();
   });
 
+  it('validarSessao também devolve o nome do usuário', async () => {
+    const user = await prisma.user.create({
+      data: { nome: 'Admin Com Nome', email: 'admin-nome-teste@example.com', senhaHash: 'x' },
+    });
+
+    const { token } = await criarSessao(user.id);
+    const valida = await validarSessao(token);
+    expect(valida?.nome).toBe('Admin Com Nome');
+
+    await prisma.session.deleteMany({ where: { userId: user.id } });
+    await prisma.user.deleteMany({ where: { email: 'admin-nome-teste@example.com' } });
+  });
+
   afterAll(async () => {
     // Escopado ao usuário criado por este teste — nunca apagar sessões de terceiros.
     if (userIdCriado) await prisma.session.deleteMany({ where: { userId: userIdCriado } });

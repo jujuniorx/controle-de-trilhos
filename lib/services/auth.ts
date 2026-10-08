@@ -31,12 +31,37 @@ export async function criarSessao(userId: string): Promise<{ token: string; expi
   return { token, expiresAt };
 }
 
-export async function validarSessao(token: string): Promise<{ userId: string } | null> {
-  const session = await prisma.session.findUnique({ where: { tokenHash: hashToken(token) } });
+export async function validarSessao(token: string): Promise<{ userId: string; nome: string } | null> {
+  const session = await prisma.session.findUnique({
+    where: { tokenHash: hashToken(token) },
+    include: { user: { select: { nome: true } } },
+  });
   if (!session || session.revokedAt || session.expiresAt < new Date()) return null;
-  return { userId: session.userId };
+  return { userId: session.userId, nome: session.user.nome };
 }
 
 export async function revogarSessao(token: string): Promise<void> {
   await prisma.session.updateMany({ where: { tokenHash: hashToken(token) }, data: { revokedAt: new Date() } });
+}
+
+/**
+ * Troca a senha de um usuário já autenticado (Bloco 3) — exige a senha atual
+ * (reautenticação), nunca loga senha/hash. Erros são mensagens genéricas de
+ * propósito (não revelam se o usuário existe) — mas aqui o userId já vem de
+ * uma sessão válida (requireAdmin), então o único jeito de "senhaAtual errada"
+ * é o próprio usuário ter digitado errado.
+ */
+export async function trocarSenha(
+  userId: string,
+  senhaAtual: string,
+  novaSenha: string,
+): Promise<{ ok: boolean; erro?: string }> {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) return { ok: false, erro: 'Usuário não encontrado.' };
+
+  const senhaAtualValida = await verificarSegredo(senhaAtual, user.senhaHash);
+  if (!senhaAtualValida) return { ok: false, erro: 'Senha atual incorreta.' };
+
+  await prisma.user.update({ where: { id: userId }, data: { senhaHash: await hashSegredo(novaSenha) } });
+  return { ok: true };
 }
