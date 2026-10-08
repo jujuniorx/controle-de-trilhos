@@ -7,6 +7,12 @@ function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
 }
 
+const STATUS_LABEL: Record<string, { texto: string; className: string }> = {
+  AGUARDANDO_CHEGADA: { texto: 'Aguardando chegada', className: 'bg-neutral-200 text-neutral-800' },
+  PENDENTE_CONFERENCIA: { texto: 'Pendente de conferência', className: 'bg-amber-100 text-amber-800' },
+  CONFERIDO: { texto: 'Conferido', className: 'bg-emerald-100 text-emerald-800' },
+};
+
 export default async function AdminHomePage() {
   await requireAdmin();
   const [movimentacoes, aguardandoChegada] = await Promise.all([listarPendentesConferencia(), listarAguardandoChegada()]);
@@ -51,7 +57,11 @@ export default async function AdminHomePage() {
                   {[m.placaCarreta, m.placaCarreta2, m.placaCavalo].filter(Boolean).join(' / ') || '—'}
                 </td>
                 <td className="p-2">{m.responsavelPatio}</td>
-                <td className="p-2">{m.status}</td>
+                <td className="p-2">
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_LABEL[m.status]?.className ?? 'bg-neutral-100'}`}>
+                    {STATUS_LABEL[m.status]?.texto ?? m.status}
+                  </span>
+                </td>
                 <td className="p-2 text-right">
                   <Link
                     href={m.tipo === 'RECEBIMENTO' ? `/admin/recebimentos/${m.id}` : `/admin/remetidos/${m.id}`}

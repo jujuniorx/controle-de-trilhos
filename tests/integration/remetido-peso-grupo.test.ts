@@ -5,6 +5,19 @@ import { informarPesoGrupoRemetido } from '@/lib/services/remetido';
 
 describe('informarPesoGrupoRemetido', () => {
   afterAll(async () => {
+    // Nenhum teste deste arquivo limpava o que criava — ficava poluindo o banco
+    // (compartilhado com produção neste projeto) a cada rodada da suíte.
+    const ids = (
+      await prisma.movimentacao.findMany({
+        where: { reservaPedido: { in: ['RES-TESTE-PESO', 'RES-TESTE-PESO-2'] } },
+        select: { id: true },
+      })
+    ).map((m) => m.id);
+    await prisma.medicao.deleteMany({ where: { grupo: { movimentacaoId: { in: ids } } } });
+    await prisma.grupo.deleteMany({ where: { movimentacaoId: { in: ids } } });
+    await prisma.remetidoDetalhe.deleteMany({ where: { movimentacaoId: { in: ids } } });
+    await prisma.historicoAlteracao.deleteMany({ where: { movimentacaoId: { in: ids } } });
+    await prisma.movimentacao.deleteMany({ where: { id: { in: ids } } });
     await prisma.$disconnect();
   });
 

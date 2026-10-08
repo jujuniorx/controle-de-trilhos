@@ -462,7 +462,7 @@ export function RemetidoWizard(props: Props) {
       <section className="space-y-3 rounded-lg border bg-white p-3">
         <h2 className="font-semibold text-neutral-800">Grupos</h2>
         {grupos.map((g, i) => (
-          <div key={g.clientId} className="rounded border p-2">
+          <div key={g.clientId} className="rounded-lg border bg-neutral-50 p-3">
             <div className="flex items-center justify-between">
               <b>
                 {g.perfil} — {g.tipoMaterial}
@@ -477,7 +477,7 @@ export function RemetidoWizard(props: Props) {
               <div className="mt-2 flex gap-2">
                 <select
                   aria-label={`Marca do Grupo ${i + 1}`}
-                  className="h-10 flex-1 rounded border px-2"
+                  className="h-11 flex-1 rounded border px-2"
                   value={g.marca ?? ''}
                   onChange={(e) => atualizarGrupo(g.clientId, { marca: (e.target.value || undefined) as Marca | undefined })}
                 >
@@ -492,7 +492,7 @@ export function RemetidoWizard(props: Props) {
                 </select>
                 {g.marca === 'OUTROS' && (
                   <input
-                    className="h-10 flex-1 rounded border px-2"
+                    className="h-11 flex-1 rounded border px-2"
                     placeholder="Nome do fabricante"
                     value={g.fabricanteOutro ?? ''}
                     onChange={(e) => atualizarGrupo(g.clientId, { fabricanteOutro: e.target.value })}
@@ -517,7 +517,7 @@ export function RemetidoWizard(props: Props) {
                   É tampão
                 </label>
                 <select
-                  className="h-10 w-full rounded border px-2"
+                  className="h-11 w-full rounded border px-2"
                   value={g.classificacao ?? ''}
                   onChange={(e) => atualizarGrupo(g.clientId, { classificacao: (e.target.value || undefined) as Classificacao | undefined })}
                 >
@@ -536,7 +536,7 @@ export function RemetidoWizard(props: Props) {
               <input
                 inputMode="decimal"
                 placeholder="Ex.: 12,500 (ou deixe em branco)"
-                className="mt-1 h-10 w-full rounded border px-2"
+                className="mt-1 h-11 w-full rounded border px-2"
                 value={g.pesoInformado}
                 onChange={(e) => atualizarGrupo(g.clientId, { pesoInformado: e.target.value })}
               />
@@ -544,7 +544,7 @@ export function RemetidoWizard(props: Props) {
 
             <div className="mt-2">
               <p className="text-sm text-neutral-600">{metrosDoGrupo(g).toFixed(2)} m lançados</p>
-              <ol className="mt-1 divide-y rounded border text-sm">
+              <ol className="mt-1 divide-y rounded-lg border bg-white text-sm">
                 {g.medicoes.map((m) => (
                   <li key={m.clientId} className="flex items-center justify-between px-2 py-1">
                     <span>
@@ -559,7 +559,7 @@ export function RemetidoWizard(props: Props) {
               </ol>
 
               {activeGrupoId === g.clientId && (
-                <div className="mt-2 rounded border p-2">
+                <div className="mt-2 rounded-lg border bg-white p-3">
                   <div className="flex gap-2 text-sm">
                     <button
                       className={`rounded px-2 py-1 ${modoDraft === 'INDIVIDUAL' ? 'bg-steel text-white' : 'border'}`}
@@ -578,7 +578,7 @@ export function RemetidoWizard(props: Props) {
                     {modoDraft === 'QTD_COMPRIMENTO' && (
                       <input
                         inputMode="numeric"
-                        className="h-10 w-16 rounded border px-2"
+                        className="h-11 w-16 rounded border px-2"
                         value={draftMedicao.quantidade}
                         onChange={(e) => setDraftMedicao((d) => ({ ...d, quantidade: e.target.value }))}
                       />
@@ -586,7 +586,7 @@ export function RemetidoWizard(props: Props) {
                     <input
                       inputMode="decimal"
                       placeholder="Comprimento (m)"
-                      className="h-10 flex-1 rounded border px-2"
+                      className="h-11 flex-1 rounded border px-2"
                       value={draftMedicao.comprimento}
                       onChange={(e) => {
                         const texto = e.target.value;
@@ -601,7 +601,7 @@ export function RemetidoWizard(props: Props) {
                     />
                     {g.tipoMaterial === 'SUCATA' && (
                       <select
-                        className="h-10 rounded border px-2"
+                        className="h-11 rounded border px-2"
                         value={draftMedicao.sc}
                         onChange={(e) =>
                           setDraftMedicao((d) => ({ ...d, sc: e.target.value as ClassificacaoSC | '', scManual: true }))
@@ -615,7 +615,7 @@ export function RemetidoWizard(props: Props) {
                         ))}
                       </select>
                     )}
-                    <button className="h-10 rounded bg-steel px-3 text-white" onClick={adicionarMedicao}>
+                    <button className="h-11 rounded bg-steel px-3 text-white" onClick={adicionarMedicao}>
                       Adicionar
                     </button>
                   </div>
