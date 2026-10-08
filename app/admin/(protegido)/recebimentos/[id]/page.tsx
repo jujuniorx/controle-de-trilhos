@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { buscarMovimentacaoDetalhe, resumoPeso } from '@/lib/services/movimentacao';
 import { requireAdmin } from '@/lib/services/requireAdmin';
+import { pecasDoGrupo } from '@/lib/domain/regras';
 import { ConferenciaPainel } from './ConferenciaPainel';
 import { DocumentoPesagemPainel } from './DocumentoPesagemPainel';
 
@@ -92,7 +93,9 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
                   <span className="ml-2 text-neutral-500">Fabricante: {g.fabricante}</span>
                 )}
                 {g.tipoMaterial === 'REEMPREGO' && <span className="ml-2 text-neutral-500">Classificação: {g.classificacao}</span>}
-                <span className="ml-2 text-neutral-500">{fmtMetros(g.metrosTotal)} m</span>
+                <span className="ml-2 text-neutral-500">
+                  {pecasDoGrupo(g.medicoes)} {pecasDoGrupo(g.medicoes) === 1 ? 'barra' : 'barras'} · {fmtMetros(g.metrosTotal)} m
+                </span>
               </div>
               {g.tipoMaterial === 'SUCATA' ? (
                 <span className="text-right">
@@ -163,6 +166,24 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
             <p className="mt-2 text-xl font-semibold">TOTAL: {fmtPeso(resumo.pesoTotal ?? 0)} t</p>
           </div>
         )}
+      </section>
+
+      {/* Totais do recebimento (barras / metros / peso) */}
+      <section className="rounded-lg border bg-white p-4">
+        <h2 className="font-semibold text-neutral-800">Totais do recebimento</h2>
+        <dl className="mt-2 grid grid-cols-3 gap-y-1 text-sm">
+          <dt className="text-neutral-500">Barras</dt>
+          <dd className="col-span-2 text-lg font-semibold">{mov.grupos.reduce((acc, g) => acc + pecasDoGrupo(g.medicoes), 0)}</dd>
+          <dt className="text-neutral-500">Metros</dt>
+          <dd className="col-span-2 text-lg font-semibold">
+            {fmtMetros(mov.grupos.reduce((acc, g) => acc + Number(g.metrosTotal), 0))} m
+          </dd>
+          <dt className="text-neutral-500">Peso{resumo.pendente ? ' (até agora)' : ' total'}</dt>
+          <dd className="col-span-2 text-lg font-semibold">
+            {fmtPeso(resumo.pendente ? resumo.pesoNovoReemprego + resumo.pesoSucataEstimado : resumo.pesoTotal ?? 0)} t
+            {resumo.pendente && <span className="ml-1 text-xs font-normal text-amber-700">(inclui estimativa de sucata, a confirmar)</span>}
+          </dd>
+        </dl>
       </section>
 
       {/* 5. Documento de pesagem (só relevante quando há sucata) */}
