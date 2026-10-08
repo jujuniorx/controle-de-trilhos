@@ -79,8 +79,11 @@ test.describe('Administrativo — conferência, peso real e documento de pesagem
     // Informa o peso real da sucata.
     await page.locator('#peso-sucata').fill('1,250');
     await page.getByRole('button', { name: 'Salvar peso' }).click();
-    await expect(page.getByText('PESO TOTAL')).toBeVisible();
-    await expect(page.getByText('2.168', { exact: false })).toBeVisible(); // 0.102 + 0.816 + 1.250
+    // Escopado à seção "Resumo de peso" — a seção "Totais do recebimento" também
+    // mostra "Peso total"/o mesmo valor, e getByText é case-insensitive por padrão.
+    const resumoPeso = page.locator('section', { has: page.getByRole('heading', { name: 'Resumo de peso' }) });
+    await expect(resumoPeso.getByText('PESO TOTAL')).toBeVisible();
+    await expect(resumoPeso.getByText('2.168', { exact: false })).toBeVisible(); // 0.102 + 0.816 + 1.250
 
     // Upload real do documento de pesagem (contra o S3 local usado nos testes).
     await page.locator('input[type="file"]').setInputFiles({

@@ -59,10 +59,14 @@ export interface ResumoRelatorio {
  * Peso de um grupo para fins de relatório. SUCATA de Recebimento é tratada
  * fora desta função (ver pesoMovimentacao) porque seu peso real vive em
  * Movimentacao.pesoSucataReal, não no grupo — nunca pode se somar aos dois ao
- * mesmo tempo.
+ * mesmo tempo. Precedência informado > calculado, igual a todo o resto do
+ * código que resolve o peso conhecido de um grupo de Remetido (ver
+ * resumoPesoRemetido em lib/services/remetido.ts e o export Excel) — para
+ * grupos de RECEBIMENTO é um no-op, já que pesoInformado nunca é gravado por
+ * criarRecebimentoCaminhao (lib/services/movimentacao.ts).
  */
 function pesoConhecidoDoGrupo(grupo: MovimentacaoRelatorio['grupos'][number]): number {
-  return Number(grupo.pesoCalculado ?? grupo.pesoInformado ?? 0);
+  return Number(grupo.pesoInformado ?? grupo.pesoCalculado ?? 0);
 }
 
 /**
@@ -70,7 +74,8 @@ function pesoConhecidoDoGrupo(grupo: MovimentacaoRelatorio['grupos'][number]): n
  * resumoPeso() (lib/services/movimentacao.ts): para SUCATA de Recebimento,
  * o peso real (pesoSucataReal) substitui a estimativa do grupo quando
  * presente — nunca soma os dois (bug corrigido na Task 7). Enquanto
- * pendente, a estimativa aparece sozinha (rotulada "a confirmar" na UI).
+ * pendente, a estimativa fica misturada ao total sem rótulo específico
+ * nesta tela.
  */
 function pesoMovimentacao(mov: MovimentacaoRelatorio): number {
   let total = 0;

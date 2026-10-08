@@ -33,7 +33,7 @@ describe('resumoRelatorio', () => {
     expect(resumo.metros).toBe(15);
   });
 
-  it('soma pesoCalculado (Recebimento NOVO/REEMPREGO) e pesoInformado (Remetido) por grupo', () => {
+  it('soma pesoCalculado por grupo (Recebimento NOVO/REEMPREGO)', () => {
     const movs = [
       mov({ grupos: [grupo({ tipoMaterial: 'NOVO', pesoCalculado: 2.2 }), grupo({ tipoMaterial: 'REEMPREGO', pesoCalculado: 1.1 })] }),
     ];
@@ -44,7 +44,10 @@ describe('resumoRelatorio', () => {
     const movs = [
       mov({
         tipo: 'REMETIDO',
-        grupos: [grupo({ tipoMaterial: 'SUCATA', pesoInformado: 2 }), grupo({ tipoMaterial: 'SUCATA', pesoInformado: null, pesoCalculado: 0.5 })],
+        grupos: [
+          grupo({ tipoMaterial: 'SUCATA', pesoInformado: 2, pesoCalculado: 1 }),
+          grupo({ tipoMaterial: 'SUCATA', pesoInformado: null, pesoCalculado: 0.5 }),
+        ],
       }),
     ];
     expect(resumoRelatorio(movs).toneladas).toBe(2.5);

@@ -100,9 +100,12 @@ test.describe('Administrativo — listagem e detalhe de recebimentos pendentes',
     await expect(page.getByText('SC1')).toBeVisible();
 
     // Resumo: NUNCA "Peso total" enquanto o peso REAL da sucata está pendente.
-    await expect(page.getByText('Peso até agora')).toBeVisible();
-    await expect(page.getByText('Peso total')).toHaveCount(0);
-    await expect(page.getByText('0.918 t')).toBeVisible(); // 0.102 + 0.816, sem a sucata
-    await expect(page.getByText(/SUCATA — peso estimado/)).toBeVisible();
+    // Escopado à seção "Resumo de peso" — a seção "Totais do recebimento" tem
+    // seus próprios rótulos/valores de peso e getByText é case-insensitive por padrão.
+    const resumoPeso = page.locator('section', { has: page.getByRole('heading', { name: 'Resumo de peso' }) });
+    await expect(resumoPeso.getByText('Peso até agora')).toBeVisible();
+    await expect(resumoPeso.getByText('Peso total')).toHaveCount(0);
+    await expect(resumoPeso.getByText('0.918 t')).toBeVisible(); // 0.102 + 0.816, sem a sucata
+    await expect(resumoPeso.getByText(/SUCATA — peso estimado/)).toBeVisible();
   });
 });
