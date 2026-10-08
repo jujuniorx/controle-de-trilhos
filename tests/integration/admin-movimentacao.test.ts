@@ -91,7 +91,9 @@ describe('buscarMovimentacaoDetalhe', () => {
     expect(detalhe!.grupos).toHaveLength(3);
     const grupoSucata = detalhe!.grupos.find((g) => g.tipoMaterial === 'SUCATA')!;
     expect(grupoSucata.medicoes[0].classificacaoSC).toBe('SC1');
-    expect(grupoSucata.pesoCalculado).toBeNull();
+    // TR57 fator 0.057 x 8.10m = 0.4617 -> 0.462t: estimativa (mesma fórmula do
+    // Reemprego), não mais null — ver Task 3 do Bloco 1 (bugs-salvar, 2026-10-06).
+    expect(Number(grupoSucata.pesoCalculado)).toBe(0.462);
   });
 
   it('retorna null para um id inexistente', async () => {
