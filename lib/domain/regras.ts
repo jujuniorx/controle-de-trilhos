@@ -34,3 +34,7 @@ export function classificarSC(comprimento: number): 'SC1' | 'SC2' | 'SC3' {
   if (comprimento >= 3) return 'SC2';
   return 'SC3';
 }
+
+export function pecasDoGrupo(medicoes: { quantidade: number }[]): number {
+  return medicoes.reduce((acc, m) => acc + m.quantidade, 0);
+}
