@@ -82,6 +82,9 @@ model User {
   id            String    @id @default(cuid())
   nome          String
   email         String    @unique
+  // Opcional: a conta de teste original só tem e-mail. Login aceita usuário OU
+  // e-mail no mesmo campo — ver lib/services/loginService.ts.
+  username      String?   @unique
   senhaHash     String
   role          Role      @default(ADMIN)
   ativo         Boolean   @default(true)
@@ -125,6 +128,7 @@ model Movimentacao {
   tipoTransporte   TipoTransporte
   placaCavalo      String?
   placaCarreta     String?
+  placaCarreta2    String?
   transportadora   String?
   origem           String?
   destino          String?
@@ -144,9 +148,11 @@ model Movimentacao {
 }
 
 model RemetidoDetalhe {
-  movimentacaoId String       @id
-  movimentacao   Movimentacao @relation(fields: [movimentacaoId], references: [id])
-  tipoRemetido   TipoRemetido
+  movimentacaoId String        @id
+  movimentacao   Movimentacao  @relation(fields: [movimentacaoId], references: [id])
+  // Opcional: no lançamento direto pelo Pátio (sem pré-cadastro) o Pátio não tem
+  // essa informação — o Administrativo completa depois, na conferência.
+  tipoRemetido   TipoRemetido?
 }
 
 model Grupo {
