@@ -41,7 +41,6 @@ interface GrupoLocal {
   tampao: boolean;
   marca?: Marca;
   fabricanteOutro?: string;
-  pesoInformado: string;
   medicoes: MedicaoLocal[];
 }
 
@@ -166,11 +165,6 @@ export function RemetidoWizard(props: Props) {
   const errosIdentificacao = attemptSubmit && props.modo === 'novo' ? validarIdentificacao(identificacao) : {};
   const grupoAtivo = grupos.find((g) => g.clientId === activeGrupoId) ?? null;
 
-  const pesoTotal = useMemo(
-    () => grupos.reduce((acc, g) => acc + (Number(g.pesoInformado.replace(',', '.')) || 0), 0),
-    [grupos],
-  );
-
   function adicionarGrupo() {
     if (!draftPerfil) return;
     const g: GrupoLocal = {
@@ -178,7 +172,6 @@ export function RemetidoWizard(props: Props) {
       perfil: draftPerfil,
       tipoMaterial: draftTipo,
       tampao: false,
-      pesoInformado: '',
       medicoes: [],
     };
     setGrupos((prev) => [...prev, g]);
@@ -244,7 +237,7 @@ export function RemetidoWizard(props: Props) {
     if (Object.keys(validarDados(dados)).length > 0) return;
     if (props.modo === 'novo' && Object.keys(validarIdentificacao(identificacao)).length > 0) return;
     if (!podeConfirmar) {
-      setErroFinal('Complete todos os grupos (medições, peso da NF e classificação) antes de confirmar.');
+      setErroFinal('Complete todos os grupos (medições e classificação) antes de confirmar.');
       return;
     }
 
@@ -260,7 +253,6 @@ export function RemetidoWizard(props: Props) {
       clientId: g.clientId,
       perfil: g.perfil,
       tipoMaterial: g.tipoMaterial,
-      pesoInformado: g.pesoInformado.trim() ? Number(g.pesoInformado.replace(',', '.')) : undefined,
       ...(g.tipoMaterial === 'REEMPREGO' ? { classificacao: g.classificacao, tampao: g.tampao } : {}),
       ...(g.tipoMaterial === 'NOVO'
         ? {
@@ -520,17 +512,6 @@ export function RemetidoWizard(props: Props) {
             )}
 
             <div className="mt-2">
-              <label className="block text-sm font-medium">Peso da NF (t) — opcional, deixe em branco se não souber</label>
-              <input
-                inputMode="decimal"
-                placeholder="Ex.: 12,500 (ou deixe em branco)"
-                className="mt-1 h-11 w-full rounded border px-2"
-                value={g.pesoInformado}
-                onChange={(e) => atualizarGrupo(g.clientId, { pesoInformado: e.target.value })}
-              />
-            </div>
-
-            <div className="mt-2">
               <p className="text-sm text-neutral-600">{metrosDoGrupo(g).toFixed(2)} m lançados</p>
               <ol className="mt-1 divide-y rounded-lg border bg-white text-sm">
                 {g.medicoes.map((m) => (
@@ -641,11 +622,6 @@ export function RemetidoWizard(props: Props) {
             Adicionar grupo
           </button>
         </div>
-      </section>
-
-      <section className="rounded-lg border bg-white p-3">
-        <p className="text-sm text-neutral-500">PESO TOTAL (soma do que foi informado; sem peso da NF, usa uma estimativa a confirmar)</p>
-        <p className="text-2xl font-semibold">{pesoTotal.toFixed(3)} t</p>
       </section>
 
       {erroFinal && <p role="alert" className="text-sm text-red-600">{erroFinal}</p>}

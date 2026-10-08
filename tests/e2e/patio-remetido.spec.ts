@@ -55,15 +55,18 @@ test.describe('Fluxo real do Remetido — pré-cadastro (Admin) + confirmação 
     await page.getByRole('button', { name: 'Adicionar', exact: true }).click();
     await expect(page.getByText('4.65 m', { exact: true })).toBeVisible();
 
-    await page.getByPlaceholder('Ex.: 12,500').fill('12,5');
-
+    // Peso da NF foi removido do wizard do Pátio (Task 5) — o peso passa a ser
+    // sempre a estimativa automática (metros × fator do perfil) até o Admin
+    // confirmar o peso real depois, pela PesoGrupoPainel.
     await page.getByRole('button', { name: 'Confirmar chegada e salvar' }).click();
     await page.waitForURL('**/patio/remetidos');
 
     await entrarNoAdmin(page);
     await page.goto(`/admin/remetidos/${movimentacaoId}`);
     await expect(page.getByText('PENDENTE DE CONFERÊNCIA').first()).toBeVisible();
-    await expect(page.getByText('TOTAL (da NF): 12.500 t')).toBeVisible();
+    // TR22 × 4.65 m com fator 0,022 (seed) = 0,102 t — estimativa automática,
+    // já que nenhum peso foi informado pelo Pátio.
+    await expect(page.getByText('TOTAL (da NF): 0.102 t')).toBeVisible();
 
     const movimentacao = await prisma.movimentacao.findUniqueOrThrow({
       where: { id: movimentacaoId },
@@ -71,7 +74,8 @@ test.describe('Fluxo real do Remetido — pré-cadastro (Admin) + confirmação 
     });
     expect(movimentacao.status).toBe('PENDENTE_CONFERENCIA');
     expect(movimentacao.grupos).toHaveLength(1);
-    expect(Number(movimentacao.grupos[0].pesoInformado)).toBe(12.5);
+    expect(movimentacao.grupos[0].pesoInformado).toBeNull();
+    expect(Number(movimentacao.grupos[0].pesoCalculado)).toBeCloseTo(0.102, 3);
   });
 
   test('lançamento direto pelo Pátio, sem pré-cadastro do Administrativo', async ({ page }) => {
@@ -94,7 +98,8 @@ test.describe('Fluxo real do Remetido — pré-cadastro (Admin) + confirmação 
     await page.getByPlaceholder('Comprimento (m)').fill('4,65');
     await page.getByRole('button', { name: 'Adicionar', exact: true }).click();
     await expect(page.getByText('4.65 m', { exact: true })).toBeVisible();
-    await page.getByPlaceholder('Ex.: 12,500').fill('9,4');
+    // Peso da NF foi removido do wizard do Pátio (Task 5) — o peso passa a ser
+    // sempre a estimativa automática até o Admin confirmar o peso real depois.
 
     await page.getByRole('button', { name: 'Lançar remetido' }).click();
     await page.waitForURL('**/patio/remetidos');
@@ -108,7 +113,8 @@ test.describe('Fluxo real do Remetido — pré-cadastro (Admin) + confirmação 
     expect(movimentacao.remetidoDetalhe?.tipoRemetido).toBe('VENDA');
     expect(movimentacao.reservaPedido).toBeNull(); // Campo removido desta tela — salva sem ele
     expect(movimentacao.grupos).toHaveLength(1);
-    expect(Number(movimentacao.grupos[0].pesoInformado)).toBe(9.4);
+    expect(movimentacao.grupos[0].pesoInformado).toBeNull();
+    expect(Number(movimentacao.grupos[0].pesoCalculado)).toBeCloseTo(0.102, 3);
   });
 
   test('exportação Excel: rota protegida por admin retorna um .xlsx válido com o Remetido recém-criado', async ({ page }) => {
