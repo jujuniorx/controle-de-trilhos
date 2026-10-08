@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/services/requireAdmin';
-import { informarNumeroDocumentoRemetido } from '@/lib/services/remetido';
+import { informarNumeroDocumentoRemetido, informarPesoGrupoRemetido } from '@/lib/services/remetido';
 import { ErroRegraNegocio } from '@/lib/services/errors';
 
 export interface AcaoResultado {
@@ -27,6 +27,21 @@ export async function informarNumeroDocumentoAction(movimentacaoId: string, nume
     return { ok: true };
   } catch (erro) {
     const mensagem = erro instanceof ErroRegraNegocio ? erro.message : 'Não foi possível salvar a nota fiscal.';
+    return { ok: false, erro: mensagem };
+  }
+}
+
+export async function informarPesoGrupoAction(grupoId: string, peso: number): Promise<AcaoResultado> {
+  if (!Number.isFinite(peso) || peso <= 0) {
+    return { ok: false, erro: 'Informe um peso válido, maior que zero.' };
+  }
+
+  const usuario = await usuarioAtual();
+  try {
+    await informarPesoGrupoRemetido(grupoId, peso, usuario);
+    return { ok: true };
+  } catch (erro) {
+    const mensagem = erro instanceof ErroRegraNegocio ? erro.message : 'Não foi possível salvar o peso.';
     return { ok: false, erro: mensagem };
   }
 }

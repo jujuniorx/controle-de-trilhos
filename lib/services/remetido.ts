@@ -255,6 +255,66 @@ export function resumoPesoRemetido(movimentacao: MovimentacaoRemetidoComGrupos):
   );
 }
 
+/**
+ * Completa/corrige o peso da NF de um grupo específico do Remetido, quando o
+ * Pátio lançou sem saber o peso (campo opcional — ver Tasks 5-6). Mesma regra de
+ * reabertura usada para NF e peso de sucata do Recebimento: corrigir um dado
+ * depois de CONFERIDO sempre reabre a conferência.
+ */
+export async function informarPesoGrupoRemetido(
+  grupoId: string,
+  peso: number,
+  usuario: UsuarioAdmin,
+): Promise<void> {
+  const grupo = await prisma.grupo.findUnique({
+    where: { id: grupoId },
+    include: { movimentacao: true },
+  });
+  if (!grupo || grupo.movimentacao.tipo !== 'REMETIDO') {
+    throw new ErroRegraNegocio('Grupo de remetido não encontrado.');
+  }
+
+  const valorAnterior = grupo.pesoInformado != null ? Number(grupo.pesoInformado) : null;
+  const reabrindo = grupo.movimentacao.status === 'CONFERIDO';
+
+  await prisma.$transaction(async (tx) => {
+    await tx.grupo.update({ where: { id: grupoId }, data: { pesoInformado: peso } });
+
+    if (reabrindo) {
+      await tx.movimentacao.update({
+        where: { id: grupo.movimentacaoId },
+        data: { status: 'PENDENTE_CONFERENCIA', conferidoPorId: null, conferidoEm: null },
+      });
+    }
+
+    await tx.historicoAlteracao.create({
+      data: {
+        movimentacaoId: grupo.movimentacaoId,
+        usuarioId: usuario.userId,
+        usuarioNome: usuario.nome,
+        acao: 'PESO_NF_INFORMADO',
+        campo: 'pesoInformado',
+        valorAntigo: valorAnterior != null ? String(valorAnterior) : null,
+        valorNovo: String(peso),
+      },
+    });
+
+    if (reabrindo) {
+      await tx.historicoAlteracao.create({
+        data: {
+          movimentacaoId: grupo.movimentacaoId,
+          usuarioId: usuario.userId,
+          usuarioNome: usuario.nome,
+          acao: 'REABERTURA',
+          campo: 'status',
+          valorAntigo: 'CONFERIDO',
+          valorNovo: 'PENDENTE_CONFERENCIA',
+        },
+      });
+    }
+  });
+}
+
 export function buscarRemetidoDetalhe(id: string): Promise<MovimentacaoRemetidoComGrupos | null> {
   return prisma.movimentacao.findUnique({
     where: { id, tipo: 'REMETIDO' },

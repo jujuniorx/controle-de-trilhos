@@ -4,6 +4,7 @@ import { buscarRemetidoDetalhe, resumoPesoRemetido } from '@/lib/services/remeti
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { ConferenciaPainel } from '@/app/admin/(protegido)/recebimentos/[id]/ConferenciaPainel';
 import { NfPainel } from './NfPainel';
+import { PesoGrupoPainel } from './PesoGrupoPainel';
 
 function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
@@ -108,11 +109,31 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
                     )}
                     <span className="ml-2 text-neutral-500">{fmtMetros(g.metrosTotal)} m</span>
                   </div>
-                  <span className="font-medium">{fmtPeso(Number(g.pesoInformado ?? 0))} t</span>
+                  {g.pesoInformado != null ? (
+                    <span className="font-medium">{fmtPeso(Number(g.pesoInformado))} t</span>
+                  ) : (
+                    <span className="font-medium text-amber-700">
+                      {fmtPeso(Number(g.pesoCalculado ?? 0))} t <span className="text-xs">(estimado, a confirmar)</span>
+                    </span>
+                  )}
                 </div>
               ))}
+              {mov.grupos
+                .map((g, i) => ({ g, i }))
+                .filter(({ g }) => g.pesoInformado == null)
+                .map(({ g, i }) => (
+                  <PesoGrupoPainel
+                    key={g.id}
+                    grupoId={g.id}
+                    pesoEstimado={Number(g.pesoCalculado ?? 0)}
+                    label={`Grupo ${i + 1} — ${g.perfil} — ${g.tipoMaterial}`}
+                  />
+                ))}
             </div>
             <p className="mt-3 text-lg font-semibold">TOTAL (da NF): {fmtPeso(pesoTotal)} t</p>
+            {mov.grupos.some((g) => g.pesoInformado == null) && (
+              <p className="text-xs text-amber-700">Inclui peso estimado para grupos ainda não confirmados.</p>
+            )}
           </section>
 
           <ConferenciaPainel movimentacaoId={mov.id} status={mov.status} temSucata={false} pesoSucataReal={null} />
