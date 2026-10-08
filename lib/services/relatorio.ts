@@ -55,9 +55,36 @@ export interface ResumoRelatorio {
   toneladas: number;
 }
 
-/** Peso de um grupo já conhecido: calculado (Recebimento NOVO/REEMPREGO) ou informado (Remetido). Sucata de Recebimento nunca entra aqui — mora em Movimentacao.pesoSucataReal. */
+/**
+ * Peso de um grupo para fins de relatório. SUCATA de Recebimento é tratada
+ * fora desta função (ver pesoMovimentacao) porque seu peso real vive em
+ * Movimentacao.pesoSucataReal, não no grupo — nunca pode se somar aos dois ao
+ * mesmo tempo.
+ */
 function pesoConhecidoDoGrupo(grupo: MovimentacaoRelatorio['grupos'][number]): number {
   return Number(grupo.pesoCalculado ?? grupo.pesoInformado ?? 0);
+}
+
+/**
+ * Peso total de UMA movimentação. Replica a precedência já usada em
+ * resumoPeso() (lib/services/movimentacao.ts): para SUCATA de Recebimento,
+ * o peso real (pesoSucataReal) substitui a estimativa do grupo quando
+ * presente — nunca soma os dois (bug corrigido na Task 7). Enquanto
+ * pendente, a estimativa aparece sozinha (rotulada "a confirmar" na UI).
+ */
+function pesoMovimentacao(mov: MovimentacaoRelatorio): number {
+  let total = 0;
+  for (const grupo of mov.grupos) {
+    if (mov.tipo === 'RECEBIMENTO' && grupo.tipoMaterial === 'SUCATA') {
+      if (mov.pesoSucataReal == null) total += pesoConhecidoDoGrupo(grupo);
+      continue;
+    }
+    total += pesoConhecidoDoGrupo(grupo);
+  }
+  if (mov.tipo === 'RECEBIMENTO' && mov.pesoSucataReal != null) {
+    total += Number(mov.pesoSucataReal);
+  }
+  return total;
 }
 
 export function resumoRelatorio(movimentacoes: MovimentacaoRelatorio[]): ResumoRelatorio {
@@ -69,9 +96,8 @@ export function resumoRelatorio(movimentacoes: MovimentacaoRelatorio[]): ResumoR
     for (const grupo of mov.grupos) {
       for (const medicao of grupo.medicoes) pecas += medicao.quantidade;
       metros += Number(grupo.metrosTotal);
-      toneladas += pesoConhecidoDoGrupo(grupo);
     }
-    if (mov.pesoSucataReal != null) toneladas += Number(mov.pesoSucataReal);
+    toneladas += pesoMovimentacao(mov);
   }
 
   return { carregamentos: movimentacoes.length, pecas, metros: arredondar3(metros), toneladas: arredondar3(toneladas) };
