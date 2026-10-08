@@ -272,9 +272,18 @@ describe('lancamentoDiretoRemetidoSchema', () => {
     expect(resultado.success).toBe(false);
   });
 
-  it('rejeita reservaPedido vazio', () => {
+  it('rejeita reservaPedido vazio (string presente, mas em branco)', () => {
     const resultado = lancamentoDiretoRemetidoSchema.safeParse(lancamentoValido({ reservaPedido: '' }));
     expect(resultado.success).toBe(false);
+  });
+
+  it('aceita reservaPedido ausente — campo removido da tela de lançamento direto', () => {
+    const { reservaPedido, ...resto } = lancamentoValido();
+    const resultado = lancamentoDiretoRemetidoSchema.safeParse(resto);
+    expect(resultado.success).toBe(true);
+    if (resultado.success) {
+      expect(resultado.data.reservaPedido).toBeUndefined();
+    }
   });
 
   it('aceita numeroDocumento ausente em dados (NF ainda não conhecida)', () => {

@@ -105,16 +105,16 @@ type TipoRemetido = (typeof TIPOS_REMETIDO)[number];
 
 interface Identificacao {
   tipoRemetido: TipoRemetido | '';
-  reservaPedido: string;
   destino: string;
 }
 
 // tipoRemetido NÃO é obrigatório aqui (Bloco 2.2): no lançamento direto pelo
 // Pátio, sem pré-cadastro, essa decisão (Venda/Transferência/Industrialização)
-// é do Administrativo — ele completa depois, na conferência.
+// é do Administrativo — ele completa depois, na conferência. Reserva/Pedido
+// foi removida desta tela (o campo continua existindo no banco e no
+// pré-cadastro/Admin) — por isso não aparece aqui nem é validada.
 function validarIdentificacao(i: Identificacao) {
   const erros: Partial<Record<keyof Identificacao, string>> = {};
-  if (!i.reservaPedido.trim()) erros.reservaPedido = 'Informe a reserva/pedido.';
   if (!i.destino.trim()) erros.destino = 'Informe o destino.';
   return erros;
 }
@@ -130,7 +130,6 @@ export function RemetidoWizard(props: Props) {
   const [dataTocada, setDataTocada] = useState(false);
   const [identificacao, setIdentificacao] = useState<Identificacao>({
     tipoRemetido: '',
-    reservaPedido: '',
     destino: '',
   });
   const [dadosBrutos, setDados] = useState<Dados>({
@@ -284,7 +283,6 @@ export function RemetidoWizard(props: Props) {
     if (props.modo === 'novo') {
       const parsed = lancamentoDiretoRemetidoSchema.safeParse({
         tipoRemetido: identificacao.tipoRemetido || undefined,
-        reservaPedido: identificacao.reservaPedido,
         destino: identificacao.destino,
         dados: dadosPayload,
         grupos: gruposPayload,
@@ -332,16 +330,6 @@ export function RemetidoWizard(props: Props) {
                 <option key={t} value={t}>{TIPO_REMETIDO_LABEL[t]}</option>
               ))}
             </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium" htmlFor="f-reserva-pedido">Reserva/Pedido *</label>
-            <input
-              id="f-reserva-pedido"
-              className="mt-1 h-11 w-full rounded border px-3"
-              value={identificacao.reservaPedido}
-              onChange={(e) => setIdentificacao({ ...identificacao, reservaPedido: e.target.value })}
-            />
-            {errosIdentificacao.reservaPedido && <p className="text-sm text-red-600">{errosIdentificacao.reservaPedido}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium" htmlFor="f-destino">Destino *</label>

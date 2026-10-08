@@ -4,12 +4,14 @@ import { prisma } from '@/lib/db';
 import { entrarNoPatio, entrarNoAdmin } from './helpers';
 
 const MARCADOR = `E2E-REMETIDO-${Date.now()}`;
-const MARCADOR_DIRETO = `${MARCADOR}-DIRETO`;
 
 test.describe('Fluxo real do Remetido — pré-cadastro (Admin) + confirmação (Pátio)', () => {
   test.afterAll(async () => {
     const ids = (
-      await prisma.movimentacao.findMany({ where: { reservaPedido: { startsWith: MARCADOR } }, select: { id: true } })
+      await prisma.movimentacao.findMany({
+        where: { OR: [{ reservaPedido: { startsWith: MARCADOR } }, { responsavelPatio: 'Teste E2E Direto' }] },
+        select: { id: true },
+      })
     ).map((m) => m.id);
     await prisma.historicoAlteracao.deleteMany({ where: { movimentacaoId: { in: ids } } });
     await prisma.medicao.deleteMany({ where: { grupo: { movimentacaoId: { in: ids } } } });
@@ -79,7 +81,8 @@ test.describe('Fluxo real do Remetido — pré-cadastro (Admin) + confirmação 
     await page.waitForURL('**/patio/remetidos/novo');
 
     await page.locator('#f-tipo-remetido').selectOption('VENDA');
-    await page.locator('#f-reserva-pedido').fill(MARCADOR_DIRETO);
+    // Reserva/Pedido foi removida desta tela de propósito (lançamento direto) —
+    // sem campo e sem id #f-reserva-pedido para preencher.
     await page.locator('#f-destino').fill('Usina Rondonópolis');
 
     await page.locator('#f-cavalo').fill('ABC1D23');
@@ -97,12 +100,13 @@ test.describe('Fluxo real do Remetido — pré-cadastro (Admin) + confirmação 
     await page.waitForURL('**/patio/remetidos');
 
     const movimentacao = await prisma.movimentacao.findFirstOrThrow({
-      where: { reservaPedido: MARCADOR_DIRETO },
+      where: { responsavelPatio: 'Teste E2E Direto' },
       include: { grupos: true, remetidoDetalhe: true },
     });
     expect(movimentacao.tipo).toBe('REMETIDO');
     expect(movimentacao.status).toBe('PENDENTE_CONFERENCIA');
     expect(movimentacao.remetidoDetalhe?.tipoRemetido).toBe('VENDA');
+    expect(movimentacao.reservaPedido).toBeNull(); // Campo removido desta tela — salva sem ele
     expect(movimentacao.grupos).toHaveLength(1);
     expect(Number(movimentacao.grupos[0].pesoInformado)).toBe(9.4);
   });

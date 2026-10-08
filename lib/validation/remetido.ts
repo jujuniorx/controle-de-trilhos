@@ -123,7 +123,10 @@ export const lancamentoDiretoRemetidoSchema = z.object({
   // Administrativo/faturamento). Completado depois na conferência — ver
   // lib/services/remetido.ts#informarTipoRemetido.
   tipoRemetido: z.enum(TIPOS_REMETIDO).optional(),
-  reservaPedido: z.string().trim().min(1, 'Informe a reserva/pedido.'),
+  // Opcional aqui também: no lançamento direto pelo Pátio o campo foi removido
+  // da tela (o Administrativo não usa essa referência nesse fluxo) — o campo
+  // em si continua existindo no banco e no pré-cadastro/Admin, intocado.
+  reservaPedido: z.string().trim().min(1).optional(),
   destino: z.string().trim().min(1, 'Informe o destino.'),
   dados: dadosConfirmacaoSchema,
   grupos: z.array(grupoRemetidoSchema).min(1, 'Adicione ao menos um grupo antes de finalizar.'),

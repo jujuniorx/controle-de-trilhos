@@ -165,7 +165,7 @@ export async function criarRemetidoDireto(
         numeroDocumento: input.dados.numeroDocumento ?? null,
         tipoTransporte: 'CAMINHAO',
         destino: input.destino,
-        reservaPedido: input.reservaPedido,
+        reservaPedido: input.reservaPedido ?? null,
         status: 'PENDENTE_CONFERENCIA',
         dataMovimentacao: new Date(`${input.dados.data}T00:00:00`),
         placaCavalo: input.dados.placaCavalo ?? null,
