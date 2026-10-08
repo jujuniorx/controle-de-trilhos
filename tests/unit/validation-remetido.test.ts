@@ -28,6 +28,10 @@ function grupoValido(overrides: Record<string, unknown> = {}) {
     clientId: uuid(),
     perfil: 'TR22',
     tipoMaterial: 'NOVO',
+    // Marca é obrigatória só para NOVO (Bloco 1.5); schemas de REEMPREGO/SUCATA
+    // não declaram esse campo e o Zod descarta chaves desconhecidas por padrão,
+    // então este default não interfere nos overrides que trocam tipoMaterial.
+    marca: 'NIPPON',
     pesoInformado: 12.5,
     medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 8.73 }],
     ...overrides,
@@ -109,6 +113,17 @@ describe('confirmacaoRemetidoSchema', () => {
     if (resultado.success) {
       expect(resultado.data.grupos[0].pesoInformado).toBeUndefined();
     }
+  });
+
+  it('rejeita grupo NOVO sem marca (obrigatória — Bloco 1.5)', () => {
+    const grupo = grupoValido();
+    delete (grupo as Record<string, unknown>).marca;
+    const resultado = confirmacaoRemetidoSchema.safeParse({
+      clientId: uuid(),
+      dados: dadosConfirmacaoValidos(),
+      grupos: [grupo],
+    });
+    expect(resultado.success).toBe(false);
   });
 
   it('rejeita pesoInformado zero ou negativo', () => {
@@ -243,10 +258,13 @@ describe('lancamentoDiretoRemetidoSchema', () => {
     expect(resultado.success).toBe(true);
   });
 
-  it('rejeita tipoRemetido ausente', () => {
+  it('aceita tipoRemetido ausente — o Pátio não tem essa informação no lançamento direto (Bloco 2.2)', () => {
     const { tipoRemetido, ...resto } = lancamentoValido();
     const resultado = lancamentoDiretoRemetidoSchema.safeParse(resto);
-    expect(resultado.success).toBe(false);
+    expect(resultado.success).toBe(true);
+    if (resultado.success) {
+      expect(resultado.data.tipoRemetido).toBeUndefined();
+    }
   });
 
   it('rejeita destino vazio', () => {

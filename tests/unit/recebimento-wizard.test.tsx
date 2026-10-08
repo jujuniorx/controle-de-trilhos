@@ -58,6 +58,7 @@ describe('RecebimentoWizard — portão de validação local antes de gravar no 
 
     fireEvent.change(screen.getByLabelText('Perfil do novo grupo'), { target: { value: 'TR57' } });
     fireEvent.click(screen.getByRole('button', { name: 'Adicionar grupo' }));
+    fireEvent.change(screen.getByLabelText('Marca do Grupo 1'), { target: { value: 'NIPPON' } });
 
     fireEvent.click(screen.getByRole('button', { name: 'Lançar medidas' }));
     fireEvent.click(screen.getByRole('button', { name: 'Quantidade × comprimento' }));

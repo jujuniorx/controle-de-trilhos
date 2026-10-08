@@ -48,8 +48,7 @@ export default async function AdminHomePage() {
                 <td className="p-2">{m.numeroDocumento ?? 'Em aberto'}</td>
                 <td className="p-2">{m.tipo === 'RECEBIMENTO' ? m.origem : m.destino}</td>
                 <td className="p-2">
-                  {m.placaCavalo}
-                  {m.placaCarreta ? ` / ${m.placaCarreta}` : ''}
+                  {[m.placaCarreta, m.placaCarreta2, m.placaCavalo].filter(Boolean).join(' / ') || '—'}
                 </td>
                 <td className="p-2">{m.responsavelPatio}</td>
                 <td className="p-2">{m.status}</td>

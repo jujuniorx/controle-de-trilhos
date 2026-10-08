@@ -3,6 +3,11 @@ import { validarReemprego } from '@/lib/domain/regras';
 
 export const PLACA_REGEX = /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/;
 
+// Aceita o formato real usado pela empresa, com traço (ex.: "087781-1"), além
+// de só números (Bloco 2.3).
+export const NF_REGEX = /^\d{1,9}(-\d{1,4})?$/;
+export const MSG_NF_INVALIDA = 'Informe a nota fiscal (números, pode ter traço — ex.: 087781-1).';
+
 export const PERFIS = [
   'TR22', 'TR32', 'TR37', 'TR40', 'TR45', 'TR50', 'TR54', 'TR55', 'TR57', 'TR60', 'TR68',
 ] as const;
@@ -18,21 +23,28 @@ export const MARCA_LABEL: Record<Exclude<(typeof MARCAS)[number], 'OUTROS'>, str
   PANGANG: 'Pangang',
 };
 
+// Aceita os dois formatos que convivem na frota real: Mercosul (ABC1D23) e o
+// padrão antigo brasileiro (3 letras + 4 dígitos, ex.: CMG1234) — o 5º
+// caractere é letra OU dígito.
+const MSG_PLACA_INVALIDA = 'Placa inválida. Ex.: ABC1D23 (Mercosul) ou CMG1234 (padrão antigo).';
+const MSG_PELO_MENOS_UMA_PLACA =
+  'Informe ao menos uma placa: a do cavalo ou a de uma das carretas (no máximo 2 carretas).';
+
 export const dadosCarregamentoSchema = z
   .object({
     data: z.string().min(1, 'Informe a data do recebimento.'),
-    numeroDocumento: z
-      .string()
-      .regex(/^\d{1,9}$/, 'Informe a nota fiscal, somente números.'),
+    numeroDocumento: z.string().regex(NF_REGEX, MSG_NF_INVALIDA),
     origem: z.string().trim().min(1, 'Informe a origem do material.'),
-    // Placa do cavalo é o mínimo aceitável (V1.2 §4); a da carreta é preferida quando existir.
-    placaCavalo: z.string().regex(PLACA_REGEX, 'Placa inválida. Ex.: ABC1D23'),
-    placaCarreta: z.string().regex(PLACA_REGEX, 'Placa inválida. Ex.: ABC1D23').optional(),
+    // Nenhuma placa é individualmente obrigatória — a regra é "pelo menos uma
+    // das três" (refine abaixo). Um cavalo pode puxar até 2 carretas; a 2ª é opcional.
+    placaCavalo: z.string().regex(PLACA_REGEX, MSG_PLACA_INVALIDA).optional(),
+    placaCarreta: z.string().regex(PLACA_REGEX, MSG_PLACA_INVALIDA).optional(),
+    placaCarreta2: z.string().regex(PLACA_REGEX, MSG_PLACA_INVALIDA).optional(),
     transportadora: z.string().trim().max(120).optional(),
     responsavelPatio: z.string().trim().min(3, 'Informe quem está preenchendo.'),
   })
-  .refine((d) => Boolean(d.placaCavalo) || Boolean(d.placaCarreta), {
-    message: 'Informe ao menos a placa do cavalo ou da carreta.',
+  .refine((d) => Boolean(d.placaCavalo) || Boolean(d.placaCarreta) || Boolean(d.placaCarreta2), {
+    message: MSG_PELO_MENOS_UMA_PLACA,
     path: ['placaCavalo'],
   });
 
@@ -55,7 +67,8 @@ const grupoNovoSchema = z
     clientId: z.string().uuid(),
     perfil: z.enum(PERFIS),
     tipoMaterial: z.literal('NOVO'),
-    marca: z.enum(MARCAS).optional(),
+    // Obrigatória só para NOVO (Bloco 1.5) — Reemprego e Sucata não têm marca.
+    marca: z.enum(MARCAS, { message: 'Selecione a marca/fabricante.' }),
     fabricanteOutro: z.string().trim().max(120).optional(),
     medicoes: z
       .array(medicaoSchema.omit({ classificacaoSC: true }))

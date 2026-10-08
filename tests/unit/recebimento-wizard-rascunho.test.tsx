@@ -68,6 +68,7 @@ describe('RecebimentoWizard — rascunho sobrevive a sair e voltar (ex.: botão 
 
     fireEvent.change(screen.getByLabelText('Perfil do novo grupo'), { target: { value: 'TR57' } });
     fireEvent.click(screen.getByRole('button', { name: 'Adicionar grupo' }));
+    fireEvent.change(screen.getByLabelText('Marca do Grupo 1'), { target: { value: 'NIPPON' } });
     fireEvent.click(screen.getByRole('button', { name: 'Lançar medidas' }));
     fireEvent.change(screen.getByLabelText('Comprimento'), { target: { value: '8,10' } });
     fireEvent.click(screen.getByRole('button', { name: 'Adicionar' }));

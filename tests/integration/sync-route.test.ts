@@ -37,6 +37,7 @@ function payloadValido(clientId: string) {
         clientId: uuid(),
         perfil: 'TR22',
         tipoMaterial: 'NOVO',
+        marca: 'NIPPON',
         medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 5 }],
       },
     ],

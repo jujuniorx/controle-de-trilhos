@@ -31,6 +31,7 @@ async function criarRecebimentoMisto() {
         clientId: uuid(),
         perfil: 'TR22',
         tipoMaterial: 'NOVO',
+        marca: 'NIPPON',
         medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 4.65 }], // peso 0.102
       },
       {
@@ -62,6 +63,7 @@ async function criarRecebimentoSemSucata() {
         clientId: uuid(),
         perfil: 'TR22',
         tipoMaterial: 'NOVO',
+        marca: 'NIPPON',
         medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 10 }], // peso 0.22
       },
     ],

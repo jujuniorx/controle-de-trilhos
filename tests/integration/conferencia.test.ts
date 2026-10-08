@@ -30,6 +30,7 @@ async function criarSemSucata() {
         clientId: uuid(),
         perfil: 'TR22',
         tipoMaterial: 'NOVO',
+        marca: 'NIPPON',
         medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 10 }], // 0.22 t
       },
     ],
@@ -46,6 +47,7 @@ async function criarComUmaSucata() {
         clientId: uuid(),
         perfil: 'TR22',
         tipoMaterial: 'NOVO',
+        marca: 'NIPPON',
         medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 4.65 }], // 0.102 t
       },
       {

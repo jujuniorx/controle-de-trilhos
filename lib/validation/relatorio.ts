@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PERFIS } from '@/lib/validation/recebimento';
+import { PERFIS, NF_REGEX } from '@/lib/validation/recebimento';
 
 export const TIPOS_MOVIMENTACAO = ['RECEBIMENTO', 'REMETIDO'] as const;
 export const MATERIAIS_RELATORIO = ['NOVO', 'REEMPREGO', 'SUCATA'] as const;
@@ -17,7 +17,7 @@ export const filtrosRelatorioSchema = z.object({
   perfil: z.enum(PERFIS).optional().catch(undefined),
   material: z.enum(MATERIAIS_RELATORIO).optional().catch(undefined),
   origemDestino: z.string().trim().min(1).max(120).optional().catch(undefined),
-  numeroDocumento: z.string().trim().regex(/^\d{1,9}$/).optional().catch(undefined),
+  numeroDocumento: z.string().trim().regex(NF_REGEX).optional().catch(undefined),
   status: z.enum(STATUS_RELATORIO).optional().catch(undefined),
 });
 

@@ -8,8 +8,8 @@ import {
   confirmacaoRemetidoSchema,
   lancamentoDiretoRemetidoSchema,
 } from '@/lib/validation/remetido';
-import { PERFIS, MARCAS, MARCA_LABEL, PLACA_REGEX, CLASSIFICACOES_SC } from '@/lib/validation/recebimento';
-import { validarReemprego } from '@/lib/domain/regras';
+import { PERFIS, MARCAS, MARCA_LABEL, PLACA_REGEX, NF_REGEX, MSG_NF_INVALIDA, CLASSIFICACOES_SC } from '@/lib/validation/recebimento';
+import { validarReemprego, classificarSC } from '@/lib/domain/regras';
 import { confirmarRemetidoAction } from './[id]/confirmar/actions';
 import { criarRemetidoDiretoAction } from './novo/actions';
 
@@ -50,6 +50,7 @@ interface Dados {
   numeroDocumento: string;
   placaCavalo: string;
   placaCarreta: string;
+  placaCarreta2: string;
   transportadora: string;
   responsavelPatio: string;
 }
@@ -82,17 +83,21 @@ function metrosDoGrupo(g: GrupoLocal): number {
   return g.medicoes.reduce((acc, m) => acc + Math.round(m.quantidade * m.comprimento * 100) / 100, 0);
 }
 
+const MSG_PLACA_INVALIDA = 'Placa inválida. Ex.: ABC1D23 (Mercosul) ou CMG1234 (padrão antigo).';
+const MSG_PELO_MENOS_UMA_PLACA = 'Informe ao menos uma placa: a do cavalo ou a de uma das carretas.';
+
 function validarDados(d: Dados) {
   const erros: Partial<Record<keyof Dados, string>> = {};
   if (!d.data) erros.data = 'Informe a data.';
-  if (!PLACA_REGEX.test(d.placaCavalo) && !PLACA_REGEX.test(d.placaCarreta)) {
-    erros.placaCavalo = 'Informe ao menos a placa do cavalo ou da carreta.';
+  if (!d.placaCavalo && !d.placaCarreta && !d.placaCarreta2) {
+    erros.placaCavalo = MSG_PELO_MENOS_UMA_PLACA;
   } else {
-    if (d.placaCavalo && !PLACA_REGEX.test(d.placaCavalo)) erros.placaCavalo = 'Placa inválida. Ex.: ABC1D23';
-    if (d.placaCarreta && !PLACA_REGEX.test(d.placaCarreta)) erros.placaCarreta = 'Placa inválida. Ex.: ABC1D23';
+    if (d.placaCavalo && !PLACA_REGEX.test(d.placaCavalo)) erros.placaCavalo = MSG_PLACA_INVALIDA;
+    if (d.placaCarreta && !PLACA_REGEX.test(d.placaCarreta)) erros.placaCarreta = MSG_PLACA_INVALIDA;
+    if (d.placaCarreta2 && !PLACA_REGEX.test(d.placaCarreta2)) erros.placaCarreta2 = MSG_PLACA_INVALIDA;
   }
   if (d.responsavelPatio.trim().length < 3) erros.responsavelPatio = 'Informe quem está preenchendo.';
-  if (d.numeroDocumento && !/^\d{1,9}$/.test(d.numeroDocumento)) erros.numeroDocumento = 'Somente números.';
+  if (d.numeroDocumento && !NF_REGEX.test(d.numeroDocumento)) erros.numeroDocumento = MSG_NF_INVALIDA;
   return erros;
 }
 
@@ -104,9 +109,11 @@ interface Identificacao {
   destino: string;
 }
 
+// tipoRemetido NÃO é obrigatório aqui (Bloco 2.2): no lançamento direto pelo
+// Pátio, sem pré-cadastro, essa decisão (Venda/Transferência/Industrialização)
+// é do Administrativo — ele completa depois, na conferência.
 function validarIdentificacao(i: Identificacao) {
   const erros: Partial<Record<keyof Identificacao, string>> = {};
-  if (!i.tipoRemetido) erros.tipoRemetido = 'Selecione o tipo de remetido.';
   if (!i.reservaPedido.trim()) erros.reservaPedido = 'Informe a reserva/pedido.';
   if (!i.destino.trim()) erros.destino = 'Informe o destino.';
   return erros;
@@ -131,15 +138,23 @@ export function RemetidoWizard(props: Props) {
     numeroDocumento: numeroDocumentoPreCadastrado ?? '',
     placaCavalo: '',
     placaCarreta: '',
+    placaCarreta2: '',
     transportadora: '',
     responsavelPatio: '',
   });
+  const [mostrarCarreta2, setMostrarCarreta2] = useState(false);
   const [attemptSubmit, setAttemptSubmit] = useState(false);
   const [grupos, setGrupos] = useState<GrupoLocal[]>([]);
   const [activeGrupoId, setActiveGrupoId] = useState<string | null>(null);
   const [draftPerfil, setDraftPerfil] = useState('');
   const [draftTipo, setDraftTipo] = useState<TipoMaterial>('NOVO');
-  const [draftMedicao, setDraftMedicao] = useState({ quantidade: '1', comprimento: '', sc: '' as ClassificacaoSC | '', erro: '' });
+  const [draftMedicao, setDraftMedicao] = useState({
+    quantidade: '1',
+    comprimento: '',
+    sc: '' as ClassificacaoSC | '',
+    scManual: false,
+    erro: '',
+  });
   const [modoDraft, setModoDraft] = useState<ModoMedicao>('INDIVIDUAL');
   const [enviando, setEnviando] = useState(false);
   const [erroFinal, setErroFinal] = useState('');
@@ -205,7 +220,7 @@ export function RemetidoWizard(props: Props) {
       classificacaoSC: grupoAtivo.tipoMaterial === 'SUCATA' ? (draftMedicao.sc as ClassificacaoSC) : undefined,
     };
     atualizarGrupo(grupoAtivo.clientId, { medicoes: [...grupoAtivo.medicoes, medicao] });
-    setDraftMedicao({ quantidade: '1', comprimento: '', sc: '', erro: '' });
+    setDraftMedicao({ quantidade: '1', comprimento: '', sc: '', scManual: false, erro: '' });
   }
 
   function removerMedicao(grupoId: string, medicaoClientId: string) {
@@ -219,6 +234,7 @@ export function RemetidoWizard(props: Props) {
   const grupoIncompleto = (g: GrupoLocal) =>
     g.medicoes.length === 0 ||
     (g.tipoMaterial === 'REEMPREGO' && !g.classificacao) ||
+    (g.tipoMaterial === 'NOVO' && !g.marca) ||
     (g.tipoMaterial === 'NOVO' && g.marca === 'OUTROS' && !g.fabricanteOutro?.trim());
 
   const podeConfirmar = grupos.length > 0 && grupos.every((g) => !grupoIncompleto(g));
@@ -238,6 +254,7 @@ export function RemetidoWizard(props: Props) {
       numeroDocumento: dados.numeroDocumento || undefined,
       placaCavalo: dados.placaCavalo || undefined,
       placaCarreta: dados.placaCarreta || undefined,
+      placaCarreta2: dados.placaCarreta2 || undefined,
       transportadora: dados.transportadora || undefined,
     };
     const gruposPayload = grupos.map((g) => ({
@@ -266,7 +283,7 @@ export function RemetidoWizard(props: Props) {
 
     if (props.modo === 'novo') {
       const parsed = lancamentoDiretoRemetidoSchema.safeParse({
-        tipoRemetido: identificacao.tipoRemetido,
+        tipoRemetido: identificacao.tipoRemetido || undefined,
         reservaPedido: identificacao.reservaPedido,
         destino: identificacao.destino,
         dados: dadosPayload,
@@ -303,22 +320,21 @@ export function RemetidoWizard(props: Props) {
           <h2 className="font-semibold text-neutral-800">Identificação do remetido</h2>
           <p className="text-sm text-neutral-600">Sem pré-cadastro — preencha o que normalmente vem do Administrativo.</p>
           <div>
-            <label className="block text-sm font-medium" htmlFor="f-tipo-remetido">Tipo de remetido</label>
+            <label className="block text-sm font-medium" htmlFor="f-tipo-remetido">Tipo de remetido (opcional — o Administrativo pode completar depois)</label>
             <select
               id="f-tipo-remetido"
               className="mt-1 h-11 w-full rounded border px-3"
               value={identificacao.tipoRemetido}
               onChange={(e) => setIdentificacao({ ...identificacao, tipoRemetido: e.target.value as TipoRemetido })}
             >
-              <option value="" disabled>Selecione</option>
+              <option value="">Não sei / completar depois</option>
               {TIPOS_REMETIDO.map((t) => (
                 <option key={t} value={t}>{TIPO_REMETIDO_LABEL[t]}</option>
               ))}
             </select>
-            {errosIdentificacao.tipoRemetido && <p className="text-sm text-red-600">{errosIdentificacao.tipoRemetido}</p>}
           </div>
           <div>
-            <label className="block text-sm font-medium" htmlFor="f-reserva-pedido">Reserva/Pedido</label>
+            <label className="block text-sm font-medium" htmlFor="f-reserva-pedido">Reserva/Pedido *</label>
             <input
               id="f-reserva-pedido"
               className="mt-1 h-11 w-full rounded border px-3"
@@ -328,7 +344,7 @@ export function RemetidoWizard(props: Props) {
             {errosIdentificacao.reservaPedido && <p className="text-sm text-red-600">{errosIdentificacao.reservaPedido}</p>}
           </div>
           <div>
-            <label className="block text-sm font-medium" htmlFor="f-destino">Destino</label>
+            <label className="block text-sm font-medium" htmlFor="f-destino">Destino *</label>
             <input
               id="f-destino"
               className="mt-1 h-11 w-full rounded border px-3"
@@ -343,7 +359,7 @@ export function RemetidoWizard(props: Props) {
       <section className="space-y-3 rounded-lg border bg-white p-3">
         <h2 className="font-semibold text-neutral-800">Dados da chegada</h2>
         <div>
-          <label className="block text-sm font-medium" htmlFor="f-data">Data</label>
+          <label className="block text-sm font-medium" htmlFor="f-data">Data *</label>
           <input
             id="f-data"
             type="date"
@@ -361,34 +377,67 @@ export function RemetidoWizard(props: Props) {
           <input
             id="f-nf"
             inputMode="numeric"
+            placeholder="Ex.: 123456 ou 087781-1"
             disabled={Boolean(numeroDocumentoPreCadastrado)}
             className="mt-1 h-11 w-full rounded border px-3 disabled:bg-neutral-100"
             value={dados.numeroDocumento}
-            onChange={(e) => setDados({ ...dados, numeroDocumento: e.target.value.replace(/\D/g, '').slice(0, 9) })}
+            onChange={(e) => setDados({ ...dados, numeroDocumento: e.target.value.replace(/[^\d-]/g, '').slice(0, 14) })}
           />
           {errosDados.numeroDocumento && <p className="text-sm text-red-600">{errosDados.numeroDocumento}</p>}
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
+
+        <div className="rounded-lg border-2 border-steel/40 bg-steel/5 p-3">
+          <p className="text-sm font-semibold text-steel-dark">Placas * — informe ao menos uma</p>
+          <p className="text-xs text-neutral-500">A placa da carreta é a informação mais usada na operação.</p>
+          {errosDados.placaCavalo === MSG_PELO_MENOS_UMA_PLACA && (
+            <p className="mt-1 text-sm text-red-600">{errosDados.placaCavalo}</p>
+          )}
+
+          <div className="mt-2">
+            <label className="block text-sm font-medium" htmlFor="f-carreta">1ª carreta</label>
+            <input
+              id="f-carreta"
+              maxLength={7}
+              className="mt-1 h-11 w-full rounded border px-3 text-lg font-semibold uppercase"
+              value={dados.placaCarreta}
+              onChange={(e) => setDados({ ...dados, placaCarreta: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
+            />
+            {errosDados.placaCarreta && <p className="text-sm text-red-600">{errosDados.placaCarreta}</p>}
+          </div>
+
+          {mostrarCarreta2 ? (
+            <div className="mt-2">
+              <label className="block text-sm font-medium" htmlFor="f-carreta2">2ª carreta (opcional)</label>
+              <input
+                id="f-carreta2"
+                maxLength={7}
+                className="mt-1 h-11 w-full rounded border px-3 text-lg font-semibold uppercase"
+                value={dados.placaCarreta2}
+                onChange={(e) => setDados({ ...dados, placaCarreta2: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
+              />
+              {errosDados.placaCarreta2 && <p className="text-sm text-red-600">{errosDados.placaCarreta2}</p>}
+            </div>
+          ) : (
+            <button type="button" className="mt-2 text-sm text-blue-700 underline" onClick={() => setMostrarCarreta2(true)}>
+              + Adicionar segunda carreta
+            </button>
+          )}
+
+          <div className="mt-3">
             <label className="block text-sm font-medium" htmlFor="f-cavalo">Placa do cavalo</label>
             <input
               id="f-cavalo"
+              maxLength={7}
               className="mt-1 h-11 w-full rounded border px-3 uppercase"
               value={dados.placaCavalo}
-              onChange={(e) => setDados({ ...dados, placaCavalo: e.target.value.toUpperCase() })}
+              onChange={(e) => setDados({ ...dados, placaCavalo: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium" htmlFor="f-carreta">Placa da carreta</label>
-            <input
-              id="f-carreta"
-              className="mt-1 h-11 w-full rounded border px-3 uppercase"
-              value={dados.placaCarreta}
-              onChange={(e) => setDados({ ...dados, placaCarreta: e.target.value.toUpperCase() })}
-            />
+            {errosDados.placaCavalo && errosDados.placaCavalo !== MSG_PELO_MENOS_UMA_PLACA && (
+              <p className="text-sm text-red-600">{errosDados.placaCavalo}</p>
+            )}
           </div>
         </div>
-        {errosDados.placaCavalo && <p className="text-sm text-red-600">{errosDados.placaCavalo}</p>}
+
         <div>
           <label className="block text-sm font-medium" htmlFor="f-transp">Transportadora</label>
           <input
@@ -399,7 +448,7 @@ export function RemetidoWizard(props: Props) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium" htmlFor="f-resp">Responsável (Pátio)</label>
+          <label className="block text-sm font-medium" htmlFor="f-resp">Responsável (Pátio) *</label>
           <input
             id="f-resp"
             className="mt-1 h-11 w-full rounded border px-3"
@@ -412,7 +461,7 @@ export function RemetidoWizard(props: Props) {
 
       <section className="space-y-3 rounded-lg border bg-white p-3">
         <h2 className="font-semibold text-neutral-800">Grupos</h2>
-        {grupos.map((g) => (
+        {grupos.map((g, i) => (
           <div key={g.clientId} className="rounded border p-2">
             <div className="flex items-center justify-between">
               <b>
@@ -427,11 +476,14 @@ export function RemetidoWizard(props: Props) {
             {g.tipoMaterial === 'NOVO' && (
               <div className="mt-2 flex gap-2">
                 <select
+                  aria-label={`Marca do Grupo ${i + 1}`}
                   className="h-10 flex-1 rounded border px-2"
                   value={g.marca ?? ''}
                   onChange={(e) => atualizarGrupo(g.clientId, { marca: (e.target.value || undefined) as Marca | undefined })}
                 >
-                  <option value="">Marca (opcional)</option>
+                  <option value="" disabled>
+                    Marca *
+                  </option>
                   {MARCAS.map((m) => (
                     <option key={m} value={m}>
                       {m === 'OUTROS' ? 'Outros' : MARCA_LABEL[m]}
@@ -536,13 +588,24 @@ export function RemetidoWizard(props: Props) {
                       placeholder="Comprimento (m)"
                       className="h-10 flex-1 rounded border px-2"
                       value={draftMedicao.comprimento}
-                      onChange={(e) => setDraftMedicao((d) => ({ ...d, comprimento: e.target.value, erro: '' }))}
+                      onChange={(e) => {
+                        const texto = e.target.value;
+                        const r = parseComprimento(texto);
+                        setDraftMedicao((d) => ({
+                          ...d,
+                          comprimento: texto,
+                          sc: !d.scManual && r.valor != null ? classificarSC(r.valor) : d.sc,
+                          erro: '',
+                        }));
+                      }}
                     />
                     {g.tipoMaterial === 'SUCATA' && (
                       <select
                         className="h-10 rounded border px-2"
                         value={draftMedicao.sc}
-                        onChange={(e) => setDraftMedicao((d) => ({ ...d, sc: e.target.value as ClassificacaoSC | '' }))}
+                        onChange={(e) =>
+                          setDraftMedicao((d) => ({ ...d, sc: e.target.value as ClassificacaoSC | '', scManual: true }))
+                        }
                       >
                         <option value="">SC</option>
                         {CLASSIFICACOES_SC.map((sc) => (

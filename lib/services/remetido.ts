@@ -115,6 +115,7 @@ export async function confirmarRemetido(
         dataMovimentacao: new Date(`${input.dados.data}T00:00:00`),
         placaCavalo: input.dados.placaCavalo ?? null,
         placaCarreta: input.dados.placaCarreta ?? null,
+        placaCarreta2: input.dados.placaCarreta2 ?? null,
         transportadora: input.dados.transportadora ?? null,
         responsavelPatio: input.dados.responsavelPatio,
       },
@@ -169,9 +170,10 @@ export async function criarRemetidoDireto(
         dataMovimentacao: new Date(`${input.dados.data}T00:00:00`),
         placaCavalo: input.dados.placaCavalo ?? null,
         placaCarreta: input.dados.placaCarreta ?? null,
+        placaCarreta2: input.dados.placaCarreta2 ?? null,
         transportadora: input.dados.transportadora ?? null,
         responsavelPatio: input.dados.responsavelPatio,
-        remetidoDetalhe: { create: { tipoRemetido: input.tipoRemetido } },
+        remetidoDetalhe: { create: { tipoRemetido: input.tipoRemetido ?? null } },
       },
     });
 
@@ -303,6 +305,67 @@ export async function informarPesoGrupoRemetido(
       await tx.historicoAlteracao.create({
         data: {
           movimentacaoId: grupo.movimentacaoId,
+          usuarioId: usuario.userId,
+          usuarioNome: usuario.nome,
+          acao: 'REABERTURA',
+          campo: 'status',
+          valorAntigo: 'CONFERIDO',
+          valorNovo: 'PENDENTE_CONFERENCIA',
+        },
+      });
+    }
+  });
+}
+
+/**
+ * Completa o Tipo de remetido que o Pátio deixou em aberto no lançamento
+ * direto (Bloco 2.2 — campo opcional porque o Pátio não tem essa informação).
+ * Mesma regra de reabertura das outras correções pós-conferência.
+ */
+export async function informarTipoRemetido(
+  movimentacaoId: string,
+  tipoRemetido: 'VENDA' | 'TRANS' | 'INDUS',
+  usuario: UsuarioAdmin,
+): Promise<void> {
+  const mov = await prisma.movimentacao.findUnique({
+    where: { id: movimentacaoId },
+    include: { remetidoDetalhe: true },
+  });
+  if (!mov || mov.tipo !== 'REMETIDO') throw new ErroRegraNegocio('Remetido não encontrado.');
+
+  const valorAnterior = mov.remetidoDetalhe?.tipoRemetido ?? null;
+  const reabrindo = mov.status === 'CONFERIDO';
+
+  await prisma.$transaction(async (tx) => {
+    await tx.remetidoDetalhe.upsert({
+      where: { movimentacaoId },
+      create: { movimentacaoId, tipoRemetido },
+      update: { tipoRemetido },
+    });
+
+    if (reabrindo) {
+      await tx.movimentacao.update({
+        where: { id: movimentacaoId },
+        data: { status: 'PENDENTE_CONFERENCIA', conferidoPorId: null, conferidoEm: null },
+      });
+    }
+
+    await tx.historicoAlteracao.create({
+      data: {
+        movimentacaoId,
+        usuarioId: usuario.userId,
+        usuarioNome: usuario.nome,
+        acao: 'TIPO_REMETIDO_INFORMADO',
+        campo: 'tipoRemetido',
+        valorAntigo: valorAnterior,
+        valorNovo: tipoRemetido,
+      },
+    });
+
+    if (reabrindo) {
+      await tx.historicoAlteracao.create({
+        data: {
+          movimentacaoId,
           usuarioId: usuario.userId,
           usuarioNome: usuario.nome,
           acao: 'REABERTURA',

@@ -2,8 +2,9 @@
 
 import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/services/requireAdmin';
-import { informarNumeroDocumentoRemetido, informarPesoGrupoRemetido } from '@/lib/services/remetido';
+import { informarNumeroDocumentoRemetido, informarPesoGrupoRemetido, informarTipoRemetido } from '@/lib/services/remetido';
 import { ErroRegraNegocio } from '@/lib/services/errors';
+import { NF_REGEX, MSG_NF_INVALIDA } from '@/lib/validation/recebimento';
 
 export interface AcaoResultado {
   ok: boolean;
@@ -17,8 +18,8 @@ async function usuarioAtual() {
 }
 
 export async function informarNumeroDocumentoAction(movimentacaoId: string, numeroDocumento: string): Promise<AcaoResultado> {
-  if (!/^\d{1,9}$/.test(numeroDocumento)) {
-    return { ok: false, erro: 'Informe a nota fiscal, somente números.' };
+  if (!NF_REGEX.test(numeroDocumento)) {
+    return { ok: false, erro: MSG_NF_INVALIDA };
   }
 
   const usuario = await usuarioAtual();
@@ -42,6 +43,24 @@ export async function informarPesoGrupoAction(grupoId: string, peso: number): Pr
     return { ok: true };
   } catch (erro) {
     const mensagem = erro instanceof ErroRegraNegocio ? erro.message : 'Não foi possível salvar o peso.';
+    return { ok: false, erro: mensagem };
+  }
+}
+
+export async function informarTipoRemetidoAction(
+  movimentacaoId: string,
+  tipoRemetido: string,
+): Promise<AcaoResultado> {
+  if (!['VENDA', 'TRANS', 'INDUS'].includes(tipoRemetido)) {
+    return { ok: false, erro: 'Selecione o tipo de remetido.' };
+  }
+
+  const usuario = await usuarioAtual();
+  try {
+    await informarTipoRemetido(movimentacaoId, tipoRemetido as 'VENDA' | 'TRANS' | 'INDUS', usuario);
+    return { ok: true };
+  } catch (erro) {
+    const mensagem = erro instanceof ErroRegraNegocio ? erro.message : 'Não foi possível salvar o tipo de remetido.';
     return { ok: false, erro: mensagem };
   }
 }

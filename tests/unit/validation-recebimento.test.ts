@@ -24,6 +24,7 @@ describe('recebimentoCaminhaoSchema', () => {
           clientId: uuid(),
           perfil: 'TR22',
           tipoMaterial: 'NOVO',
+          marca: 'NIPPON',
           medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 8.73 }],
         },
       ],
@@ -121,6 +122,7 @@ describe('recebimentoCaminhaoSchema', () => {
           clientId: uuid(),
           perfil: 'TR22',
           tipoMaterial: 'NOVO',
+          marca: 'NIPPON',
           medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 8.7345 }],
         },
       ],
@@ -137,6 +139,7 @@ describe('recebimentoCaminhaoSchema', () => {
           clientId: uuid(),
           perfil: 'TR22',
           tipoMaterial: 'NOVO',
+          marca: 'NIPPON',
           medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 45.5 }],
         },
       ],
@@ -163,6 +166,7 @@ describe('recebimentoCaminhaoSchema', () => {
           clientId: uuid(),
           perfil: 'TR22',
           tipoMaterial: 'NOVO',
+          marca: 'NIPPON',
           medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 8.73 }],
         },
       ],
@@ -197,6 +201,7 @@ describe('recebimentoCaminhaoSchema', () => {
           clientId: uuid(),
           perfil: 'TR22',
           tipoMaterial: 'NOVO',
+          marca: 'NIPPON',
           medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 8.73 }],
         },
       ],
@@ -214,6 +219,7 @@ describe('recebimentoCaminhaoSchema', () => {
           clientId: uuid(),
           perfil: 'TR22',
           tipoMaterial: 'NOVO',
+          marca: 'NIPPON',
           medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 8.73 }],
         },
       ],
@@ -236,6 +242,22 @@ describe('recebimentoCaminhaoSchema', () => {
       ],
     });
     expect(resultado.success).toBe(true);
+  });
+
+  it('rejeita grupo NOVO sem marca (obrigatória — Bloco 1.5)', () => {
+    const resultado = recebimentoCaminhaoSchema.safeParse({
+      clientId: uuid(),
+      dados: dadosValidos(),
+      grupos: [
+        {
+          clientId: uuid(),
+          perfil: 'TR22',
+          tipoMaterial: 'NOVO',
+          medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 8.73 }],
+        },
+      ],
+    });
+    expect(resultado.success).toBe(false);
   });
 
   it('rejeita marca OUTROS sem fabricanteOutro em grupo NOVO', () => {

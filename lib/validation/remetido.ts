@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { validarReemprego } from '@/lib/domain/regras';
-import { PERFIS, MARCAS, PLACA_REGEX, CLASSIFICACOES_SC } from '@/lib/validation/recebimento';
+import { PERFIS, MARCAS, PLACA_REGEX, CLASSIFICACOES_SC, NF_REGEX, MSG_NF_INVALIDA } from '@/lib/validation/recebimento';
+
+const MSG_PLACA_INVALIDA = 'Placa inválida. Ex.: ABC1D23 (Mercosul) ou CMG1234 (padrão antigo).';
+const MSG_PELO_MENOS_UMA_PLACA =
+  'Informe ao menos uma placa: a do cavalo ou a de uma das carretas (no máximo 2 carretas).';
 
 export const TIPOS_REMETIDO = ['VENDA', 'TRANS', 'INDUS'] as const;
 export const CLASSIFICACOES_REEMPREGO_REMETIDO = ['G1', 'G2', 'G3'] as const;
@@ -9,7 +13,7 @@ export const preCadastroRemetidoSchema = z.object({
   tipoRemetido: z.enum(TIPOS_REMETIDO),
   reservaPedido: z.string().trim().min(1, 'Informe a reserva/pedido.'),
   destino: z.string().trim().min(1, 'Informe o destino.'),
-  numeroDocumento: z.string().regex(/^\d{1,9}$/, 'Informe a nota fiscal, somente números.').optional(),
+  numeroDocumento: z.string().regex(NF_REGEX, MSG_NF_INVALIDA).optional(),
 });
 
 export type PreCadastroRemetidoInput = z.infer<typeof preCadastroRemetidoSchema>;
@@ -17,14 +21,15 @@ export type PreCadastroRemetidoInput = z.infer<typeof preCadastroRemetidoSchema>
 export const dadosConfirmacaoSchema = z
   .object({
     data: z.string().min(1, 'Informe a data.'),
-    numeroDocumento: z.string().regex(/^\d{1,9}$/, 'Informe a nota fiscal, somente números.').optional(),
-    placaCavalo: z.string().regex(PLACA_REGEX, 'Placa inválida. Ex.: ABC1D23').optional(),
-    placaCarreta: z.string().regex(PLACA_REGEX, 'Placa inválida. Ex.: ABC1D23').optional(),
+    numeroDocumento: z.string().regex(NF_REGEX, MSG_NF_INVALIDA).optional(),
+    placaCavalo: z.string().regex(PLACA_REGEX, MSG_PLACA_INVALIDA).optional(),
+    placaCarreta: z.string().regex(PLACA_REGEX, MSG_PLACA_INVALIDA).optional(),
+    placaCarreta2: z.string().regex(PLACA_REGEX, MSG_PLACA_INVALIDA).optional(),
     transportadora: z.string().trim().max(120).optional(),
     responsavelPatio: z.string().trim().min(3, 'Informe quem está preenchendo.'),
   })
-  .refine((d) => Boolean(d.placaCavalo) || Boolean(d.placaCarreta), {
-    message: 'Informe ao menos a placa do cavalo ou da carreta.',
+  .refine((d) => Boolean(d.placaCavalo) || Boolean(d.placaCarreta) || Boolean(d.placaCarreta2), {
+    message: MSG_PELO_MENOS_UMA_PLACA,
     path: ['placaCavalo'],
   });
 
@@ -58,7 +63,8 @@ const grupoRemetidoBaseSchema = z.object({
 const grupoRemetidoNovoSchema = grupoRemetidoBaseSchema
   .extend({
     tipoMaterial: z.literal('NOVO'),
-    marca: z.enum(MARCAS).optional(),
+    // Obrigatória só para NOVO (Bloco 1.5) — Reemprego e Sucata não têm marca.
+    marca: z.enum(MARCAS, { message: 'Selecione a marca/fabricante.' }),
     fabricanteOutro: z.string().trim().max(120).optional(),
   })
   .refine((g) => g.marca !== 'OUTROS' || Boolean(g.fabricanteOutro), {
@@ -112,7 +118,11 @@ export type ConfirmacaoRemetidoInput = z.infer<typeof confirmacaoRemetidoSchema>
  * PENDENTE_CONFERENCIA, pulando AGUARDANDO_CHEGADA.
  */
 export const lancamentoDiretoRemetidoSchema = z.object({
-  tipoRemetido: z.enum(TIPOS_REMETIDO),
+  // Opcional aqui (Bloco 2.2): o Pátio, lançando direto sem pré-cadastro, não
+  // tem essa informação (Venda/Transferência/Industrialização é decisão do
+  // Administrativo/faturamento). Completado depois na conferência — ver
+  // lib/services/remetido.ts#informarTipoRemetido.
+  tipoRemetido: z.enum(TIPOS_REMETIDO).optional(),
   reservaPedido: z.string().trim().min(1, 'Informe a reserva/pedido.'),
   destino: z.string().trim().min(1, 'Informe o destino.'),
   dados: dadosConfirmacaoSchema,

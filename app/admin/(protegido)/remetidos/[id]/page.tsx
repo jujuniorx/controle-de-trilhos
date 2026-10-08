@@ -5,6 +5,7 @@ import { requireAdmin } from '@/lib/services/requireAdmin';
 import { ConferenciaPainel } from '@/app/admin/(protegido)/recebimentos/[id]/ConferenciaPainel';
 import { NfPainel } from './NfPainel';
 import { PesoGrupoPainel } from './PesoGrupoPainel';
+import { TipoRemetidoPainel } from './TipoRemetidoPainel';
 
 function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
@@ -57,7 +58,7 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
         <h2 className="font-semibold text-neutral-800">Dados do remetido</h2>
         <dl className="mt-2 grid grid-cols-2 gap-y-1 text-sm">
           <dt className="text-neutral-500">Tipo</dt>
-          <dd>{TIPO_REMETIDO_LABEL[mov.remetidoDetalhe?.tipoRemetido ?? ''] ?? '—'}</dd>
+          <dd>{TIPO_REMETIDO_LABEL[mov.remetidoDetalhe?.tipoRemetido ?? ''] ?? 'Em aberto'}</dd>
           <dt className="text-neutral-500">Reserva/Pedido</dt>
           <dd>{mov.reservaPedido}</dd>
           <dt className="text-neutral-500">Destino</dt>
@@ -66,11 +67,10 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
           <dd>{mov.numeroDocumento ?? 'Em aberto'}</dd>
           <dt className="text-neutral-500">Data</dt>
           <dd>{fmtData(mov.dataMovimentacao)}</dd>
-          <dt className="text-neutral-500">Caminhão (cavalo / carreta)</dt>
-          <dd>
-            {mov.placaCavalo ?? '—'}
-            {mov.placaCarreta ? ` / ${mov.placaCarreta}` : ''}
-          </dd>
+          <dt className="text-neutral-500">Carreta(s)</dt>
+          <dd>{[mov.placaCarreta, mov.placaCarreta2].filter(Boolean).join(' / ') || '—'}</dd>
+          <dt className="text-neutral-500">Cavalo</dt>
+          <dd>{mov.placaCavalo ?? '—'}</dd>
           <dt className="text-neutral-500">Transportadora</dt>
           <dd>{mov.transportadora ?? '—'}</dd>
           <dt className="text-neutral-500">Responsável (Pátio)</dt>
@@ -78,6 +78,9 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
         </dl>
 
         {mov.status !== 'AGUARDANDO_CHEGADA' && mov.numeroDocumento == null && <NfPainel movimentacaoId={mov.id} />}
+        {mov.status !== 'AGUARDANDO_CHEGADA' && mov.remetidoDetalhe?.tipoRemetido == null && (
+          <TipoRemetidoPainel movimentacaoId={mov.id} />
+        )}
       </section>
 
       {mov.status === 'AGUARDANDO_CHEGADA' ? (

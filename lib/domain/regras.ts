@@ -23,3 +23,14 @@ export function parseNumeroBR(texto: string): number | null {
   const n = Number(t);
   return Number.isFinite(n) ? n : null;
 }
+
+/**
+ * Classificação automática de Sucata por comprimento (Bloco 2.1): SC1 (>= 7m,
+ * sem limite máximo), SC2 (3,00 a 6,99m), SC3 (0 a 2,99m). Só sugere um valor
+ * inicial — o Pátio sempre pode trocar manualmente antes de salvar.
+ */
+export function classificarSC(comprimento: number): 'SC1' | 'SC2' | 'SC3' {
+  if (comprimento >= 7) return 'SC1';
+  if (comprimento >= 3) return 'SC2';
+  return 'SC3';
+}
