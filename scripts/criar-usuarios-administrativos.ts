@@ -9,6 +9,7 @@ const CONTAS = [
   { nome: 'Paula', username: 'paula', senha: 'Paula2026!' },
   { nome: 'Priscila', username: 'priscila', senha: 'Priscila2026!' },
   { nome: 'Marcelo', username: 'marcelo', senha: 'Marcelo2026!' },
+  { nome: 'Bianca', username: 'bianca', senha: 'Bianca2026!' },
 ] as const;
 
 async function main() {
