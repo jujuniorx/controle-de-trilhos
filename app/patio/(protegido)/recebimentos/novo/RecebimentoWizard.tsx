@@ -13,7 +13,7 @@ import {
   MARCA_LABEL,
   recebimentoCaminhaoSchema,
 } from '@/lib/validation/recebimento';
-import { validarReemprego, classificarSC } from '@/lib/domain/regras';
+import { validarReemprego, classificarSC, pecasDoGrupo } from '@/lib/domain/regras';
 import {
   salvarRecebimentoLocal,
   salvarRascunhoRecebimento,
@@ -586,7 +586,9 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
                 </div>
               )}
               <p className="mt-2 text-sm text-neutral-600">
-                {g.medicoes.length} medição(ões) — {metrosDoGrupo(g).toFixed(2)} m
+                {g.medicoes.length === 0
+                  ? 'Nenhuma medição adicionada'
+                  : `${pecasDoGrupo(g.medicoes)} ${pecasDoGrupo(g.medicoes) === 1 ? 'barra' : 'barras'} · ${metrosDoGrupo(g).toFixed(2).replace('.', ',')} m`}
               </p>
               <button className="mt-2 h-10 rounded border px-3" onClick={() => abrirMedicoes(g.clientId)}>
                 {g.medicoes.length ? 'Medir' : 'Lançar medidas'}

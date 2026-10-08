@@ -9,7 +9,7 @@ import {
   lancamentoDiretoRemetidoSchema,
 } from '@/lib/validation/remetido';
 import { PERFIS, MARCAS, MARCA_LABEL, PLACA_REGEX, NF_REGEX, MSG_NF_INVALIDA, CLASSIFICACOES_SC } from '@/lib/validation/recebimento';
-import { validarReemprego, classificarSC } from '@/lib/domain/regras';
+import { validarReemprego, classificarSC, pecasDoGrupo } from '@/lib/domain/regras';
 import { confirmarRemetidoAction } from './[id]/confirmar/actions';
 import { criarRemetidoDiretoAction } from './novo/actions';
 
@@ -512,7 +512,11 @@ export function RemetidoWizard(props: Props) {
             )}
 
             <div className="mt-2">
-              <p className="text-sm text-neutral-600">{metrosDoGrupo(g).toFixed(2)} m lançados</p>
+              <p className="text-sm text-neutral-600">
+                {g.medicoes.length === 0
+                  ? 'Nenhuma medição adicionada'
+                  : `${pecasDoGrupo(g.medicoes)} ${pecasDoGrupo(g.medicoes) === 1 ? 'barra' : 'barras'} · ${metrosDoGrupo(g).toFixed(2).replace('.', ',')} m`}
+              </p>
               <ol className="mt-1 divide-y rounded-lg border bg-white text-sm">
                 {g.medicoes.map((m) => (
                   <li key={m.clientId} className="flex items-center justify-between px-2 py-1">
