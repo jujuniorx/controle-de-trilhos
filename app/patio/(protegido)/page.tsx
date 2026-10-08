@@ -19,6 +19,12 @@ export default function PatioHomePage() {
       >
         Remetidos aguardando chegada
       </Link>
+      <Link
+        href="/patio/remetidos/novo"
+        className="mt-3 inline-flex h-12 w-full items-center justify-center rounded-lg border border-steel px-4 font-medium text-steel-dark"
+      >
+        Novo remetido
+      </Link>
     </main>
   );
 }
