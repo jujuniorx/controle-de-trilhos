@@ -117,15 +117,15 @@ export default async function RelatoriosPage({
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div>
             <label className="block text-xs font-medium text-neutral-600" htmlFor="f-inicio">Período (início)</label>
-            <input id="f-inicio" type="date" name="dataInicio" defaultValue={filtros.dataInicio} className="mt-1 h-10 w-full rounded border px-2 text-sm" />
+            <input id="f-inicio" type="date" name="dataInicio" defaultValue={filtros.dataInicio} className="mt-1 h-10 w-full rounded border px-2" />
           </div>
           <div>
             <label className="block text-xs font-medium text-neutral-600" htmlFor="f-fim">Período (fim)</label>
-            <input id="f-fim" type="date" name="dataFim" defaultValue={filtros.dataFim} className="mt-1 h-10 w-full rounded border px-2 text-sm" />
+            <input id="f-fim" type="date" name="dataFim" defaultValue={filtros.dataFim} className="mt-1 h-10 w-full rounded border px-2" />
           </div>
           <div>
             <label className="block text-xs font-medium text-neutral-600" htmlFor="f-tipo">Tipo</label>
-            <select id="f-tipo" name="tipo" defaultValue={filtros.tipo ?? ''} className="mt-1 h-10 w-full rounded border px-2 text-sm">
+            <select id="f-tipo" name="tipo" defaultValue={filtros.tipo ?? ''} className="mt-1 h-10 w-full rounded border px-2">
               <option value="">Todos</option>
               <option value="RECEBIMENTO">Recebimento</option>
               <option value="REMETIDO">Remetido</option>
@@ -133,7 +133,7 @@ export default async function RelatoriosPage({
           </div>
           <div>
             <label className="block text-xs font-medium text-neutral-600" htmlFor="f-status">Status</label>
-            <select id="f-status" name="status" defaultValue={filtros.status ?? ''} className="mt-1 h-10 w-full rounded border px-2 text-sm">
+            <select id="f-status" name="status" defaultValue={filtros.status ?? ''} className="mt-1 h-10 w-full rounded border px-2">
               <option value="">Todos</option>
               {STATUS_RELATORIO.map((s) => (
                 <option key={s} value={s}>
@@ -144,7 +144,7 @@ export default async function RelatoriosPage({
           </div>
           <div>
             <label className="block text-xs font-medium text-neutral-600" htmlFor="f-perfil">Perfil</label>
-            <select id="f-perfil" name="perfil" defaultValue={filtros.perfil ?? ''} className="mt-1 h-10 w-full rounded border px-2 text-sm">
+            <select id="f-perfil" name="perfil" defaultValue={filtros.perfil ?? ''} className="mt-1 h-10 w-full rounded border px-2">
               <option value="">Todos</option>
               {PERFIS.map((p) => (
                 <option key={p} value={p}>
@@ -155,7 +155,7 @@ export default async function RelatoriosPage({
           </div>
           <div>
             <label className="block text-xs font-medium text-neutral-600" htmlFor="f-material">Material</label>
-            <select id="f-material" name="material" defaultValue={filtros.material ?? ''} className="mt-1 h-10 w-full rounded border px-2 text-sm">
+            <select id="f-material" name="material" defaultValue={filtros.material ?? ''} className="mt-1 h-10 w-full rounded border px-2">
               <option value="">Todos</option>
               {MATERIAIS_RELATORIO.map((m) => (
                 <option key={m} value={m}>
@@ -166,11 +166,11 @@ export default async function RelatoriosPage({
           </div>
           <div>
             <label className="block text-xs font-medium text-neutral-600" htmlFor="f-od">Origem/Destino</label>
-            <input id="f-od" type="text" name="origemDestino" defaultValue={filtros.origemDestino} className="mt-1 h-10 w-full rounded border px-2 text-sm" />
+            <input id="f-od" type="text" name="origemDestino" defaultValue={filtros.origemDestino} className="mt-1 h-10 w-full rounded border px-2" />
           </div>
           <div>
             <label className="block text-xs font-medium text-neutral-600" htmlFor="f-nf">Nota fiscal</label>
-            <input id="f-nf" type="text" inputMode="numeric" name="numeroDocumento" defaultValue={filtros.numeroDocumento} className="mt-1 h-10 w-full rounded border px-2 text-sm" />
+            <input id="f-nf" type="text" inputMode="numeric" name="numeroDocumento" defaultValue={filtros.numeroDocumento} className="mt-1 h-10 w-full rounded border px-2" />
           </div>
         </div>
         <div className="mt-3 flex gap-2">

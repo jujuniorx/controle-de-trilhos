@@ -56,7 +56,7 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
 
       <section className="rounded-lg border bg-white p-4">
         <h2 className="font-semibold text-neutral-800">Dados do remetido</h2>
-        <dl className="mt-2 grid grid-cols-2 gap-y-1 text-sm">
+        <dl className="mt-2 grid grid-cols-1 gap-y-1 sm:grid-cols-2 text-sm">
           <dt className="text-neutral-500">Tipo</dt>
           <dd>{TIPO_REMETIDO_LABEL[mov.remetidoDetalhe?.tipoRemetido ?? ''] ?? 'Em aberto'}</dd>
           <dt className="text-neutral-500">Reserva/Pedido</dt>

@@ -60,7 +60,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
       {/* 1. Dados do recebimento */}
       <section className="rounded-lg border bg-white p-4">
         <h2 className="font-semibold text-neutral-800">Dados do recebimento</h2>
-        <dl className="mt-2 grid grid-cols-2 gap-y-1 text-sm">
+        <dl className="mt-2 grid grid-cols-1 gap-y-1 sm:grid-cols-2 text-sm">
           <dt className="text-neutral-500">Data</dt>
           <dd>{fmtData(mov.dataMovimentacao)}</dd>
           <dt className="text-neutral-500">Nota fiscal</dt>
@@ -148,7 +148,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
         ) : (
           <div className="mt-2">
             <p className="text-sm text-neutral-500">PESO TOTAL</p>
-            <dl className="mt-1 grid grid-cols-2 gap-y-1 text-sm">
+            <dl className="mt-1 grid grid-cols-1 gap-y-1 sm:grid-cols-2 text-sm">
               <dt className="text-neutral-500">NOVO</dt>
               <dd>{fmtPeso(resumo.pesoNovo)} t</dd>
               <dt className="text-neutral-500">REEMPREGO</dt>

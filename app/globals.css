@@ -140,3 +140,16 @@ body {
 h1, h2, h3 {
   font-family: var(--font-condensed), var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+/* Rede de segurança do Bloco 4.1: iOS Safari dá zoom automático (que não volta
+   sozinho) ao focar um campo com font-size computado < 16px. Os componentes
+   compartilhados (components/ui/Input.tsx) já nascem sem classe de tamanho
+   reduzido, mas isso cobre qualquer <input>/<select>/<textarea> escrito à mão
+   que ainda tenha (ou volte a ter) um text-xs/text-sm. Restrito a telas
+   realmente pequenas para não overridar escolhas de tamanho legítimas em
+   tablet/desktop. */
+@media (max-width: 480px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}

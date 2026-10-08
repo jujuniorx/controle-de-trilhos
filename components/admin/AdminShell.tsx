@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { MobileNav } from './MobileNav';
 
 const NAV_ITEMS = [
   { href: '/admin', label: 'Pendências' },
@@ -17,8 +18,18 @@ function iniciaisDe(nome: string): string {
 
 export function AdminShell({ nome, children }: { nome: string; children: ReactNode }) {
   return (
-    <div className="area-admin flex min-h-screen bg-neutral-100">
-      <aside className="flex w-60 flex-none flex-col bg-admin-navy px-2 py-6 text-white">
+    <div className="area-admin flex min-h-screen flex-col bg-neutral-100 md:flex-row">
+      <header className="relative flex h-14 flex-none items-center justify-between bg-admin-navy px-3 text-white md:hidden">
+        <div className="flex items-center gap-2">
+          <MobileNav />
+          <span className="font-condensed text-lg font-bold leading-none">Controle de Trilhos</span>
+        </div>
+        <Link href="/admin/trocar-senha" className="text-xs text-neutral-300 underline hover:text-white">
+          Trocar senha
+        </Link>
+      </header>
+
+      <aside className="hidden w-60 flex-none flex-col bg-admin-navy px-2 py-6 text-white md:flex">
         <div className="px-3 font-condensed leading-none">
           <p className="text-lg font-semibold">CONTROLE</p>
           <p className="text-2xl font-bold">DE TRILHOS</p>
@@ -32,7 +43,7 @@ export function AdminShell({ nome, children }: { nome: string; children: ReactNo
         </nav>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-12 flex-none items-center justify-end gap-3 bg-admin-navy px-6 text-white">
+        <header className="hidden h-12 flex-none items-center justify-end gap-3 bg-admin-navy px-6 text-white md:flex">
           <Link href="/admin/trocar-senha" className="text-xs text-neutral-300 underline hover:text-white">
             Trocar minha senha
           </Link>

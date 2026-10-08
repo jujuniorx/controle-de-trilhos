@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Barlow, Barlow_Semi_Condensed, Geist_Mono } from "next/font/google";
 import { RegistrarServiceWorker } from "@/components/RegistrarServiceWorker";
 import "./globals.css";
@@ -27,6 +27,16 @@ export const metadata: Metadata = {
   title: "Controle de Trilhos",
   description: "Sistema de controle de trilhos ferroviários",
   manifest: "/manifest.json",
+};
+
+// Sem isso, o Next.js não injeta NENHUMA tag <meta name="viewport">: o
+// celular renderiza como se fosse desktop (~980px) e dá zoom-out pra caber,
+// o que também é a causa raiz do zoom indevido ao tocar um campo no iOS.
+// maximum-scale/user-scalable NÃO são setados de propósito — bloquear o
+// zoom manual prejudica acessibilidade (Bloco 4.1).
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 // Força renderização dinâmica (por requisição) em toda a árvore de rotas.
