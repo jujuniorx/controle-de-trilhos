@@ -1,5 +1,6 @@
 import ExcelJS from 'exceljs';
 import type { MovimentacaoRelatorio } from '@/lib/services/relatorio';
+import { pecasDoGrupo } from '@/lib/domain/regras';
 
 /**
  * Estrutura de colunas das duas abas (Bloco 5): segue EXATAMENTE a planilha
@@ -59,10 +60,6 @@ function upperSeCustomizado(v: string | null | undefined): string {
 /** "TR57" -> "TRILHOS TR-57" — nunca truncado (Bloco 5.1). */
 function descricaoPerfil(perfil: string): string {
   return `TRILHOS ${perfil.slice(0, 2)}-${perfil.slice(2)}`;
-}
-
-function pecasDoGrupo(g: Grupo): number {
-  return g.medicoes.reduce((acc, m) => acc + m.quantidade, 0);
 }
 
 function metrosPorSC(medicoes: Medicao[], sc: 'SC1' | 'SC2' | 'SC3'): number | null {
@@ -161,7 +158,7 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         ...base,
         descricaoPerfil(g.perfil),
         ehNovo ? upperSeCustomizado(g.fabricante) : '',
-        pecasDoGrupo(g),
+        pecasDoGrupo(g.medicoes),
         ehSucata ? null : g.pesoCalculado != null ? Number(g.pesoCalculado) : null,
         g1,
         g2,
@@ -248,7 +245,7 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         g.tipoMaterial,
         ehNovo ? upperSeCustomizado(g.fabricante) : '',
         identificacao,
-        pecasDoGrupo(g),
+        pecasDoGrupo(g.medicoes),
         Number(g.metrosTotal),
         toneladas,
       ]);
