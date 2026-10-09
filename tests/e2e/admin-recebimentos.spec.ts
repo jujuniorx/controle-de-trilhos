@@ -69,7 +69,7 @@ test.describe('Administrativo — listagem e detalhe de recebimentos pendentes',
     await expect(row.getByText('Rondonópolis')).toBeVisible();
     await expect(row.getByText('XYZ9E88 / ABC1D23')).toBeVisible();
     await expect(row.getByText(RESPONSAVEL)).toBeVisible();
-    await expect(row.getByText('PENDENTE_CONFERENCIA')).toBeVisible();
+    await expect(row.getByText('Pendente de conferência')).toBeVisible();
   });
 
   test('abre o detalhe e mostra grupos, medições e "Peso até agora" (sucata pendente)', async ({ page }) => {

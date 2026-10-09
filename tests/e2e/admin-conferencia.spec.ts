@@ -4,9 +4,6 @@ import { entrarNoPatio, preencherDadosPatio, entrarNoAdmin } from './helpers';
 
 const RESPONSAVEL = 'Teste E2E Conferencia';
 
-const PDF_VALIDO = Buffer.concat([Buffer.from([0x25, 0x50, 0x44, 0x46]), Buffer.from('-1.4 teste e2e')]);
-const ARQUIVO_INVALIDO = Buffer.from('não é um documento válido');
-
 async function criarRecebimentoMistoPeloPatio(page: import('@playwright/test').Page, nf: string) {
   await entrarNoPatio(page);
   await preencherDadosPatio(page, nf, RESPONSAVEL);
@@ -47,7 +44,7 @@ async function criarRecebimentoMistoPeloPatio(page: import('@playwright/test').P
   await expect(page.getByText('Sincronizado com sucesso')).toBeVisible();
 }
 
-test.describe('Administrativo — conferência, peso real e documento de pesagem', () => {
+test.describe('Administrativo — conferência e peso real', () => {
   test.afterAll(async () => {
     const ids = (
       await prisma.movimentacao.findMany({ where: { responsavelPatio: RESPONSAVEL }, select: { id: true } })
@@ -60,7 +57,7 @@ test.describe('Administrativo — conferência, peso real e documento de pesagem
     await prisma.$disconnect();
   });
 
-  test('fluxo completo: peso real + upload do documento + CONFERIDO + histórico', async ({ page }) => {
+  test('fluxo completo: peso real + CONFERIDO + histórico', async ({ page }) => {
     const nf = String(Date.now()).slice(-9);
     await criarRecebimentoMistoPeloPatio(page, nf);
 
@@ -74,7 +71,6 @@ test.describe('Administrativo — conferência, peso real e documento de pesagem
     await expect(page.getByText('PESO ATÉ AGORA')).toBeVisible();
     await expect(page.getByText(/peso da sucata pendente/i)).toBeVisible();
     await expect(page.getByRole('button', { name: 'Conferir recebimento' })).toBeDisabled();
-    await expect(page.getByText('Nenhum documento anexado ainda.')).toBeVisible();
 
     // Informa o peso real da sucata.
     await page.locator('#peso-sucata').fill('1,250');
@@ -85,62 +81,21 @@ test.describe('Administrativo — conferência, peso real e documento de pesagem
     await expect(resumoPeso.getByText('PESO TOTAL')).toBeVisible();
     await expect(resumoPeso.getByText('2.168', { exact: false })).toBeVisible(); // 0.102 + 0.816 + 1.250
 
-    // Upload real do documento de pesagem (contra o S3 local usado nos testes).
-    await page.locator('input[type="file"]').setInputFiles({
-      name: 'pesagem.pdf',
-      mimeType: 'application/pdf',
-      buffer: PDF_VALIDO,
-    });
-    await page.getByRole('button', { name: 'Enviar documento' }).click();
-    await expect(page.getByText('pesagem.pdf').first()).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Substituir documento' })).toBeVisible();
-
-    // Abre o documento — a ação busca uma URL temporária no servidor (verificado
-    // byte a byte em tests/integration/documentoPesagem.test.ts); aqui confirmamos
-    // que o clique não resulta em nenhum erro exibido na tela.
-    await page.getByRole('button', { name: 'Abrir documento' }).click();
-    await page.waitForTimeout(500);
-    await expect(page.getByText(/não foi possível abrir/i)).toHaveCount(0);
-
-    // Confere.
+    // Confere. Depois de CONFERIDO, o painel some por completo (Task 8) — só o badge fica.
     await expect(page.getByRole('button', { name: 'Conferir recebimento' })).toBeEnabled();
     await page.getByRole('button', { name: 'Conferir recebimento' }).click();
-    await expect(page.getByRole('button', { name: 'Recebimento conferido' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Conferir recebimento' })).toHaveCount(0);
     await expect(page.getByText('CONFERIDO', { exact: true }).first()).toBeVisible();
 
     const movAtualizada = await prisma.movimentacao.findUniqueOrThrow({ where: { id: movimentacaoId } });
     expect(movAtualizada.status).toBe('CONFERIDO');
 
     // Histórico visível na própria tela.
-    await expect(page.getByText('Documento de pesagem anexado')).toBeVisible();
     await expect(page.getByText('Peso da sucata informado/corrigido')).toBeVisible();
     await expect(page.getByText('Recebimento conferido').first()).toBeVisible();
 
     const historicoConferencia = await prisma.historicoAlteracao.findMany({ where: { movimentacaoId, acao: 'CONFERENCIA' } });
     expect(historicoConferencia).toHaveLength(1);
-    const historicoAnexo = await prisma.historicoAlteracao.findMany({ where: { movimentacaoId, acao: 'ANEXO' } });
-    expect(historicoAnexo).toHaveLength(1);
-  });
-
-  test('rejeita upload de arquivo com conteúdo inválido, sem criar Anexo', async ({ page }) => {
-    const nf = String(Date.now()).slice(-9);
-    await criarRecebimentoMistoPeloPatio(page, nf);
-
-    await entrarNoAdmin(page);
-    const row = page.locator('tr', { has: page.getByRole('cell', { name: nf }) });
-    await row.getByRole('link', { name: 'Ver detalhes' }).click();
-    await page.waitForURL('**/admin/recebimentos/**');
-    const movimentacaoId = page.url().split('/recebimentos/')[1];
-
-    await page.locator('input[type="file"]').setInputFiles({
-      name: 'pesagem.pdf',
-      mimeType: 'application/pdf',
-      buffer: ARQUIVO_INVALIDO, // extensão/tipo dizem PDF, conteúdo não é
-    });
-    await page.getByRole('button', { name: 'Enviar documento' }).click();
-    await expect(page.getByText(/conteúdo do arquivo não corresponde/i)).toBeVisible();
-
-    expect(await prisma.anexo.count({ where: { movimentacaoId } })).toBe(0);
   });
 
   test('tentar conferir sem informar o peso da sucata é bloqueado no servidor', async ({ page }) => {

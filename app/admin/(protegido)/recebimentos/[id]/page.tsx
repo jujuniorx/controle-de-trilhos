@@ -4,7 +4,6 @@ import { buscarMovimentacaoDetalhe, resumoPeso } from '@/lib/services/movimentac
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { pecasDoGrupo } from '@/lib/domain/regras';
 import { ConferenciaPainel } from './ConferenciaPainel';
-import { DocumentoPesagemPainel } from './DocumentoPesagemPainel';
 
 function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
@@ -38,7 +37,6 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
   if (!mov) notFound();
 
   const resumo = resumoPeso(mov);
-  const documentoAtual = mov.anexos.find((a) => a.tipo === 'DOCUMENTO_PESAGEM') ?? null;
 
   return (
     <main className="mx-auto max-w-3xl space-y-4 p-6">
@@ -185,14 +183,6 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
           </dd>
         </dl>
       </section>
-
-      {/* 5. Documento de pesagem (só relevante quando há sucata) */}
-      {resumo.temSucata && (
-        <DocumentoPesagemPainel
-          movimentacaoId={mov.id}
-          anexo={documentoAtual ? { id: documentoAtual.id, url: documentoAtual.url, uploadedAt: fmtDataHora(documentoAtual.uploadedAt) } : null}
-        />
-      )}
 
       {/* 6. Conferência */}
       <ConferenciaPainel

@@ -187,7 +187,7 @@ export default async function RelatoriosPage({
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="rounded-lg border bg-white p-4">
-          <p className="text-xs text-neutral-500">Carregamentos</p>
+          <p className="text-xs text-neutral-500">Movimentações</p>
           <p className="text-2xl font-semibold">{resumo.carregamentos}</p>
         </div>
         <div className="rounded-lg border bg-white p-4">

@@ -2,7 +2,13 @@
 
 import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/services/requireAdmin';
-import { informarNumeroDocumentoRemetido, informarPesoGrupoRemetido, informarTipoRemetido } from '@/lib/services/remetido';
+import {
+  informarNumeroDocumentoRemetido,
+  informarPesoGrupoRemetido,
+  informarTipoRemetido,
+  atualizarRemetido,
+} from '@/lib/services/remetido';
+import { lancamentoDiretoRemetidoSchema } from '@/lib/validation/remetido';
 import { ErroRegraNegocio } from '@/lib/services/errors';
 import { NF_REGEX, MSG_NF_INVALIDA } from '@/lib/validation/recebimento';
 
@@ -61,6 +67,23 @@ export async function informarTipoRemetidoAction(
     return { ok: true };
   } catch (erro) {
     const mensagem = erro instanceof ErroRegraNegocio ? erro.message : 'Não foi possível salvar o tipo de remetido.';
+    return { ok: false, erro: mensagem };
+  }
+}
+
+export async function atualizarRemetidoAction(movimentacaoId: string, input: unknown): Promise<AcaoResultado> {
+  const usuario = await usuarioAtual();
+
+  const parsed = lancamentoDiretoRemetidoSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, erro: 'Dados inválidos. Revise os campos e tente novamente.' };
+  }
+
+  try {
+    await atualizarRemetido(movimentacaoId, parsed.data, usuario);
+    return { ok: true };
+  } catch (erro) {
+    const mensagem = erro instanceof ErroRegraNegocio ? erro.message : 'Não foi possível salvar as alterações.';
     return { ok: false, erro: mensagem };
   }
 }

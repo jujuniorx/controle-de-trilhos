@@ -14,7 +14,7 @@ import type {
 import type { UsuarioAdmin } from '@/lib/services/conferencia';
 
 export type MovimentacaoRemetidoComGrupos = Prisma.MovimentacaoGetPayload<{
-  include: { grupos: { include: { medicoes: true } }; remetidoDetalhe: true };
+  include: { grupos: { include: { medicoes: true } }; remetidoDetalhe: true; historico: true };
 }>;
 
 export async function criarPreCadastroRemetido(
@@ -33,7 +33,7 @@ export async function criarPreCadastroRemetido(
       status: 'AGUARDANDO_CHEGADA',
       remetidoDetalhe: { create: { tipoRemetido: input.tipoRemetido } },
     },
-    include: { grupos: { include: { medicoes: true } }, remetidoDetalhe: true },
+    include: { grupos: { include: { medicoes: true } }, remetidoDetalhe: true, historico: { orderBy: { timestamp: 'desc' } } },
   });
 
   await registrarHistorico({
@@ -125,7 +125,7 @@ export async function confirmarRemetido(
 
     return tx.movimentacao.findUniqueOrThrow({
       where: { id: mov.id },
-      include: { grupos: { include: { medicoes: true } }, remetidoDetalhe: true },
+      include: { grupos: { include: { medicoes: true } }, remetidoDetalhe: true, historico: { orderBy: { timestamp: 'desc' } } },
     });
   });
 
@@ -181,7 +181,7 @@ export async function criarRemetidoDireto(
 
     return tx.movimentacao.findUniqueOrThrow({
       where: { id: mov.id },
-      include: { grupos: { include: { medicoes: true } }, remetidoDetalhe: true },
+      include: { grupos: { include: { medicoes: true } }, remetidoDetalhe: true, historico: { orderBy: { timestamp: 'desc' } } },
     });
   });
 
@@ -378,10 +378,102 @@ export async function informarTipoRemetido(
   });
 }
 
+/**
+ * Edição administrativa geral de um Remetido já confirmado pelo Pátio (Task
+ * 17): Tipo, Reserva/Pedido, Destino, dados da chegada e grupos/medições,
+ * tudo de uma vez. Reusa o mesmo formato de entrada do lançamento direto
+ * (`LancamentoDiretoRemetidoInput`) e a mesma `criarGruposEMedicoes` usada em
+ * `confirmarRemetido`/`criarRemetidoDireto` — nenhuma lógica nova de cálculo
+ * de peso/metros, nenhum segundo caminho de validação.
+ *
+ * Só se aplica a partir de PENDENTE_CONFERENCIA — um pré-cadastro ainda
+ * AGUARDANDO_CHEGADA não tem grupos para editar (o Pátio precisa confirmar
+ * primeiro; a UI já tem seus próprios painéis para completar Tipo/NF nesse
+ * estado — `TipoRemetidoPainel`/`NfPainel`).
+ *
+ * Mesma regra de reabertura já usada em `informarNumeroDocumentoRemetido`/
+ * `informarPesoGrupoRemetido`/`informarTipoRemetido`: se o Remetido já
+ * estava CONFERIDO, qualquer edição reabre para PENDENTE_CONFERENCIA — sem
+ * isso, "conferido" deixaria de corresponder aos dados reais depois de uma
+ * correção. Não inventa uma regra nova: segue o padrão já estabelecido no
+ * restante deste arquivo em vez de só reabrir quando peso/medições mudam.
+ */
+export async function atualizarRemetido(
+  movimentacaoId: string,
+  input: LancamentoDiretoRemetidoInput,
+  usuario: UsuarioAdmin,
+): Promise<MovimentacaoRemetidoComGrupos> {
+  const existente = await prisma.movimentacao.findUnique({ where: { id: movimentacaoId } });
+  if (!existente || existente.tipo !== 'REMETIDO') throw new ErroRegraNegocio('Remetido não encontrado.');
+  if (existente.status === 'AGUARDANDO_CHEGADA') {
+    throw new ErroRegraNegocio('Este remetido ainda não foi confirmado pelo Pátio — não há grupos para editar.');
+  }
+
+  const reabrindo = existente.status === 'CONFERIDO';
+
+  const movimentacao = await prisma.$transaction(async (tx) => {
+    // Grupos/medições são recriados do zero a cada edição (mesmo padrão dos
+    // dois fluxos de criação) — mais simples e seguro do que tentar diferenciar
+    // e atualizar grupo a grupo, e evita qualquer resíduo de medição removida.
+    await tx.medicao.deleteMany({ where: { grupo: { movimentacaoId } } });
+    await tx.grupo.deleteMany({ where: { movimentacaoId } });
+
+    await tx.movimentacao.update({
+      where: { id: movimentacaoId },
+      data: {
+        reservaPedido: input.reservaPedido ?? null,
+        destino: input.destino,
+        numeroDocumento: input.dados.numeroDocumento ?? existente.numeroDocumento,
+        dataMovimentacao: new Date(`${input.dados.data}T00:00:00`),
+        placaCavalo: input.dados.placaCavalo ?? null,
+        placaCarreta: input.dados.placaCarreta ?? null,
+        placaCarreta2: input.dados.placaCarreta2 ?? null,
+        transportadora: input.dados.transportadora ?? null,
+        responsavelPatio: input.dados.responsavelPatio,
+        ...(reabrindo ? { status: 'PENDENTE_CONFERENCIA' as const, conferidoPorId: null, conferidoEm: null } : {}),
+      },
+    });
+
+    await tx.remetidoDetalhe.upsert({
+      where: { movimentacaoId },
+      create: { movimentacaoId, tipoRemetido: input.tipoRemetido ?? null },
+      update: { tipoRemetido: input.tipoRemetido ?? null },
+    });
+
+    await criarGruposEMedicoes(tx, movimentacaoId, input.grupos);
+
+    return tx.movimentacao.findUniqueOrThrow({
+      where: { id: movimentacaoId },
+      include: { grupos: { include: { medicoes: true } }, remetidoDetalhe: true, historico: { orderBy: { timestamp: 'desc' } } },
+    });
+  });
+
+  await registrarHistorico({
+    movimentacaoId,
+    usuarioId: usuario.userId,
+    usuarioNome: usuario.nome,
+    acao: 'EDICAO',
+  });
+
+  if (reabrindo) {
+    await registrarHistorico({
+      movimentacaoId,
+      usuarioId: usuario.userId,
+      usuarioNome: usuario.nome,
+      acao: 'REABERTURA',
+      campo: 'status',
+      valorAntigo: 'CONFERIDO',
+      valorNovo: 'PENDENTE_CONFERENCIA',
+    });
+  }
+
+  return movimentacao;
+}
+
 export function buscarRemetidoDetalhe(id: string): Promise<MovimentacaoRemetidoComGrupos | null> {
   return prisma.movimentacao.findUnique({
     where: { id, tipo: 'REMETIDO' },
-    include: { grupos: { include: { medicoes: true } }, remetidoDetalhe: true },
+    include: { grupos: { include: { medicoes: true } }, remetidoDetalhe: true, historico: { orderBy: { timestamp: 'desc' } } },
   });
 }
 

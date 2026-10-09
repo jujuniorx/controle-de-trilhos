@@ -6,6 +6,7 @@ import {
   confirmarRemetido,
   informarNumeroDocumentoRemetido,
   criarRemetidoDireto,
+  atualizarRemetido,
 } from '@/lib/services/remetido';
 import { conferirRecebimento } from '@/lib/services/conferencia';
 import { criarRecebimentoCaminhao } from '@/lib/services/movimentacao';
@@ -392,6 +393,105 @@ describe('criarRemetidoDireto', () => {
     await conferirRecebimento(mov.id, ADMIN);
     const conferido = await prisma.movimentacao.findUniqueOrThrow({ where: { id: mov.id } });
     expect(conferido.status).toBe('CONFERIDO');
+  });
+});
+
+describe('atualizarRemetido', () => {
+  function lancamentoDiretoBase(overrides: Record<string, unknown> = {}) {
+    return lancamentoDiretoRemetidoSchema.parse({
+      tipoRemetido: 'VENDA',
+      reservaPedido: `${RESERVA_MARCADOR}-${Math.floor(Math.random() * 1_000_000)}`,
+      destino: 'Usina Rondonópolis',
+      dados: dadosConfirmacaoBase(),
+      grupos: [
+        {
+          clientId: uuid(),
+          perfil: 'TR22',
+          tipoMaterial: 'NOVO',
+          marca: 'NIPPON',
+          pesoInformado: 9.4,
+          medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 4.65 }],
+        },
+      ],
+      ...overrides,
+    });
+  }
+
+  function edicaoBase(overrides: Record<string, unknown> = {}) {
+    return lancamentoDiretoRemetidoSchema.parse({
+      tipoRemetido: 'TRANS',
+      reservaPedido: `${RESERVA_MARCADOR}-editado-${Math.floor(Math.random() * 1_000_000)}`,
+      destino: 'Usina Sorriso',
+      dados: { ...dadosConfirmacaoBase(), responsavelPatio: 'Outro Responsável' },
+      grupos: [
+        {
+          clientId: uuid(),
+          perfil: 'TR68',
+          tipoMaterial: 'REEMPREGO',
+          classificacao: 'G1',
+          pesoInformado: 20,
+          medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 12 }],
+        },
+      ],
+      ...overrides,
+    });
+  }
+
+  it('substitui tipo/reserva/destino/dados/grupos de um remetido PENDENTE_CONFERENCIA', async () => {
+    const mov = await criarRemetidoDireto(uuid(), lancamentoDiretoBase());
+
+    const atualizado = await atualizarRemetido(mov.id, edicaoBase(), ADMIN);
+
+    expect(atualizado.status).toBe('PENDENTE_CONFERENCIA');
+    expect(atualizado.destino).toBe('Usina Sorriso');
+    expect(atualizado.responsavelPatio).toBe('Outro Responsável');
+    expect(atualizado.remetidoDetalhe?.tipoRemetido).toBe('TRANS');
+    expect(atualizado.grupos).toHaveLength(1);
+    expect(atualizado.grupos[0].perfil).toBe('TR68');
+    expect(Number(atualizado.grupos[0].pesoInformado)).toBe(20);
+  });
+
+  it('não deixa resíduo do grupo/medição antigos depois de editar', async () => {
+    const mov = await criarRemetidoDireto(uuid(), lancamentoDiretoBase());
+    const grupoAntigoId = mov.grupos[0].id;
+
+    await atualizarRemetido(mov.id, edicaoBase(), ADMIN);
+
+    const grupoAntigo = await prisma.grupo.findUnique({ where: { id: grupoAntigoId } });
+    expect(grupoAntigo).toBeNull();
+    const grupos = await prisma.grupo.findMany({ where: { movimentacaoId: mov.id } });
+    expect(grupos).toHaveLength(1);
+  });
+
+  it('reabre a conferência ao editar um remetido já CONFERIDO', async () => {
+    const mov = await criarRemetidoDireto(uuid(), lancamentoDiretoBase());
+    await conferirRecebimento(mov.id, ADMIN);
+    const conferido = await prisma.movimentacao.findUniqueOrThrow({ where: { id: mov.id } });
+    expect(conferido.status).toBe('CONFERIDO');
+
+    const atualizado = await atualizarRemetido(mov.id, edicaoBase(), ADMIN);
+    expect(atualizado.status).toBe('PENDENTE_CONFERENCIA');
+
+    const historico = await prisma.historicoAlteracao.findMany({ where: { movimentacaoId: mov.id, acao: 'REABERTURA' } });
+    expect(historico).toHaveLength(1);
+  });
+
+  it('não altera o status de um remetido PENDENTE_CONFERENCIA (nunca estava conferido para reabrir)', async () => {
+    const mov = await criarRemetidoDireto(uuid(), lancamentoDiretoBase());
+    await atualizarRemetido(mov.id, edicaoBase(), ADMIN);
+
+    const historico = await prisma.historicoAlteracao.findMany({ where: { movimentacaoId: mov.id, acao: 'REABERTURA' } });
+    expect(historico).toHaveLength(0);
+  });
+
+  it('rejeita editar um pré-cadastro ainda AGUARDANDO_CHEGADA (não há grupos para editar)', async () => {
+    const preCadastro = await criarPreCadastro();
+    await expect(atualizarRemetido(preCadastro.id, edicaoBase(), ADMIN)).rejects.toThrow(/não foi confirmado/i);
+  });
+
+  it('rejeita editar passando o id de um Recebimento (endurecimento contra confusão de tipo)', async () => {
+    const recebimento = await criarRecebimentoMarcado();
+    await expect(atualizarRemetido(recebimento.id, edicaoBase(), ADMIN)).rejects.toThrow(/não encontrado/i);
   });
 });
 

@@ -95,6 +95,6 @@ test.describe('Fluxo real do Pátio — recebimento por caminhão', () => {
     await page.waitForURL('**/confirmado');
     await expect(page.getByText('Sincronizado com sucesso')).toBeVisible();
     await expect(page.getByText('peso pendente').first()).toBeVisible();
-    await expect(page.getByText(/sucata com peso pendente/i)).toBeVisible();
+    await expect(page.getByText(/sucata com peso pendente/i).first()).toBeVisible();
   });
 });

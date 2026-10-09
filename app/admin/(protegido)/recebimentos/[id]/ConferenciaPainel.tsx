@@ -112,16 +112,18 @@ export function ConferenciaPainel({ movimentacaoId, status, temSucata, pesoSucat
         </div>
       )}
 
-      <div className="mt-3">
-        <button
-          className="h-12 w-full rounded bg-steel font-medium text-white disabled:bg-neutral-300"
-          disabled={!podeConferir || conferindo}
-          onClick={conferir}
-        >
-          {conferindo ? 'Conferindo...' : status === 'CONFERIDO' ? 'Recebimento conferido' : 'Conferir recebimento'}
-        </button>
-        {erroConferir && <p className="mt-1 text-sm text-red-600">{erroConferir}</p>}
-      </div>
+      {status !== 'CONFERIDO' && (
+        <div className="mt-3">
+          <button
+            className="h-12 w-full rounded bg-steel font-medium text-white disabled:bg-neutral-300"
+            disabled={!podeConferir || conferindo}
+            onClick={conferir}
+          >
+            {conferindo ? 'Conferindo...' : 'Conferir recebimento'}
+          </button>
+          {erroConferir && <p className="mt-1 text-sm text-red-600">{erroConferir}</p>}
+        </div>
+      )}
     </section>
   );
 }

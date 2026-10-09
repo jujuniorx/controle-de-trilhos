@@ -9,7 +9,13 @@ test.describe('Fluxo real do Remetido — pré-cadastro (Admin) + confirmação 
   test.afterAll(async () => {
     const ids = (
       await prisma.movimentacao.findMany({
-        where: { OR: [{ reservaPedido: { startsWith: MARCADOR } }, { responsavelPatio: 'Teste E2E Direto' }] },
+        where: {
+          OR: [
+            { reservaPedido: { startsWith: MARCADOR } },
+            { responsavelPatio: 'Teste E2E Direto' },
+            { responsavelPatio: 'Teste E2E Edicao' },
+          ],
+        },
         select: { id: true },
       })
     ).map((m) => m.id);
@@ -65,8 +71,9 @@ test.describe('Fluxo real do Remetido — pré-cadastro (Admin) + confirmação 
     await page.goto(`/admin/remetidos/${movimentacaoId}`);
     await expect(page.getByText('PENDENTE DE CONFERÊNCIA').first()).toBeVisible();
     // TR22 × 4.65 m com fator 0,022 (seed) = 0,102 t — estimativa automática,
-    // já que nenhum peso foi informado pelo Pátio.
-    await expect(page.getByText('TOTAL (da NF): 0.102 t')).toBeVisible();
+    // já que nenhum peso foi informado pelo Pátio. Bloco "Totais do remetido" (Task 18.6).
+    const totais = page.locator('section', { has: page.getByRole('heading', { name: 'Totais do remetido' }) });
+    await expect(totais.getByText('0.102', { exact: false })).toBeVisible();
 
     const movimentacao = await prisma.movimentacao.findUniqueOrThrow({
       where: { id: movimentacaoId },
@@ -138,5 +145,52 @@ test.describe('Fluxo real do Remetido — pré-cadastro (Admin) + confirmação 
     const linha = linhas.find((r) => String(r.getCell(6).value) === MARCADOR); // Reserva/Pedido
     expect(linha, 'linha do Remetido recém-criado não encontrada na planilha').toBeDefined();
     expect(linha!.getCell(10).value).toBe('TR22'); // Perfil
+  });
+
+  test('Admin edita um Remetido existente (Task 17) — reabre a conferência quando já estava CONFERIDO (Task 18)', async ({ page }) => {
+    const responsavelEdicao = 'Teste E2E Edicao';
+    await entrarNoPatio(page);
+    await page.goto('/patio/remetidos/novo');
+    await page.locator('#f-tipo-remetido').selectOption('VENDA');
+    await page.locator('#f-destino').fill('Usina Rondonópolis');
+    await page.locator('#f-nf').fill(String(Date.now()).slice(-9));
+    await page.locator('#f-cavalo').fill('ABC1D23');
+    await page.locator('#f-resp').fill(responsavelEdicao);
+    await page.locator('select').nth(1).selectOption('TR22'); // Perfil do novo grupo
+    await page.getByRole('button', { name: 'Adicionar grupo' }).click();
+    await page.getByLabel('Marca do Grupo 1').selectOption('NIPPON');
+    await page.getByPlaceholder('Comprimento (m)').fill('4,65');
+    await page.getByRole('button', { name: 'Adicionar', exact: true }).click();
+    await page.getByRole('button', { name: 'Lançar remetido' }).click();
+    await page.waitForURL('**/patio/remetidos');
+
+    const movimentacao = await prisma.movimentacao.findFirstOrThrow({ where: { responsavelPatio: responsavelEdicao } });
+
+    await entrarNoAdmin(page);
+    await page.goto(`/admin/remetidos/${movimentacao.id}`);
+    // Task 18: título amigável (nunca o CUID), barras por grupo, bloco de totais.
+    await expect(page.getByRole('heading', { name: /Remetido — NF \d+/ })).toBeVisible();
+    await expect(page.getByText('1 barra', { exact: false })).toBeVisible();
+    await expect(page.getByText('Totais do remetido')).toBeVisible();
+
+    // Confere antes de editar, para provar que a edição reabre a conferência.
+    await page.getByRole('button', { name: 'Conferir recebimento' }).click();
+    await expect(page.getByText('CONFERIDO', { exact: true }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Conferir recebimento' })).toHaveCount(0);
+
+    await page.getByRole('link', { name: 'Editar remetido' }).click();
+    await page.waitForURL(`**/admin/remetidos/${movimentacao.id}/editar`);
+    await page.locator('#f-destino').fill('Usina Sorriso');
+    await page.getByRole('button', { name: 'Salvar alterações' }).click();
+    await page.waitForURL(`**/admin/remetidos/${movimentacao.id}`);
+
+    await expect(page.getByText('PENDENTE DE CONFERÊNCIA').first()).toBeVisible();
+    await expect(page.getByText('Usina Sorriso')).toBeVisible();
+    await expect(page.getByText('Remetido editado pelo Administrativo')).toBeVisible();
+    await expect(page.getByText('Conferência reaberta')).toBeVisible();
+
+    const atualizado = await prisma.movimentacao.findUniqueOrThrow({ where: { id: movimentacao.id } });
+    expect(atualizado.status).toBe('PENDENTE_CONFERENCIA');
+    expect(atualizado.destino).toBe('Usina Sorriso');
   });
 });

@@ -12,6 +12,10 @@ import { PERFIS, MARCAS, MARCA_LABEL, PLACA_REGEX, NF_REGEX, MSG_NF_INVALIDA, CL
 import { validarReemprego, classificarSC, pecasDoGrupo } from '@/lib/domain/regras';
 import { confirmarRemetidoAction } from './[id]/confirmar/actions';
 import { criarRemetidoDiretoAction } from './novo/actions';
+// Reuso intencional (Task 17/20): a edição administrativa de Remetido usa o
+// MESMO wizard/validação/cálculo do lançamento pelo Pátio, em vez de uma tela
+// e lógica de grupos/medições paralelas — só muda a action chamada no final.
+import { atualizarRemetidoAction } from '@/app/admin/(protegido)/remetidos/[id]/actions';
 
 const TIPO_REMETIDO_LABEL: Record<(typeof TIPOS_REMETIDO)[number], string> = {
   VENDA: 'Venda',
@@ -104,45 +108,61 @@ type TipoRemetido = (typeof TIPOS_REMETIDO)[number];
 
 interface Identificacao {
   tipoRemetido: TipoRemetido | '';
+  reservaPedido: string;
   destino: string;
 }
 
 // tipoRemetido NÃO é obrigatório aqui (Bloco 2.2): no lançamento direto pelo
 // Pátio, sem pré-cadastro, essa decisão (Venda/Transferência/Industrialização)
 // é do Administrativo — ele completa depois, na conferência. Reserva/Pedido
-// foi removida desta tela (o campo continua existindo no banco e no
-// pré-cadastro/Admin) — por isso não aparece aqui nem é validada.
+// foi removida da tela do Pátio (o campo continua existindo no banco e no
+// pré-cadastro/Admin) — só aparece no modo "editar" (Task 17), onde quem
+// preenche é sempre o Administrativo.
 function validarIdentificacao(i: Identificacao) {
   const erros: Partial<Record<keyof Identificacao, string>> = {};
   if (!i.destino.trim()) erros.destino = 'Informe o destino.';
   return erros;
 }
 
+export interface ValoresIniciaisEdicao {
+  tipoRemetido: TipoRemetido | '';
+  reservaPedido: string;
+  destino: string;
+  dados: Dados;
+  grupos: GrupoLocal[];
+}
+
 type Props =
   | { modo: 'novo' }
-  | { modo: 'confirmar'; movimentacaoId: string; numeroDocumentoPreCadastrado: string | null };
+  | { modo: 'confirmar'; movimentacaoId: string; numeroDocumentoPreCadastrado: string | null }
+  | { modo: 'editar'; movimentacaoId: string; valoresIniciais: ValoresIniciaisEdicao };
 
 export function RemetidoWizard(props: Props) {
   const router = useRouter();
   const numeroDocumentoPreCadastrado = props.modo === 'confirmar' ? props.numeroDocumentoPreCadastrado : null;
   const hoje = useSyncExternalStore(semInscricao, dataDeHojeLocal, () => '');
-  const [dataTocada, setDataTocada] = useState(false);
-  const [identificacao, setIdentificacao] = useState<Identificacao>({
-    tipoRemetido: '',
-    destino: '',
-  });
-  const [dadosBrutos, setDados] = useState<Dados>({
-    data: '',
-    numeroDocumento: numeroDocumentoPreCadastrado ?? '',
-    placaCavalo: '',
-    placaCarreta: '',
-    placaCarreta2: '',
-    transportadora: '',
-    responsavelPatio: '',
-  });
-  const [mostrarCarreta2, setMostrarCarreta2] = useState(false);
+  const [dataTocada, setDataTocada] = useState(props.modo === 'editar');
+  const [identificacao, setIdentificacao] = useState<Identificacao>(
+    props.modo === 'editar'
+      ? { tipoRemetido: props.valoresIniciais.tipoRemetido, reservaPedido: props.valoresIniciais.reservaPedido, destino: props.valoresIniciais.destino }
+      : { tipoRemetido: '', reservaPedido: '', destino: '' },
+  );
+  const [dadosBrutos, setDados] = useState<Dados>(
+    props.modo === 'editar'
+      ? props.valoresIniciais.dados
+      : {
+          data: '',
+          numeroDocumento: numeroDocumentoPreCadastrado ?? '',
+          placaCavalo: '',
+          placaCarreta: '',
+          placaCarreta2: '',
+          transportadora: '',
+          responsavelPatio: '',
+        },
+  );
+  const [mostrarCarreta2, setMostrarCarreta2] = useState(props.modo === 'editar' && Boolean(props.valoresIniciais.dados.placaCarreta2));
   const [attemptSubmit, setAttemptSubmit] = useState(false);
-  const [grupos, setGrupos] = useState<GrupoLocal[]>([]);
+  const [grupos, setGrupos] = useState<GrupoLocal[]>(props.modo === 'editar' ? props.valoresIniciais.grupos : []);
   const [activeGrupoId, setActiveGrupoId] = useState<string | null>(null);
   const [draftPerfil, setDraftPerfil] = useState('');
   const [draftTipo, setDraftTipo] = useState<TipoMaterial>('NOVO');
@@ -162,7 +182,8 @@ export function RemetidoWizard(props: Props) {
     [dadosBrutos, dataTocada, hoje],
   );
   const errosDados = attemptSubmit ? validarDados(dados) : {};
-  const errosIdentificacao = attemptSubmit && props.modo === 'novo' ? validarIdentificacao(identificacao) : {};
+  const temIdentificacao = props.modo === 'novo' || props.modo === 'editar';
+  const errosIdentificacao = attemptSubmit && temIdentificacao ? validarIdentificacao(identificacao) : {};
   const grupoAtivo = grupos.find((g) => g.clientId === activeGrupoId) ?? null;
 
   function adicionarGrupo() {
@@ -235,7 +256,7 @@ export function RemetidoWizard(props: Props) {
     setAttemptSubmit(true);
     setErroFinal('');
     if (Object.keys(validarDados(dados)).length > 0) return;
-    if (props.modo === 'novo' && Object.keys(validarIdentificacao(identificacao)).length > 0) return;
+    if (temIdentificacao && Object.keys(validarIdentificacao(identificacao)).length > 0) return;
     if (!podeConfirmar) {
       setErroFinal('Complete todos os grupos (medições e classificação) antes de confirmar.');
       return;
@@ -272,9 +293,10 @@ export function RemetidoWizard(props: Props) {
     setEnviando(true);
     let resultado: { ok: boolean; erro?: string };
 
-    if (props.modo === 'novo') {
+    if (props.modo === 'novo' || props.modo === 'editar') {
       const parsed = lancamentoDiretoRemetidoSchema.safeParse({
         tipoRemetido: identificacao.tipoRemetido || undefined,
+        reservaPedido: props.modo === 'editar' ? identificacao.reservaPedido || undefined : undefined,
         destino: identificacao.destino,
         dados: dadosPayload,
         grupos: gruposPayload,
@@ -284,7 +306,10 @@ export function RemetidoWizard(props: Props) {
         setErroFinal('Dados inválidos. Revise os campos e tente novamente.');
         return;
       }
-      resultado = await criarRemetidoDiretoAction(parsed.data);
+      resultado =
+        props.modo === 'editar'
+          ? await atualizarRemetidoAction(props.movimentacaoId, parsed.data)
+          : await criarRemetidoDiretoAction(parsed.data);
     } else {
       const parsed = confirmacaoRemetidoSchema.safeParse({ dados: dadosPayload, grupos: gruposPayload });
       if (!parsed.success) {
@@ -300,17 +325,21 @@ export function RemetidoWizard(props: Props) {
       setErroFinal(resultado.erro ?? 'Não foi possível salvar o remetido.');
       return;
     }
-    router.push('/patio/remetidos');
+    router.push(props.modo === 'editar' ? `/admin/remetidos/${props.movimentacaoId}` : '/patio/remetidos');
   }
 
   return (
     <div className="mt-4 space-y-4">
-      {props.modo === 'novo' && (
+      {temIdentificacao && (
         <section className="space-y-3 rounded-lg border bg-white p-3">
           <h2 className="font-semibold text-neutral-800">Identificação do remetido</h2>
-          <p className="text-sm text-neutral-600">Sem pré-cadastro — preencha o que normalmente vem do Administrativo.</p>
+          {props.modo === 'novo' && (
+            <p className="text-sm text-neutral-600">Sem pré-cadastro — preencha o que normalmente vem do Administrativo.</p>
+          )}
           <div>
-            <label className="block text-sm font-medium" htmlFor="f-tipo-remetido">Tipo de remetido (opcional — o Administrativo pode completar depois)</label>
+            <label className="block text-sm font-medium" htmlFor="f-tipo-remetido">
+              Tipo de remetido{props.modo === 'novo' ? ' (opcional — o Administrativo pode completar depois)' : ''}
+            </label>
             <select
               id="f-tipo-remetido"
               className="mt-1 h-11 w-full rounded border px-3"
@@ -323,6 +352,17 @@ export function RemetidoWizard(props: Props) {
               ))}
             </select>
           </div>
+          {props.modo === 'editar' && (
+            <div>
+              <label className="block text-sm font-medium" htmlFor="f-reserva-pedido">Reserva/Pedido</label>
+              <input
+                id="f-reserva-pedido"
+                className="mt-1 h-11 w-full rounded border px-3"
+                value={identificacao.reservaPedido}
+                onChange={(e) => setIdentificacao({ ...identificacao, reservaPedido: e.target.value })}
+              />
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium" htmlFor="f-destino">Destino *</label>
             <input
@@ -635,8 +675,8 @@ export function RemetidoWizard(props: Props) {
         onClick={confirmar}
       >
         {enviando
-          ? (props.modo === 'novo' ? 'Lançando...' : 'Confirmando...')
-          : (props.modo === 'novo' ? 'Lançar remetido' : 'Confirmar chegada e salvar')}
+          ? { novo: 'Lançando...', confirmar: 'Confirmando...', editar: 'Salvando...' }[props.modo]
+          : { novo: 'Lançar remetido', confirmar: 'Confirmar chegada e salvar', editar: 'Salvar alterações' }[props.modo]}
       </button>
     </div>
   );

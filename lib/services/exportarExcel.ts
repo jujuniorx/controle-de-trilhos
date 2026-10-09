@@ -257,13 +257,32 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
   sheet.getColumn(3).numFmt = '0';
 }
 
+/**
+ * Times New Roman 10 (Task 25) — a planilha operacional usa essa fonte, e a
+ * exportação precisa copiar/colar sem precisar reformatar. Aplicada por
+ * último, depois que todas as linhas já existem, para cobrir a aba inteira
+ * sem perder o negrito do cabeçalho (aplicarCabecalho já define `bold: true`
+ * na linha 1 antes desta função rodar).
+ */
+function aplicarFontePadrao(sheet: ExcelJS.Worksheet) {
+  sheet.eachRow((row) => {
+    row.font = { ...row.font, name: 'Times New Roman', size: 10 };
+  });
+}
+
 export async function gerarRelatorioExcel(movimentacoes: MovimentacaoRelatorio[]): Promise<ExcelJS.Buffer> {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'Controle de Trilhos';
   workbook.created = new Date();
 
-  montarRecebidos(workbook.addWorksheet('Recebidos'), movimentacoes.filter((m) => m.tipo === 'RECEBIMENTO'));
-  montarRemetidos(workbook.addWorksheet('Remetidos'), movimentacoes.filter((m) => m.tipo === 'REMETIDO'));
+  const recebidos = workbook.addWorksheet('Recebidos');
+  const remetidos = workbook.addWorksheet('Remetidos');
+
+  montarRecebidos(recebidos, movimentacoes.filter((m) => m.tipo === 'RECEBIMENTO'));
+  montarRemetidos(remetidos, movimentacoes.filter((m) => m.tipo === 'REMETIDO'));
+
+  aplicarFontePadrao(recebidos);
+  aplicarFontePadrao(remetidos);
 
   return workbook.xlsx.writeBuffer();
 }
