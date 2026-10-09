@@ -23,13 +23,13 @@ export function NfPainel({ movimentacaoId }: { movimentacaoId: string }) {
   }
 
   return (
-    <div className="mt-3 rounded border p-3">
-      <p className="mb-2 font-semibold text-amber-800">
+    <div className="conf-block mt-3">
+      <p className="mb-2 font-semibold text-warn">
         NF em aberto — o Pátio confirmou sem saber o número. Complete para liberar a conferência.
       </p>
       <div className="flex gap-2">
         <input
-          className="h-11 flex-1 rounded border px-3"
+          className="h-11 flex-1"
           inputMode="numeric"
           placeholder="Número da NF"
           value={numero}
@@ -38,15 +38,11 @@ export function NfPainel({ movimentacaoId }: { movimentacaoId: string }) {
             setErro('');
           }}
         />
-        <button
-          className="h-11 rounded bg-steel px-4 text-white disabled:bg-neutral-300"
-          disabled={salvando}
-          onClick={salvar}
-        >
+        <button className="btn btn-primary h-11" disabled={salvando} onClick={salvar}>
           {salvando ? 'Salvando...' : 'Salvar NF'}
         </button>
       </div>
-      {erro && <p className="mt-1 text-sm text-red-600">{erro}</p>}
+      {erro && <p className="mt-1 text-sm text-bad">{erro}</p>}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Barlow, Barlow_Semi_Condensed, Geist_Mono } from "next/font/google";
+import { Barlow, Barlow_Condensed, Geist_Mono } from "next/font/google";
 import { RegistrarServiceWorker } from "@/components/RegistrarServiceWorker";
 import "./globals.css";
 
@@ -9,8 +9,8 @@ const barlow = Barlow({
   weight: ["400", "500", "600", "700"],
 });
 
-const barlowCondensed = Barlow_Semi_Condensed({
-  variable: "--font-barlow-condensed",
+const barlowCondensed = Barlow_Condensed({
+  variable: "--font-barlow-cond",
   subsets: ["latin"],
   weight: ["500", "600", "700"],
 });

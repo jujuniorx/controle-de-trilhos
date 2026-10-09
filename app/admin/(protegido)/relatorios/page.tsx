@@ -17,28 +17,33 @@ function detalheHref(mov: { id: string; tipo: string }): string {
   return mov.tipo === 'RECEBIMENTO' ? `/admin/recebimentos/${mov.id}` : `/admin/remetidos/${mov.id}`;
 }
 
-const STATUS_LABEL: Record<string, { texto: string; className: string }> = {
-  AGUARDANDO_CHEGADA: { texto: 'Aguardando chegada', className: 'bg-neutral-200 text-neutral-800' },
-  PENDENTE_CONFERENCIA: { texto: 'Pendente de conferência', className: 'bg-amber-100 text-amber-800' },
-  CONFERIDO: { texto: 'Conferido', className: 'bg-emerald-100 text-emerald-800' },
+// Mapeia o status (valor armazenado no banco, intocado) para a variante visual
+// do badge — só a aparência muda, nunca o valor persistido.
+const STATUS_BADGE: Record<string, string> = {
+  AGUARDANDO_CHEGADA: 'badge-muted',
+  PENDENTE_CONFERENCIA: 'badge-warn',
+  CONFERIDO: 'badge-ok',
+};
+
+const STATUS_TEXTO: Record<string, string> = {
+  AGUARDANDO_CHEGADA: 'Aguardando chegada',
+  PENDENTE_CONFERENCIA: 'Pendente de conferência',
+  CONFERIDO: 'Conferido',
 };
 
 function LinhaTabela({ mov }: { mov: MovimentacaoRelatorio }) {
-  const statusInfo = STATUS_LABEL[mov.status];
   return (
-    <tr className="border-t">
-      <td className="p-2">{mov.tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'}</td>
-      <td className="p-2">{fmtData(mov.dataMovimentacao)}</td>
-      <td className="p-2">{mov.numeroDocumento ?? 'Em aberto'}</td>
-      <td className="p-2">{mov.tipo === 'RECEBIMENTO' ? mov.origem : mov.destino}</td>
-      <td className="p-2">
-        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusInfo?.className ?? 'bg-neutral-100'}`}>
-          {statusInfo?.texto ?? mov.status}
-        </span>
+    <tr>
+      <td>{mov.tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'}</td>
+      <td className="font-mono">{fmtData(mov.dataMovimentacao)}</td>
+      <td className="font-mono">{mov.numeroDocumento ?? 'Em aberto'}</td>
+      <td>{mov.tipo === 'RECEBIMENTO' ? mov.origem : mov.destino}</td>
+      <td>
+        <span className={`badge ${STATUS_BADGE[mov.status] ?? 'badge-muted'}`}>{STATUS_TEXTO[mov.status] ?? mov.status}</span>
       </td>
-      <td className="p-2 text-right">
-        <Link href={detalheHref(mov)} className="text-blue-700 underline">
-          Ver detalhes
+      <td className="text-right">
+        <Link href={detalheHref(mov)} className="tbl-action">
+          Ver detalhes →
         </Link>
       </td>
     </tr>
@@ -48,22 +53,22 @@ function LinhaTabela({ mov }: { mov: MovimentacaoRelatorio }) {
 function TabelaPendencia({ titulo, itens, vazio }: { titulo: string; itens: MovimentacaoRelatorio[]; vazio: string }) {
   return (
     <div>
-      <h3 className="font-medium text-neutral-800">
-        {titulo} <span className="font-normal text-neutral-500">({itens.length})</span>
+      <h3 className="font-condensed text-sm font-semibold uppercase tracking-wide text-ink-muted">
+        {titulo} <span className="font-sans font-normal normal-case tracking-normal text-ink-dim">({itens.length})</span>
       </h3>
       {itens.length === 0 ? (
-        <p className="mt-1 text-sm text-neutral-500">{vazio}</p>
+        <p className="mt-1 text-sm text-ink-dim">{vazio}</p>
       ) : (
-        <div className="mt-1 overflow-x-auto rounded border">
-          <table className="w-full text-sm">
-            <thead className="bg-neutral-100 text-left">
+        <div className="tbl-wrap mt-1">
+          <table>
+            <thead>
               <tr>
-                <th className="p-2">Tipo</th>
-                <th className="p-2">Data</th>
-                <th className="p-2">NF</th>
-                <th className="p-2">Origem/Destino</th>
-                <th className="p-2">Status</th>
-                <th className="p-2" />
+                <th>Tipo</th>
+                <th>Data</th>
+                <th>NF</th>
+                <th>Origem/Destino</th>
+                <th>Status</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -106,45 +111,45 @@ export default async function RelatoriosPage({
 
   return (
     <main className="mx-auto max-w-5xl space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold">Relatório de movimentação</h1>
-        <Link href="/admin" className="text-sm text-neutral-500 hover:underline">
+      <div className="page-header">
+        <h1 className="page-title">Relatório de movimentação</h1>
+        <Link href="/admin" className="back-link">
           ← Voltar
         </Link>
       </div>
 
-      <form method="get" className="rounded-lg border bg-white p-4">
+      <form method="get" className="card">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div>
-            <label className="block text-xs font-medium text-neutral-600" htmlFor="f-inicio">Período (início)</label>
-            <input id="f-inicio" type="date" name="dataInicio" defaultValue={filtros.dataInicio} className="mt-1 h-10 w-full rounded border px-2" />
+          <div className="field">
+            <label htmlFor="f-inicio">Período (início)</label>
+            <input id="f-inicio" type="date" name="dataInicio" defaultValue={filtros.dataInicio} className="h-10" />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-neutral-600" htmlFor="f-fim">Período (fim)</label>
-            <input id="f-fim" type="date" name="dataFim" defaultValue={filtros.dataFim} className="mt-1 h-10 w-full rounded border px-2" />
+          <div className="field">
+            <label htmlFor="f-fim">Período (fim)</label>
+            <input id="f-fim" type="date" name="dataFim" defaultValue={filtros.dataFim} className="h-10" />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-neutral-600" htmlFor="f-tipo">Tipo</label>
-            <select id="f-tipo" name="tipo" defaultValue={filtros.tipo ?? ''} className="mt-1 h-10 w-full rounded border px-2">
+          <div className="field">
+            <label htmlFor="f-tipo">Tipo</label>
+            <select id="f-tipo" name="tipo" defaultValue={filtros.tipo ?? ''} className="h-10">
               <option value="">Todos</option>
               <option value="RECEBIMENTO">Recebimento</option>
               <option value="REMETIDO">Remetido</option>
             </select>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-neutral-600" htmlFor="f-status">Status</label>
-            <select id="f-status" name="status" defaultValue={filtros.status ?? ''} className="mt-1 h-10 w-full rounded border px-2">
+          <div className="field">
+            <label htmlFor="f-status">Status</label>
+            <select id="f-status" name="status" defaultValue={filtros.status ?? ''} className="h-10">
               <option value="">Todos</option>
               {STATUS_RELATORIO.map((s) => (
                 <option key={s} value={s}>
-                  {STATUS_LABEL[s].texto}
+                  {STATUS_TEXTO[s]}
                 </option>
               ))}
             </select>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-neutral-600" htmlFor="f-perfil">Perfil</label>
-            <select id="f-perfil" name="perfil" defaultValue={filtros.perfil ?? ''} className="mt-1 h-10 w-full rounded border px-2">
+          <div className="field">
+            <label htmlFor="f-perfil">Perfil</label>
+            <select id="f-perfil" name="perfil" defaultValue={filtros.perfil ?? ''} className="h-10">
               <option value="">Todos</option>
               {PERFIS.map((p) => (
                 <option key={p} value={p}>
@@ -153,9 +158,9 @@ export default async function RelatoriosPage({
               ))}
             </select>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-neutral-600" htmlFor="f-material">Material</label>
-            <select id="f-material" name="material" defaultValue={filtros.material ?? ''} className="mt-1 h-10 w-full rounded border px-2">
+          <div className="field">
+            <label htmlFor="f-material">Material</label>
+            <select id="f-material" name="material" defaultValue={filtros.material ?? ''} className="h-10">
               <option value="">Todos</option>
               {MATERIAIS_RELATORIO.map((m) => (
                 <option key={m} value={m}>
@@ -164,88 +169,89 @@ export default async function RelatoriosPage({
               ))}
             </select>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-neutral-600" htmlFor="f-od">Origem/Destino</label>
-            <input id="f-od" type="text" name="origemDestino" defaultValue={filtros.origemDestino} className="mt-1 h-10 w-full rounded border px-2" />
+          <div className="field">
+            <label htmlFor="f-od">Origem/Destino</label>
+            <input id="f-od" type="text" name="origemDestino" defaultValue={filtros.origemDestino} className="h-10" />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-neutral-600" htmlFor="f-nf">Nota fiscal</label>
-            <input id="f-nf" type="text" inputMode="numeric" name="numeroDocumento" defaultValue={filtros.numeroDocumento} className="mt-1 h-10 w-full rounded border px-2" />
+          <div className="field">
+            <label htmlFor="f-nf">Nota fiscal</label>
+            <input id="f-nf" type="text" inputMode="numeric" name="numeroDocumento" defaultValue={filtros.numeroDocumento} className="h-10" />
           </div>
         </div>
         <div className="mt-3 flex gap-2">
-          <button type="submit" className="h-10 rounded bg-steel px-4 text-sm font-medium text-white">
+          <button type="submit" className="btn btn-primary">
             Filtrar
           </button>
           {temFiltro && (
-            <Link href="/admin/relatorios" className="flex h-10 items-center rounded border px-4 text-sm font-medium text-neutral-700">
+            <Link href="/admin/relatorios" className="btn btn-secondary">
               Limpar filtros
             </Link>
           )}
         </div>
       </form>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-xs text-neutral-500">Movimentações</p>
-          <p className="text-2xl font-semibold">{resumo.carregamentos}</p>
+      <div className="rel-indicators">
+        <div className="stat-tile">
+          <p className="stat-label">Movimentações</p>
+          <p className="stat-value">{resumo.carregamentos}</p>
         </div>
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-xs text-neutral-500">Peças</p>
-          <p className="text-2xl font-semibold">{resumo.pecas}</p>
+        <div className="stat-tile">
+          <p className="stat-label">Peças</p>
+          <p className="stat-value">{resumo.pecas}</p>
         </div>
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-xs text-neutral-500">Metros</p>
-          <p className="text-2xl font-semibold">{resumo.metros.toFixed(2)} m</p>
+        <div className="stat-tile">
+          <p className="stat-label">Metros</p>
+          <p className="stat-value">{resumo.metros.toFixed(2)}</p>
+          <p className="stat-unit">m</p>
         </div>
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-xs text-neutral-500">Toneladas</p>
-          <p className="text-2xl font-semibold">{resumo.toneladas.toFixed(3)} t</p>
+        <div className="stat-tile">
+          <p className="stat-label">Toneladas</p>
+          <p className="stat-value accent">{resumo.toneladas.toFixed(3)}</p>
+          <p className="stat-unit">t</p>
         </div>
       </div>
 
       <section className="space-y-2">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-neutral-800">
-            Movimentações <span className="font-normal text-neutral-500">({movimentacoes.length})</span>
+          <h2 className="font-condensed text-base font-semibold uppercase tracking-wide text-ink">
+            Movimentações <span className="font-sans font-normal normal-case tracking-normal text-ink-dim">({movimentacoes.length})</span>
           </h2>
-          <a
-            href={`/api/relatorios/exportar${queryString ? `?${queryString}` : ''}`}
-            className="rounded border border-steel px-3 py-1.5 text-sm font-medium text-steel-dark"
-          >
+          <a href={`/api/relatorios/exportar${queryString ? `?${queryString}` : ''}`} className="btn btn-ghost btn-sm">
             Exportar Excel
           </a>
         </div>
-        <div className="overflow-x-auto rounded border bg-white">
-          <table className="w-full text-sm">
-            <thead className="bg-neutral-100 text-left">
-              <tr>
-                <th className="p-2">Tipo</th>
-                <th className="p-2">Data</th>
-                <th className="p-2">NF</th>
-                <th className="p-2">Origem/Destino</th>
-                <th className="p-2">Status</th>
-                <th className="p-2" />
-              </tr>
-            </thead>
-            <tbody>
-              {movimentacoes.map((m) => (
-                <LinhaTabela key={m.id} mov={m} />
-              ))}
-              {movimentacoes.length === 0 && (
+        <div className="card">
+          <div className="tbl-wrap">
+            <table>
+              <thead>
                 <tr>
-                  <td colSpan={6} className="p-4 text-center text-neutral-500">
-                    Nenhuma movimentação encontrada com esses filtros.
-                  </td>
+                  <th>Tipo</th>
+                  <th>Data</th>
+                  <th>NF</th>
+                  <th>Origem/Destino</th>
+                  <th>Status</th>
+                  <th></th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {movimentacoes.map((m) => (
+                  <LinhaTabela key={m.id} mov={m} />
+                ))}
+                {movimentacoes.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="p-4 text-center text-ink-dim">
+                      Nenhuma movimentação encontrada com esses filtros.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
-      <section className="space-y-4 rounded-lg border bg-white p-4">
-        <h2 className="font-semibold text-neutral-800">Pendências</h2>
+      <section className="card space-y-4">
+        <h2 className="card-title">Pendências</h2>
         <TabelaPendencia
           titulo="Aguardando conferência"
           itens={pendencias.aguardandoConferencia}

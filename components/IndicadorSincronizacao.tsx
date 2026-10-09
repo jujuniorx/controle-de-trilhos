@@ -52,14 +52,14 @@ export function IndicadorSincronizacao() {
   }, []);
 
   return (
-    <div role="status" aria-live="polite" className="flex items-center gap-2 border-b bg-neutral-50 px-4 py-1 text-xs text-neutral-600">
-      {!online && <span className="font-medium text-amber-700">Offline</span>}
+    <div role="status" aria-live="polite" className="flex items-center gap-2 border-b border-line bg-surface px-4 py-1.5 text-xs text-ink-muted">
+      {!online && <span className="badge badge-warn">Offline</span>}
       {pendentes > 0 && (
-        <span>
+        <span className="badge badge-warn">
           {pendentes} recebimento{pendentes > 1 ? 's' : ''} pendente{pendentes > 1 ? 's' : ''} de sincronização
         </span>
       )}
-      {online && pendentes === 0 && <span>Sincronizado</span>}
+      {online && pendentes === 0 && <span className="badge badge-ok">Sincronizado</span>}
     </div>
   );
 }

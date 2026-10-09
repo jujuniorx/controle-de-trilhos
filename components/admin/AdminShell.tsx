@@ -1,11 +1,8 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { MobileNav } from './MobileNav';
-
-const NAV_ITEMS = [
-  { href: '/admin', label: 'Pendências' },
-  { href: '/admin/relatorios', label: 'Relatórios' },
-] as const;
+import { SidebarNav } from './SidebarNav';
+import { Logo } from '@/components/ui/Logo';
 
 function iniciaisDe(nome: string): string {
   return nome
@@ -18,40 +15,38 @@ function iniciaisDe(nome: string): string {
 
 export function AdminShell({ nome, children }: { nome: string; children: ReactNode }) {
   return (
-    <div className="area-admin flex min-h-screen flex-col bg-neutral-100 md:flex-row">
-      <header className="relative flex h-14 flex-none items-center justify-between bg-admin-navy px-3 text-white md:hidden">
+    <div className="flex min-h-screen flex-col bg-background md:flex-row">
+      <header className="ct-topbar relative flex h-14 flex-none items-center justify-between px-3 md:hidden">
         <div className="flex items-center gap-2">
           <MobileNav />
-          <span className="font-condensed text-lg font-bold leading-none">Controle de Trilhos</span>
+          <Logo size={26} showText={false} />
+          <span className="font-condensed text-base font-bold uppercase tracking-wide text-ink">Controle de Trilhos</span>
         </div>
-        <Link href="/admin/trocar-senha" className="text-xs text-neutral-300 underline hover:text-white">
+        <Link href="/admin/trocar-senha" className="text-xs text-ink-dim underline hover:text-ink">
           Trocar senha
         </Link>
       </header>
 
-      <aside className="hidden w-60 flex-none flex-col bg-admin-navy px-2 py-6 text-white md:flex">
-        <div className="px-3 font-condensed leading-none">
-          <p className="text-lg font-semibold">CONTROLE</p>
-          <p className="text-2xl font-bold">DE TRILHOS</p>
+      <aside className="ct-sidebar hidden w-[220px] flex-none flex-col md:flex">
+        <div className="ct-sidebar-logo">
+          <Logo size={32} subtitle="Administração" />
         </div>
-        <nav className="mt-8 flex flex-col gap-1">
-          {NAV_ITEMS.map((item) => (
-            <Link key={item.href} href={item.href} className="rounded-lg px-4 py-3 text-base text-neutral-200 hover:bg-white/10">
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      </aside>
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="hidden h-12 flex-none items-center justify-end gap-3 bg-admin-navy px-6 text-white md:flex">
-          <Link href="/admin/trocar-senha" className="text-xs text-neutral-300 underline hover:text-white">
+        <SidebarNav className="flex flex-1 flex-col gap-0.5 py-2" />
+        <div className="ct-sidebar-footer">
+          <div className="mb-0.5 text-[.78rem] text-ink-muted">{nome}</div>
+          <Link href="/admin/trocar-senha" className="text-[.72rem] text-ink-dim underline hover:text-ink">
             Trocar minha senha
           </Link>
+        </div>
+      </aside>
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="ct-topbar hidden h-[52px] flex-none items-center justify-end gap-3 px-6 md:flex">
           <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-sm font-bold">
+            <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-sm font-bold text-white">
               {iniciaisDe(nome) || '?'}
             </span>
-            <span className="text-sm font-semibold">{nome}</span>
+            <span className="text-sm font-semibold text-ink">{nome}</span>
           </div>
         </header>
         <main className="min-w-0 flex-1">{children}</main>

@@ -29,13 +29,13 @@ export function TipoRemetidoPainel({ movimentacaoId }: { movimentacaoId: string 
   }
 
   return (
-    <div className="mt-3 rounded border p-3">
-      <p className="mb-2 font-semibold text-amber-800">
+    <div className="conf-block mt-3">
+      <p className="mb-2 font-semibold text-warn">
         Tipo de remetido em aberto — o Pátio lançou direto, sem essa informação. Complete para liberar a conferência.
       </p>
       <div className="flex gap-2">
         <select
-          className="h-11 flex-1 rounded border px-3"
+          className="h-11 flex-1"
           value={tipo}
           onChange={(e) => {
             setTipo(e.target.value);
@@ -51,15 +51,11 @@ export function TipoRemetidoPainel({ movimentacaoId }: { movimentacaoId: string 
             </option>
           ))}
         </select>
-        <button
-          className="h-11 rounded bg-steel px-4 text-white disabled:bg-neutral-300"
-          disabled={salvando}
-          onClick={salvar}
-        >
+        <button className="btn btn-primary h-11" disabled={salvando} onClick={salvar}>
           {salvando ? 'Salvando...' : 'Salvar'}
         </button>
       </div>
-      {erro && <p className="mt-1 text-sm text-red-600">{erro}</p>}
+      {erro && <p className="mt-1 text-sm text-bad">{erro}</p>}
     </div>
   );
 }

@@ -30,10 +30,11 @@ const TIPO_REMETIDO_LABEL: Record<string, string> = {
   INDUS: 'Industrialização',
 };
 
-const STATUS_LABEL: Record<string, { texto: string; className: string }> = {
-  AGUARDANDO_CHEGADA: { texto: 'AGUARDANDO CHEGADA', className: 'bg-neutral-200 text-neutral-800' },
-  PENDENTE_CONFERENCIA: { texto: 'PENDENTE DE CONFERÊNCIA', className: 'bg-amber-100 text-amber-800' },
-  CONFERIDO: { texto: 'CONFERIDO', className: 'bg-emerald-100 text-emerald-800' },
+// Mapeia o status (valor armazenado no banco, intocado) para texto/variante de badge.
+const STATUS_LABEL: Record<string, { texto: string; badge: string }> = {
+  AGUARDANDO_CHEGADA: { texto: 'AGUARDANDO CHEGADA', badge: 'badge-muted' },
+  PENDENTE_CONFERENCIA: { texto: 'PENDENTE DE CONFERÊNCIA', badge: 'badge-warn' },
+  CONFERIDO: { texto: 'CONFERIDO', badge: 'badge-ok' },
 };
 
 // Mesmo princípio do detalhe de Recebimento (Task 18): nunca mostrar o CUID
@@ -74,18 +75,15 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
   return (
     <main className="mx-auto max-w-3xl space-y-4 p-6">
       <div>
-        <Link href="/admin" className="text-sm text-neutral-500 hover:underline">
+        <Link href="/admin" className="back-link">
           ← Voltar à lista
         </Link>
-        <div className="mt-1 flex items-center justify-between gap-2">
-          <h1 className="text-xl font-semibold text-neutral-900">Remetido — {tituloRemetido(mov)}</h1>
+        <div className="page-header mt-1 !mb-0">
+          <h1 className="page-title">Remetido — {tituloRemetido(mov)}</h1>
           <div className="flex items-center gap-2">
-            <span className={`whitespace-nowrap rounded-full px-3 py-1 text-sm font-medium ${statusInfo.className}`}>{statusInfo.texto}</span>
+            <span className={`badge ${statusInfo.badge}`}>{statusInfo.texto}</span>
             {podeEditar && (
-              <Link
-                href={`/admin/remetidos/${mov.id}/editar`}
-                className="whitespace-nowrap rounded border border-steel px-3 py-1 text-sm font-medium text-steel hover:bg-steel/5"
-              >
+              <Link href={`/admin/remetidos/${mov.id}/editar`} className="btn btn-ghost btn-sm">
                 Editar remetido
               </Link>
             )}
@@ -94,27 +92,18 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
       </div>
 
       {/* 1. Dados do remetido */}
-      <section className="rounded-lg border bg-white p-4">
-        <h2 className="font-semibold text-neutral-800">Dados do remetido</h2>
-        <dl className="mt-2 grid grid-cols-1 gap-y-1 sm:grid-cols-2 text-sm">
-          <dt className="text-neutral-500">Tipo</dt>
-          <dd>{TIPO_REMETIDO_LABEL[mov.remetidoDetalhe?.tipoRemetido ?? ''] ?? 'Em aberto'}</dd>
-          <dt className="text-neutral-500">Reserva/Pedido</dt>
-          <dd>{mov.reservaPedido ?? '—'}</dd>
-          <dt className="text-neutral-500">Destino</dt>
-          <dd>{mov.destino}</dd>
-          <dt className="text-neutral-500">Nota fiscal</dt>
-          <dd>{mov.numeroDocumento ?? 'Em aberto'}</dd>
-          <dt className="text-neutral-500">Data</dt>
-          <dd>{fmtData(mov.dataMovimentacao)}</dd>
-          <dt className="text-neutral-500">Carreta(s)</dt>
-          <dd>{[mov.placaCarreta, mov.placaCarreta2].filter(Boolean).join(' / ') || '—'}</dd>
-          <dt className="text-neutral-500">Cavalo</dt>
-          <dd>{mov.placaCavalo ?? '—'}</dd>
-          <dt className="text-neutral-500">Transportadora</dt>
-          <dd>{mov.transportadora ?? '—'}</dd>
-          <dt className="text-neutral-500">Responsável (Pátio)</dt>
-          <dd>{mov.responsavelPatio ?? '—'}</dd>
+      <section className="card">
+        <h2 className="card-title">Dados do remetido</h2>
+        <dl className="kv-grid">
+          <div className="kv-item"><div className="kv-label">Tipo</div><div className="kv-val">{TIPO_REMETIDO_LABEL[mov.remetidoDetalhe?.tipoRemetido ?? ''] ?? 'Em aberto'}</div></div>
+          <div className="kv-item"><div className="kv-label">Reserva/Pedido</div><div className="kv-val">{mov.reservaPedido ?? '—'}</div></div>
+          <div className="kv-item"><div className="kv-label">Destino</div><div className="kv-val">{mov.destino}</div></div>
+          <div className="kv-item"><div className="kv-label">Nota fiscal</div><div className="kv-val font-mono">{mov.numeroDocumento ?? 'Em aberto'}</div></div>
+          <div className="kv-item"><div className="kv-label">Data</div><div className="kv-val">{fmtData(mov.dataMovimentacao)}</div></div>
+          <div className="kv-item"><div className="kv-label">Carreta(s)</div><div className="kv-val font-mono">{[mov.placaCarreta, mov.placaCarreta2].filter(Boolean).join(' / ') || '—'}</div></div>
+          <div className="kv-item"><div className="kv-label">Cavalo</div><div className="kv-val font-mono">{mov.placaCavalo ?? '—'}</div></div>
+          <div className="kv-item"><div className="kv-label">Transportadora</div><div className="kv-val">{mov.transportadora ?? '—'}</div></div>
+          <div className="kv-item"><div className="kv-label">Responsável (Pátio)</div><div className="kv-val">{mov.responsavelPatio ?? '—'}</div></div>
         </dl>
 
         {mov.status !== 'AGUARDANDO_CHEGADA' && mov.numeroDocumento == null && <NfPainel movimentacaoId={mov.id} />}
@@ -124,44 +113,42 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
       </section>
 
       {mov.status === 'AGUARDANDO_CHEGADA' ? (
-        <section className="rounded-lg border bg-white p-4">
-          <p className="text-sm text-neutral-600">
+        <section className="card">
+          <p className="text-sm text-ink-muted">
             Aguardando o Pátio confirmar a chegada. Nenhum grupo, medição ou peso ainda — nada disso existe até a confirmação.
           </p>
         </section>
       ) : (
         <>
           {/* 2. Materiais remetidos */}
-          <section className="rounded-lg border bg-white p-4">
-            <h2 className="font-semibold text-neutral-800">Materiais remetidos</h2>
-            <div className="mt-2 space-y-2">
+          <section className="card">
+            <h2 className="card-title">Materiais remetidos</h2>
+            <div className="space-y-2">
               {mov.grupos.map((g, i) => (
-                <div key={g.id} className="flex items-center justify-between rounded border p-2 text-sm">
-                  <div>
-                    <b>
-                      Grupo {i + 1} — {g.perfil} — {g.tipoMaterial}
-                      {g.tampao ? ' (Tampão)' : ''}
-                    </b>
-                    {g.tipoMaterial === 'NOVO' && g.fabricante && (
-                      <span className="ml-2 text-neutral-500">Fabricante: {g.fabricante}</span>
-                    )}
-                    {g.tipoMaterial === 'REEMPREGO' && <span className="ml-2 text-neutral-500">Classificação: {g.classificacao}</span>}
-                    {g.tipoMaterial === 'SUCATA' && (
-                      <span className="ml-2 text-neutral-500">
-                        Classificações: {[...new Set(g.medicoes.map((m) => m.classificacaoSC).filter(Boolean))].join(', ')}
+                <div key={g.id} className="grupo-card">
+                  <div className="grupo-header">
+                    <div className="grupo-header-left">
+                      <span className="grupo-title">
+                        Grupo {i + 1} — {g.perfil} — {g.tipoMaterial}
+                        {g.tampao ? ' (Tampão)' : ''}
+                      </span>
+                      <span className="grupo-meta">
+                        {g.tipoMaterial === 'NOVO' && g.fabricante && <>Fabricante: {g.fabricante} · </>}
+                        {g.tipoMaterial === 'REEMPREGO' && <>Classificação: {g.classificacao} · </>}
+                        {g.tipoMaterial === 'SUCATA' && (
+                          <>Classificações: {[...new Set(g.medicoes.map((m) => m.classificacaoSC).filter(Boolean))].join(', ')} · </>
+                        )}
+                        {pecasDoGrupo(g.medicoes)} {pecasDoGrupo(g.medicoes) === 1 ? 'barra' : 'barras'} · {fmtMetros(g.metrosTotal)} m
+                      </span>
+                    </div>
+                    {g.pesoInformado != null ? (
+                      <span className="whitespace-nowrap font-mono font-semibold text-ink">{fmtPeso(Number(g.pesoInformado))} t</span>
+                    ) : (
+                      <span className="whitespace-nowrap text-right font-mono font-semibold text-warn">
+                        {fmtPeso(Number(g.pesoCalculado ?? 0))} t <span className="text-xs font-normal">(estimado, a confirmar)</span>
                       </span>
                     )}
-                    <span className="ml-2 text-neutral-500">
-                      {pecasDoGrupo(g.medicoes)} {pecasDoGrupo(g.medicoes) === 1 ? 'barra' : 'barras'} · {fmtMetros(g.metrosTotal)} m
-                    </span>
                   </div>
-                  {g.pesoInformado != null ? (
-                    <span className="font-medium">{fmtPeso(Number(g.pesoInformado))} t</span>
-                  ) : (
-                    <span className="font-medium text-amber-700">
-                      {fmtPeso(Number(g.pesoCalculado ?? 0))} t <span className="text-xs">(estimado, a confirmar)</span>
-                    </span>
-                  )}
                 </div>
               ))}
               {mov.grupos
@@ -179,76 +166,86 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
           </section>
 
           {/* 3. Medições */}
-          <section className="rounded-lg border bg-white p-4">
-            <h2 className="font-semibold text-neutral-800">Medições</h2>
-            <div className="mt-2 space-y-3">
+          <section className="card">
+            <h2 className="card-title">Medições</h2>
+            <div className="space-y-3">
               {mov.grupos.map((g, i) => (
                 <div key={g.id}>
-                  <p className="text-sm font-medium text-neutral-600">
+                  <p className="mb-1 text-sm font-medium text-ink-muted">
                     Grupo {i + 1} — {g.perfil}
                   </p>
-                  <ol className="mt-1 divide-y rounded border text-sm">
-                    {g.medicoes.map((m, k) => (
-                      <li key={m.id} className="flex items-center justify-between px-2 py-1">
-                        <span>
-                          {k + 1}. {m.quantidade > 1 ? `${m.quantidade} × ${fmtMetros(m.comprimento)} m` : `${fmtMetros(m.comprimento)} m`}
-                        </span>
-                        <span className="text-neutral-600">
-                          {fmtMetros(m.metros)} m{m.classificacaoSC ? ` — ${m.classificacaoSC}` : ''}
-                        </span>
-                      </li>
-                    ))}
-                  </ol>
+                  <div className="grupo-card">
+                    <div className="grupo-body !border-t-0 !pt-2">
+                      {g.medicoes.map((m, k) => (
+                        <div key={m.id} className="medicao-row">
+                          <span>
+                            <span className="medicao-num">{k + 1}.</span>{' '}
+                            {m.quantidade > 1 ? `${m.quantidade} × ${fmtMetros(m.comprimento)} m` : `${fmtMetros(m.comprimento)} m`}
+                          </span>
+                          <span className="medicao-val">
+                            {fmtMetros(m.metros)} m{m.classificacaoSC ? ` — ${m.classificacaoSC}` : ''}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
           </section>
 
           {/* 4. Totais do remetido */}
-          <section className="rounded-lg border bg-white p-4">
-            <h2 className="font-semibold text-neutral-800">Totais do remetido</h2>
-            <dl className="mt-2 grid grid-cols-3 gap-y-1 text-sm">
-              <dt className="text-neutral-500">Barras</dt>
-              <dd className="col-span-2 text-lg font-semibold">{totalBarras}</dd>
-              <dt className="text-neutral-500">Metros</dt>
-              <dd className="col-span-2 text-lg font-semibold">{fmtMetros(totalMetros)} m</dd>
-              <dt className="text-neutral-500">Peso{mov.grupos.some((g) => g.pesoInformado == null) ? ' (até agora)' : ' total'}</dt>
-              <dd className="col-span-2 text-lg font-semibold">
-                {fmtPeso(pesoTotal)} t
+          <section className="card">
+            <h2 className="card-title">Totais do remetido</h2>
+            <div className="totais-grid">
+              <div className="stat-tile">
+                <p className="stat-label">Barras</p>
+                <p className="stat-value">{totalBarras}</p>
+              </div>
+              <div className="stat-tile">
+                <p className="stat-label">Metros</p>
+                <p className="stat-value">{fmtMetros(totalMetros)} m</p>
+              </div>
+              <div className="stat-tile">
+                <p className="stat-label">Peso{mov.grupos.some((g) => g.pesoInformado == null) ? ' (até agora)' : ' total'}</p>
+                <p className="stat-value accent">{fmtPeso(pesoTotal)} t</p>
                 {mov.grupos.some((g) => g.pesoInformado == null) && (
-                  <span className="ml-1 text-xs font-normal text-amber-700">(inclui estimativa, a confirmar)</span>
+                  <p className="stat-unit text-warn">(inclui estimativa, a confirmar)</p>
                 )}
-              </dd>
-            </dl>
+              </div>
+            </div>
           </section>
 
           {/* 5. Conferência */}
-          <ConferenciaPainel movimentacaoId={mov.id} status={mov.status} temSucata={false} pesoSucataReal={null} />
+          <ConferenciaPainel movimentacaoId={mov.id} status={mov.status as 'PENDENTE_CONFERENCIA' | 'CONFERIDO'} temSucata={false} pesoSucataReal={null} />
         </>
       )}
 
       {/* 6. Histórico */}
-      <section className="rounded-lg border bg-white p-4">
-        <h2 className="font-semibold text-neutral-800">Histórico</h2>
+      <section className="card">
+        <h2 className="card-title">Histórico</h2>
         {mov.historico.length === 0 ? (
-          <p className="mt-2 text-sm text-neutral-500">Nenhuma movimentação registrada ainda.</p>
+          <p className="text-sm text-ink-dim">Nenhuma movimentação registrada ainda.</p>
         ) : (
-          <ol className="mt-2 space-y-2 text-sm">
+          <div>
             {mov.historico.map((h) => (
-              <li key={h.id} className="rounded border p-2">
-                <div className="flex items-center justify-between">
-                  <b>{ACAO_LABEL[h.acao] ?? h.acao}</b>
-                  <span className="text-neutral-500">{fmtDataHora(h.timestamp)}</span>
+              <div key={h.id} className="hist-row">
+                <div className="hist-dot" />
+                <div>
+                  <div className="hist-text">
+                    <strong>{ACAO_LABEL[h.acao] ?? h.acao}</strong>
+                  </div>
+                  <div className="hist-text">{h.usuarioNome}</div>
+                  {(h.valorAntigo != null || h.valorNovo != null) && (
+                    <div className="hist-text">
+                      {h.valorAntigo ?? '—'} → {h.valorNovo ?? '—'}
+                    </div>
+                  )}
+                  <div className="hist-time">{fmtDataHora(h.timestamp)}</div>
                 </div>
-                <p className="text-neutral-600">{h.usuarioNome}</p>
-                {(h.valorAntigo != null || h.valorNovo != null) && (
-                  <p className="text-neutral-500">
-                    {h.valorAntigo ?? '—'} → {h.valorNovo ?? '—'}
-                  </p>
-                )}
-              </li>
+              </div>
             ))}
-          </ol>
+          </div>
         )}
       </section>
     </main>

@@ -62,7 +62,7 @@ export default function RecebimentoConfirmadoPage() {
   if (carregando) {
     return (
       <main className="mx-auto max-w-xl p-6">
-        <p className="text-sm text-neutral-600">Carregando...</p>
+        <p className="text-sm text-ink-muted">Carregando...</p>
       </main>
     );
   }
@@ -72,11 +72,11 @@ export default function RecebimentoConfirmadoPage() {
     // (ex.: link acessado direto, em outro dispositivo, ou dados locais limpos).
     return (
       <main className="mx-auto max-w-xl p-6">
-        <h1 className="text-lg font-semibold">Recebimento não encontrado</h1>
-        <p className="mt-2 text-sm text-neutral-600">
+        <h1 className="font-condensed text-lg font-bold uppercase tracking-wide text-ink">Recebimento não encontrado</h1>
+        <p className="mt-2 text-sm text-ink-muted">
           Não há nenhum recebimento salvo neste dispositivo com este identificador.
         </p>
-        <Link href="/patio" className="mt-6 inline-block h-11 rounded border px-4 py-2">
+        <Link href="/patio" className="btn btn-secondary mt-6 inline-flex h-11">
           Voltar ao início
         </Link>
       </main>
@@ -87,70 +87,61 @@ export default function RecebimentoConfirmadoPage() {
   const temSucata = payload.grupos.some((g) => g.tipoMaterial === 'SUCATA');
 
   const STATUS_TONE: Record<SyncStatus, string> = {
-    PENDENTE: 'bg-neutral-100 text-neutral-700',
-    SINCRONIZANDO: 'bg-primary-light text-primary-dark',
-    SINCRONIZADO: 'bg-ok-light text-ok-dark',
-    ERRO: 'bg-bad-light text-bad',
+    PENDENTE: 'badge-muted',
+    SINCRONIZANDO: 'badge-info',
+    SINCRONIZADO: 'badge-ok',
+    ERRO: 'badge-err',
   };
 
   return (
     <main className="mx-auto max-w-xl space-y-4 p-6">
-      <div className="rounded-lg border border-ok-light bg-ok-light/60 p-4 text-center">
-        <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-ok text-2xl text-white">✓</div>
-        <h1 className="mt-2 text-lg font-semibold text-ok-dark">Recebimento salvo</h1>
-        <p className="mt-1 text-sm text-neutral-600">NF {payload.dados.numeroDocumento}</p>
+      <div className="conf-block conf-ok text-center">
+        <div className="mx-auto grid h-12 w-12 place-items-center rounded-full text-2xl text-white" style={{ background: 'var(--ok)' }}>✓</div>
+        <h1 className="mt-2 font-condensed text-lg font-bold uppercase tracking-wide" style={{ color: 'var(--ok)' }}>Recebimento salvo</h1>
+        <p className="mt-1 text-sm text-ink-muted">NF {payload.dados.numeroDocumento}</p>
       </div>
 
-      <div className="rounded-lg border bg-surface p-4">
-        <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${STATUS_TONE[syncStatus]}`}>
-          {mensagemStatus(syncStatus, erro)}
-        </span>
+      <div className="card">
+        <span className={`badge ${STATUS_TONE[syncStatus]}`}>{mensagemStatus(syncStatus, erro)}</span>
         {syncStatus === 'ERRO' && (
-          <button
-            className="mt-3 block h-10 rounded border px-3 disabled:opacity-50"
-            onClick={tentarNovamente}
-            disabled={retentando}
-          >
+          <button className="btn btn-secondary btn-sm mt-3 block" onClick={tentarNovamente} disabled={retentando}>
             {retentando ? 'Tentando novamente...' : 'Tentar novamente'}
           </button>
         )}
       </div>
 
-      <div className="rounded-lg border bg-surface p-4">
-        <h2 className="text-sm font-semibold text-neutral-800">Materiais lançados</h2>
-        <ul className="mt-2 space-y-2 text-sm">
+      <div className="card">
+        <h2 className="card-title">Materiais lançados</h2>
+        <div className="space-y-2">
           {payload.grupos.map((g, i) => (
-            <li key={g.clientId} className="rounded-md border bg-neutral-50 p-2">
-              <b>
+            <div key={g.clientId} className="grupo-card !mb-0 p-2">
+              <span className="grupo-title">
                 Grupo {i + 1}: {g.perfil} — {g.tipoMaterial}
-              </b>
-              <p className="text-neutral-600">
+              </span>
+              <p className="text-ink-muted">
                 {g.medicoes.length} medição(ões) — {metrosDoGrupo(g.medicoes).toFixed(2)} m —{' '}
                 {g.tipoMaterial === 'SUCATA' ? (
-                  <span className="font-medium text-amber-700">peso pendente</span>
+                  <span className="font-medium text-warn">peso pendente</span>
                 ) : (
                   'peso calculado ao sincronizar'
                 )}
               </p>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       </div>
 
       {temSucata && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-medium text-amber-800">⚠ Sucata com peso pendente</p>
-          <p className="mt-1 text-sm text-amber-700">
+        <div className="conf-block">
+          <p className="text-sm font-medium text-warn">⚠ Sucata com peso pendente</p>
+          <p className="mt-1 text-sm text-warn">
             Este recebimento tem sucata com peso pendente. O peso será informado pelo Administrativo com base no
             documento de pesagem.
           </p>
         </div>
       )}
 
-      <Link
-        href="/patio"
-        className="flex h-12 w-full items-center justify-center rounded-lg bg-steel font-medium text-white"
-      >
+      <Link href="/patio" className="btn btn-primary btn-lg h-12">
         Voltar ao início
       </Link>
     </main>

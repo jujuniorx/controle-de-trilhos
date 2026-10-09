@@ -62,36 +62,34 @@ export function ConferenciaPainel({ movimentacaoId, status, temSucata, pesoSucat
   }
 
   return (
-    <section className="rounded-lg border bg-white p-4">
-      <h2 className="font-semibold text-neutral-800">Conferência</h2>
+    <section className="card">
+      <h2 className="card-title">Conferência</h2>
 
-      <div className="mt-2 inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium">
-        {status === 'CONFERIDO' ? (
-          <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-800">CONFERIDO</span>
-        ) : (
-          <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-800">PENDENTE DE CONFERÊNCIA</span>
-        )}
-      </div>
+      {status === 'CONFERIDO' ? (
+        <span className="badge badge-ok">CONFERIDO</span>
+      ) : (
+        <span className="badge badge-warn">PENDENTE DE CONFERÊNCIA</span>
+      )}
 
       {temSucata && (
-        <div className="mt-3 rounded border p-3">
+        <div className="conf-block mt-3">
           {pesoPendente && (
-            <p className="mb-2 font-semibold text-amber-800">
+            <p className="mb-2 font-semibold text-warn">
               Peso da sucata pendente. Informe o peso real antes de conferir o recebimento.
             </p>
           )}
-          <label className="block text-sm font-medium text-neutral-700" htmlFor="peso-sucata">
+          <label className="field-label block" htmlFor="peso-sucata">
             Peso real da sucata (t) — com base no documento de pesagem
           </label>
           {pesoSucataReal == null && pesoSucataEstimado > 0 && (
-            <p className="mb-1 text-xs text-neutral-500">
+            <p className="mb-1 mt-1 text-xs text-ink-dim">
               Valor sugerido pelo cálculo automático (metros × fator do perfil). Confirme ou corrija com o peso real da pesagem.
             </p>
           )}
           <div className="mt-1 flex gap-2">
             <input
               id="peso-sucata"
-              className="h-11 flex-1 rounded border px-3"
+              className="h-11 flex-1"
               inputMode="decimal"
               placeholder="Ex.: 1,250"
               value={pesoTexto}
@@ -100,28 +98,20 @@ export function ConferenciaPainel({ movimentacaoId, status, temSucata, pesoSucat
                 setErroPeso('');
               }}
             />
-            <button
-              className="h-11 rounded bg-steel px-4 text-white disabled:bg-neutral-300"
-              disabled={salvandoPeso}
-              onClick={salvarPeso}
-            >
+            <button className="btn btn-primary h-11" disabled={salvandoPeso} onClick={salvarPeso}>
               {salvandoPeso ? 'Salvando...' : pesoSucataReal != null ? 'Corrigir peso' : 'Salvar peso'}
             </button>
           </div>
-          {erroPeso && <p className="mt-1 text-sm text-red-600">{erroPeso}</p>}
+          {erroPeso && <p className="mt-1 text-sm text-bad">{erroPeso}</p>}
         </div>
       )}
 
       {status !== 'CONFERIDO' && (
         <div className="mt-3">
-          <button
-            className="h-12 w-full rounded bg-steel font-medium text-white disabled:bg-neutral-300"
-            disabled={!podeConferir || conferindo}
-            onClick={conferir}
-          >
+          <button className="btn btn-primary btn-lg h-12" disabled={!podeConferir || conferindo} onClick={conferir}>
             {conferindo ? 'Conferindo...' : 'Conferir recebimento'}
           </button>
-          {erroConferir && <p className="mt-1 text-sm text-red-600">{erroConferir}</p>}
+          {erroConferir && <p className="mt-1 text-sm text-bad">{erroConferir}</p>}
         </div>
       )}
     </section>

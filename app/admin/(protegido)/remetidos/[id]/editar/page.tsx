@@ -64,10 +64,10 @@ export default async function EditarRemetidoPage({ params }: { params: Promise<{
   return (
     <main className="mx-auto max-w-3xl space-y-4 p-6">
       <div>
-        <Link href={`/admin/remetidos/${id}`} className="text-sm text-neutral-500 hover:underline">
+        <Link href={`/admin/remetidos/${id}`} className="back-link">
           ← Voltar ao remetido
         </Link>
-        <h1 className="mt-1 text-xl font-semibold text-neutral-900">Editar remetido</h1>
+        <h1 className="mt-1 font-condensed text-xl font-bold uppercase tracking-wide text-ink">Editar remetido</h1>
       </div>
       <RemetidoWizard modo="editar" movimentacaoId={id} valoresIniciais={valoresIniciais} />
     </main>

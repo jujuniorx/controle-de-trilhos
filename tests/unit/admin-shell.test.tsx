@@ -17,7 +17,7 @@ describe('AdminShell', () => {
 
   it('mostra o nome do admin logado, o link de trocar senha e renderiza os filhos', () => {
     render(<AdminShell nome="Fulano de Tal">área de conteúdo</AdminShell>);
-    expect(screen.getByText('Fulano de Tal')).toBeTruthy();
+    expect(screen.getAllByText('Fulano de Tal').length).toBeGreaterThan(0);
     expect(screen.getByRole('link', { name: 'Trocar minha senha' })).toHaveAttribute('href', '/admin/trocar-senha');
     expect(screen.getByText('área de conteúdo')).toBeTruthy();
   });

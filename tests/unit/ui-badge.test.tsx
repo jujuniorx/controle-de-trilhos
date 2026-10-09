@@ -13,9 +13,9 @@ describe('Badge', () => {
 
   it('aplica a classe de cor correspondente a cada tone', () => {
     const { rerender } = render(<Badge tone="ok">Conferido</Badge>);
-    expect(screen.getByText('Conferido').className).toContain('bg-ok-light');
+    expect(screen.getByText('Conferido').className).toContain('badge-ok');
 
     rerender(<Badge tone="bad">Erro</Badge>);
-    expect(screen.getByText('Erro').className).toContain('bg-bad-light');
+    expect(screen.getByText('Erro').className).toContain('badge-err');
   });
 });

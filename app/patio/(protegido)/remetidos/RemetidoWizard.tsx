@@ -331,18 +331,18 @@ export function RemetidoWizard(props: Props) {
   return (
     <div className="mt-4 space-y-4">
       {temIdentificacao && (
-        <section className="space-y-3 rounded-lg border bg-white p-3">
-          <h2 className="font-semibold text-neutral-800">Identificação do remetido</h2>
+        <section className="card space-y-3">
+          <h2 className="card-title !mb-0">Identificação do remetido</h2>
           {props.modo === 'novo' && (
-            <p className="text-sm text-neutral-600">Sem pré-cadastro — preencha o que normalmente vem do Administrativo.</p>
+            <p className="text-sm text-ink-muted">Sem pré-cadastro — preencha o que normalmente vem do Administrativo.</p>
           )}
-          <div>
-            <label className="block text-sm font-medium" htmlFor="f-tipo-remetido">
+          <div className="field">
+            <label htmlFor="f-tipo-remetido">
               Tipo de remetido{props.modo === 'novo' ? ' (opcional — o Administrativo pode completar depois)' : ''}
             </label>
             <select
               id="f-tipo-remetido"
-              className="mt-1 h-11 w-full rounded border px-3"
+              className="h-11"
               value={identificacao.tipoRemetido}
               onChange={(e) => setIdentificacao({ ...identificacao, tipoRemetido: e.target.value as TipoRemetido })}
             >
@@ -353,142 +353,127 @@ export function RemetidoWizard(props: Props) {
             </select>
           </div>
           {props.modo === 'editar' && (
-            <div>
-              <label className="block text-sm font-medium" htmlFor="f-reserva-pedido">Reserva/Pedido</label>
+            <div className="field">
+              <label htmlFor="f-reserva-pedido">Reserva/Pedido</label>
               <input
                 id="f-reserva-pedido"
-                className="mt-1 h-11 w-full rounded border px-3"
+                className="h-11"
                 value={identificacao.reservaPedido}
                 onChange={(e) => setIdentificacao({ ...identificacao, reservaPedido: e.target.value })}
               />
             </div>
           )}
-          <div>
-            <label className="block text-sm font-medium" htmlFor="f-destino">Destino *</label>
-            <input
-              id="f-destino"
-              className="mt-1 h-11 w-full rounded border px-3"
-              value={identificacao.destino}
-              onChange={(e) => setIdentificacao({ ...identificacao, destino: e.target.value })}
-            />
-            {errosIdentificacao.destino && <p className="text-sm text-red-600">{errosIdentificacao.destino}</p>}
+          <div className="field">
+            <label htmlFor="f-destino">Destino *</label>
+            <input id="f-destino" className="h-11" value={identificacao.destino} onChange={(e) => setIdentificacao({ ...identificacao, destino: e.target.value })} />
+            {errosIdentificacao.destino && <p className="text-sm text-bad">{errosIdentificacao.destino}</p>}
           </div>
         </section>
       )}
 
-      <section className="space-y-3 rounded-lg border bg-white p-3">
-        <h2 className="font-semibold text-neutral-800">Dados da chegada</h2>
-        <div>
-          <label className="block text-sm font-medium" htmlFor="f-data">Data *</label>
+      <section className="card space-y-3">
+        <h2 className="card-title !mb-0">Dados da chegada</h2>
+        <div className="field">
+          <label htmlFor="f-data">Data *</label>
           <input
             id="f-data"
             type="date"
-            className="mt-1 h-11 w-full rounded border px-3"
+            className="h-11"
             value={dados.data}
             onChange={(e) => {
               setDataTocada(true);
               setDados({ ...dados, data: e.target.value });
             }}
           />
-          {errosDados.data && <p className="text-sm text-red-600">{errosDados.data}</p>}
+          {errosDados.data && <p className="text-sm text-bad">{errosDados.data}</p>}
         </div>
-        <div>
-          <label className="block text-sm font-medium" htmlFor="f-nf">Nota fiscal {numeroDocumentoPreCadastrado ? '' : '(se já souber)'}</label>
+        <div className="field">
+          <label htmlFor="f-nf">Nota fiscal {numeroDocumentoPreCadastrado ? '' : '(se já souber)'}</label>
           <input
             id="f-nf"
             inputMode="numeric"
             placeholder="Ex.: 123456 ou 087781-1"
             disabled={Boolean(numeroDocumentoPreCadastrado)}
-            className="mt-1 h-11 w-full rounded border px-3 disabled:bg-neutral-100"
+            className="h-11 disabled:text-ink-dim"
             value={dados.numeroDocumento}
             onChange={(e) => setDados({ ...dados, numeroDocumento: e.target.value.replace(/[^\d-]/g, '').slice(0, 14) })}
           />
-          {errosDados.numeroDocumento && <p className="text-sm text-red-600">{errosDados.numeroDocumento}</p>}
+          {errosDados.numeroDocumento && <p className="text-sm text-bad">{errosDados.numeroDocumento}</p>}
         </div>
 
-        <div className="rounded-lg border-2 border-steel/40 bg-steel/5 p-3">
-          <p className="text-sm font-semibold text-steel-dark">Placas * — informe ao menos uma</p>
-          <p className="text-xs text-neutral-500">A placa da carreta é a informação mais usada na operação.</p>
+        <div className="rounded-lg border-2 p-3" style={{ borderColor: 'var(--b1)', background: 'color-mix(in srgb, var(--b0) 40%, transparent)' }}>
+          <p className="text-sm font-semibold text-primary">Placas * — informe ao menos uma</p>
+          <p className="text-xs text-ink-dim">A placa da carreta é a informação mais usada na operação.</p>
           {errosDados.placaCavalo === MSG_PELO_MENOS_UMA_PLACA && (
-            <p className="mt-1 text-sm text-red-600">{errosDados.placaCavalo}</p>
+            <p className="mt-1 text-sm text-bad">{errosDados.placaCavalo}</p>
           )}
 
-          <div className="mt-2">
-            <label className="block text-sm font-medium" htmlFor="f-carreta">1ª carreta</label>
+          <div className="field mt-2">
+            <label htmlFor="f-carreta">1ª carreta</label>
             <input
               id="f-carreta"
               maxLength={7}
-              className="mt-1 h-11 w-full rounded border px-3 text-lg font-semibold uppercase"
+              className="h-11 text-lg font-semibold uppercase"
               value={dados.placaCarreta}
               onChange={(e) => setDados({ ...dados, placaCarreta: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
             />
-            {errosDados.placaCarreta && <p className="text-sm text-red-600">{errosDados.placaCarreta}</p>}
+            {errosDados.placaCarreta && <p className="text-sm text-bad">{errosDados.placaCarreta}</p>}
           </div>
 
           {mostrarCarreta2 ? (
-            <div className="mt-2">
-              <label className="block text-sm font-medium" htmlFor="f-carreta2">2ª carreta (opcional)</label>
+            <div className="field mt-2">
+              <label htmlFor="f-carreta2">2ª carreta (opcional)</label>
               <input
                 id="f-carreta2"
                 maxLength={7}
-                className="mt-1 h-11 w-full rounded border px-3 text-lg font-semibold uppercase"
+                className="h-11 text-lg font-semibold uppercase"
                 value={dados.placaCarreta2}
                 onChange={(e) => setDados({ ...dados, placaCarreta2: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
               />
-              {errosDados.placaCarreta2 && <p className="text-sm text-red-600">{errosDados.placaCarreta2}</p>}
+              {errosDados.placaCarreta2 && <p className="text-sm text-bad">{errosDados.placaCarreta2}</p>}
             </div>
           ) : (
-            <button type="button" className="mt-2 text-sm text-blue-700 underline" onClick={() => setMostrarCarreta2(true)}>
+            <button type="button" className="mt-2 text-sm text-primary underline" onClick={() => setMostrarCarreta2(true)}>
               + Adicionar segunda carreta
             </button>
           )}
 
-          <div className="mt-3">
-            <label className="block text-sm font-medium" htmlFor="f-cavalo">Placa do cavalo</label>
+          <div className="field mt-3">
+            <label htmlFor="f-cavalo">Placa do cavalo</label>
             <input
               id="f-cavalo"
               maxLength={7}
-              className="mt-1 h-11 w-full rounded border px-3 uppercase"
+              className="h-11 uppercase"
               value={dados.placaCavalo}
               onChange={(e) => setDados({ ...dados, placaCavalo: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
             />
             {errosDados.placaCavalo && errosDados.placaCavalo !== MSG_PELO_MENOS_UMA_PLACA && (
-              <p className="text-sm text-red-600">{errosDados.placaCavalo}</p>
+              <p className="text-sm text-bad">{errosDados.placaCavalo}</p>
             )}
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium" htmlFor="f-transp">Transportadora</label>
-          <input
-            id="f-transp"
-            className="mt-1 h-11 w-full rounded border px-3"
-            value={dados.transportadora}
-            onChange={(e) => setDados({ ...dados, transportadora: e.target.value })}
-          />
+        <div className="field">
+          <label htmlFor="f-transp">Transportadora</label>
+          <input id="f-transp" className="h-11" value={dados.transportadora} onChange={(e) => setDados({ ...dados, transportadora: e.target.value })} />
         </div>
-        <div>
-          <label className="block text-sm font-medium" htmlFor="f-resp">Responsável (Pátio) *</label>
-          <input
-            id="f-resp"
-            className="mt-1 h-11 w-full rounded border px-3"
-            value={dados.responsavelPatio}
-            onChange={(e) => setDados({ ...dados, responsavelPatio: e.target.value })}
-          />
-          {errosDados.responsavelPatio && <p className="text-sm text-red-600">{errosDados.responsavelPatio}</p>}
+        <div className="field">
+          <label htmlFor="f-resp">Responsável (Pátio) *</label>
+          <input id="f-resp" className="h-11" value={dados.responsavelPatio} onChange={(e) => setDados({ ...dados, responsavelPatio: e.target.value })} />
+          {errosDados.responsavelPatio && <p className="text-sm text-bad">{errosDados.responsavelPatio}</p>}
         </div>
       </section>
 
-      <section className="space-y-3 rounded-lg border bg-white p-3">
-        <h2 className="font-semibold text-neutral-800">Grupos</h2>
+      <section className="card space-y-3">
+        <h2 className="card-title !mb-0">Grupos</h2>
         {grupos.map((g, i) => (
-          <div key={g.clientId} className="rounded-lg border bg-neutral-50 p-3">
+          <div key={g.clientId} className="grupo-card !mb-0 p-3">
             <div className="flex items-center justify-between">
-              <b>
+              <span className="grupo-title">
                 {g.perfil} — {g.tipoMaterial}
                 {g.tampao ? ' (Tampão)' : ''}
-              </b>
-              <button className="text-sm text-red-600" onClick={() => removerGrupo(g.clientId)}>
+              </span>
+              <button className="text-sm text-bad" onClick={() => removerGrupo(g.clientId)}>
                 Remover
               </button>
             </div>
@@ -497,7 +482,7 @@ export function RemetidoWizard(props: Props) {
               <div className="mt-2 flex gap-2">
                 <select
                   aria-label={`Marca do Grupo ${i + 1}`}
-                  className="h-11 flex-1 rounded border px-2"
+                  className="h-11 flex-1"
                   value={g.marca ?? ''}
                   onChange={(e) => atualizarGrupo(g.clientId, { marca: (e.target.value || undefined) as Marca | undefined })}
                 >
@@ -512,7 +497,7 @@ export function RemetidoWizard(props: Props) {
                 </select>
                 {g.marca === 'OUTROS' && (
                   <input
-                    className="h-11 flex-1 rounded border px-2"
+                    className="h-11 flex-1"
                     placeholder="Nome do fabricante"
                     value={g.fabricanteOutro ?? ''}
                     onChange={(e) => atualizarGrupo(g.clientId, { fabricanteOutro: e.target.value })}
@@ -523,7 +508,7 @@ export function RemetidoWizard(props: Props) {
 
             {g.tipoMaterial === 'REEMPREGO' && (
               <div className="mt-2 space-y-2">
-                <label className="flex items-center gap-2 text-sm">
+                <label className="flex items-center gap-2 text-sm normal-case text-ink">
                   <input
                     type="checkbox"
                     checked={g.tampao}
@@ -537,7 +522,7 @@ export function RemetidoWizard(props: Props) {
                   É tampão
                 </label>
                 <select
-                  className="h-11 w-full rounded border px-2"
+                  className="h-11"
                   value={g.classificacao ?? ''}
                   onChange={(e) => atualizarGrupo(g.clientId, { classificacao: (e.target.value || undefined) as Classificacao | undefined })}
                 >
@@ -552,36 +537,36 @@ export function RemetidoWizard(props: Props) {
             )}
 
             <div className="mt-2">
-              <p className="text-sm text-neutral-600">
+              <p className="text-sm text-ink-muted">
                 {g.medicoes.length === 0
                   ? 'Nenhuma medição adicionada'
                   : `${pecasDoGrupo(g.medicoes)} ${pecasDoGrupo(g.medicoes) === 1 ? 'barra' : 'barras'} · ${metrosDoGrupo(g).toFixed(2).replace('.', ',')} m`}
               </p>
-              <ol className="mt-1 divide-y rounded-lg border bg-white text-sm">
+              <div className="mt-1 grupo-card !mb-0">
                 {g.medicoes.map((m) => (
-                  <li key={m.clientId} className="flex items-center justify-between px-2 py-1">
+                  <div key={m.clientId} className="medicao-row px-2">
                     <span>
                       {m.quantidade > 1 ? `${m.quantidade} × ${m.comprimento} m` : `${m.comprimento} m`}
                       {m.classificacaoSC ? ` — ${m.classificacaoSC}` : ''}
                     </span>
-                    <button className="text-red-600" onClick={() => removerMedicao(g.clientId, m.clientId)}>
+                    <button className="text-bad" onClick={() => removerMedicao(g.clientId, m.clientId)}>
                       Remover
                     </button>
-                  </li>
+                  </div>
                 ))}
-              </ol>
+              </div>
 
               {activeGrupoId === g.clientId && (
-                <div className="mt-2 rounded-lg border bg-white p-3">
+                <div className="conf-block mt-2">
                   <div className="flex gap-2 text-sm">
                     <button
-                      className={`rounded px-2 py-1 ${modoDraft === 'INDIVIDUAL' ? 'bg-steel text-white' : 'border'}`}
+                      className={`btn btn-sm ${modoDraft === 'INDIVIDUAL' ? 'btn-primary' : 'btn-secondary'}`}
                       onClick={() => setModoDraft('INDIVIDUAL')}
                     >
                       Individual
                     </button>
                     <button
-                      className={`rounded px-2 py-1 ${modoDraft === 'QTD_COMPRIMENTO' ? 'bg-steel text-white' : 'border'}`}
+                      className={`btn btn-sm ${modoDraft === 'QTD_COMPRIMENTO' ? 'btn-primary' : 'btn-secondary'}`}
                       onClick={() => setModoDraft('QTD_COMPRIMENTO')}
                     >
                       Qtd × comprimento
@@ -591,7 +576,7 @@ export function RemetidoWizard(props: Props) {
                     {modoDraft === 'QTD_COMPRIMENTO' && (
                       <input
                         inputMode="numeric"
-                        className="h-11 w-16 rounded border px-2"
+                        className="h-11 w-16"
                         value={draftMedicao.quantidade}
                         onChange={(e) => setDraftMedicao((d) => ({ ...d, quantidade: e.target.value }))}
                       />
@@ -599,7 +584,7 @@ export function RemetidoWizard(props: Props) {
                     <input
                       inputMode="decimal"
                       placeholder="Comprimento (m)"
-                      className="h-11 flex-1 rounded border px-2"
+                      className="h-11 flex-1"
                       value={draftMedicao.comprimento}
                       onChange={(e) => {
                         const texto = e.target.value;
@@ -614,7 +599,7 @@ export function RemetidoWizard(props: Props) {
                     />
                     {g.tipoMaterial === 'SUCATA' && (
                       <select
-                        className="h-11 rounded border px-2"
+                        className="h-11 w-20"
                         value={draftMedicao.sc}
                         onChange={(e) =>
                           setDraftMedicao((d) => ({ ...d, sc: e.target.value as ClassificacaoSC | '', scManual: true }))
@@ -628,15 +613,15 @@ export function RemetidoWizard(props: Props) {
                         ))}
                       </select>
                     )}
-                    <button className="h-11 rounded bg-steel px-3 text-white" onClick={adicionarMedicao}>
+                    <button className="btn btn-primary h-11" onClick={adicionarMedicao}>
                       Adicionar
                     </button>
                   </div>
-                  {draftMedicao.erro && <p className="mt-1 text-sm text-red-600">{draftMedicao.erro}</p>}
+                  {draftMedicao.erro && <p className="mt-1 text-sm text-bad">{draftMedicao.erro}</p>}
                 </div>
               )}
               {activeGrupoId !== g.clientId && (
-                <button className="mt-2 text-sm text-blue-700 underline" onClick={() => setActiveGrupoId(g.clientId)}>
+                <button className="mt-2 text-sm text-primary underline" onClick={() => setActiveGrupoId(g.clientId)}>
                   Lançar medidas
                 </button>
               )}
@@ -645,7 +630,7 @@ export function RemetidoWizard(props: Props) {
         ))}
 
         <div className="flex gap-2">
-          <select className="h-11 flex-1 rounded border px-2" value={draftPerfil} onChange={(e) => setDraftPerfil(e.target.value)}>
+          <select className="h-11 flex-1" value={draftPerfil} onChange={(e) => setDraftPerfil(e.target.value)}>
             <option value="">Perfil</option>
             {PERFIS.map((p) => (
               <option key={p} value={p}>
@@ -653,27 +638,19 @@ export function RemetidoWizard(props: Props) {
               </option>
             ))}
           </select>
-          <select
-            className="h-11 rounded border px-2"
-            value={draftTipo}
-            onChange={(e) => setDraftTipo(e.target.value as TipoMaterial)}
-          >
+          <select className="h-11 w-28" value={draftTipo} onChange={(e) => setDraftTipo(e.target.value as TipoMaterial)}>
             <option value="NOVO">NOVO</option>
             <option value="REEMPREGO">REEMPREGO</option>
             <option value="SUCATA">SUCATA</option>
           </select>
-          <button className="h-11 rounded bg-steel px-3 text-white" onClick={adicionarGrupo} disabled={!draftPerfil}>
+          <button className="btn btn-primary h-11" onClick={adicionarGrupo} disabled={!draftPerfil}>
             Adicionar grupo
           </button>
         </div>
       </section>
 
-      {erroFinal && <p role="alert" className="text-sm text-red-600">{erroFinal}</p>}
-      <button
-        className="h-12 w-full rounded bg-steel font-medium text-white disabled:bg-neutral-300"
-        disabled={enviando}
-        onClick={confirmar}
-      >
+      {erroFinal && <p role="alert" className="text-sm text-bad">{erroFinal}</p>}
+      <button className="btn btn-primary btn-lg h-12" disabled={enviando} onClick={confirmar}>
         {enviando
           ? { novo: 'Lançando...', confirmar: 'Confirmando...', editar: 'Salvando...' }[props.modo]
           : { novo: 'Lançar remetido', confirmar: 'Confirmar chegada e salvar', editar: 'Salvar alterações' }[props.modo]}

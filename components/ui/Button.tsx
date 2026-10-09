@@ -21,10 +21,10 @@ type ButtonAsLink = CommonProps &
 export type ButtonProps = ButtonAsButton | ButtonAsLink;
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
-  primary: 'bg-primary text-white hover:bg-primary-dark',
-  secondary: 'border border-primary bg-surface text-primary-dark hover:bg-primary-light',
-  ghost: 'border border-line bg-surface text-ink hover:bg-primary-light',
-  danger: 'bg-bad text-white',
+  primary: 'bg-primary text-white hover:brightness-110 active:brightness-90',
+  secondary: 'bg-surface-3 text-ink hover:brightness-110 active:brightness-90',
+  ghost: 'bg-transparent text-primary border border-primary hover:bg-primary-light/20',
+  danger: 'bg-bad text-white hover:brightness-110 active:brightness-90',
 };
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {

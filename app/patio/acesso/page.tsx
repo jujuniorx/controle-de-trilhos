@@ -10,28 +10,26 @@ export default function AcessoPatioPage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center p-6">
-      <h1 className="text-xl font-semibold text-neutral-900">Acesso do Pátio</h1>
-      <p className="mt-1 text-sm text-neutral-600">Digite o código de acesso do Pátio para continuar.</p>
+      <h1 className="font-condensed text-2xl font-bold uppercase tracking-wide text-ink">Acesso do Pátio</h1>
+      <p className="mt-1 text-sm text-ink-muted">Digite o código de acesso do Pátio para continuar.</p>
 
       <form action={formAction} className="mt-4 space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-neutral-700" htmlFor="pin">
-            Código de acesso
-          </label>
+        <div className="field">
+          <label htmlFor="pin">Código de acesso</label>
           <input
             id="pin"
             name="pin"
             type="password"
             inputMode="numeric"
             required
-            className="mt-1 h-12 w-full rounded border px-3 text-center text-lg tracking-widest"
+            className="h-12 text-center text-lg tracking-widest"
           />
         </div>
 
         <button
           type="submit"
           disabled={enviando}
-          className="h-12 w-full rounded bg-steel font-medium text-white disabled:bg-neutral-300"
+          className="btn btn-primary h-12 w-full disabled:cursor-not-allowed disabled:opacity-40"
         >
           {enviando ? 'Entrando...' : 'Entrar'}
         </button>
@@ -40,7 +38,7 @@ export default function AcessoPatioPage() {
             bloqueio após 5 tentativas — num tablet compartilhado, o Pátio ficaria
             inacessível por 15 minutos e o único sintoma seria "o botão não faz nada". */}
         {estado.erro && (
-          <p role="alert" className="text-sm text-red-700">
+          <p role="alert" className="text-sm text-bad">
             {estado.erro}
           </p>
         )}

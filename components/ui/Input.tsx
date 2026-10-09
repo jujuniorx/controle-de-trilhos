@@ -1,7 +1,7 @@
 import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react';
 
 const CONTROL_CLASSES =
-  'h-11 w-full rounded-md border border-line bg-surface px-3 text-ink focus:border-primary focus:outline-none focus:ring-3 focus:ring-primary-light disabled:bg-neutral-100';
+  'h-11 w-full rounded-md border border-line-2 bg-surface-2 px-3 text-ink placeholder:text-ink-dim outline-none transition-colors focus:border-transparent focus:outline-2 focus:outline-primary focus:outline-offset-1 disabled:bg-surface disabled:text-ink-dim';
 
 export function Input({ className, ...rest }: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={[CONTROL_CLASSES, className ?? ''].filter(Boolean).join(' ')} {...rest} />;
@@ -25,7 +25,7 @@ interface FieldProps {
 export function Field({ label, htmlFor, error, children }: FieldProps) {
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium text-ink" htmlFor={htmlFor}>
+      <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-ink-dim" htmlFor={htmlFor}>
         {label}
       </label>
       {children}

@@ -28,11 +28,11 @@ export function PesoGrupoPainel({ grupoId, pesoEstimado, label }: { grupoId: str
   }
 
   return (
-    <div className="mt-2 rounded border p-2">
-      <p className="text-xs font-medium text-amber-800">{label} — peso da NF a confirmar</p>
+    <div className="conf-block mt-2 !p-2">
+      <p className="text-xs font-medium text-warn">{label} — peso da NF a confirmar</p>
       <div className="mt-1 flex items-center gap-2">
         <input
-          className="h-9 w-28 rounded border px-2 text-sm"
+          className="h-9 w-28 text-sm"
           inputMode="decimal"
           value={pesoTexto}
           onChange={(e) => {
@@ -40,15 +40,11 @@ export function PesoGrupoPainel({ grupoId, pesoEstimado, label }: { grupoId: str
             setErro('');
           }}
         />
-        <button
-          className="h-9 rounded bg-steel px-3 text-sm text-white disabled:bg-neutral-300"
-          disabled={salvando}
-          onClick={salvar}
-        >
+        <button className="btn btn-primary btn-sm h-9" disabled={salvando} onClick={salvar}>
           {salvando ? 'Salvando...' : 'Confirmar peso da NF'}
         </button>
       </div>
-      {erro && <p className="mt-1 text-sm text-red-600">{erro}</p>}
+      {erro && <p className="mt-1 text-sm text-bad">{erro}</p>}
     </div>
   );
 }

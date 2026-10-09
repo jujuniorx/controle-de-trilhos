@@ -390,126 +390,112 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
 
   return (
     <main className="mx-auto max-w-xl p-6">
-      <h1 className="text-lg font-semibold">Novo recebimento — Caminhão</h1>
-      <p className="mb-6 text-sm text-neutral-600">Etapa {step} de 4</p>
+      <h1 className="font-condensed text-xl font-bold uppercase tracking-wide text-ink">Novo recebimento — Caminhão</h1>
+      <p className="mb-6 text-sm text-ink-muted">Etapa {step} de 4</p>
 
       {step === 1 && (
         <section className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium" htmlFor="f-data">Data *</label>
+          <div className="field">
+            <label htmlFor="f-data">Data *</label>
             <input
               id="f-data"
               type="date"
-              className="mt-1 h-11 w-full rounded border px-3"
+              className="h-11"
               value={dados.data}
               onChange={(e) => {
                 setDataTocada(true);
                 setDados({ ...dados, data: e.target.value });
               }}
             />
-            {errosDados.data && <p className="text-sm text-red-600">{errosDados.data}</p>}
+            {errosDados.data && <p className="text-sm text-bad">{errosDados.data}</p>}
           </div>
-          <div>
-            <label className="block text-sm font-medium" htmlFor="f-nf">Nota fiscal *</label>
+          <div className="field">
+            <label htmlFor="f-nf">Nota fiscal *</label>
             <input
               id="f-nf"
               inputMode="numeric"
               placeholder="Ex.: 123456 ou 087781-1"
-              className="mt-1 h-11 w-full rounded border px-3"
+              className="h-11"
               value={dados.numeroDocumento}
               onChange={(e) => setDados({ ...dados, numeroDocumento: e.target.value.replace(/[^\d-]/g, '').slice(0, 14) })}
             />
-            {errosDados.numeroDocumento && <p className="text-sm text-red-600">{errosDados.numeroDocumento}</p>}
+            {errosDados.numeroDocumento && <p className="text-sm text-bad">{errosDados.numeroDocumento}</p>}
           </div>
-          <div>
-            <label className="block text-sm font-medium" htmlFor="f-origem">Origem *</label>
-            <input
-              id="f-origem"
-              className="mt-1 h-11 w-full rounded border px-3"
-              value={dados.origem}
-              onChange={(e) => setDados({ ...dados, origem: e.target.value })}
-            />
-            {errosDados.origem && <p className="text-sm text-red-600">{errosDados.origem}</p>}
+          <div className="field">
+            <label htmlFor="f-origem">Origem *</label>
+            <input id="f-origem" className="h-11" value={dados.origem} onChange={(e) => setDados({ ...dados, origem: e.target.value })} />
+            {errosDados.origem && <p className="text-sm text-bad">{errosDados.origem}</p>}
           </div>
-          <p className="text-sm text-neutral-500">Transporte: Caminhão (único suportado nesta etapa)</p>
+          <p className="text-sm text-ink-dim">Transporte: Caminhão (único suportado nesta etapa)</p>
 
-          <div className="rounded-lg border-2 border-steel/40 bg-steel/5 p-3">
-            <p className="text-sm font-semibold text-steel-dark">Placas * — informe ao menos uma</p>
-            <p className="text-xs text-neutral-500">A placa da carreta é a informação mais usada na operação.</p>
+          <div className="rounded-lg border-2 p-3" style={{ borderColor: 'var(--b1)', background: 'color-mix(in srgb, var(--b0) 40%, transparent)' }}>
+            <p className="text-sm font-semibold text-primary">Placas * — informe ao menos uma</p>
+            <p className="text-xs text-ink-dim">A placa da carreta é a informação mais usada na operação.</p>
             {errosDados.placaCavalo === MSG_PELO_MENOS_UMA_PLACA && (
-              <p className="mt-1 text-sm text-red-600">{errosDados.placaCavalo}</p>
+              <p className="mt-1 text-sm text-bad">{errosDados.placaCavalo}</p>
             )}
 
-            <div className="mt-2">
-              <label className="block text-sm font-medium" htmlFor="f-carreta">1ª carreta</label>
+            <div className="field mt-2">
+              <label htmlFor="f-carreta">1ª carreta</label>
               <input
                 id="f-carreta"
                 maxLength={7}
-                className="mt-1 h-11 w-full rounded border px-3 text-lg font-semibold uppercase"
+                className="h-11 text-lg font-semibold uppercase"
                 value={dados.placaCarreta}
                 onChange={(e) => setDados({ ...dados, placaCarreta: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
               />
-              {errosDados.placaCarreta && <p className="text-sm text-red-600">{errosDados.placaCarreta}</p>}
+              {errosDados.placaCarreta && <p className="text-sm text-bad">{errosDados.placaCarreta}</p>}
             </div>
 
             {mostrarCarreta2 ? (
-              <div className="mt-2">
-                <label className="block text-sm font-medium" htmlFor="f-carreta2">2ª carreta (opcional)</label>
+              <div className="field mt-2">
+                <label htmlFor="f-carreta2">2ª carreta (opcional)</label>
                 <input
                   id="f-carreta2"
                   maxLength={7}
-                  className="mt-1 h-11 w-full rounded border px-3 text-lg font-semibold uppercase"
+                  className="h-11 text-lg font-semibold uppercase"
                   value={dados.placaCarreta2}
                   onChange={(e) => setDados({ ...dados, placaCarreta2: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
                 />
-                {errosDados.placaCarreta2 && <p className="text-sm text-red-600">{errosDados.placaCarreta2}</p>}
+                {errosDados.placaCarreta2 && <p className="text-sm text-bad">{errosDados.placaCarreta2}</p>}
               </div>
             ) : (
-              <button
-                type="button"
-                className="mt-2 text-sm text-blue-700 underline"
-                onClick={() => setMostrarCarreta2(true)}
-              >
+              <button type="button" className="mt-2 text-sm text-primary underline" onClick={() => setMostrarCarreta2(true)}>
                 + Adicionar segunda carreta
               </button>
             )}
 
-            <div className="mt-3">
-              <label className="block text-sm font-medium" htmlFor="f-cavalo">Placa do cavalo</label>
+            <div className="field mt-3">
+              <label htmlFor="f-cavalo">Placa do cavalo</label>
               <input
                 id="f-cavalo"
                 maxLength={7}
-                className="mt-1 h-11 w-full rounded border px-3 uppercase"
+                className="h-11 uppercase"
                 value={dados.placaCavalo}
                 onChange={(e) => setDados({ ...dados, placaCavalo: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
               />
               {errosDados.placaCavalo && errosDados.placaCavalo !== MSG_PELO_MENOS_UMA_PLACA && (
-                <p className="text-sm text-red-600">{errosDados.placaCavalo}</p>
+                <p className="text-sm text-bad">{errosDados.placaCavalo}</p>
               )}
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium" htmlFor="f-transportadora">Transportadora (opcional)</label>
+          <div className="field">
+            <label htmlFor="f-transportadora">Transportadora (opcional)</label>
             <input
               id="f-transportadora"
-              className="mt-1 h-11 w-full rounded border px-3"
+              className="h-11"
               placeholder="Nome da empresa transportadora, não o veículo"
               value={dados.transportadora}
               onChange={(e) => setDados({ ...dados, transportadora: e.target.value })}
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium" htmlFor="f-resp">Responsável pelo preenchimento *</label>
-            <input
-              id="f-resp"
-              className="mt-1 h-11 w-full rounded border px-3"
-              value={dados.responsavelPatio}
-              onChange={(e) => setDados({ ...dados, responsavelPatio: e.target.value })}
-            />
-            {errosDados.responsavelPatio && <p className="text-sm text-red-600">{errosDados.responsavelPatio}</p>}
+          <div className="field">
+            <label htmlFor="f-resp">Responsável pelo preenchimento *</label>
+            <input id="f-resp" className="h-11" value={dados.responsavelPatio} onChange={(e) => setDados({ ...dados, responsavelPatio: e.target.value })} />
+            {errosDados.responsavelPatio && <p className="text-sm text-bad">{errosDados.responsavelPatio}</p>}
           </div>
-          <button className="h-12 w-full rounded bg-steel font-medium text-white" onClick={proximoDeDados}>
+          <button className="btn btn-primary btn-lg h-12" onClick={proximoDeDados}>
             Próximo
           </button>
         </section>
@@ -517,23 +503,23 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
 
       {step === 2 && (
         <section className="space-y-4">
-          <h2 className="font-medium">Grupos</h2>
+          <h2 className="card-title !mb-0">Grupos</h2>
           {grupos.map((g, i) => (
-            <div key={g.clientId} className="rounded border p-3">
+            <div key={g.clientId} className="grupo-card !mb-0 p-3">
               <div className="flex items-center justify-between">
-                <b>
+                <span className="grupo-title">
                   Grupo {i + 1} — {g.perfil} — {g.tipoMaterial}
-                </b>
-                <button className="text-red-600" onClick={() => removerGrupo(g.clientId)}>
+                </span>
+                <button className="text-sm text-bad" onClick={() => removerGrupo(g.clientId)}>
                   Excluir
                 </button>
               </div>
               {g.tipoMaterial === 'REEMPREGO' && (
-                <div className="mt-2">
-                  <label className="block text-sm">Classificação</label>
+                <div className="field mt-2">
+                  <label>Classificação</label>
                   <select
                     aria-label={`Classificação do Grupo ${grupos.indexOf(g) + 1}`}
-                    className="mt-1 h-10 rounded border px-2"
+                    className="h-10"
                     value={g.classificacao ?? ''}
                     onChange={(e) => atualizarGrupo(g.clientId, { classificacao: e.target.value as 'G1' | 'G2' | 'G3' })}
                   >
@@ -548,11 +534,11 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
               )}
               {g.tipoMaterial === 'NOVO' && (
                 <div className="mt-2 space-y-2">
-                  <div>
-                    <label className="block text-sm">Marca *</label>
+                  <div className="field">
+                    <label>Marca *</label>
                     <select
                       aria-label={`Marca do Grupo ${grupos.indexOf(g) + 1}`}
-                      className="mt-1 h-10 w-full rounded border px-2"
+                      className="h-10"
                       value={g.marca ?? ''}
                       onChange={(e) => {
                         const marca = (e.target.value || undefined) as Marca | undefined;
@@ -573,11 +559,11 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
                     </select>
                   </div>
                   {g.marca === 'OUTROS' && (
-                    <div>
-                      <label className="block text-sm">Qual fabricante?</label>
+                    <div className="field">
+                      <label>Qual fabricante?</label>
                       <input
                         aria-label={`Fabricante (outros) do Grupo ${grupos.indexOf(g) + 1}`}
-                        className="mt-1 h-10 w-full rounded border px-2"
+                        className="h-10"
                         value={g.fabricanteOutro ?? ''}
                         onChange={(e) => atualizarGrupo(g.clientId, { fabricanteOutro: e.target.value })}
                       />
@@ -585,31 +571,27 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
                   )}
                 </div>
               )}
-              <p className="mt-2 text-sm text-neutral-600">
+              <p className="mt-2 text-sm text-ink-muted">
                 {g.medicoes.length === 0
                   ? 'Nenhuma medição adicionada'
                   : `${pecasDoGrupo(g.medicoes)} ${pecasDoGrupo(g.medicoes) === 1 ? 'barra' : 'barras'} · ${metrosDoGrupo(g).toFixed(2).replace('.', ',')} m`}
               </p>
-              <button className="mt-2 h-10 rounded border px-3" onClick={() => abrirMedicoes(g.clientId)}>
+              <button className="btn btn-secondary btn-sm mt-2" onClick={() => abrirMedicoes(g.clientId)}>
                 {g.medicoes.length ? 'Medir' : 'Lançar medidas'}
               </button>
             </div>
           ))}
 
-          <div className="rounded border p-3">
-            <p className="mb-2 text-sm font-medium">Adicionar grupo</p>
+          <div className="card">
+            <p className="card-title !mb-2">Adicionar grupo</p>
             <NovoGrupoForm onAdd={adicionarGrupo} />
           </div>
 
           <div className="flex gap-3">
-            <button className="h-12 flex-1 rounded border" onClick={() => irPara(1)}>
+            <button className="btn btn-secondary h-12 flex-1" onClick={() => irPara(1)}>
               Voltar
             </button>
-            <button
-              className="h-12 flex-1 rounded bg-steel font-medium text-white disabled:bg-neutral-300"
-              disabled={grupos.length === 0}
-              onClick={() => irPara(4)}
-            >
+            <button className="btn btn-primary h-12 flex-1" disabled={grupos.length === 0} onClick={() => irPara(4)}>
               Ver resumo
             </button>
           </div>
@@ -618,22 +600,19 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
 
       {step === 3 && grupoAtivo && (
         <section className="space-y-4">
-          <button className="text-sm text-neutral-600" onClick={() => irPara(2)}>
+          <button className="back-link" onClick={() => irPara(2)}>
             ← Voltar aos grupos
           </button>
-          <h2 className="font-medium">
+          <h2 className="card-title !mb-0">
             {grupoAtivo.perfil} — {grupoAtivo.tipoMaterial}
           </h2>
 
           <div className="flex gap-2">
-            <button
-              className={`h-10 flex-1 rounded border ${modoDraft === 'INDIVIDUAL' ? 'bg-steel text-white' : ''}`}
-              onClick={() => setModoDraft('INDIVIDUAL')}
-            >
+            <button className={`btn h-10 flex-1 ${modoDraft === 'INDIVIDUAL' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setModoDraft('INDIVIDUAL')}>
               Individual
             </button>
             <button
-              className={`h-10 flex-1 rounded border ${modoDraft === 'QTD_COMPRIMENTO' ? 'bg-steel text-white' : ''}`}
+              className={`btn h-10 flex-1 ${modoDraft === 'QTD_COMPRIMENTO' ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => setModoDraft('QTD_COMPRIMENTO')}
             >
               Quantidade × comprimento
@@ -644,7 +623,7 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
             {modoDraft === 'QTD_COMPRIMENTO' && (
               <input
                 aria-label="Quantidade"
-                className="h-11 w-20 rounded border px-2"
+                className="h-11 w-20"
                 inputMode="numeric"
                 value={draft.quantidade}
                 onChange={(e) => setDraft({ ...draft, quantidade: e.target.value })}
@@ -652,7 +631,7 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
             )}
             <input
               aria-label="Comprimento"
-              className="h-11 flex-1 rounded border px-3"
+              className="h-11 flex-1"
               placeholder="Comprimento (m), ex.: 8,10"
               inputMode="decimal"
               value={draft.comprimento}
@@ -668,7 +647,7 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
             {grupoAtivo.tipoMaterial === 'SUCATA' && (
               <select
                 aria-label="Classificação SC"
-                className="h-11 rounded border px-2"
+                className="h-11 w-24"
                 value={draft.sc}
                 onChange={(e) => setDraft({ ...draft, sc: e.target.value as ClassificacaoSC, scManual: true })}
               >
@@ -678,29 +657,29 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
                 ))}
               </select>
             )}
-            <button className="h-11 rounded bg-steel px-4 text-white" onClick={adicionarMedicao}>
+            <button className="btn btn-primary h-11" onClick={adicionarMedicao}>
               Adicionar
             </button>
           </div>
-          {draft.erro && <p className="text-sm text-red-600">{draft.erro}</p>}
+          {draft.erro && <p className="text-sm text-bad">{draft.erro}</p>}
 
-          <ol className="divide-y rounded border">
+          <div className="grupo-card !mb-0">
             {grupoAtivo.medicoes.map((m, i) => (
-              <li key={m.clientId} className="flex items-center justify-between px-3 py-2">
+              <div key={m.clientId} className="medicao-row px-3">
                 <span>
                   {i + 1}. {m.quantidade > 1 ? `${m.quantidade} × ${m.comprimento.toFixed(2)} m` : `${m.comprimento.toFixed(2)} m`}
                   {m.classificacaoSC ? ` — ${m.classificacaoSC}` : ''}
                 </span>
-                <button className="text-red-600" onClick={() => removerMedicao(grupoAtivo.clientId, m.clientId)}>
+                <button className="text-bad" onClick={() => removerMedicao(grupoAtivo.clientId, m.clientId)}>
                   Remover
                 </button>
-              </li>
+              </div>
             ))}
-            {grupoAtivo.medicoes.length === 0 && <li className="px-3 py-4 text-sm text-neutral-500">Nenhuma medida ainda.</li>}
-          </ol>
+            {grupoAtivo.medicoes.length === 0 && <p className="px-3 py-4 text-sm text-ink-dim">Nenhuma medida ainda.</p>}
+          </div>
 
-          <p className="text-right font-medium">Total do grupo: {metrosDoGrupo(grupoAtivo).toFixed(2)} m</p>
-          <button className="h-12 w-full rounded bg-steel font-medium text-white" onClick={() => irPara(2)}>
+          <p className="text-right font-medium text-ink">Total do grupo: {metrosDoGrupo(grupoAtivo).toFixed(2)} m</p>
+          <button className="btn btn-primary btn-lg h-12" onClick={() => irPara(2)}>
             Voltar aos grupos
           </button>
         </section>
@@ -708,8 +687,8 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
 
       {step === 4 && (
         <section className="space-y-4">
-          <h2 className="font-medium">Resumo</h2>
-          <div className="rounded border p-3 text-sm">
+          <h2 className="card-title !mb-0">Resumo</h2>
+          <div className="card text-sm">
             <p>Data: {dados.data}</p>
             <p>NF: {dados.numeroDocumento}</p>
             <p>Origem: {dados.origem}</p>
@@ -721,62 +700,66 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
             <p>Responsável: {dados.responsavelPatio}</p>
           </div>
 
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-neutral-500">
-                <th>Grupo</th>
-                <th>Tipo</th>
-                <th className="text-right">Metros</th>
-                <th className="text-right">Peso</th>
-              </tr>
-            </thead>
-            <tbody>
-              {grupos.map((g, i) => {
-                const fator = fatoresCadastrados[g.perfil];
-                const metros = metrosDoGrupo(g);
-                const peso = fator != null ? Math.round(metros * fator * 1000) / 1000 : null;
-                return (
-                  <tr key={g.clientId} className="border-t">
-                    <td>
-                      Grupo {i + 1} ({g.perfil})
-                    </td>
-                    <td>{g.tipoMaterial}</td>
-                    <td className="text-right">{metros.toFixed(2)} m</td>
-                    <td className="text-right">
-                      {peso == null ? (
-                        'Fator não cadastrado'
-                      ) : g.tipoMaterial === 'SUCATA' ? (
-                        <>
-                          {peso.toFixed(3)} t <span className="text-xs text-amber-700">(estimado)</span>
-                        </>
-                      ) : (
-                        `${peso.toFixed(3)} t`
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-
-          <div className="rounded bg-neutral-100 p-3 text-right">
-            <p className="text-sm text-neutral-600">{temSucataPendente ? 'Peso até agora' : 'Peso total'}</p>
-            <p className="text-xl font-semibold">{pesoNovoReemprego.toFixed(3)} t</p>
-            {temSucataPendente && (
-              <p className="text-sm text-amber-700">
-                SUCATA: {pesoSucataEstimado.toFixed(3)} t (estimado, a confirmar)
-              </p>
-            )}
+          <div className="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Grupo</th>
+                  <th>Tipo</th>
+                  <th className="text-right">Metros</th>
+                  <th className="text-right">Peso</th>
+                </tr>
+              </thead>
+              <tbody>
+                {grupos.map((g, i) => {
+                  const fator = fatoresCadastrados[g.perfil];
+                  const metros = metrosDoGrupo(g);
+                  const peso = fator != null ? Math.round(metros * fator * 1000) / 1000 : null;
+                  return (
+                    <tr key={g.clientId}>
+                      <td>
+                        Grupo {i + 1} ({g.perfil})
+                      </td>
+                      <td>{g.tipoMaterial}</td>
+                      <td className="text-right font-mono">{metros.toFixed(2)} m</td>
+                      <td className="text-right font-mono">
+                        {peso == null ? (
+                          'Fator não cadastrado'
+                        ) : g.tipoMaterial === 'SUCATA' ? (
+                          <>
+                            {peso.toFixed(3)} t <span className="text-xs text-warn">(estimado)</span>
+                          </>
+                        ) : (
+                          `${peso.toFixed(3)} t`
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
 
-          {erroFinal && <p className="text-sm text-red-600">{erroFinal}</p>}
+          <div className="resumo-bar !justify-end text-right">
+            <div>
+              <p className="stat-label">{temSucataPendente ? 'Peso até agora' : 'Peso total'}</p>
+              <p className="stat-value">{pesoNovoReemprego.toFixed(3)} t</p>
+              {temSucataPendente && (
+                <p className="mt-1 text-sm text-warn">
+                  SUCATA: {pesoSucataEstimado.toFixed(3)} t (estimado, a confirmar)
+                </p>
+              )}
+            </div>
+          </div>
+
+          {erroFinal && <p className="text-sm text-bad">{erroFinal}</p>}
 
           <div className="flex gap-3">
-            <button className="h-12 flex-1 rounded border" onClick={() => irPara(2)}>
+            <button className="btn btn-secondary h-12 flex-1" onClick={() => irPara(2)}>
               Voltar
             </button>
             <button
-              className="h-12 flex-1 rounded bg-steel font-medium text-white disabled:bg-neutral-300"
+              className="btn btn-primary h-12 flex-1"
               disabled={enviando || grupos.length === 0 || grupos.some(grupoIncompleto)}
               onClick={finalizar}
             >
@@ -795,14 +778,9 @@ function NovoGrupoForm({ onAdd }: { onAdd: (perfil: string, tipoMaterial: TipoMa
 
   return (
     <div className="flex flex-wrap items-end gap-2">
-      <div>
-        <label className="block text-sm">Perfil</label>
-        <select
-          aria-label="Perfil do novo grupo"
-          className="h-10 rounded border px-2"
-          value={perfil}
-          onChange={(e) => setPerfil(e.target.value)}
-        >
+      <div className="field">
+        <label>Perfil</label>
+        <select aria-label="Perfil do novo grupo" className="h-10" value={perfil} onChange={(e) => setPerfil(e.target.value)}>
           <option value="" disabled>
             Escolha
           </option>
@@ -811,11 +789,11 @@ function NovoGrupoForm({ onAdd }: { onAdd: (perfil: string, tipoMaterial: TipoMa
           ))}
         </select>
       </div>
-      <div>
-        <label className="block text-sm">Tipo de material</label>
+      <div className="field">
+        <label>Tipo de material</label>
         <select
           aria-label="Tipo de material do novo grupo"
-          className="h-10 rounded border px-2"
+          className="h-10"
           value={tipoMaterial}
           onChange={(e) => setTipoMaterial(e.target.value as TipoMaterial)}
         >
@@ -825,7 +803,7 @@ function NovoGrupoForm({ onAdd }: { onAdd: (perfil: string, tipoMaterial: TipoMa
         </select>
       </div>
       <button
-        className="h-10 rounded bg-steel px-4 text-white disabled:bg-neutral-300"
+        className="btn btn-primary h-10"
         disabled={!perfil}
         onClick={() => {
           if (!perfil) return;

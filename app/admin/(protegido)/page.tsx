@@ -7,10 +7,18 @@ function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
 }
 
-const STATUS_LABEL: Record<string, { texto: string; className: string }> = {
-  AGUARDANDO_CHEGADA: { texto: 'Aguardando chegada', className: 'bg-neutral-200 text-neutral-800' },
-  PENDENTE_CONFERENCIA: { texto: 'Pendente de conferência', className: 'bg-amber-100 text-amber-800' },
-  CONFERIDO: { texto: 'Conferido', className: 'bg-emerald-100 text-emerald-800' },
+// Mapeia o status (valor armazenado no banco, intocado) para a variante visual
+// do badge — só a aparência muda, nunca o valor persistido.
+const STATUS_BADGE: Record<string, string> = {
+  AGUARDANDO_CHEGADA: 'badge-muted',
+  PENDENTE_CONFERENCIA: 'badge-warn',
+  CONFERIDO: 'badge-ok',
+};
+
+const STATUS_TEXTO: Record<string, string> = {
+  AGUARDANDO_CHEGADA: 'Aguardando chegada',
+  PENDENTE_CONFERENCIA: 'Pendente de conferência',
+  CONFERIDO: 'Conferido',
 };
 
 export default async function AdminHomePage() {
@@ -19,105 +27,113 @@ export default async function AdminHomePage() {
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold">Movimentações pendentes de conferência</h1>
+      <div className="page-header flex items-center justify-between">
+        <h1 className="page-title">Movimentações pendentes de conferência</h1>
         <div className="flex gap-2">
-          <Link href="/admin/relatorios" className="rounded border border-steel px-3 py-2 text-sm font-medium text-steel-dark">
+          <Link href="/admin/relatorios" className="btn btn-ghost btn-sm">
             Relatórios
           </Link>
-          <Link href="/admin/remetidos/novo" className="rounded bg-steel px-3 py-2 text-sm font-medium text-white">
+          <Link href="/admin/remetidos/novo" className="btn btn-primary btn-sm">
             + Novo remetido
           </Link>
         </div>
       </div>
-      <p className="text-sm text-neutral-600">{movimentacoes.length} movimentação(ões) aguardando conferência.</p>
+      <p className="-mt-4 text-sm text-ink-muted">{movimentacoes.length} movimentação(ões) aguardando conferência.</p>
 
-      <div className="overflow-x-auto rounded border">
-        <table className="w-full text-sm">
-          <thead className="bg-neutral-100 text-left">
-            <tr>
-              <th className="p-2">Tipo</th>
-              <th className="p-2">Data</th>
-              <th className="p-2">NF</th>
-              <th className="p-2">Origem/Destino</th>
-              <th className="p-2">Caminhão</th>
-              <th className="p-2">Responsável</th>
-              <th className="p-2">Status</th>
-              <th className="p-2" />
-            </tr>
-          </thead>
-          <tbody>
-            {movimentacoes.map((m) => (
-              <tr key={m.id} className="border-t">
-                <td className="p-2">{m.tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'}</td>
-                <td className="p-2">{fmtData(m.dataMovimentacao)}</td>
-                <td className="p-2">{m.numeroDocumento ?? 'Em aberto'}</td>
-                <td className="p-2">{m.tipo === 'RECEBIMENTO' ? m.origem : m.destino}</td>
-                <td className="p-2">
-                  {[m.placaCarreta, m.placaCarreta2, m.placaCavalo].filter(Boolean).join(' / ') || '—'}
-                </td>
-                <td className="p-2">{m.responsavelPatio}</td>
-                <td className="p-2">
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_LABEL[m.status]?.className ?? 'bg-neutral-100'}`}>
-                    {STATUS_LABEL[m.status]?.texto ?? m.status}
-                  </span>
-                </td>
-                <td className="p-2 text-right">
-                  <Link
-                    href={m.tipo === 'RECEBIMENTO' ? `/admin/recebimentos/${m.id}` : `/admin/remetidos/${m.id}`}
-                    className="text-blue-700 underline"
-                  >
-                    Ver detalhes
-                  </Link>
-                </td>
-              </tr>
-            ))}
-            {movimentacoes.length === 0 && (
+      <div className="card">
+        <div className="tbl-wrap">
+          <table>
+            <thead>
               <tr>
-                <td colSpan={8} className="p-4 text-center text-neutral-500">
-                  Nenhuma movimentação pendente de conferência.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      <div>
-        <h2 className="text-lg font-semibold">Remetidos aguardando chegada</h2>
-        <p className="text-sm text-neutral-600">{aguardandoChegada.length} pré-cadastro(s) aguardando o Pátio confirmar.</p>
-        <div className="mt-2 overflow-x-auto rounded border">
-          <table className="w-full text-sm">
-            <thead className="bg-neutral-100 text-left">
-              <tr>
-                <th className="p-2">Reserva/Pedido</th>
-                <th className="p-2">Destino</th>
-                <th className="p-2">NF</th>
-                <th className="p-2" />
+                <th>Tipo</th>
+                <th>Data</th>
+                <th>NF</th>
+                <th>Origem/Destino</th>
+                <th>Caminhão</th>
+                <th>Responsável</th>
+                <th>Status</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
-              {aguardandoChegada.map((r) => (
-                <tr key={r.id} className="border-t">
-                  <td className="p-2">{r.reservaPedido}</td>
-                  <td className="p-2">{r.destino}</td>
-                  <td className="p-2">{r.numeroDocumento ?? 'Em aberto'}</td>
-                  <td className="p-2 text-right">
-                    <Link href={`/admin/remetidos/${r.id}`} className="text-blue-700 underline">
-                      Ver detalhes
+              {movimentacoes.map((m) => (
+                <tr key={m.id}>
+                  <td>
+                    <span className="badge badge-info">{m.tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'}</span>
+                  </td>
+                  <td className="font-mono">{fmtData(m.dataMovimentacao)}</td>
+                  <td className="font-mono">{m.numeroDocumento ?? 'Em aberto'}</td>
+                  <td>{m.tipo === 'RECEBIMENTO' ? m.origem : m.destino}</td>
+                  <td className="font-mono">
+                    {[m.placaCarreta, m.placaCarreta2, m.placaCavalo].filter(Boolean).join(' / ') || '—'}
+                  </td>
+                  <td>{m.responsavelPatio}</td>
+                  <td>
+                    <span className={`badge ${STATUS_BADGE[m.status] ?? 'badge-muted'}`}>
+                      {STATUS_TEXTO[m.status] ?? m.status}
+                    </span>
+                  </td>
+                  <td className="text-right">
+                    <Link
+                      href={m.tipo === 'RECEBIMENTO' ? `/admin/recebimentos/${m.id}` : `/admin/remetidos/${m.id}`}
+                      className="tbl-action"
+                    >
+                      Ver detalhes →
                     </Link>
                   </td>
                 </tr>
               ))}
-              {aguardandoChegada.length === 0 && (
+              {movimentacoes.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="p-4 text-center text-neutral-500">
-                    Nenhum remetido aguardando chegada.
+                  <td colSpan={8} className="p-4 text-center text-ink-dim">
+                    Nenhuma movimentação pendente de conferência.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <div>
+        <div className="page-header">
+          <h2 className="page-title text-base">Remetidos aguardando chegada</h2>
+        </div>
+        <p className="-mt-4 mb-2 text-sm text-ink-muted">{aguardandoChegada.length} pré-cadastro(s) aguardando o Pátio confirmar.</p>
+        <div className="card">
+          <div className="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Reserva/Pedido</th>
+                  <th>Destino</th>
+                  <th>NF</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {aguardandoChegada.map((r) => (
+                  <tr key={r.id}>
+                    <td>{r.reservaPedido}</td>
+                    <td>{r.destino}</td>
+                    <td className="font-mono">{r.numeroDocumento ?? 'Em aberto'}</td>
+                    <td className="text-right">
+                      <Link href={`/admin/remetidos/${r.id}`} className="tbl-action">
+                        Ver detalhes →
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+                {aguardandoChegada.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="p-4 text-center text-ink-dim">
+                      Nenhum remetido aguardando chegada.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </main>

@@ -11,67 +11,39 @@ export default function TrocarSenhaPage() {
 
   return (
     <main className="mx-auto max-w-sm p-6">
-      <Link href="/admin" className="text-sm text-neutral-500 hover:underline">
+      <Link href="/admin" className="back-link">
         ← Voltar
       </Link>
-      <h1 className="mt-2 text-xl font-semibold text-neutral-900">Trocar minha senha</h1>
+      <h1 className="mt-2 font-condensed text-xl font-bold uppercase tracking-wide text-ink">Trocar minha senha</h1>
 
       {estado.sucesso ? (
-        <p className="mt-4 rounded bg-emerald-50 p-3 text-sm text-emerald-800">
+        <p className="badge badge-ok mt-4 !text-sm !normal-case">
           Senha alterada com sucesso. Use a senha nova no próximo login.
         </p>
       ) : (
         <form action={formAction} className="mt-4 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-neutral-700" htmlFor="senhaAtual">
-              Senha atual *
-            </label>
-            <input
-              id="senhaAtual"
-              name="senhaAtual"
-              type="password"
-              required
-              className="mt-1 h-12 w-full rounded border px-3"
-            />
+          <div className="field">
+            <label htmlFor="senhaAtual">Senha atual *</label>
+            <input id="senhaAtual" name="senhaAtual" type="password" required className="h-12" />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-neutral-700" htmlFor="novaSenha">
-              Nova senha *
-            </label>
-            <input
-              id="novaSenha"
-              name="novaSenha"
-              type="password"
-              required
-              className="mt-1 h-12 w-full rounded border px-3"
-            />
-            <p className="mt-1 text-xs text-neutral-500">Mínimo 8 caracteres, com ao menos uma letra e um número.</p>
+          <div className="field">
+            <label htmlFor="novaSenha">Nova senha *</label>
+            <input id="novaSenha" name="novaSenha" type="password" required className="h-12" />
+            <p className="hint">Mínimo 8 caracteres, com ao menos uma letra e um número.</p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-neutral-700" htmlFor="confirmacao">
-              Confirmar nova senha *
-            </label>
-            <input
-              id="confirmacao"
-              name="confirmacao"
-              type="password"
-              required
-              className="mt-1 h-12 w-full rounded border px-3"
-            />
+          <div className="field">
+            <label htmlFor="confirmacao">Confirmar nova senha *</label>
+            <input id="confirmacao" name="confirmacao" type="password" required className="h-12" />
           </div>
 
-          <button
-            type="submit"
-            disabled={enviando}
-            className="h-12 w-full rounded bg-steel font-medium text-white disabled:bg-neutral-300"
-          >
+          <button type="submit" disabled={enviando} className="btn btn-primary h-12 w-full">
             {enviando ? 'Salvando...' : 'Salvar nova senha'}
           </button>
 
           {estado.erro && (
-            <p role="alert" className="text-sm text-red-700">
+            <p role="alert" className="text-sm text-bad">
               {estado.erro}
             </p>
           )}
