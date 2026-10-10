@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { IndicadorSincronizacao } from '@/components/IndicadorSincronizacao';
+import { InstalarApp } from '@/components/InstalarApp';
 import { Logo } from '@/components/ui/Logo';
 import { AlternarTema } from '@/components/ui/AlternarTema';
 
@@ -11,6 +12,7 @@ export function PatioShell({ children }: { children: ReactNode }) {
         <AlternarTema padrao="escuro" className="ml-auto" />
       </header>
       <IndicadorSincronizacao />
+      <InstalarApp />
       <main className="min-w-0 flex-1">{children}</main>
     </div>
   );

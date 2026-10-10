@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { fmtMetros, fmtPeso } from '@/lib/format';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { filtrosRelatorioSchema, MATERIAIS_RELATORIO, STATUS_RELATORIO } from '@/lib/validation/relatorio';
 import { PERFIS } from '@/lib/validation/recebimento';
@@ -201,12 +202,12 @@ export default async function RelatoriosPage({
         </div>
         <div className="stat-tile">
           <p className="stat-label">Metros</p>
-          <p className="stat-value">{resumo.metros.toFixed(2)}</p>
+          <p className="stat-value">{fmtMetros(resumo.metros)}</p>
           <p className="stat-unit">m</p>
         </div>
         <div className="stat-tile">
           <p className="stat-label">Toneladas</p>
-          <p className="stat-value accent">{resumo.toneladas.toFixed(3)}</p>
+          <p className="stat-value accent">{fmtPeso(resumo.toneladas)}</p>
           <p className="stat-unit">t</p>
         </div>
       </div>

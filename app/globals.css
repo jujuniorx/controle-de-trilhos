@@ -601,3 +601,24 @@ input[type="checkbox"], input[type="radio"] { width: auto; background: initial; 
   color: var(--b5);
   text-align: center;
 }
+
+/* ── Acabamento mobile ─────────────────────────────────────────────── */
+/* iOS: inputs de data ignoram width e estouram o cartão. */
+input[type="date"], input[type="time"], input[type="datetime-local"] {
+  min-width: 0; max-width: 100%; width: 100%; -webkit-appearance: none; appearance: none;
+  display: block; text-align: left;
+}
+input[type="date"]::-webkit-date-and-time-value { text-align: left; }
+/* Respeita o recorte do iPhone quando instalado em tela cheia. */
+body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+
+/* Convite de instalação do app (PWA) */
+.instalar-app {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px;
+  margin: 12px 16px 0; padding: 12px 14px;
+  background: var(--g2); border: 1px solid var(--b3); border-radius: var(--radius-lg);
+  color: var(--t1); font-size: .85rem;
+}
+.instalar-app-texto { display: flex; flex-direction: column; gap: 2px; flex: 1 1 220px; min-width: 0; }
+.instalar-app-texto span { color: var(--t3); }
+.instalar-app-acoes { display: flex; gap: 8px; }

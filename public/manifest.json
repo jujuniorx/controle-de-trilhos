@@ -1,25 +1,23 @@
 {
+  "id": "/",
   "name": "Controle de Trilhos",
   "short_name": "Trilhos",
-  "description": "Sistema de controle de trilhos ferroviários",
+  "description": "Recebimento, remessa e conferência de trilhos",
+  "lang": "pt-BR",
   "start_url": "/patio/acesso",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "background_color": "#12151a",
   "theme_color": "#12151a",
   "icons": [
-    {
-      "src": "/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    }
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Novo recebimento", "url": "/patio/recebimentos/novo", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Remetidos", "url": "/patio/remetidos", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Administrativo", "url": "/admin", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }

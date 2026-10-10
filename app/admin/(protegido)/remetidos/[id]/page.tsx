@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { fmtMetros, fmtPeso } from '@/lib/format';
 import { notFound } from 'next/navigation';
 import { buscarRemetidoDetalhe, resumoPesoRemetido } from '@/lib/services/remetido';
 import { requireAdmin } from '@/lib/services/requireAdmin';
@@ -14,14 +15,6 @@ function fmtData(d: Date | null): string {
 
 function fmtDataHora(d: Date): string {
   return d.toLocaleString('pt-BR');
-}
-
-function fmtMetros(v: unknown): string {
-  return Number(v).toFixed(2);
-}
-
-function fmtPeso(v: number): string {
-  return v.toFixed(3);
 }
 
 const TIPO_REMETIDO_LABEL: Record<string, string> = {
@@ -182,9 +175,11 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
                             <span className="medicao-num">{k + 1}.</span>{' '}
                             {m.quantidade > 1 ? `${m.quantidade} × ${fmtMetros(m.comprimento)} m` : `${fmtMetros(m.comprimento)} m`}
                           </span>
-                          <span className="medicao-val">
-                            {fmtMetros(m.metros)} m{m.classificacaoSC ? ` — ${m.classificacaoSC}` : ''}
-                          </span>
+                          {(m.quantidade > 1 || m.classificacaoSC) && (
+                            <span className="medicao-val">
+                              {m.quantidade > 1 ? `${fmtMetros(m.metros)} m` : ''}{m.classificacaoSC ? ` ${m.classificacaoSC}` : ''}
+                            </span>
+                          )}
                         </div>
                       ))}
                     </div>

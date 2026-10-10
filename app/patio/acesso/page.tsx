@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
+import { Logo } from '@/components/ui/Logo';
 import { acessarPatioAction, type EstadoAcessoPatio } from './actions';
 
 const ESTADO_INICIAL: EstadoAcessoPatio = {};
@@ -10,6 +11,7 @@ export default function AcessoPatioPage() {
 
   return (
     <main className="area-patio mx-auto flex min-h-screen max-w-sm flex-col justify-center p-6">
+      <Logo size={56} className="mb-6" />
       <h1 className="font-condensed text-2xl font-bold uppercase tracking-wide text-ink">Acesso do Pátio</h1>
       <p className="mt-1 text-sm text-ink-muted">Digite o código de acesso do Pátio para continuar.</p>
 

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { MobileNav } from './MobileNav';
 import { SidebarNav } from './SidebarNav';
 import { Logo } from '@/components/ui/Logo';
+import { InstalarApp } from '@/components/InstalarApp';
 import { AlternarTema } from '@/components/ui/AlternarTema';
 
 function iniciaisDe(nome: string): string {
@@ -54,6 +55,7 @@ export function AdminShell({ nome, children }: { nome: string; children: ReactNo
             <span className="text-sm font-semibold text-ink">{nome}</span>
           </div>
         </header>
+        <InstalarApp />
         <main className="min-w-0 flex-1">{children}</main>
       </div>
     </div>

@@ -29,6 +29,9 @@ export const metadata: Metadata = {
   title: "Controle de Trilhos",
   description: "Sistema de controle de trilhos ferroviários",
   manifest: "/manifest.json",
+  // iPhone/iPad: ao "Adicionar à Tela de Início" abre em tela cheia, com ícone e nome próprios.
+  icons: { apple: "/icons/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "Trilhos", statusBarStyle: "black-translucent" },
 };
 
 // Sem isso, o Next.js não injeta NENHUMA tag <meta name="viewport">: o
@@ -39,6 +42,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#12151a",
 };
 
 // Força renderização dinâmica (por requisição) em toda a árvore de rotas.
