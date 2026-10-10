@@ -157,7 +157,10 @@ DATABASE_URL=
 ADMIN_EMAIL=
 ADMIN_SENHA_INICIAL=
 PATIO_PIN_HASH=
+PATIO_PIN_TESTE=
 ```
+
+`PATIO_PIN_TESTE` is the plaintext PIN used only by local/E2E test runs — it must be the plaintext whose Argon2 hash is `PATIO_PIN_HASH` in that same environment (Task 18 depends on this pairing).
 
 - [ ] **Step 7: Verify dev server**
 
@@ -1298,7 +1301,12 @@ Create `public/manifest.json`:
 }
 ```
 
-Add placeholder icon files at `public/icons/icon-192.png` and `public/icons/icon-512.png` (own artwork, no Rumo branding — final artwork can be swapped later without changing this task).
+Create placeholder icon files (no Rumo branding — real artwork replaces these later without changing this task; a 1×1 pixel is an accepted placeholder at this stage, not a defect to flag in review):
+
+Run:
+```bash
+node -e "require('fs').mkdirSync('public/icons', { recursive: true }); const b = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64'); require('fs').writeFileSync('public/icons/icon-192.png', b); require('fs').writeFileSync('public/icons/icon-512.png', b);"
+```
 
 - [ ] **Step 2: Create the Service Worker**
 
@@ -1483,10 +1491,12 @@ git commit -m "feat: add Dexie offline queue schema and clientId generation"
 - Test: `tests/integration/sync.test.ts`
 
 **Interfaces:**
-- Consumes: `validarAcessoPatio` from `lib/services/patioAcesso.ts`.
+- Consumes: `validarAcessoPatio` from `lib/services/patioAcesso.ts`; `registrarHistorico` from `lib/services/historico.ts` (Task 5).
 - Produces: `movimentacaoSyncSchema` (Zod), `type MovimentacaoSyncInput`, `sincronizarMovimentacao(input): Promise<Movimentacao>`, `POST /api/sync`.
 
 This endpoint syncs only the generic `Movimentacao`-level fields defined in this etapa. Creating `Grupo`/`Medicao` with their business rules (reemprego ≥7m, SC classification) is Etapa 2/4 work that will extend this same schema and endpoint.
+
+`sincronizarMovimentacao` must record a `HistoricoAlteracao` entry the first time a `clientId` is created (not on a repeated/idempotent sync) — this is the only place in Etapa 1 where a `Movimentacao` is actually created, and the spec's Definition of Done requires `HistoricoAlteracao` to capture creation.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1516,6 +1526,24 @@ describe('sincronizarMovimentacao', () => {
     expect(total).toBe(1);
   });
 
+  it('grava um histórico de criação apenas na primeira sincronização', async () => {
+    const input = {
+      clientId: crypto.randomUUID(),
+      tipo: 'RECEBIMENTO' as const,
+      tipoDocumento: 'NF',
+      numeroDocumento: '000003',
+      tipoTransporte: 'CAMINHAO' as const,
+      responsavelPatio: 'Teste Sync Historico',
+    };
+
+    const criada = await sincronizarMovimentacao(input);
+    await sincronizarMovimentacao(input);
+
+    const historico = await prisma.historicoAlteracao.findMany({ where: { movimentacaoId: criada.id } });
+    expect(historico).toHaveLength(1);
+    expect(historico[0].acao).toBe('CRIACAO');
+  });
+
   afterAll(async () => {
     await prisma.$disconnect();
   });
@@ -1534,6 +1562,7 @@ Create `lib/services/sync.ts`:
 ```ts
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
+import { registrarHistorico } from '@/lib/services/historico';
 
 export const movimentacaoSyncSchema = z.object({
   clientId: z.string().uuid(),
@@ -1547,7 +1576,12 @@ export const movimentacaoSyncSchema = z.object({
 export type MovimentacaoSyncInput = z.infer<typeof movimentacaoSyncSchema>;
 
 export async function sincronizarMovimentacao(input: MovimentacaoSyncInput) {
-  return prisma.movimentacao.upsert({ where: { clientId: input.clientId }, create: input, update: {} });
+  const existente = await prisma.movimentacao.findUnique({ where: { clientId: input.clientId } });
+  if (existente) return existente;
+
+  const criada = await prisma.movimentacao.create({ data: input });
+  await registrarHistorico({ movimentacaoId: criada.id, usuarioNome: input.responsavelPatio, acao: 'CRIACAO' });
+  return criada;
 }
 ```
 
@@ -1685,6 +1719,7 @@ git commit -m "feat: add client-side sync engine for the offline queue"
 
 **Files:**
 - Create: `lib/hooks/useOnlineStatus.ts`, `components/IndicadorSincronizacao.tsx`
+- Modify: `app/patio/(protegido)/layout.tsx` (created in Task 11 — add the indicator)
 - Test: `tests/unit/indicador-sincronizacao.test.tsx`
 
 This is a generic status indicator (online/offline + pending count) — not a Recebimento/Remetido screen. It will be reused unchanged by the real forms in Etapa 2.
