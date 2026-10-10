@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { fmtMetros, fmtPeso } from '@/lib/format';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { filtrosRelatorioSchema, MATERIAIS_RELATORIO, STATUS_RELATORIO } from '@/lib/validation/relatorio';
+import { GraficosRelatorio } from '@/components/admin/GraficosRelatorio';
+import { montarDadosGraficos } from '@/lib/services/graficosRelatorio';
 import { PERFIS } from '@/lib/validation/recebimento';
 import {
   buscarMovimentacoesRelatorio,
@@ -105,6 +107,7 @@ export default async function RelatoriosPage({
 
   const [movimentacoes, pendencias] = await Promise.all([buscarMovimentacoesRelatorio(filtros), listarPendencias()]);
   const resumo = resumoRelatorio(movimentacoes);
+  const graficos = montarDadosGraficos(movimentacoes);
   const temFiltro = Object.values(filtros).some((v) => v !== undefined);
   const queryString = new URLSearchParams(
     Object.entries(filtros).filter((entry): entry is [string, string] => entry[1] !== undefined),
@@ -211,6 +214,8 @@ export default async function RelatoriosPage({
           <p className="stat-unit">t</p>
         </div>
       </div>
+
+      {movimentacoes.length > 0 && <GraficosRelatorio dados={graficos} />}
 
       <section className="space-y-2">
         <div className="flex items-center justify-between">

@@ -786,3 +786,23 @@ input:focus, select:focus, textarea:focus { border-color: var(--primary); outlin
   .card { padding: 16px; border-radius: 14px; }
   .acao-patio { min-height: 104px; }
 }
+
+/* ---- Gráficos do relatório (HTML/CSS, sem biblioteca) ---- */
+.grafico { display: flex; flex-direction: column; gap: 12px; }
+.grafico-legenda { display: flex; gap: 14px; font-size: .78rem; color: var(--ink-muted); }
+.grafico-cor { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; }
+.grafico-cor-rec { background: var(--primary); }
+.grafico-cor-env { background: var(--warn); }
+.grafico-colunas { display: flex; align-items: flex-end; gap: 10px; height: 220px; overflow-x: auto; padding-top: 18px; }
+.grafico-grupo { flex: 1 0 56px; min-width: 56px; height: 100%; display: flex; flex-direction: column; gap: 6px; }
+.grafico-par { flex: 1; display: flex; align-items: flex-end; justify-content: center; gap: 4px; border-bottom: 1px solid var(--line); min-height: 0; }
+.grafico-col { flex: 1; max-width: 28px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; min-width: 0; }
+.grafico-barra { width: 100%; border-radius: 4px 4px 0 0; }
+.grafico-val { font-size: .62rem; color: var(--ink-muted); font-variant-numeric: tabular-nums; margin-bottom: 2px; white-space: nowrap; }
+.grafico-eixo { font-size: .7rem; color: var(--ink-muted); text-align: center; white-space: nowrap; }
+.grafico-rank { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.grafico-rank li { display: grid; grid-template-columns: minmax(70px, 30%) 1fr auto; align-items: center; gap: 8px; font-size: .82rem; }
+.grafico-rank-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); }
+.grafico-rank-trilha { height: 10px; border-radius: 5px; background: var(--surface); overflow: hidden; }
+.grafico-rank-barra { display: block; height: 100%; border-radius: 5px; background: var(--primary); }
+.grafico-rank-valor { font-variant-numeric: tabular-nums; color: var(--ink-muted); white-space: nowrap; }

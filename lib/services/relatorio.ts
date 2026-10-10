@@ -65,7 +65,7 @@ export interface ResumoRelatorio {
  * grupos de RECEBIMENTO é um no-op, já que pesoInformado nunca é gravado por
  * criarRecebimentoCaminhao (lib/services/movimentacao.ts).
  */
-function pesoConhecidoDoGrupo(grupo: MovimentacaoRelatorio['grupos'][number]): number {
+export function pesoConhecidoDoGrupo(grupo: MovimentacaoRelatorio['grupos'][number]): number {
   return Number(grupo.pesoInformado ?? grupo.pesoCalculado ?? 0);
 }
 
@@ -77,7 +77,7 @@ function pesoConhecidoDoGrupo(grupo: MovimentacaoRelatorio['grupos'][number]): n
  * pendente, a estimativa fica misturada ao total sem rótulo específico
  * nesta tela.
  */
-function pesoMovimentacao(mov: MovimentacaoRelatorio): number {
+export function pesoMovimentacao(mov: MovimentacaoRelatorio): number {
   let total = 0;
   for (const grupo of mov.grupos) {
     if (mov.tipo === 'RECEBIMENTO' && grupo.tipoMaterial === 'SUCATA') {
