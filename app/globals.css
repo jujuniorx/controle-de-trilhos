@@ -624,8 +624,7 @@ body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-ins
 .instalar-app-acoes { display: flex; gap: 8px; }
 
 /* Desktop: telas grandes escalam o texto (tudo é em rem) para não ficar miúdo. */
-@media (min-width: 1280px) { html { font-size: 17px; } }
-@media (min-width: 1700px) { html { font-size: 18px; } }
+/* (sem aumento de fonte no desktop: a escala base de 16px já é confortável a 100% de zoom) */
 
 /* Tabelas viram cartões no celular (cada linha = um cartão com rótulos). */
 @media (max-width: 640px) {
@@ -767,4 +766,15 @@ input:focus, select:focus, textarea:focus { border-color: var(--primary); outlin
   .tbl-cards td[data-label="NF"] { order: -2; font-family: var(--font-condensed), sans-serif; font-size: 1.3rem; font-weight: 700; letter-spacing: .03em; }
   .tbl-cards td[data-label="Status"] { order: -1; justify-self: end; text-align: right; }
   .tbl-cards td[data-label="NF"]::before, .tbl-cards td[data-label="Status"]::before { display: none; }
+}
+
+/* PC com mouse: controles compactos (os tamanhos grandes ficam para toque: celular e tablet). */
+@media (hover: hover) and (pointer: fine) {
+  .btn { min-height: 40px; padding: 0 18px; font-size: .9rem; border-radius: 10px; }
+  .btn-sm { min-height: 34px; padding: 0 14px; font-size: .82rem; }
+  .btn-lg { min-height: 44px; font-size: .95rem; border-radius: 12px; }
+  input, select, textarea { min-height: 42px; font-size: .92rem; border-radius: 10px; }
+  .field label, label.field-label { font-size: .7rem; }
+  .card { padding: 16px; border-radius: 14px; }
+  .acao-patio { min-height: 104px; }
 }
