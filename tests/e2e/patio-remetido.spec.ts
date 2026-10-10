@@ -5,7 +5,7 @@ import { entrarNoPatio, entrarNoAdmin } from './helpers';
 
 const MARCADOR = `E2E-REMETIDO-${Date.now()}`;
 
-test.describe('Fluxo real do Remetido — pré-cadastro (Admin) + confirmação (Pátio)', () => {
+test.describe('Fluxo real do Remetido — pré-cadastro + confirmação (Pátio) e conferência (Admin)', () => {
   test.afterAll(async () => {
     const ids = (
       await prisma.movimentacao.findMany({
@@ -27,25 +27,20 @@ test.describe('Fluxo real do Remetido — pré-cadastro (Admin) + confirmação 
     await prisma.$disconnect();
   });
 
-  test('pré-cadastro pelo Admin, confirmação pelo Pátio com grupo NOVO', async ({ page }) => {
-    await entrarNoAdmin(page);
+  test('pré-cadastro (aguardando chegada) e confirmação, os dois pelo Pátio, com grupo NOVO', async ({ page }) => {
+    await entrarNoPatio(page);
 
-    await page.goto('/admin/remetidos/novo');
+    await page.goto('/patio/remetidos/novo');
     await page.locator('#tipoRemetido').selectOption('VENDA');
     await page.locator('#reservaPedido').fill(MARCADOR);
     await page.locator('#destino').fill('Usina Rondonópolis');
-    await page.getByRole('button', { name: 'Criar pré-cadastro' }).click();
-    await page.waitForURL(/\/admin\/remetidos\/(?!novo)[a-z0-9]+$/);
+    await page.getByRole('button', { name: 'Cadastrar e aguardar chegada' }).click();
+    await page.waitForURL('**/patio/remetidos');
 
-    const detalheUrl = page.url();
-    const movimentacaoId = detalheUrl.split('/').pop()!;
-    await expect(page.getByText('AGUARDANDO CHEGADA')).toBeVisible();
-
-    await entrarNoPatio(page);
-    await page.goto('/patio/remetidos');
     await expect(page.getByText(MARCADOR)).toBeVisible();
     await page.getByText(MARCADOR).click();
-    await page.waitForURL(`**/patio/remetidos/${movimentacaoId}/confirmar`);
+    await page.waitForURL(/\/patio\/remetidos\/[a-z0-9]+\/confirmar$/);
+    const movimentacaoId = page.url().split('/').slice(-2)[0];
 
     await page.locator('#f-nf').fill(String(Date.now()).slice(-9));
     await page.locator('#f-cavalo').fill('ABC1D23');
@@ -90,6 +85,7 @@ test.describe('Fluxo real do Remetido — pré-cadastro (Admin) + confirmação 
     await page.goto('/patio/remetidos');
     await page.getByRole('link', { name: '+ Novo remetido' }).click();
     await page.waitForURL('**/patio/remetidos/novo');
+    await page.getByRole('button', { name: 'Lançar agora' }).click();
 
     await page.locator('#f-tipo-remetido').selectOption('VENDA');
     // Reserva/Pedido foi removida desta tela de propósito (lançamento direto) —
@@ -151,6 +147,7 @@ test.describe('Fluxo real do Remetido — pré-cadastro (Admin) + confirmação 
     const responsavelEdicao = 'Teste E2E Edicao';
     await entrarNoPatio(page);
     await page.goto('/patio/remetidos/novo');
+    await page.getByRole('button', { name: 'Lançar agora' }).click();
     await page.locator('#f-tipo-remetido').selectOption('VENDA');
     await page.locator('#f-destino').fill('Usina Rondonópolis');
     await page.locator('#f-nf').fill(String(Date.now()).slice(-9));

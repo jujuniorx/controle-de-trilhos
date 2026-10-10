@@ -21,6 +21,8 @@ export type MovimentacaoRemetidoComGrupos = Prisma.MovimentacaoGetPayload<{
 export async function criarPreCadastroRemetido(
   clientId: string,
   input: PreCadastroRemetidoInput,
+  /** Quem fez o pré-cadastro, para o histórico. Hoje é o Pátio; o Administrativo não cria mais remetidos. */
+  origem: 'Pátio' | 'Administrativo' = 'Administrativo',
 ): Promise<MovimentacaoRemetidoComGrupos> {
   const movimentacao = await prisma.movimentacao.create({
     data: {
@@ -39,7 +41,7 @@ export async function criarPreCadastroRemetido(
 
   await registrarHistorico({
     movimentacaoId: movimentacao.id,
-    usuarioNome: 'Administrativo',
+    usuarioNome: origem,
     acao: 'PRE_CADASTRO',
   });
 
