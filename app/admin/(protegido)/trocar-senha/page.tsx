@@ -15,6 +15,9 @@ export default function TrocarSenhaPage() {
         ← Voltar
       </Link>
       <h1 className="mt-2 font-condensed text-xl font-bold uppercase tracking-wide text-ink">Trocar minha senha</h1>
+      <p className="mt-1 text-sm text-ink-muted">
+        Quer proteger a conta com um código no celular? <Link href="/admin/seguranca" className="underline">Verificação em duas etapas</Link>
+      </p>
 
       {estado.sucesso ? (
         <p className="badge badge-ok mt-4 !text-sm !normal-case">

@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/db';
 import { verificarSegredo, criarSessao } from '@/lib/services/auth';
+import { decifrar } from '@/lib/services/segredo2fa';
+import { verificarTotp } from '@/lib/services/totp';
 
 const MAX_TENTATIVAS = 5;
 const BLOQUEIO_MINUTOS = 15;
@@ -9,6 +11,9 @@ export interface ResultadoLogin {
   token?: string;
   expiresAt?: Date;
   erro?: string;
+  /** Senha correta, mas a conta exige o código de 2 etapas: ainda NÃO há sessão. */
+  precisa2fa?: boolean;
+  userId?: string;
 }
 
 /**
@@ -45,6 +50,49 @@ export async function autenticar(identificador: string, senha: string): Promise<
   }
 
   await prisma.loginAttempt.deleteMany({ where: { identificador: chave } });
+  if (user.totpAtivo) {
+    return { ok: false, precisa2fa: true, userId: user.id };
+  }
+  const { token, expiresAt } = await criarSessao(user.id);
+  return { ok: true, token, expiresAt };
+}
+
+/**
+ * Segunda etapa: confere o código do app autenticador. Mesmo bloqueio por tentativas
+ * (5 erros = 15 min), em contador próprio por usuário. Cada código só vale uma vez.
+ */
+export async function concluirLoginComCodigo(userId: string, codigo: string): Promise<ResultadoLogin> {
+  const chave = `2fa:${userId}`;
+  const tentativa = await prisma.loginAttempt.findUnique({ where: { identificador: chave } });
+  if (tentativa?.bloqueadoAte && tentativa.bloqueadoAte > new Date()) {
+    return { ok: false, erro: 'Muitas tentativas. Tente novamente mais tarde.' };
+  }
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  let passo: number | null = null;
+  if (user?.totpAtivo && user.totpSecret) {
+    try {
+      passo = verificarTotp(decifrar(user.totpSecret), codigo, { ultimoPasso: user.totpUltimoPasso });
+    } catch {
+      passo = null;
+    }
+  }
+
+  if (!user || passo === null) {
+    const novas = (tentativa?.tentativas ?? 0) + 1;
+    await prisma.loginAttempt.upsert({
+      where: { identificador: chave },
+      create: { identificador: chave, tentativas: 1 },
+      update: {
+        tentativas: novas,
+        bloqueadoAte: novas >= MAX_TENTATIVAS ? new Date(Date.now() + BLOQUEIO_MINUTOS * 60 * 1000) : null,
+      },
+    });
+    return { ok: false, erro: 'Código inválido ou já usado. Confira o app autenticador.' };
+  }
+
+  await prisma.loginAttempt.deleteMany({ where: { identificador: chave } });
+  await prisma.user.update({ where: { id: user.id }, data: { totpUltimoPasso: passo } });
   const { token, expiresAt } = await criarSessao(user.id);
   return { ok: true, token, expiresAt };
 }

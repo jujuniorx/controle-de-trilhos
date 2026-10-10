@@ -3,12 +3,23 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { autenticar } from '@/lib/services/loginService';
+import { criarPasse2fa } from '@/lib/services/segredo2fa';
 
 export async function login(formData: FormData): Promise<{ ok: boolean; erro?: string }> {
   const identificador = String(formData.get('identificador') ?? '');
   const senha = String(formData.get('senha') ?? '');
 
   const resultado = await autenticar(identificador, senha);
+  if (resultado.precisa2fa && resultado.userId) {
+    (await cookies()).set('login_2fa', criarPasse2fa(resultado.userId), {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: 5 * 60,
+      path: '/admin/login',
+    });
+    redirect('/admin/login/2fa');
+  }
   if (!resultado.ok || !resultado.token || !resultado.expiresAt) {
     return { ok: false, erro: resultado.erro };
   }

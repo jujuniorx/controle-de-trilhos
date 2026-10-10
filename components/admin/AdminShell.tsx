@@ -43,6 +43,9 @@ export function AdminShell({ nome, children }: { nome: string; children: ReactNo
           <Link href="/admin/trocar-senha" className="text-[.72rem] text-ink-dim underline hover:text-ink">
             Trocar minha senha
           </Link>
+          <Link href="/admin/seguranca" className="mt-1 block text-[.72rem] text-ink-dim underline hover:text-ink">
+            Segurança (2 etapas)
+          </Link>
         </div>
       </aside>
 

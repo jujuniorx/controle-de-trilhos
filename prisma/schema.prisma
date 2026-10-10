@@ -90,6 +90,11 @@ model User {
   ativo         Boolean   @default(true)
   createdAt     DateTime  @default(now())
   ultimoLoginEm DateTime?
+  // Verificação em duas etapas (TOTP, app autenticador). totpSecret fica CIFRADO
+  // (AES-256-GCM, chave em TOTP_ENC_KEY) — ver lib/services/segredo2fa.ts.
+  totpSecret      String?
+  totpAtivo       Boolean   @default(false)
+  totpUltimoPasso Int?
   sessions      Session[]
 }
 
