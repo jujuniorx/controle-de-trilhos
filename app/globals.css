@@ -149,20 +149,13 @@
   --b5: #7ab0e0;
   --b6: #b3d1ef;
 
-  --ok: #22c55e;
-  --ok-bg: #052e16;
-  --warn: #f59e0b;
-  --warn-bg: #3d2a00;
-  --err: #ef4444;
-  --err-bg: #3b0f0f;
-
   --t1: #e8edf2;
   --t2: #9baab8;
   --t3: #5c7080;
   --ln: rgba(255, 255, 255, .07);
   --ln2: rgba(255, 255, 255, .12);
 
-  /* Semânticos remapeados para Pátio */
+  /* Semânticos remapeados para Pátio (sobrescrevem valores antigos acima) */
   --primary: #2F6690;
   --primary-dark: #234E70;
   --primary-light: #E1ECF5;
@@ -173,15 +166,17 @@
   --ink-muted: #9baab8;
   --ink-dim: #5c7080;
   --ok: #1F8A5B;
+  --ok-bg: #DDF1E6;
   --ok-light: #DDF1E6;
   --warn: #E39B1B;
+  --warn-bg: #FBEFD3;
   --warn-light: #FBEFD3;
+  --err: #C4392D;
+  --err-bg: #FBE4E1;
   --bad: #C4392D;
   --bad-light: #FBE4E1;
   --line: #D5DCE3;
   --line-2: rgba(255, 255, 255, .12);
-
-  /* Pátio mantém tema escuro (grafite já definido acima) */
 }
 
 @theme inline {
