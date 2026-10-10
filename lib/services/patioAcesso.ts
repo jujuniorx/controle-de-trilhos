@@ -11,6 +11,20 @@ const BLOQUEIO_MINUTOS = 15;
 // LoginAttempt correspondente usa um identificador fixo em vez de um e-mail.
 const PIN_IDENTIFICADOR = 'PATIO_PIN';
 
+// Formato esperado de um hash Argon2id: $argon2id$v=19$m=...,t=...,p=...$salt$hash
+// (os três parâmetros m/t/p não têm ordem fixa entre versões/plataformas do
+// binding nativo — nesta instalação, por exemplo, sai "m=...,p=...,t=...",
+// confirmado rodando argon2.hash() localmente; o padrão aceita as 6 permutações).
+// Checagem puramente estrutural, não participa da decisão de autenticar — só
+// de observabilidade. Existe porque verificarSegredo() falha fechado e nunca
+// lança (por design, ver lib/services/auth.ts): um PATIO_PIN_HASH corrompido
+// (ex.: truncado por interpolação de shell/template ao configurar a variável)
+// produz exatamente o mesmo "Código inválido." que um PIN errado, sem nenhum
+// outro sinal. Esta checagem torna esse caso visível nos logs, sem nunca
+// registrar o valor do hash.
+const FORMATO_ARGON2ID =
+  /^\$argon2(id|i|d)\$v=\d+\$(?:m=\d+|t=\d+|p=\d+)(?:,(?:m=\d+|t=\d+|p=\d+)){2}\$[A-Za-z0-9+/]+\$[A-Za-z0-9+/]+$/;
+
 export interface ResultadoVerificacaoPin {
   ok: boolean;
   erro?: string;
@@ -19,7 +33,19 @@ export interface ResultadoVerificacaoPin {
 export async function verificarPin(pinInformado: string): Promise<boolean> {
   const hashConfigurado = process.env.PATIO_PIN_HASH;
   if (!hashConfigurado) throw new Error('PATIO_PIN_HASH não configurado');
-  return verificarSegredo(pinInformado, hashConfigurado);
+
+  if (!FORMATO_ARGON2ID.test(hashConfigurado)) {
+    console.error(
+      '[patioAcesso] PATIO_PIN_HASH não tem o formato esperado de um hash Argon2id — provável corrupção da variável de ambiente (valor nunca registrado em log).',
+    );
+  }
+
+  // Normaliza espaços nas pontas: o campo do formulário não impõe formato
+  // (type="password", sem maxLength/pattern em app/patio/acesso/page.tsx), e
+  // autofill ou teclados numéricos de alguns tablets podem introduzir espaço
+  // invisível nas pontas. Comparar o valor bruto faria um PIN visualmente
+  // correto ser rejeitado.
+  return verificarSegredo(pinInformado.trim(), hashConfigurado);
 }
 
 /**
