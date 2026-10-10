@@ -661,3 +661,110 @@ body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-ins
 .acao-patio span { color: var(--t3); font-size: .85rem; }
 .acao-patio-principal { background: var(--b3); border-color: var(--b3); color: #fff; }
 .acao-patio-principal span { color: rgba(255,255,255,.8); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   REFERÊNCIA VISUAL v2 — "aço, grafite e sinal"
+   Pátio/escuro: grafite #0C1015, aço #4F9BE0, sinal âmbar #F2A93B.
+   Admin/claro: fundo #F3F5F8, cartões brancos, azul #0F5FCC, menu navy.
+   Controles grandes (52 px+), cantos 12–16 px, selos arredondados.
+   Fica no fim do arquivo para sobrescrever a paleta anterior por cascata.
+═══════════════════════════════════════════════════════════════════ */
+:root { --on-primary: #06121F; }
+
+html:not([data-tema]) .area-patio,
+html[data-tema="escuro"] .area-patio,
+html[data-tema="escuro"] .area-admin {
+  --g0: #0C1015; --g1: #10161D; --g2: #151B23; --g3: #1C242E; --g4: #2A3441; --g5: #3A4757; --g6: #556270;
+  --b0: #10243A; --b1: #16314D; --b2: #2D74C7; --b3: #4F9BE0; --b4: #4F9BE0; --b5: #7FB2F0; --b6: #B3D1EF;
+  --t1: #E8EDF3; --t2: #9AA7B8; --t3: #7D8A9C;
+  --ln: #222C37; --ln2: #2A3441;
+  --ok: #34B27B; --ok-bg: rgba(52,178,123,.16);
+  --warn: #F2A93B; --warn-bg: rgba(242,169,59,.16);
+  --err: #E5584B; --err-bg: rgba(229,88,75,.16);
+  --primary: #4F9BE0; --primary-dark: #2D74C7; --primary-light: #E8F2FC;
+  --surface: #151B23; --surface-2: #1C242E; --surface-3: #2A3441;
+  --ink: #E8EDF3; --ink-muted: #9AA7B8; --ink-dim: #7D8A9C;
+  --ok-light: rgba(52,178,123,.16); --warn-light: rgba(242,169,59,.16);
+  --bad: #E5584B; --bad-light: rgba(229,88,75,.16);
+  --line: #222C37; --line-2: #2A3441;
+  --background: #0C1015; --foreground: #E8EDF3;
+  --on-primary: #06121F;
+}
+
+html:not([data-tema]) .area-admin,
+html[data-tema="claro"] .area-admin,
+html[data-tema="claro"] .area-patio {
+  --g0: #F3F5F8; --g1: #F3F5F8; --g2: #FFFFFF; --g3: #F7F9FB; --g4: #E3E8EF; --g5: #C9D2DD; --g6: #A8B3C1;
+  --b0: #E6EEFA; --b1: #D6E4FA; --b2: #B8CCF7; --b3: #0F5FCC; --b4: #0A4BA6; --b5: #0A4BA6; --b6: #0B1B31;
+  --t1: #13202F; --t2: #5B6B7F; --t3: #66758A;
+  --ln: #DFE5EC; --ln2: #D0D8E2;
+  --ok: #176B3B; --ok-bg: #DCF2E3;
+  --warn: #9A5300; --warn-bg: #FDEBCB;
+  --err: #C63B2E; --err-bg: #FCE6E3;
+  --primary: #0F5FCC; --primary-dark: #0A4BA6; --primary-light: #E6EEFA;
+  --surface: #FFFFFF; --surface-2: #F3F5F8; --surface-3: #E3E8EF;
+  --ink: #13202F; --ink-muted: #5B6B7F; --ink-dim: #66758A;
+  --ok-light: #DCF2E3; --warn-light: #FDEBCB;
+  --bad: #C63B2E; --bad-light: #FCE6E3;
+  --line: #DFE5EC; --line-2: #D0D8E2;
+  --background: #F3F5F8; --foreground: #13202F;
+  --on-primary: #FFFFFF;
+}
+html[data-tema="claro"] body { background: #F3F5F8; color: #13202F; }
+
+/* Menu lateral navy no Admin claro (no escuro continua grafite). */
+:is(html:not([data-tema]) .area-admin, html[data-tema="claro"] .area-admin) .ct-sidebar {
+  background: #0B1B31; border-right: 0;
+  --ink: #FFFFFF; --ink-muted: #C9D6E8; --ink-dim: #8FA3BD; --t1: #FFFFFF; --b5: #7FB2F0;
+  --line: #1B2F4D; --surface-2: #12315A; --primary-dark: #12315A; --primary-light: #FFFFFF; --primary: #4F9BE0;
+}
+
+/* Botões */
+.btn { min-height: 48px; padding: 0 22px; border-radius: 12px; font-size: 1rem; }
+.btn-primary { background: var(--primary); color: var(--on-primary); }
+.btn-ghost { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); }
+.btn-secondary { background: var(--surface-2); color: var(--ink); border: 1px solid var(--line-2); }
+.btn-sm { min-height: 40px; padding: 0 16px; font-size: .9rem; }
+.btn-lg { min-height: 56px; padding: 0 24px; font-size: 1.1rem; border-radius: 14px; }
+.btn-danger { color: #fff; }
+
+/* Selos */
+.badge { padding: 4px 11px; border-radius: 99px; font-size: .72rem; border: 0; }
+.badge-ok { border: 0; } .badge-warn { border: 0; } .badge-err { border: 0; }
+.badge-info { color: var(--primary); background: color-mix(in srgb, var(--primary) 14%, transparent); border: 0; }
+.badge-muted { color: var(--ink-muted); background: color-mix(in srgb, var(--ink-muted) 16%, transparent); border: 0; }
+
+/* Campos */
+.field { gap: 6px; }
+.field label, label.field-label {
+  font-family: var(--font-condensed), sans-serif; font-size: .78rem; font-weight: 600;
+  letter-spacing: .14em; color: var(--ink-muted);
+}
+input, select, textarea {
+  min-height: 52px; border-radius: 12px; font-size: 1rem; padding: 0 14px;
+  background: var(--surface-2); border: 1.5px solid var(--line-2);
+}
+textarea { padding: 12px 14px; }
+input[type="checkbox"], input[type="radio"] { min-height: 0; }
+input:focus, select:focus, textarea:focus { border-color: var(--primary); outline: 2px solid color-mix(in srgb, var(--primary) 35%, transparent); outline-offset: 1px; }
+
+/* Cartões */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+.stat-tile { border-radius: 14px; }
+.tbl-wrap thead th { background: var(--surface-2); }
+
+/* Tela inicial do Pátio (cartões de ação) */
+.acao-patio { background: var(--surface-2); border: 1.5px solid var(--line-2); border-radius: 16px; min-height: 128px; justify-content: flex-end; }
+.acao-patio-principal { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+.acao-patio-principal span { color: color-mix(in srgb, var(--on-primary) 78%, transparent); }
+.acao-patio svg { margin-bottom: 4px; }
+.acao-patio:not(.acao-patio-principal) svg { color: var(--primary); }
+
+/* Lista em cartões no celular: NF grande + selo à direita */
+@media (max-width: 640px) {
+  .tbl-cards tbody tr { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 10px; }
+  .tbl-cards tbody tr:last-child { border-bottom: 1px solid var(--line); }
+  .tbl-cards td[data-label="NF"] { order: -2; font-family: var(--font-condensed), sans-serif; font-size: 1.3rem; font-weight: 700; letter-spacing: .03em; }
+  .tbl-cards td[data-label="Status"] { order: -1; justify-self: end; text-align: right; }
+  .tbl-cards td[data-label="NF"]::before, .tbl-cards td[data-label="Status"]::before { display: none; }
+}
