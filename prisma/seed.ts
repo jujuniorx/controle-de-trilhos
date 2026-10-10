@@ -28,7 +28,7 @@ async function seedAdmin() {
     return;
   }
 
-  await prisma.user.create({ data: { nome: 'Administrador', email, senhaHash: await hashSegredo(senha) } });
+  await prisma.user.create({ data: { nome: 'Junior', email, senhaHash: await hashSegredo(senha) } });
   console.log(`Usuário admin criado: ${email}`);
 }
 
