@@ -31,7 +31,8 @@ export async function autenticar(identificador: string, senha: string): Promise<
   });
   const senhaValida = user ? await verificarSegredo(senha, user.senhaHash) : false;
 
-  if (!user || !senhaValida) {
+  // Conta desativada é tratada como credencial inválida (não revela que a conta existe).
+  if (!user || !user.ativo || !senhaValida) {
     const novasTentativas = (tentativa?.tentativas ?? 0) + 1;
     await prisma.loginAttempt.upsert({
       where: { identificador: chave },

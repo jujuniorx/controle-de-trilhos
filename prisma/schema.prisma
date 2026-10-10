@@ -76,6 +76,8 @@ enum ModoMedicao {
 
 enum Role {
   ADMIN
+  // Dono do sistema: além do que o ADMIN faz, gerencia usuários, exclui movimentações e vê a auditoria.
+  DONO
 }
 
 model User {
@@ -200,6 +202,18 @@ model Anexo {
 model FatorPerfil {
   perfil PerfilTrilho @id
   fator  Decimal
+}
+
+// Registro de ações sensíveis do Administrativo (exclusões, gestão de usuários). Só leitura pelo DONO.
+model LogAuditoria {
+  id          String   @id @default(cuid())
+  usuarioId   String?
+  usuarioNome String
+  acao        String
+  descricao   String
+  criadoEm    DateTime @default(now())
+
+  @@index([criadoEm])
 }
 
 model HistoricoAlteracao {

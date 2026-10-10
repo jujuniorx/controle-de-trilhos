@@ -27,3 +27,17 @@ describe('AdminShell', () => {
     expect(screen.getByText('área de conteúdo')).toBeTruthy();
   });
 });
+
+describe('AdminShell — dono', () => {
+  afterEach(cleanup);
+
+  it('só o dono vê Usuários e Auditoria', () => {
+    render(<AdminShell nome="Junior" ehDono>x</AdminShell>);
+    expect(screen.getAllByRole('link', { name: 'Usuários' })[0]).toHaveAttribute('href', '/admin/usuarios');
+    expect(screen.getAllByRole('link', { name: 'Auditoria' })[0]).toHaveAttribute('href', '/admin/auditoria');
+    cleanup();
+    render(<AdminShell nome="Paula">x</AdminShell>);
+    expect(screen.queryByRole('link', { name: 'Usuários' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Auditoria' })).toBeNull();
+  });
+});

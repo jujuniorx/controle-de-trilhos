@@ -31,13 +31,16 @@ export async function criarSessao(userId: string): Promise<{ token: string; expi
   return { token, expiresAt };
 }
 
-export async function validarSessao(token: string): Promise<{ userId: string; nome: string } | null> {
+export async function validarSessao(
+  token: string,
+): Promise<{ userId: string; nome: string; role: 'ADMIN' | 'DONO' } | null> {
   const session = await prisma.session.findUnique({
     where: { tokenHash: hashToken(token) },
-    include: { user: { select: { nome: true } } },
+    include: { user: { select: { nome: true, role: true, ativo: true } } },
   });
   if (!session || session.revokedAt || session.expiresAt < new Date()) return null;
-  return { userId: session.userId, nome: session.user.nome };
+  if (!session.user.ativo) return null; // conta desativada perde o acesso na hora
+  return { userId: session.userId, nome: session.user.nome, role: session.user.role };
 }
 
 export async function revogarSessao(token: string): Promise<void> {

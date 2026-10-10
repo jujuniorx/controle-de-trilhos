@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { SidebarNav } from './SidebarNav';
 
-export function MobileNav() {
+export function MobileNav({ dono }: { dono?: boolean }) {
   const [aberto, setAberto] = useState(false);
 
   return (
@@ -21,7 +21,7 @@ export function MobileNav() {
       </button>
       {aberto && (
         <div className="ct-sidebar absolute inset-x-0 top-full z-50 shadow-lg">
-          <SidebarNav className="py-2" onNavigate={() => setAberto(false)} />
+          <SidebarNav dono={dono} className="py-2" onNavigate={() => setAberto(false)} />
         </div>
       )}
     </div>

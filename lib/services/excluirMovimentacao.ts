@@ -6,7 +6,7 @@ import { ErroRegraNegocio } from '@/lib/services/errors';
  * pertence a ela: medições, grupos, anexos, histórico e detalhe de remetido.
  * Irreversível — pensado para limpar lançamentos de teste. Só o Administrativo chama.
  */
-export async function excluirMovimentacao(movimentacaoId: string): Promise<{ rotulo: string }> {
+export async function excluirMovimentacao(movimentacaoId: string): Promise<{ rotulo: string; tipo: string }> {
   const mov = await prisma.movimentacao.findUnique({ where: { id: movimentacaoId } });
   if (!mov) throw new ErroRegraNegocio('Movimentação não encontrada (talvez já tenha sido excluída).');
 
@@ -19,5 +19,5 @@ export async function excluirMovimentacao(movimentacaoId: string): Promise<{ rot
     prisma.movimentacao.delete({ where: { id: movimentacaoId } }),
   ]);
 
-  return { rotulo: mov.numeroDocumento ?? mov.destino ?? mov.origem ?? mov.id };
+  return { rotulo: mov.numeroDocumento ? `NF ${mov.numeroDocumento}` : (mov.destino ?? mov.origem ?? mov.id), tipo: mov.tipo };
 }

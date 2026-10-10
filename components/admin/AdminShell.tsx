@@ -17,12 +17,12 @@ function iniciaisDe(nome: string): string {
     .join('');
 }
 
-export function AdminShell({ nome, children }: { nome: string; children: ReactNode }) {
+export function AdminShell({ nome, ehDono = false, children }: { nome: string; ehDono?: boolean; children: ReactNode }) {
   return (
     <div className="area-admin flex min-h-screen flex-col bg-background md:flex-row">
       <header className="ct-topbar relative flex h-14 flex-none items-center justify-between px-3 md:hidden">
         <div className="flex items-center gap-2">
-          <MobileNav />
+          <MobileNav dono={ehDono} />
           <NavegacaoTopo inicioArea="/admin" />
         </div>
         <div className="flex items-center gap-3">
@@ -37,7 +37,7 @@ export function AdminShell({ nome, children }: { nome: string; children: ReactNo
         <div className="ct-sidebar-logo">
           <Logo size={32} subtitle="Administração" />
         </div>
-        <SidebarNav className="flex flex-1 flex-col gap-0.5 py-2" />
+        <SidebarNav dono={ehDono} className="flex flex-1 flex-col gap-0.5 py-2" />
         <div className="ct-sidebar-footer">
           <div className="mb-0.5 text-[.78rem] text-ink-muted">{nome}</div>
           <Link href="/admin/trocar-senha" className="text-[.72rem] text-ink-dim underline hover:text-ink">
@@ -58,7 +58,7 @@ export function AdminShell({ nome, children }: { nome: string; children: ReactNo
           </div>
         </header>
         <InstalarApp />
-        <MenuExcluir />
+        {ehDono && <MenuExcluir />}
         <main className="min-w-0 flex-1">{children}</main>
       </div>
     </div>
