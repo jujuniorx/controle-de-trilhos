@@ -15,6 +15,9 @@ export default function Home() {
           Login do Administrativo
         </Link>
         <BotaoInstalar />
+        <Link href="/privacidade" className="block text-center text-xs text-ink-dim underline hover:text-ink">
+          Privacidade e cookies
+        </Link>
       </div>
     </main>
   );
