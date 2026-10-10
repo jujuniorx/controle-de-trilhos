@@ -1,5 +1,12 @@
-import type { EntityTable } from 'dexie';
 import { db, type ItemFila } from '@/lib/offline/db';
+
+// O que a sincronização precisa de uma fila local (Dexie). Tipo estrutural simples, e não
+// o EntityTable genérico do Dexie, porque o UpdateSpec dele não aceita ItemFila<P> genérico.
+type RegistroFila = ItemFila<unknown>;
+interface TabelaFila {
+  where(indice: 'syncStatus'): { equals(valor: string): { toArray(): Promise<RegistroFila[]> } };
+  update(chave: string, mudancas: Partial<RegistroFila>): Promise<number>;
+}
 
 interface RespostaSync {
   ok?: boolean;
@@ -47,15 +54,11 @@ export async function sincronizarPendentes(fetchImpl: typeof fetch = fetch): Pro
   // Duas filas independentes, mesma regra: Recebimentos (POST /api/sync) e pré-cadastros
   // de Remetido "aguardando chegada" (POST /api/sync/pre-cadastro). Em sequência, não
   // em paralelo, para não disputar o banco do servidor nem a rede do tablet.
-  await sincronizarFila(db.recebimentos, '/api/sync', fetchImpl);
-  await sincronizarFila(db.preCadastros, '/api/sync/pre-cadastro', fetchImpl);
+  await sincronizarFila(db.recebimentos as unknown as TabelaFila, '/api/sync', fetchImpl);
+  await sincronizarFila(db.preCadastros as unknown as TabelaFila, '/api/sync/pre-cadastro', fetchImpl);
 }
 
-async function sincronizarFila<P>(
-  tabela: EntityTable<ItemFila<P>, 'clientId'>,
-  url: string,
-  fetchImpl: typeof fetch,
-): Promise<void> {
+async function sincronizarFila(tabela: TabelaFila, url: string, fetchImpl: typeof fetch): Promise<void> {
   await reclamarSincronizandoOrfaos(tabela);
 
   const pendentes = await tabela.where('syncStatus').equals('PENDENTE').toArray();
@@ -111,7 +114,7 @@ async function sincronizarFila<P>(
  * volta, e o indicador de sincronização (Task 7) o contaria como pendente sem nunca
  * ter um gatilho que o reprocessasse.
  */
-async function reclamarSincronizandoOrfaos<P>(tabela: EntityTable<ItemFila<P>, 'clientId'>): Promise<void> {
+async function reclamarSincronizandoOrfaos(tabela: TabelaFila): Promise<void> {
   const agora = Date.now();
   const emAndamento = await tabela.where('syncStatus').equals('SINCRONIZANDO').toArray();
 
