@@ -159,7 +159,7 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         descricaoPerfil(g.perfil),
         ehNovo ? upperSeCustomizado(g.fabricante) : '',
         pecasDoGrupo(g.medicoes),
-        ehSucata ? null : g.pesoCalculado != null ? Number(g.pesoCalculado) / 1000 : null,
+        ehSucata ? null : g.pesoCalculado != null ? Number(g.pesoCalculado) : null,
         g1,
         g2,
         g3,
@@ -237,8 +237,7 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
               .join(', ')
           : '';
 
-      // Dados históricos estão em gramas — normaliza para toneladas
-      const toneladas = g.pesoInformado != null ? Number(g.pesoInformado) / 1000 : g.pesoCalculado != null ? Number(g.pesoCalculado) / 1000 : null;
+      const toneladas = g.pesoInformado != null ? Number(g.pesoInformado) : g.pesoCalculado != null ? Number(g.pesoCalculado) : null;
 
       sheet.addRow([
         ...base,

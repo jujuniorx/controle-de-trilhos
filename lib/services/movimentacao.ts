@@ -199,7 +199,7 @@ function somaPeso(movimentacao: MovimentacaoComGrupos, tipo: 'NOVO' | 'REEMPREGO
   return arredondar3(
     movimentacao.grupos
       .filter((g) => g.tipoMaterial === tipo)
-      .reduce((acc, g) => acc + Number(g.pesoCalculado ?? 0) / 1000, 0),
+      .reduce((acc, g) => acc + Number(g.pesoCalculado ?? 0), 0),
   );
 }
 
@@ -209,8 +209,7 @@ export function resumoPeso(movimentacao: MovimentacaoComGrupos): ResumoPeso {
   const pesoReemprego = somaPeso(movimentacao, 'REEMPREGO');
   const pesoNovoReemprego = arredondar3(pesoNovo + pesoReemprego);
   const pesoSucataEstimado = somaPeso(movimentacao, 'SUCATA');
-  // Dados históricos estão em gramas — normaliza para toneladas
-  const pesoSucataReal = movimentacao.pesoSucataReal != null ? Number(movimentacao.pesoSucataReal) / 1000 : null;
+  const pesoSucataReal = movimentacao.pesoSucataReal != null ? Number(movimentacao.pesoSucataReal) : null;
   const pendente = temSucata && pesoSucataReal == null;
   const pesoTotal = pendente ? null : arredondar3(pesoNovoReemprego + (pesoSucataReal ?? 0));
   return { temSucata, pesoNovo, pesoReemprego, pesoNovoReemprego, pesoSucataEstimado, pesoSucataReal, pendente, pesoTotal };
