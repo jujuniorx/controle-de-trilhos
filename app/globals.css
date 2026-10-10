@@ -610,7 +610,15 @@ input[type="date"], input[type="time"], input[type="datetime-local"] {
 }
 input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 /* Respeita o recorte do iPhone quando instalado em tela cheia. */
-body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+/* App instalado no iPhone: a barra de status é translúcida e o conteúdo vai até o topo da tela;
+   sem esta folga o cabeçalho fica escondido atrás do relógio/bateria. */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+.min-h-screen { min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); }
 
 /* Convite de instalação do app (PWA) */
 .instalar-app {
