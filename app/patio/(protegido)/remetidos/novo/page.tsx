@@ -3,7 +3,7 @@ import { NovoRemetido } from './NovoRemetido';
 
 export default function NovoRemetidoPage() {
   return (
-    <main className="mx-auto max-w-md p-4">
+    <main className="mx-auto max-w-md lg:max-w-xl p-4">
       <Link href="/patio/remetidos" className="back-link">
         ← Voltar
       </Link>

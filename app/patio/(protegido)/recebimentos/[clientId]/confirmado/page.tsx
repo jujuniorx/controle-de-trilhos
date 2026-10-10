@@ -61,7 +61,7 @@ export default function RecebimentoConfirmadoPage() {
 
   if (carregando) {
     return (
-      <main className="mx-auto max-w-xl p-6">
+      <main className="mx-auto max-w-xl lg:max-w-3xl p-6">
         <p className="text-sm text-ink-muted">Carregando...</p>
       </main>
     );
@@ -71,7 +71,7 @@ export default function RecebimentoConfirmadoPage() {
     // Equivalente client-side de notFound(): nenhum registro local com este clientId
     // (ex.: link acessado direto, em outro dispositivo, ou dados locais limpos).
     return (
-      <main className="mx-auto max-w-xl p-6">
+      <main className="mx-auto max-w-xl lg:max-w-3xl p-6">
         <h1 className="font-condensed text-lg font-bold uppercase tracking-wide text-ink">Recebimento não encontrado</h1>
         <p className="mt-2 text-sm text-ink-muted">
           Não há nenhum recebimento salvo neste dispositivo com este identificador.
@@ -94,7 +94,7 @@ export default function RecebimentoConfirmadoPage() {
   };
 
   return (
-    <main className="mx-auto max-w-xl space-y-4 p-6">
+    <main className="mx-auto max-w-xl lg:max-w-3xl space-y-4 p-6">
       <div className="conf-block conf-ok text-center">
         <div className="mx-auto grid h-12 w-12 place-items-center rounded-full text-2xl text-white" style={{ background: 'var(--ok)' }}>✓</div>
         <h1 className="mt-2 font-condensed text-lg font-bold uppercase tracking-wide" style={{ color: 'var(--ok)' }}>Recebimento salvo</h1>

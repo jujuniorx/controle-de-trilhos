@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function PatioHomePage() {
   return (
-    <main className="mx-auto max-w-md p-6">
+    <main className="mx-auto max-w-md lg:max-w-xl p-6">
       <h1 className="font-condensed text-xl font-bold uppercase tracking-wide text-ink">Pátio — Controle de Trilhos</h1>
       <p className="mt-2 text-sm text-ink-muted">
         Área do Pátio: recebimento por caminhão e remetidos (aguardando chegada ou lançamento direto).

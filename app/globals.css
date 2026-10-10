@@ -622,3 +622,7 @@ body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-ins
 .instalar-app-texto { display: flex; flex-direction: column; gap: 2px; flex: 1 1 220px; min-width: 0; }
 .instalar-app-texto span { color: var(--t3); }
 .instalar-app-acoes { display: flex; gap: 8px; }
+
+/* Desktop: telas grandes escalam o texto (tudo é em rem) para não ficar miúdo. */
+@media (min-width: 1280px) { html { font-size: 17px; } }
+@media (min-width: 1700px) { html { font-size: 18px; } }

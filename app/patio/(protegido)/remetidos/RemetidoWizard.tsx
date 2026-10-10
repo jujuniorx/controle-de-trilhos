@@ -630,7 +630,7 @@ export function RemetidoWizard(props: Props) {
         ))}
 
         <div className="flex gap-2">
-          <select className="h-11 flex-1" value={draftPerfil} onChange={(e) => setDraftPerfil(e.target.value)}>
+          <select className="h-11 min-w-[7rem] flex-1" value={draftPerfil} onChange={(e) => setDraftPerfil(e.target.value)}>
             <option value="">Perfil</option>
             {PERFIS.map((p) => (
               <option key={p} value={p}>
@@ -643,7 +643,7 @@ export function RemetidoWizard(props: Props) {
             <option value="REEMPREGO">REEMPREGO</option>
             <option value="SUCATA">SUCATA</option>
           </select>
-          <button className="btn btn-primary h-11" onClick={adicionarGrupo} disabled={!draftPerfil}>
+          <button className="btn btn-primary h-11 whitespace-nowrap" onClick={adicionarGrupo} disabled={!draftPerfil}>
             Adicionar grupo
           </button>
         </div>

@@ -32,7 +32,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
   const resumo = resumoPeso(mov);
 
   return (
-    <main className="mx-auto max-w-3xl space-y-4 p-6">
+    <main className="mx-auto max-w-3xl xl:max-w-5xl space-y-4 p-6">
       <div>
         <Link href="/admin" className="back-link">
           ← Voltar à lista

@@ -111,7 +111,7 @@ export default async function RelatoriosPage({
   ).toString();
 
   return (
-    <main className="mx-auto max-w-5xl space-y-6 p-6">
+    <main className="mx-auto max-w-5xl xl:max-w-7xl space-y-6 p-6">
       <div className="page-header">
         <h1 className="page-title">Relatório de movimentação</h1>
         <Link href="/admin" className="back-link">

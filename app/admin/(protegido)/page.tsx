@@ -26,7 +26,7 @@ export default async function AdminHomePage() {
   const [movimentacoes, aguardandoChegada] = await Promise.all([listarPendentesConferencia(), listarAguardandoChegada()]);
 
   return (
-    <main className="mx-auto max-w-4xl space-y-6 p-6">
+    <main className="mx-auto max-w-4xl xl:max-w-6xl space-y-6 p-6">
       <div className="page-header flex items-center justify-between">
         <h1 className="page-title">Movimentações pendentes de conferência</h1>
         <div className="flex gap-2">

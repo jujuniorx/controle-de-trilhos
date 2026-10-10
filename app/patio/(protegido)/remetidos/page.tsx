@@ -12,7 +12,7 @@ export default async function RemetidosAguardandoPage() {
   const remetidos = await listarAguardandoChegada();
 
   return (
-    <main className="mx-auto max-w-md p-6">
+    <main className="mx-auto max-w-md lg:max-w-xl p-6">
       <h1 className="font-condensed text-xl font-bold uppercase tracking-wide text-ink">Remetidos</h1>
 
       <Link href="/patio/remetidos/novo" className="btn btn-primary mt-4 h-12">
