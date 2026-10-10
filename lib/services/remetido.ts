@@ -254,9 +254,8 @@ export async function informarNumeroDocumentoRemetido(
 export function resumoPesoRemetido(movimentacao: MovimentacaoRemetidoComGrupos): number {
   return arredondar3(
     movimentacao.grupos.reduce((acc, g) => {
-      let peso = Number(g.pesoInformado ?? g.pesoCalculado ?? 0);
-      // Normaliza peso se estiver em gramas (> 1000 toneladas é absurdo)
-      peso = peso > 1000 ? peso / 1000 : peso;
+      // Dados históricos estão em gramas — normaliza para toneladas
+      let peso = Number(g.pesoInformado ?? g.pesoCalculado ?? 0) / 1000;
       return acc + peso;
     }, 0),
   );
