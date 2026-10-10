@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { NavegacaoTopo } from '@/components/ui/NavegacaoTopo';
 import { MobileNav } from './MobileNav';
 import { SidebarNav } from './SidebarNav';
 import { Logo } from '@/components/ui/Logo';
@@ -21,8 +22,7 @@ export function AdminShell({ nome, children }: { nome: string; children: ReactNo
       <header className="ct-topbar relative flex h-14 flex-none items-center justify-between px-3 md:hidden">
         <div className="flex items-center gap-2">
           <MobileNav />
-          <Logo size={26} showText={false} />
-          <span className="font-condensed text-base font-bold uppercase tracking-wide text-ink">Controle de Trilhos</span>
+          <NavegacaoTopo inicioArea="/admin" />
         </div>
         <div className="flex items-center gap-3">
           <AlternarTema padrao="claro" />
@@ -46,9 +46,10 @@ export function AdminShell({ nome, children }: { nome: string; children: ReactNo
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="ct-topbar hidden h-[52px] flex-none items-center justify-end gap-3 px-6 md:flex">
-          <AlternarTema padrao="claro" />
+        <header className="ct-topbar hidden h-[52px] flex-none items-center justify-between gap-3 px-6 md:flex">
+          <NavegacaoTopo inicioArea="/admin" />
           <div className="flex items-center gap-3">
+            <AlternarTema padrao="claro" />
             <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-sm font-bold text-white">
               {iniciaisDe(nome) || '?'}
             </span>

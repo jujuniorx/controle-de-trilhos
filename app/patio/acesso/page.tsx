@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
+import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
 import { acessarPatioAction, type EstadoAcessoPatio } from './actions';
 
@@ -45,6 +46,10 @@ export default function AcessoPatioPage() {
           </p>
         )}
       </form>
+
+      <Link href="/" className="mt-6 text-center text-sm text-ink-muted underline hover:text-ink">
+        ← Voltar ao início (trocar entre Pátio e Administrativo)
+      </Link>
     </main>
   );
 }

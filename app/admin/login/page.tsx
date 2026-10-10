@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
+import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
 import { loginAction, type EstadoLogin } from './actions';
 
@@ -36,6 +37,10 @@ export default function LoginPage() {
           </p>
         )}
       </form>
+
+      <Link href="/" className="mt-6 text-center text-sm text-ink-muted underline hover:text-ink">
+        ← Voltar ao início (trocar entre Pátio e Administrativo)
+      </Link>
     </main>
   );
 }
