@@ -30,7 +30,7 @@ export function InstalarApp() {
 
   useEffect(() => {
     const instalado =
-      window.matchMedia('(display-mode: standalone)').matches ||
+      (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches) ||
       (navigator as Navigator & { standalone?: boolean }).standalone === true;
     if (instalado || lerDispensado()) return;
 
