@@ -38,7 +38,7 @@ export default async function AdminHomePage() {
       <p className="-mt-4 text-sm text-ink-muted">{movimentacoes.length} movimentação(ões) aguardando conferência.</p>
 
       <div className="card">
-        <div className="tbl-wrap">
+        <div className="tbl-wrap tbl-cards">
           <table>
             <thead>
               <tr>
@@ -55,17 +55,17 @@ export default async function AdminHomePage() {
             <tbody>
               {movimentacoes.map((m) => (
                 <tr key={m.id}>
-                  <td>
+                  <td data-label="Tipo">
                     <span className="badge badge-info">{m.tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'}</span>
                   </td>
-                  <td className="font-mono">{fmtData(m.dataMovimentacao)}</td>
-                  <td className="font-mono">{m.numeroDocumento ?? 'Em aberto'}</td>
-                  <td>{m.tipo === 'RECEBIMENTO' ? m.origem : m.destino}</td>
-                  <td className="font-mono">
+                  <td data-label="Data" className="font-mono">{fmtData(m.dataMovimentacao)}</td>
+                  <td data-label="NF" className="font-mono">{m.numeroDocumento ?? 'Em aberto'}</td>
+                  <td data-label="Origem/Destino">{m.tipo === 'RECEBIMENTO' ? m.origem : m.destino}</td>
+                  <td data-label="Caminhão" className="font-mono">
                     {[m.placaCarreta, m.placaCarreta2, m.placaCavalo].filter(Boolean).join(' / ') || '—'}
                   </td>
-                  <td>{m.responsavelPatio}</td>
-                  <td>
+                  <td data-label="Responsável">{m.responsavelPatio}</td>
+                  <td data-label="Status">
                     <span className={`badge ${STATUS_BADGE[m.status] ?? 'badge-muted'}`}>
                       {STATUS_TEXTO[m.status] ?? m.status}
                     </span>
@@ -98,7 +98,7 @@ export default async function AdminHomePage() {
         </div>
         <p className="-mt-4 mb-2 text-sm text-ink-muted">{aguardandoChegada.length} pré-cadastro(s) aguardando o Pátio confirmar.</p>
         <div className="card">
-          <div className="tbl-wrap">
+          <div className="tbl-wrap tbl-cards">
             <table>
               <thead>
                 <tr>

@@ -2,17 +2,19 @@ import Link from 'next/link';
 
 export default function PatioHomePage() {
   return (
-    <main className="mx-auto max-w-md lg:max-w-xl p-6">
-      <h1 className="font-condensed text-xl font-bold uppercase tracking-wide text-ink">Pátio — Controle de Trilhos</h1>
-      <p className="mt-2 text-sm text-ink-muted">
-        Área do Pátio: recebimento por caminhão e remetidos (aguardando chegada ou lançamento direto).
-      </p>
-      <Link href="/patio/recebimentos/novo" className="btn btn-primary btn-lg mt-6 h-12">
-        Novo recebimento
-      </Link>
-      <Link href="/patio/remetidos" className="btn btn-ghost btn-lg mt-3 h-12">
-        Remetidos
-      </Link>
+    <main className="mx-auto max-w-md p-6 sm:max-w-2xl lg:max-w-3xl">
+      <h1 className="font-condensed text-2xl font-bold uppercase tracking-wide text-ink">O que vamos registrar?</h1>
+      <p className="mt-1 text-sm text-ink-muted">Escolha uma opção. Sem internet, o registro fica guardado e é enviado depois.</p>
+      <div className="acoes-patio">
+        <Link href="/patio/recebimentos/novo" className="acao-patio acao-patio-principal">
+          <strong>Novo recebimento</strong>
+          <span>Caminhão chegando com trilhos para o pátio.</span>
+        </Link>
+        <Link href="/patio/remetidos" className="acao-patio">
+          <strong>Remetidos</strong>
+          <span>Cadastrar saída (aguardando chegada ou lançar agora) e confirmar carregamentos.</span>
+        </Link>
+      </div>
     </main>
   );
 }

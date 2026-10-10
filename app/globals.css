@@ -626,3 +626,38 @@ body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-ins
 /* Desktop: telas grandes escalam o texto (tudo é em rem) para não ficar miúdo. */
 @media (min-width: 1280px) { html { font-size: 17px; } }
 @media (min-width: 1700px) { html { font-size: 18px; } }
+
+/* Tabelas viram cartões no celular (cada linha = um cartão com rótulos). */
+@media (max-width: 640px) {
+  .tbl-cards table, .tbl-cards tbody { display: block; }
+  .tbl-cards thead { display: none; }
+  .tbl-cards tbody tr {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px;
+    padding: 12px 0; border-bottom: 1px solid var(--ln);
+  }
+  .tbl-cards tbody tr:last-child { border-bottom: none; }
+  .tbl-cards td { display: block; padding: 0 !important; border: 0 !important; min-width: 0; overflow-wrap: anywhere; }
+  .tbl-cards td[data-label]::before {
+    content: attr(data-label); display: block; margin-bottom: 2px;
+    font-family: var(--font-condensed), sans-serif; font-size: .62rem; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--t3);
+  }
+  .tbl-cards td:last-child { grid-column: 1 / -1; text-align: right !important; }
+  .tbl-cards td[colspan] { grid-column: 1 / -1; text-align: center; }
+}
+
+/* Início do Pátio: ações grandes, fáceis de tocar com luva/tablet. */
+.acoes-patio { display: grid; gap: 12px; margin-top: 20px; }
+@media (min-width: 640px) { .acoes-patio { grid-template-columns: 1fr 1fr; } }
+.acao-patio {
+  display: flex; flex-direction: column; gap: 6px; padding: 20px;
+  background: var(--g2); border: 1px solid var(--ln); border-radius: var(--radius-lg);
+  color: var(--t1); text-decoration: none; min-height: 120px;
+  transition: border-color .15s, transform .05s;
+}
+.acao-patio:hover { border-color: var(--b3); }
+.acao-patio:active { transform: scale(.98); }
+.acao-patio strong { font-family: var(--font-condensed), sans-serif; font-size: 1.35rem; letter-spacing: .03em; text-transform: uppercase; }
+.acao-patio span { color: var(--t3); font-size: .85rem; }
+.acao-patio-principal { background: var(--b3); border-color: var(--b3); color: #fff; }
+.acao-patio-principal span { color: rgba(255,255,255,.8); }

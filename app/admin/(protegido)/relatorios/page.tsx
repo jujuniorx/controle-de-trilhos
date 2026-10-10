@@ -35,11 +35,11 @@ const STATUS_TEXTO: Record<string, string> = {
 function LinhaTabela({ mov }: { mov: MovimentacaoRelatorio }) {
   return (
     <tr>
-      <td>{mov.tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'}</td>
-      <td className="font-mono">{fmtData(mov.dataMovimentacao)}</td>
-      <td className="font-mono">{mov.numeroDocumento ?? 'Em aberto'}</td>
-      <td>{mov.tipo === 'RECEBIMENTO' ? mov.origem : mov.destino}</td>
-      <td>
+      <td data-label="Tipo">{mov.tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'}</td>
+      <td data-label="Data" className="font-mono">{fmtData(mov.dataMovimentacao)}</td>
+      <td data-label="NF" className="font-mono">{mov.numeroDocumento ?? 'Em aberto'}</td>
+      <td data-label="Origem/Destino">{mov.tipo === 'RECEBIMENTO' ? mov.origem : mov.destino}</td>
+      <td data-label="Status">
         <span className={`badge ${STATUS_BADGE[mov.status] ?? 'badge-muted'}`}>{STATUS_TEXTO[mov.status] ?? mov.status}</span>
       </td>
       <td className="text-right">
@@ -60,7 +60,7 @@ function TabelaPendencia({ titulo, itens, vazio }: { titulo: string; itens: Movi
       {itens.length === 0 ? (
         <p className="mt-1 text-sm text-ink-dim">{vazio}</p>
       ) : (
-        <div className="tbl-wrap mt-1">
+        <div className="tbl-wrap tbl-cards mt-1">
           <table>
             <thead>
               <tr>
@@ -222,7 +222,7 @@ export default async function RelatoriosPage({
           </a>
         </div>
         <div className="card">
-          <div className="tbl-wrap">
+          <div className="tbl-wrap tbl-cards">
             <table>
               <thead>
                 <tr>
