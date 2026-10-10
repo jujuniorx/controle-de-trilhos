@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Barlow, Barlow_Condensed, Geist_Mono } from "next/font/google";
+import { cookies } from "next/headers";
 import { RegistrarServiceWorker } from "@/components/RegistrarServiceWorker";
+import { TEMA_COOKIE, temaValido } from "@/lib/tema/tema";
 import "./globals.css";
 
 const barlow = Barlow({
@@ -49,10 +51,15 @@ export const viewport: Viewport = {
 // continuariam quebradas mesmo com o middleware corrigido.
 export const dynamic = "force-dynamic";
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // Tema escolhido pelo usuário (claro/escuro). Sem cookie, cada área usa seu
+  // padrão (Admin claro, Pátio escuro) — ver app/globals.css.
+  const tema = temaValido((await cookies()).get(TEMA_COOKIE)?.value);
+
   return (
     <html
-      lang="en"
+      lang="pt-BR"
+      data-tema={tema}
       className={`${barlow.variable} ${barlowCondensed.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">

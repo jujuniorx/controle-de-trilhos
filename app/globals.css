@@ -74,8 +74,16 @@
 
 /* ═══════════════════════════════════════════════
    PALETA ADMIN — Navy (#0B1B31) + Blue (#0F5FCC)
-   (prototipos/administrativo/administrativo.html) */
-.area-admin {
+   (prototipos/administrativo/administrativo.html)
+
+   TEMAS: a paleta vale por TEMA, não por área. Sem escolha do usuário (sem
+   data-tema no <html>) cada área usa seu padrão — Admin claro, Pátio escuro.
+   Com a escolha (cookie ct_tema, lido em app/layout.tsx), as duas áreas
+   seguem o tema escolhido: claro = paleta Admin, escuro = paleta Pátio. */
+html:not([data-tema]) .area-admin,
+html[data-tema="claro"] .area-admin,
+html[data-tema="claro"] .area-patio {
+  color-scheme: light;
   /* Paleta de cores bruta para compatibilidade com CSS existente */
   --g0: #ffffff;
   --g1: #f5f7fa;
@@ -131,7 +139,10 @@
 /* ═══════════════════════════════════════════════
    PALETA PÁTIO — Grafite (#1E262E) + Steel (#2F6690)
    (prototipos/patio/controle-de-trilhos-patio.html) */
-.area-patio {
+html:not([data-tema]) .area-patio,
+html[data-tema="escuro"] .area-patio,
+html[data-tema="escuro"] .area-admin {
+  color-scheme: dark;
   /* Valores padrão da paleta Pátio — mantém compatibilidade com CSS existente */
   --g0: #0d1014;
   --g1: #141920;
@@ -177,6 +188,11 @@
   --bad-light: #FBE4E1;
   --line: #D5DCE3;
   --line-2: rgba(255, 255, 255, .12);
+}
+
+html[data-tema="claro"] body {
+  background: #ffffff;
+  color: #1a1a1a;
 }
 
 @theme inline {

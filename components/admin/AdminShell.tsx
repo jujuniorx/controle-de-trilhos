@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { MobileNav } from './MobileNav';
 import { SidebarNav } from './SidebarNav';
 import { Logo } from '@/components/ui/Logo';
+import { AlternarTema } from '@/components/ui/AlternarTema';
 
 function iniciaisDe(nome: string): string {
   return nome
@@ -22,9 +23,12 @@ export function AdminShell({ nome, children }: { nome: string; children: ReactNo
           <Logo size={26} showText={false} />
           <span className="font-condensed text-base font-bold uppercase tracking-wide text-ink">Controle de Trilhos</span>
         </div>
-        <Link href="/admin/trocar-senha" className="text-xs text-ink-dim underline hover:text-ink">
-          Trocar senha
-        </Link>
+        <div className="flex items-center gap-3">
+          <AlternarTema padrao="claro" />
+          <Link href="/admin/trocar-senha" className="text-xs text-ink-dim underline hover:text-ink">
+            Trocar senha
+          </Link>
+        </div>
       </header>
 
       <aside className="ct-sidebar hidden w-[220px] flex-none flex-col md:flex">
@@ -42,6 +46,7 @@ export function AdminShell({ nome, children }: { nome: string; children: ReactNo
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="ct-topbar hidden h-[52px] flex-none items-center justify-end gap-3 px-6 md:flex">
+          <AlternarTema padrao="claro" />
           <div className="flex items-center gap-3">
             <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-sm font-bold text-white">
               {iniciaisDe(nome) || '?'}
