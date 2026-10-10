@@ -54,7 +54,7 @@ export default async function AdminHomePage() {
             </thead>
             <tbody>
               {movimentacoes.map((m) => (
-                <tr key={m.id}>
+                <tr key={m.id} data-mov-id={m.id} data-mov-rotulo={m.numeroDocumento ? `NF ${m.numeroDocumento}` : (m.destino ?? m.origem ?? 'Movimentação em aberto')}>
                   <td data-label="Tipo">
                     <span className="badge badge-info">{m.tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'}</span>
                   </td>
@@ -110,7 +110,7 @@ export default async function AdminHomePage() {
               </thead>
               <tbody>
                 {aguardandoChegada.map((r) => (
-                  <tr key={r.id}>
+                  <tr key={r.id} data-mov-id={r.id} data-mov-rotulo={r.destino ?? r.reservaPedido ?? "Remetido aguardando chegada"}>
                     <td>{r.reservaPedido ?? '—'}</td>
                     <td>{r.destino}</td>
                     <td className="font-mono">{r.numeroDocumento ?? 'Em aberto'}</td>

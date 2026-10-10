@@ -4,6 +4,7 @@ import { NavegacaoTopo } from '@/components/ui/NavegacaoTopo';
 import { MobileNav } from './MobileNav';
 import { SidebarNav } from './SidebarNav';
 import { Logo } from '@/components/ui/Logo';
+import { MenuExcluir } from '@/components/admin/MenuExcluir';
 import { InstalarApp } from '@/components/InstalarApp';
 import { AlternarTema } from '@/components/ui/AlternarTema';
 
@@ -57,6 +58,7 @@ export function AdminShell({ nome, children }: { nome: string; children: ReactNo
           </div>
         </header>
         <InstalarApp />
+        <MenuExcluir />
         <main className="min-w-0 flex-1">{children}</main>
       </div>
     </div>
