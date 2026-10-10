@@ -33,9 +33,6 @@ export default async function AdminHomePage() {
           <Link href="/admin/relatorios" className="btn btn-ghost btn-sm">
             Relatórios
           </Link>
-          <Link href="/admin/remetidos/novo" className="btn btn-primary btn-sm">
-            + Novo remetido
-          </Link>
         </div>
       </div>
       <p className="-mt-4 text-sm text-ink-muted">{movimentacoes.length} movimentação(ões) aguardando conferência.</p>
