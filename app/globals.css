@@ -72,6 +72,118 @@
   --card-shadow: none;
 }
 
+/* ═══════════════════════════════════════════════
+   PALETA ADMIN — Navy (#0B1B31) + Blue (#0F5FCC)
+   (prototipos/administrativo/administrativo.html) */
+.area-admin {
+  /* Paleta de cores bruta para compatibilidade com CSS existente */
+  --g0: #ffffff;
+  --g1: #f5f7fa;
+  --g2: #ececf1;
+  --g3: #e0e4e8;
+  --g4: #d5dbe2;
+  --g5: #c5cad2;
+  --g6: #a8aeb6;
+
+  --b0: #E6EEFA;
+  --b1: #D0DDFA;
+  --b2: #B8CCF7;
+  --b3: #0F5FCC;
+  --b4: #0A4BA6;
+  --b5: #081F42;
+  --b6: #0B1B31;
+
+  --ok: #1E8449;
+  --ok-bg: #DCF2E3;
+  --warn: #F0A020;
+  --warn-bg: #FDEBCB;
+  --err: #C63B2E;
+  --err-bg: #FCE6E3;
+
+  --t1: #1a1a1a;
+  --t2: #666;
+  --t3: #999;
+  --ln: #DFE5EC;
+  --ln2: #D0DDFA;
+
+  /* Semânticos remapeados para Admin */
+  --primary: var(--b3);
+  --primary-dark: var(--b4);
+  --primary-light: var(--b0);
+  --surface: #f5f7fa;
+  --surface-2: #ececf1;
+  --surface-3: #e0e4e8;
+  --ink: var(--t1);
+  --ink-muted: var(--t2);
+  --ink-dim: var(--t3);
+  --ok-light: var(--ok-bg);
+  --warn-light: var(--warn-bg);
+  --bad: var(--err);
+  --bad-light: var(--err-bg);
+  --line: var(--ln);
+  --line-2: var(--ln2);
+
+  /* Background e texto para Admin — tema claro */
+  --background: #ffffff;
+  --foreground: var(--t1);
+}
+
+/* ═══════════════════════════════════════════════
+   PALETA PÁTIO — Grafite (#1E262E) + Steel (#2F6690)
+   (prototipos/patio/controle-de-trilhos-patio.html) */
+.area-patio {
+  /* Valores padrão da paleta Pátio — mantém compatibilidade com CSS existente */
+  --g0: #0d1014;
+  --g1: #141920;
+  --g2: #1c232c;
+  --g3: #252e39;
+  --g4: #2e3a47;
+  --g5: #3d4e5e;
+  --g6: #556270;
+
+  --b0: #0f2a45;
+  --b1: #1a3f65;
+  --b2: #1d5a9e;
+  --b3: #2d74c7;
+  --b4: #4a8fd4;
+  --b5: #7ab0e0;
+  --b6: #b3d1ef;
+
+  --ok: #22c55e;
+  --ok-bg: #052e16;
+  --warn: #f59e0b;
+  --warn-bg: #3d2a00;
+  --err: #ef4444;
+  --err-bg: #3b0f0f;
+
+  --t1: #e8edf2;
+  --t2: #9baab8;
+  --t3: #5c7080;
+  --ln: rgba(255, 255, 255, .07);
+  --ln2: rgba(255, 255, 255, .12);
+
+  /* Semânticos remapeados para Pátio */
+  --primary: #2F6690;
+  --primary-dark: #234E70;
+  --primary-light: #E1ECF5;
+  --surface: #1E262E;
+  --surface-2: #252e39;
+  --surface-3: #2e3a47;
+  --ink: #e8edf2;
+  --ink-muted: #9baab8;
+  --ink-dim: #5c7080;
+  --ok: #1F8A5B;
+  --ok-light: #DDF1E6;
+  --warn: #E39B1B;
+  --warn-light: #FBEFD3;
+  --bad: #C4392D;
+  --bad-light: #FBE4E1;
+  --line: #D5DCE3;
+  --line-2: rgba(255, 255, 255, .12);
+
+  /* Pátio mantém tema escuro (grafite já definido acima) */
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -387,25 +499,25 @@ input[type="checkbox"], input[type="radio"] { width: auto; background: initial; 
 /* ═══════════════════════════════════════════════
    SIDEBAR / TOPBAR (ver AdminShell.tsx / PatioShell.tsx)
 ═══════════════════════════════════════════════ */
-.ct-sidebar { background: var(--g1); border-right: 1px solid var(--ln); }
-.ct-sidebar-logo { padding: 20px 16px 16px; border-bottom: 1px solid var(--ln); }
+.ct-sidebar { background: var(--surface); border-right: 1px solid var(--line); }
+.ct-sidebar-logo { padding: 20px 16px 16px; border-bottom: 1px solid var(--line); }
 .ct-sidebar-nav a {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 10px 16px;
-  color: var(--t2);
+  color: var(--ink-muted);
   font-size: .85rem;
   font-weight: 500;
   border-left: 3px solid transparent;
   transition: background .15s, color .15s;
 }
-.ct-sidebar-nav a:hover { background: var(--g3); color: var(--t1); }
-.ct-sidebar-nav a[data-active="true"] { background: var(--b0); color: var(--b5); border-left-color: var(--b3); }
-.ct-sidebar-nav .nav-section { font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--t3); padding: 16px 16px 4px; }
-.ct-sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--ln); font-size: .75rem; color: var(--t3); }
+.ct-sidebar-nav a:hover { background: var(--surface-2); color: var(--ink); }
+.ct-sidebar-nav a[data-active="true"] { background: var(--primary-dark); color: var(--primary-light); border-left-color: var(--primary); }
+.ct-sidebar-nav .nav-section { font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-dim); padding: 16px 16px 4px; }
+.ct-sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--line); font-size: .75rem; color: var(--ink-dim); }
 
-.ct-topbar { background: var(--g1); border-bottom: 1px solid var(--ln); }
+.ct-topbar { background: var(--surface); border-bottom: 1px solid var(--line); }
 
 /* ═══════════════════════════════════════════════
    PAGE HEADER / BACK LINK / FILTROS / CONFERÊNCIA

@@ -9,7 +9,7 @@ export default function LoginPage() {
   const [estado, formAction, enviando] = useActionState(loginAction, ESTADO_INICIAL);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center p-6">
+    <main className="area-admin mx-auto flex min-h-screen max-w-sm flex-col justify-center p-6">
       <h1 className="font-condensed text-2xl font-bold uppercase tracking-wide text-ink">Login do Administrativo</h1>
       <p className="mt-1 text-sm text-ink-muted">Entre com seu usuário (ou e-mail) e senha para continuar.</p>
 

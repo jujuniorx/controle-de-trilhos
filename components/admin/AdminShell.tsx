@@ -15,7 +15,7 @@ function iniciaisDe(nome: string): string {
 
 export function AdminShell({ nome, children }: { nome: string; children: ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col bg-background md:flex-row">
+    <div className="area-admin flex min-h-screen flex-col bg-background md:flex-row">
       <header className="ct-topbar relative flex h-14 flex-none items-center justify-between px-3 md:hidden">
         <div className="flex items-center gap-2">
           <MobileNav />

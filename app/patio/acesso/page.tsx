@@ -9,7 +9,7 @@ export default function AcessoPatioPage() {
   const [estado, formAction, enviando] = useActionState(acessarPatioAction, ESTADO_INICIAL);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center p-6">
+    <main className="area-patio mx-auto flex min-h-screen max-w-sm flex-col justify-center p-6">
       <h1 className="font-condensed text-2xl font-bold uppercase tracking-wide text-ink">Acesso do Pátio</h1>
       <p className="mt-1 text-sm text-ink-muted">Digite o código de acesso do Pátio para continuar.</p>
 
