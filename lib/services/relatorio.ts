@@ -64,15 +64,9 @@ export interface ResumoRelatorio {
  * resumoPesoRemetido em lib/services/remetido.ts e o export Excel) — para
  * grupos de RECEBIMENTO é um no-op, já que pesoInformado nunca é gravado por
  * criarRecebimentoCaminhao (lib/services/movimentacao.ts).
- *
- * Divida por 1000 se necessário — pesos antigas podem estar armazenados em
- * gramas (multiplicados por 1000); Decimal no Prisma representa o valor
- * exato do banco, então normaliza aqui.
  */
 function pesoConhecidoDoGrupo(grupo: MovimentacaoRelatorio['grupos'][number]): number {
-  const peso = Number(grupo.pesoInformado ?? grupo.pesoCalculado ?? 0);
-  // Se o peso for > 1000 toneladas, provavelmente está em gramas — divide por 1000
-  return peso > 1000 ? peso / 1000 : peso;
+  return Number(grupo.pesoInformado ?? grupo.pesoCalculado ?? 0);
 }
 
 /**
@@ -93,10 +87,7 @@ function pesoMovimentacao(mov: MovimentacaoRelatorio): number {
     total += pesoConhecidoDoGrupo(grupo);
   }
   if (mov.tipo === 'RECEBIMENTO' && mov.pesoSucataReal != null) {
-    let pesoSucata = Number(mov.pesoSucataReal);
-    // Normaliza peso de sucata se estiver em gramas
-    pesoSucata = pesoSucata > 1000 ? pesoSucata / 1000 : pesoSucata;
-    total += pesoSucata;
+    total += Number(mov.pesoSucataReal);
   }
   return total;
 }
