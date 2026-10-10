@@ -51,7 +51,17 @@ const medicaoRemetidoSchema = z.object({
 // um peso provisório é calculado por metros x fator do perfil (mesma fórmula do
 // Reemprego) e sinalizado "a confirmar" até o Administrativo completar com o
 // peso real da nota, na conferência — ver lib/services/remetido.ts.
-const pesoInformadoSchema = z.number().positive('Informe o peso da nota fiscal, maior que zero.').optional();
+// O peso é SEMPRE em toneladas (o fator do perfil é t/m). Um grupo de remetido cabe
+// numa carreta, então acima disso quase certamente o valor foi digitado em kg
+// (ex.: 31180 em vez de 31,18) — recusar evita gravar um peso 1000x maior.
+export const PESO_MAX_GRUPO_T = 100;
+export const MSG_PESO_UNIDADE = `Peso em toneladas, no máximo ${PESO_MAX_GRUPO_T} t por grupo. Se a nota está em kg, divida por 1000 (ex.: 31180 kg = 31,18 t).`;
+
+const pesoInformadoSchema = z
+  .number()
+  .positive('Informe o peso da nota fiscal, maior que zero.')
+  .max(PESO_MAX_GRUPO_T, MSG_PESO_UNIDADE)
+  .optional();
 
 const grupoRemetidoBaseSchema = z.object({
   clientId: z.string().uuid(),

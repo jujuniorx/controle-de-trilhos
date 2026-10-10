@@ -5,6 +5,7 @@ import { registrarHistorico } from '@/lib/services/historico';
 import { arredondar3 } from '@/lib/domain/regras';
 import { ErroRegraNegocio } from '@/lib/services/errors';
 import { MARCA_LABEL } from '@/lib/validation/recebimento';
+import { PESO_MAX_GRUPO_T, MSG_PESO_UNIDADE } from '@/lib/validation/remetido';
 import type {
   PreCadastroRemetidoInput,
   ConfirmacaoRemetidoInput,
@@ -268,6 +269,8 @@ export async function informarPesoGrupoRemetido(
   peso: number,
   usuario: UsuarioAdmin,
 ): Promise<void> {
+  if (peso > PESO_MAX_GRUPO_T) throw new ErroRegraNegocio(MSG_PESO_UNIDADE);
+
   const grupo = await prisma.grupo.findUnique({
     where: { id: grupoId },
     include: { movimentacao: true },

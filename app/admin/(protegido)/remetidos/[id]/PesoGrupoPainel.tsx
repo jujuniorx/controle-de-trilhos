@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { informarPesoGrupoAction } from './actions';
+import { PESO_MAX_GRUPO_T, MSG_PESO_UNIDADE } from '@/lib/validation/remetido';
 
 export function PesoGrupoPainel({ grupoId, pesoEstimado, label }: { grupoId: string; pesoEstimado: number; label: string }) {
   const router = useRouter();
@@ -15,6 +16,10 @@ export function PesoGrupoPainel({ grupoId, pesoEstimado, label }: { grupoId: str
     const valor = Number(pesoTexto.replace(',', '.'));
     if (!Number.isFinite(valor) || valor <= 0) {
       setErro('Informe um peso válido, maior que zero.');
+      return;
+    }
+    if (valor > PESO_MAX_GRUPO_T) {
+      setErro(MSG_PESO_UNIDADE);
       return;
     }
     setSalvando(true);
@@ -40,6 +45,7 @@ export function PesoGrupoPainel({ grupoId, pesoEstimado, label }: { grupoId: str
             setErro('');
           }}
         />
+        <span className="text-sm text-ink-muted">t</span>
         <button className="btn btn-primary btn-sm h-9" disabled={salvando} onClick={salvar}>
           {salvando ? 'Salvando...' : 'Confirmar peso da NF'}
         </button>
