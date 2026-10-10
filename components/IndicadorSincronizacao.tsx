@@ -21,9 +21,12 @@ export function IndicadorSincronizacao() {
   // SINCRONIZADO. liveQuery é observação local (Dexie), não um disparo de rede em
   // loop — não conflita com a responsabilidade de disparo recorrente abaixo.
   useEffect(() => {
-    const assinatura = liveQuery(() =>
-      db.recebimentos.where('syncStatus').anyOf(['PENDENTE', 'SINCRONIZANDO', 'ERRO']).count(),
-    ).subscribe({
+    const assinatura = liveQuery(async () => {
+      const naoSincronizados = ['PENDENTE', 'SINCRONIZANDO', 'ERRO'];
+      const recebimentos = await db.recebimentos.where('syncStatus').anyOf(naoSincronizados).count();
+      const preCadastros = await db.preCadastros.where('syncStatus').anyOf(naoSincronizados).count();
+      return recebimentos + preCadastros;
+    }).subscribe({
       next: (contagem) => setPendentes(contagem),
       error: () => setPendentes(0),
     });
@@ -56,7 +59,7 @@ export function IndicadorSincronizacao() {
       {!online && <span className="badge badge-warn">Offline</span>}
       {pendentes > 0 && (
         <span className="badge badge-warn">
-          {pendentes} recebimento{pendentes > 1 ? 's' : ''} pendente{pendentes > 1 ? 's' : ''} de sincronização
+          {pendentes} registro{pendentes > 1 ? 's' : ''} pendente{pendentes > 1 ? 's' : ''} de sincronização
         </span>
       )}
       {online && pendentes === 0 && <span className="badge badge-ok">Sincronizado</span>}

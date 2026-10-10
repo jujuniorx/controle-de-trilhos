@@ -82,6 +82,22 @@ describe('criarPreCadastroRemetido', () => {
     expect(pendentes).toHaveLength(0);
   });
 
+  it('é idempotente por clientId: reenviar o mesmo pré-cadastro (fila offline) não duplica', async () => {
+    const clientId = uuid();
+    const dados = preCadastroBase();
+    const primeiro = await criarPreCadastroRemetido(clientId, dados, 'Pátio');
+    const segundo = await criarPreCadastroRemetido(clientId, dados, 'Pátio');
+    expect(segundo.id).toBe(primeiro.id);
+    expect(await prisma.movimentacao.count({ where: { clientId } })).toBe(1);
+  });
+
+  it('registra no histórico quem fez o pré-cadastro', async () => {
+    const mov = await criarPreCadastroRemetido(uuid(), preCadastroBase(), 'Pátio');
+    const historico = await prisma.historicoAlteracao.findFirstOrThrow({ where: { movimentacaoId: mov.id } });
+    expect(historico.usuarioNome).toBe('Pátio');
+    expect(historico.acao).toBe('PRE_CADASTRO');
+  });
+
   it('aceita NF já conhecida no pré-cadastro', async () => {
     const mov = await criarPreCadastro({ numeroDocumento: '555666' });
     expect(mov.numeroDocumento).toBe('555666');

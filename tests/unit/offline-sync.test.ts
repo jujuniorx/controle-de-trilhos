@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { randomUUID } from 'crypto';
-import { db, salvarRecebimentoLocal } from '@/lib/offline/db';
+import { db, salvarRecebimentoLocal, salvarPreCadastroLocal } from '@/lib/offline/db';
 import { sincronizarPendentes } from '@/lib/offline/sync';
 import type { RecebimentoCaminhaoInput } from '@/lib/validation/recebimento';
 
@@ -255,5 +255,73 @@ describe('sincronizarPendentes', () => {
     expect(fetchMock).not.toHaveBeenCalled();
     const registro = await db.recebimentos.get(payload.clientId);
     expect(registro?.syncStatus).toBe('SINCRONIZANDO');
+  });
+});
+
+describe('sincronizarPendentes — pré-cadastros de Remetido', () => {
+  const preCadastro = () => ({
+    clientId: randomUUID(),
+    tipoRemetido: 'VENDA' as const,
+    reservaPedido: 'RES-123',
+    destino: 'Usina Rondonópolis',
+  });
+
+  beforeEach(async () => {
+    await db.recebimentos.clear();
+    await db.preCadastros.clear();
+  });
+
+  it('envia para /api/sync/pre-cadastro e marca SINCRONIZADO com o id do servidor', async () => {
+    const payload = preCadastro();
+    await salvarPreCadastroLocal(payload);
+
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ ok: true, id: 'mov-1' }) });
+    await sincronizarPendentes(fetchMock as unknown as typeof fetch);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/sync/pre-cadastro',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify(payload) }),
+    );
+    const registro = await db.preCadastros.get(payload.clientId);
+    expect(registro?.syncStatus).toBe('SINCRONIZADO');
+    expect(registro?.serverId).toBe('mov-1');
+  });
+
+  it('sem internet (fetch falha) o pré-cadastro continua PENDENTE para a próxima tentativa', async () => {
+    const payload = preCadastro();
+    await salvarPreCadastroLocal(payload);
+
+    const fetchMock = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+    await sincronizarPendentes(fetchMock as unknown as typeof fetch);
+
+    expect((await db.preCadastros.get(payload.clientId))?.syncStatus).toBe('PENDENTE');
+  });
+
+  it('503 é recuperável (PENDENTE) e 422 é terminal (ERRO com a mensagem do servidor)', async () => {
+    const recuperavel = preCadastro();
+    await salvarPreCadastroLocal(recuperavel);
+    await sincronizarPendentes(
+      vi.fn().mockResolvedValue({ ok: false, status: 503, json: async () => ({}) }) as unknown as typeof fetch,
+    );
+    expect((await db.preCadastros.get(recuperavel.clientId))?.syncStatus).toBe('PENDENTE');
+
+    await db.preCadastros.clear();
+    const terminal = preCadastro();
+    await salvarPreCadastroLocal(terminal);
+    await sincronizarPendentes(
+      vi.fn().mockResolvedValue({ ok: false, status: 422, json: async () => ({ erro: 'Regra' }) }) as unknown as typeof fetch,
+    );
+    const registro = await db.preCadastros.get(terminal.clientId);
+    expect(registro?.syncStatus).toBe('ERRO');
+    expect(registro?.erro).toBe('Regra');
+  });
+
+  it('não mistura as filas: um recebimento não vai para a rota do pré-cadastro', async () => {
+    await salvarRecebimentoLocal(montarPayload());
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ ok: true, id: 'r1' }) });
+    await sincronizarPendentes(fetchMock as unknown as typeof fetch);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/sync');
   });
 });

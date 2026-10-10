@@ -18,6 +18,14 @@ export const preCadastroRemetidoSchema = z.object({
 
 export type PreCadastroRemetidoInput = z.infer<typeof preCadastroRemetidoSchema>;
 
+// Pré-cadastro feito pelo Pátio, que pode estar sem internet: nasce com um clientId
+// (gerado no tablet) para o servidor aceitar o reenvio sem duplicar — mesmo contrato
+// do Recebimento (lib/offline/sync.ts + POST /api/sync).
+export const preCadastroSyncSchema = preCadastroRemetidoSchema.extend({
+  clientId: z.string().uuid(),
+});
+export type PreCadastroSyncInput = z.infer<typeof preCadastroSyncSchema>;
+
 export const dadosConfirmacaoSchema = z
   .object({
     data: z.string().min(1, 'Informe a data.'),

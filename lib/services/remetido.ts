@@ -24,6 +24,14 @@ export async function criarPreCadastroRemetido(
   /** Quem fez o pré-cadastro, para o histórico. Hoje é o Pátio; o Administrativo não cria mais remetidos. */
   origem: 'Pátio' | 'Administrativo' = 'Administrativo',
 ): Promise<MovimentacaoRemetidoComGrupos> {
+  // Idempotente por clientId: o Pátio pode reenviar o mesmo pré-cadastro (fila offline,
+  // requisição que não retornou). Reenviar não pode duplicar nem falhar por chave única.
+  const existente = await prisma.movimentacao.findUnique({
+    where: { clientId },
+    include: { grupos: { include: { medicoes: true } }, remetidoDetalhe: true, historico: { orderBy: { timestamp: 'desc' } } },
+  });
+  if (existente) return existente;
+
   const movimentacao = await prisma.movimentacao.create({
     data: {
       clientId,

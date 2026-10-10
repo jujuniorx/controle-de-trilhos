@@ -1,10 +1,10 @@
 'use client';
 
-import { useActionState } from 'react';
-import { criarPreCadastroPatioAction, type EstadoPreCadastroPatio } from './actions';
-import { TIPOS_REMETIDO } from '@/lib/validation/remetido';
-
-const ESTADO_INICIAL: EstadoPreCadastroPatio = {};
+import { useState, type FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import { preCadastroSyncSchema, TIPOS_REMETIDO } from '@/lib/validation/remetido';
+import { salvarPreCadastroLocal } from '@/lib/offline/db';
+import { sincronizarPendentes } from '@/lib/offline/sync';
 
 const TIPO_REMETIDO_LABEL: Record<(typeof TIPOS_REMETIDO)[number], string> = {
   VENDA: 'Venda',
@@ -12,14 +12,56 @@ const TIPO_REMETIDO_LABEL: Record<(typeof TIPOS_REMETIDO)[number], string> = {
   INDUS: 'Industrialização',
 };
 
+// Tempo máximo esperando o envio antes de voltar para a lista. Com internet o envio
+// leva uma fração de segundo e a lista já nasce com o remetido; sem internet (ou com
+// sinal ruim) não seguramos o operador: o cadastro fica guardado no aparelho e segue
+// sozinho quando a conexão voltar (IndicadorSincronizacao).
+const ESPERA_ENVIO_MS = 4000;
+
 export function PreCadastroForm() {
-  const [estado, formAction, enviando] = useActionState(criarPreCadastroPatioAction, ESTADO_INICIAL);
+  const router = useRouter();
+  const [erro, setErro] = useState('');
+  const [salvando, setSalvando] = useState(false);
+
+  async function aoEnviar(evento: FormEvent<HTMLFormElement>) {
+    evento.preventDefault();
+    setErro('');
+
+    const form = new FormData(evento.currentTarget);
+    const numeroDocumento = String(form.get('numeroDocumento') ?? '').trim();
+    const parsed = preCadastroSyncSchema.safeParse({
+      clientId: crypto.randomUUID(),
+      tipoRemetido: form.get('tipoRemetido'),
+      reservaPedido: form.get('reservaPedido'),
+      destino: form.get('destino'),
+      numeroDocumento: numeroDocumento || undefined,
+    });
+    if (!parsed.success) {
+      setErro(parsed.error.issues[0]?.message ?? 'Dados inválidos. Revise os campos.');
+      return;
+    }
+
+    setSalvando(true);
+    try {
+      await salvarPreCadastroLocal(parsed.data);
+    } catch {
+      setErro('Não foi possível guardar neste aparelho. Tente de novo.');
+      setSalvando(false);
+      return;
+    }
+
+    await Promise.race([
+      sincronizarPendentes().catch(() => undefined),
+      new Promise((resolver) => setTimeout(resolver, ESPERA_ENVIO_MS)),
+    ]);
+    router.push('/patio/remetidos');
+  }
 
   return (
-    <form action={formAction} className="mt-4 space-y-4">
+    <form onSubmit={aoEnviar} className="mt-4 space-y-4">
       <p className="text-sm text-ink-muted">
         Fica em &quot;Aguardando chegada&quot; até o caminhão chegar e você confirmar o carregamento. Nenhum estoque é
-        alterado agora.
+        alterado agora. Sem internet, o cadastro fica guardado no aparelho e é enviado quando a conexão voltar.
       </p>
 
       <div className="field">
@@ -57,14 +99,14 @@ export function PreCadastroForm() {
         />
       </div>
 
-      {estado.erro && (
+      {erro && (
         <p role="alert" className="text-sm text-bad">
-          {estado.erro}
+          {erro}
         </p>
       )}
 
-      <button type="submit" disabled={enviando} className="btn btn-primary h-12 w-full">
-        {enviando ? 'Salvando...' : 'Cadastrar e aguardar chegada'}
+      <button type="submit" disabled={salvando} className="btn btn-primary h-12 w-full">
+        {salvando ? 'Salvando...' : 'Cadastrar e aguardar chegada'}
       </button>
     </form>
   );

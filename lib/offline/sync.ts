@@ -1,4 +1,5 @@
-import { db } from '@/lib/offline/db';
+import type { EntityTable } from 'dexie';
+import { db, type ItemFila } from '@/lib/offline/db';
 
 interface RespostaSync {
   ok?: boolean;
@@ -25,8 +26,8 @@ function ehFalhaRecuperavel(status: number): boolean {
 }
 
 /**
- * Percorre a fila local (Dexie) de Recebimentos ainda não sincronizados e tenta
- * enviá-los ao servidor, um de cada vez, via POST /api/sync.
+ * Percorre as filas locais (Dexie) — Recebimentos e pré-cadastros de Remetido — e tenta
+ * enviar o que ainda não foi sincronizado ao servidor, um de cada vez.
  *
  * Regras de status pós-tentativa:
  * - 2xx (res.ok): SINCRONIZADO + serverId (id real da Movimentacao no servidor).
@@ -43,18 +44,30 @@ function ehFalhaRecuperavel(status: number): boolean {
  * dessa página. Classificar uma falha transitória como ERRO equivale a perder o dado.
  */
 export async function sincronizarPendentes(fetchImpl: typeof fetch = fetch): Promise<void> {
-  await reclamarSincronizandoOrfaos();
+  // Duas filas independentes, mesma regra: Recebimentos (POST /api/sync) e pré-cadastros
+  // de Remetido "aguardando chegada" (POST /api/sync/pre-cadastro). Em sequência, não
+  // em paralelo, para não disputar o banco do servidor nem a rede do tablet.
+  await sincronizarFila(db.recebimentos, '/api/sync', fetchImpl);
+  await sincronizarFila(db.preCadastros, '/api/sync/pre-cadastro', fetchImpl);
+}
 
-  const pendentes = await db.recebimentos.where('syncStatus').equals('PENDENTE').toArray();
+async function sincronizarFila<P>(
+  tabela: EntityTable<ItemFila<P>, 'clientId'>,
+  url: string,
+  fetchImpl: typeof fetch,
+): Promise<void> {
+  await reclamarSincronizandoOrfaos(tabela);
+
+  const pendentes = await tabela.where('syncStatus').equals('PENDENTE').toArray();
 
   for (const registro of pendentes) {
-    await db.recebimentos.update(registro.clientId, {
+    await tabela.update(registro.clientId, {
       syncStatus: 'SINCRONIZANDO',
       syncIniciadoEm: Date.now(),
     });
 
     try {
-      const resposta = await fetchImpl('/api/sync', {
+      const resposta = await fetchImpl(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(registro.payload),
@@ -63,7 +76,7 @@ export async function sincronizarPendentes(fetchImpl: typeof fetch = fetch): Pro
       const corpo = (await resposta.json().catch(() => ({}))) as RespostaSync;
 
       if (resposta.ok) {
-        await db.recebimentos.update(registro.clientId, {
+        await tabela.update(registro.clientId, {
           syncStatus: 'SINCRONIZADO',
           serverId: corpo.id,
           erro: undefined,
@@ -72,13 +85,13 @@ export async function sincronizarPendentes(fetchImpl: typeof fetch = fetch): Pro
       } else if (ehFalhaRecuperavel(resposta.status)) {
         // Mesmo tratamento de uma falha de rede: continua na fila, sem marcar erro
         // para o operador — não há nada que ele possa fazer, e vai ser reenviado.
-        await db.recebimentos.update(registro.clientId, {
+        await tabela.update(registro.clientId, {
           syncStatus: 'PENDENTE',
           erro: undefined,
           syncIniciadoEm: undefined,
         });
       } else {
-        await db.recebimentos.update(registro.clientId, {
+        await tabela.update(registro.clientId, {
           syncStatus: 'ERRO',
           erro: corpo.erro ?? `Falha ao sincronizar (HTTP ${resposta.status}).`,
           syncIniciadoEm: undefined,
@@ -86,7 +99,7 @@ export async function sincronizarPendentes(fetchImpl: typeof fetch = fetch): Pro
       }
     } catch {
       // Falha de rede (offline, timeout, etc.) — recuperável, tenta de novo depois.
-      await db.recebimentos.update(registro.clientId, { syncStatus: 'PENDENTE', syncIniciadoEm: undefined });
+      await tabela.update(registro.clientId, { syncStatus: 'PENDENTE', syncIniciadoEm: undefined });
     }
   }
 }
@@ -98,14 +111,14 @@ export async function sincronizarPendentes(fetchImpl: typeof fetch = fetch): Pro
  * volta, e o indicador de sincronização (Task 7) o contaria como pendente sem nunca
  * ter um gatilho que o reprocessasse.
  */
-async function reclamarSincronizandoOrfaos(): Promise<void> {
+async function reclamarSincronizandoOrfaos<P>(tabela: EntityTable<ItemFila<P>, 'clientId'>): Promise<void> {
   const agora = Date.now();
-  const emAndamento = await db.recebimentos.where('syncStatus').equals('SINCRONIZANDO').toArray();
+  const emAndamento = await tabela.where('syncStatus').equals('SINCRONIZANDO').toArray();
 
   for (const registro of emAndamento) {
     const iniciadoEm = registro.syncIniciadoEm ?? 0;
     if (agora - iniciadoEm > LIMITE_SINCRONIZANDO_MS) {
-      await db.recebimentos.update(registro.clientId, { syncStatus: 'PENDENTE', syncIniciadoEm: undefined });
+      await tabela.update(registro.clientId, { syncStatus: 'PENDENTE', syncIniciadoEm: undefined });
     }
   }
 }

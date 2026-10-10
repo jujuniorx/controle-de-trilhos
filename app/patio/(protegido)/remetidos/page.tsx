@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { listarAguardandoChegada } from '@/lib/services/remetido';
+import { PreCadastrosPendentes } from './PreCadastrosPendentes';
 
 const TIPO_REMETIDO_LABEL: Record<string, string> = {
   VENDA: 'Venda',
@@ -24,6 +25,7 @@ export default async function RemetidosAguardandoPage() {
       </p>
 
       <div className="mt-3 space-y-2">
+        <PreCadastrosPendentes />
         {remetidos.map((r) => (
           <Link key={r.id} href={`/patio/remetidos/${r.id}/confirmar`} className="card block transition hover:brightness-110">
             <p className="font-medium text-ink">{r.reservaPedido}</p>
