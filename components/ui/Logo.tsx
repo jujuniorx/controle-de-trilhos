@@ -5,7 +5,7 @@ interface LogoProps {
   className?: string;
 }
 
-/** Marca "CT" (grafite + azul-aço) — SVG do protótipo aprovado, usado em sidebar/topbar/acesso. */
+/** Marca (grafite + trilhos azul-aço, sem letras) — SVG do protótipo aprovado, usado em sidebar/topbar/acesso. */
 export function Logo({ size = 32, subtitle, showText = true, className }: LogoProps) {
   return (
     <div className={`ct-logo-mark ${className ?? ''}`}>
@@ -18,19 +18,6 @@ export function Logo({ size = 32, subtitle, showText = true, className }: LogoPr
         <rect x="44.5" y="10" width="3.5" height="36" rx="1.5" fill="#3b82c4" opacity=".5" />
         <rect x="7" y="13" width="42" height="4" rx="2" fill="#5b9bd5" />
         <rect x="7" y="39" width="42" height="4" rx="2" fill="#5b9bd5" />
-        <text
-          x="28"
-          y="34"
-          fontFamily="'Barlow Condensed',sans-serif"
-          fontWeight="700"
-          fontSize="20"
-          fill="#1e2329"
-          textAnchor="middle"
-          dominantBaseline="middle"
-          letterSpacing="1"
-        >
-          CT
-        </text>
       </svg>
       {showText && (
         <div className="ct-logo-text">
