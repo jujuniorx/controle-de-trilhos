@@ -9,7 +9,7 @@ export default defineConfig({
     globals: true,
     testTimeout: 20000,
     setupFiles: ['./vitest.setup.ts'],
-    exclude: ['**/node_modules/**', 'tests/e2e/**'],
+    exclude: ['**/node_modules/**', 'tests/e2e/**', '.worktrees/**'],
   },
   resolve: { alias: { '@': path.resolve(__dirname, '.') } },
 });
