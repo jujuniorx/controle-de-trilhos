@@ -250,10 +250,15 @@ export async function informarNumeroDocumentoRemetido(
   });
 }
 
-/** Soma o pesoInformado de cada grupo; sem peso informado, cai na estimativa (pesoCalculado) — "a confirmar". */
+/** Soma o pesoInformado de cada grupo; sem peso informado, cai na estimativa (pesoCalculado) — "a confirmar". Normaliza se valores estiverem em gramas. */
 export function resumoPesoRemetido(movimentacao: MovimentacaoRemetidoComGrupos): number {
   return arredondar3(
-    movimentacao.grupos.reduce((acc, g) => acc + Number(g.pesoInformado ?? g.pesoCalculado ?? 0), 0),
+    movimentacao.grupos.reduce((acc, g) => {
+      let peso = Number(g.pesoInformado ?? g.pesoCalculado ?? 0);
+      // Normaliza peso se estiver em gramas (> 1000 toneladas é absurdo)
+      peso = peso > 1000 ? peso / 1000 : peso;
+      return acc + peso;
+    }, 0),
   );
 }
 
