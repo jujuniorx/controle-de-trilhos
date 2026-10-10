@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { BotaoInstalar } from '@/components/InstalarApp';
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
         <Link href="/admin/login" className="btn btn-ghost btn-lg h-12">
           Login do Administrativo
         </Link>
+        <BotaoInstalar />
       </div>
     </main>
   );

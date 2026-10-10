@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
+// Importado aqui para o ouvinte de instalação existir desde o primeiro carregamento de qualquer página.
+import '@/lib/pwa/instalacao';
 
 export function RegistrarServiceWorker() {
   useEffect(() => {
