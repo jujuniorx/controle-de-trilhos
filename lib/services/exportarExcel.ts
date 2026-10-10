@@ -1,48 +1,31 @@
 import ExcelJS from 'exceljs';
 import type { MovimentacaoRelatorio } from '@/lib/services/relatorio';
-import { pecasDoGrupo } from '@/lib/domain/regras';
+import { pecasDoGrupo, arredondar3 } from '@/lib/domain/regras';
 
 /**
- * Estrutura de colunas das duas abas (Bloco 5): segue EXATAMENTE a planilha
- * real da empresa, para copiar e colar sem remapeamento — ordem, nomes de
- * coluna e o padrão de linha em branco (nunca zero/"-") são requisitos do
- * usuário, não escolha de design.
+ * Estrutura de colunas das duas abas: segue a planilha real da empresa, para
+ * copiar e colar sem remapeamento — ordem das colunas, "TRILHOS TR-57", códigos
+ * em maiúsculas e o padrão de célula vazia são requisitos do usuário.
  *
- * DECISÃO INTERPRETATIVA (reportar ao usuário para validação — não há
- * planilha/exemplo real disponível neste repositório para conferir contra):
- * uma linha por GRUPO (mesma granularidade que o resto do app já usa), não
- * uma linha agregada por perfil. As colunas G1/G2/G3 e SC-1/SC-2-L/SC-3 do
- * Recebidos existem para abrigar o caso em que um grupo de SUCATA tem
- * medições com classificações SC diferentes entre si (SC é por medição, não
- * por grupo — ver design spec) — cada coluna recebe a soma de metros das
- * medições daquela classificação, e as colunas que não se aplicam ao
- * material da linha ficam em branco (nunca 0). "Em Classificação" fica
- * sempre vazia de propósito: é um estado do fluxo legado que este app nunca
- * produz (toda medição de sucata já nasce classificada), mas a coluna
- * precisa existir para manter o alinhamento ao colar nas colunas da
- * planilha mestra.
+ * GRANULARIDADE (confirmada com a planilha real):
+ * - Recebidos: UMA linha por TRILHO (perfil) dentro de cada nota. Reemprego
+ *   (G1/G2/G3), sucata (SC-1/SC-2 - L/SC-3) e novo do mesmo perfil entram na
+ *   MESMA linha, cada um na sua coluna — a planilha é filtrada por trilho, então
+ *   o mesmo trilho nunca pode aparecer em duas linhas da mesma nota. Perfis
+ *   diferentes continuam em linhas separadas.
+ * - Remetidos: o material (NOVO, TAMPÃO, REEMPREGO G1, SUCATA) é uma COLUNA, não
+ *   várias colunas; então a linha é por trilho + tipo de material.
+ *
+ * Colunas de Recebidos G1/G2/G3 e SC-1/SC-2 - L/SC-3 recebem a soma de metros
+ * da classificação; as que não se aplicam ficam em branco (nunca 0). "Em
+ * Classificação" fica sempre vazia de propósito: é um estado do fluxo legado que
+ * este app nunca produz, mas a coluna precisa existir para manter o alinhamento.
+ * Em Remetidos, "Baixa — Reserva", "Depósito destino" e "Considerar real meta" são
+ * preenchidos à mão na planilha mestra (o app não captura): saem em branco.
  */
 
-const TIPO_REMETIDO_LABEL: Record<string, string> = {
-  VENDA: 'Venda',
-  TRANS: 'Transferência',
-  INDUS: 'Industrialização',
-};
-
-// Marcas de fabricante cadastradas (lib/validation/recebimento.ts#MARCA_LABEL)
-// — qualquer outro texto em Grupo.fabricante só pode ter vindo do campo livre
-// de "Outros", e por isso é maiúsculizado (Bloco 5.2). O Grupo não guarda o
-// enum `marca` original, só o texto já resolvido — esta é a única forma de
-// diferenciar os dois casos a partir do que fica persistido.
-const MARCAS_CADASTRADAS = new Set(['Nippon', 'Evraz', 'Pangang']);
-
-// Rótulo de exibição da classificação de Sucata — "SC-2 - L" é o nome exato
-// pedido pelo usuário (não "SC-2"), mantido literal nas duas abas.
-const SC_LABEL: Record<string, string> = {
-  SC1: 'SC-1',
-  SC2: 'SC-2 - L',
-  SC3: 'SC-3',
-};
+// Ordem dos materiais nas linhas de um mesmo trilho (aba Remetidos).
+const ORDEM_MATERIAL = ['NOVO', 'REEMPREGO', 'SUCATA'] as const;
 
 type Grupo = MovimentacaoRelatorio['grupos'][number];
 type Medicao = Grupo['medicoes'][number];
@@ -51,40 +34,57 @@ function upper(v: string | null | undefined): string {
   return v ? v.toUpperCase() : '';
 }
 
-/** Mantém o nome registrado como está; maiúsculiza só texto livre ("Outros"). */
-function upperSeCustomizado(v: string | null | undefined): string {
-  if (!v) return '';
-  return MARCAS_CADASTRADAS.has(v) ? v : v.toUpperCase();
-}
-
-/** "TR57" -> "TRILHOS TR-57" — nunca truncado (Bloco 5.1). */
+/** "TR57" -> "TRILHOS TR-57" — nunca truncado. */
 function descricaoPerfil(perfil: string): string {
   return `TRILHOS ${perfil.slice(0, 2)}-${perfil.slice(2)}`;
 }
 
+function numeroDoPerfil(perfil: string): number {
+  return Number(perfil.slice(2));
+}
+
+function arredondar2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+/** Soma só os valores presentes; sem nenhum, devolve null (célula em branco — nunca 0). */
+function somaOuNull(valores: (number | null | undefined)[], arredondar: (n: number) => number): number | null {
+  const presentes = valores.filter((v): v is number => v != null);
+  return presentes.length > 0 ? arredondar(presentes.reduce((a, b) => a + b, 0)) : null;
+}
+
+function unicos(valores: (string | null | undefined)[]): string[] {
+  return [...new Set(valores.filter((v): v is string => Boolean(v)))];
+}
+
 function metrosPorSC(medicoes: Medicao[], sc: 'SC1' | 'SC2' | 'SC3'): number | null {
-  const soma = medicoes
-    .filter((m) => m.classificacaoSC === sc)
-    .reduce((acc, m) => acc + Number(m.metros), 0);
-  return soma > 0 ? Math.round(soma * 100) / 100 : null;
+  const soma = medicoes.filter((m) => m.classificacaoSC === sc).reduce((acc, m) => acc + Number(m.metros), 0);
+  return soma > 0 ? arredondar2(soma) : null;
 }
 
 /**
- * Placa da célula única que a planilha espera: prioriza a(s) carreta(s) —
- * é a informação que a operação usa — com o cavalo só como complemento ou
- * fallback (Bloco 5.1, decisão a confirmar com o usuário).
+ * A planilha tem uma célula de placa só: as carretas (separadas por "/") — é a
+ * informação que a operação usa — ou, sem carreta, o cavalo.
  */
 function formatarPlaca(mov: { placaCavalo: string | null; placaCarreta: string | null; placaCarreta2: string | null }): string {
   const carretas = [mov.placaCarreta, mov.placaCarreta2].filter(Boolean);
-  if (carretas.length > 0) {
-    return mov.placaCavalo ? `${carretas.join('/')} (${mov.placaCavalo})` : carretas.join('/');
-  }
-  return mov.placaCavalo ?? '';
+  return carretas.length > 0 ? carretas.join('/') : (mov.placaCavalo ?? '');
 }
 
 function diaMesAno(d: Date | null): [number | null, number | null, number | null] {
   if (!d) return [null, null, null];
   return [d.getUTCDate(), d.getUTCMonth() + 1, d.getUTCFullYear()];
+}
+
+/** Dia e mês com zero à esquerda (01, 09), como na planilha; ano inteiro. */
+function formatarColunasDeData(sheet: ExcelJS.Worksheet) {
+  // Por célula (e não só por coluna): é o que garante o "01" em qualquer leitor de xlsx.
+  sheet.eachRow((row, numero) => {
+    if (numero === 1) return; // cabeçalho
+    row.getCell(1).numFmt = '00';
+    row.getCell(2).numFmt = '00';
+    row.getCell(3).numFmt = '0';
+  });
 }
 
 function aplicarCabecalho(sheet: ExcelJS.Worksheet, colunas: string[]) {
@@ -93,6 +93,13 @@ function aplicarCabecalho(sheet: ExcelJS.Worksheet, colunas: string[]) {
   sheet.views = [{ state: 'frozen', ySplit: 1 }];
   sheet.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: colunas.length } };
   sheet.columns.forEach((c) => (c.width = 16));
+}
+
+/** Agrupa os grupos de uma nota pelo perfil, em ordem crescente (TR-45, TR-55, TR-57, TR-60, TR-68...). */
+function agruparPorPerfil(grupos: Grupo[]): Grupo[][] {
+  const porPerfil = new Map<string, Grupo[]>();
+  for (const g of grupos) porPerfil.set(g.perfil, [...(porPerfil.get(g.perfil) ?? []), g]);
+  return [...porPerfil.entries()].sort(([a], [b]) => numeroDoPerfil(a) - numeroDoPerfil(b)).map(([, lista]) => lista);
 }
 
 function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRelatorio[]) {
@@ -125,7 +132,6 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
 
   for (const mov of movimentacoes) {
     const [dia, mes, ano] = diaMesAno(mov.dataMovimentacao);
-    const placa = formatarPlaca(mov);
     const base = [
       dia,
       mes,
@@ -133,51 +139,77 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
       mov.tipoDocumento,
       mov.numeroDocumento ?? '',
       mov.tipoTransporte,
-      placa,
-      '', // Qtd. de vagões — não capturado pelo app (só Caminhão existe hoje)
+      formatarPlaca(mov),
+      '-', // Qtd. de vagões — não capturado pelo app (só Caminhão existe hoje)
       upper(mov.origem),
     ];
 
-    for (const g of mov.grupos) {
-      const metros = Number(g.metrosTotal);
-      const ehNovo = g.tipoMaterial === 'NOVO';
-      const ehReemprego = g.tipoMaterial === 'REEMPREGO';
-      const ehSucata = g.tipoMaterial === 'SUCATA';
+    for (const grupos of agruparPorPerfil(mov.grupos)) {
+      const metros = (g: Grupo) => Number(g.metrosTotal);
+      const novos = grupos.filter((g) => g.tipoMaterial === 'NOVO');
+      const reempregos = grupos.filter((g) => g.tipoMaterial === 'REEMPREGO');
+      const sucatas = grupos.filter((g) => g.tipoMaterial === 'SUCATA');
+      const medicoesSucata = sucatas.flatMap((g) => g.medicoes);
 
-      const g1 = ehReemprego && g.classificacao === 'G1' ? metros : null;
-      const g2 = ehReemprego && g.classificacao === 'G2' ? metros : null;
-      const g3 = ehReemprego && g.classificacao === 'G3' ? metros : null;
-      const totalReemprego = ehReemprego ? metros : null;
+      const metrosReemprego = (classe: 'G1' | 'G2' | 'G3') =>
+        somaOuNull(reempregos.filter((g) => g.classificacao === classe).map(metros), arredondar2);
 
-      const sc1 = ehSucata ? metrosPorSC(g.medicoes, 'SC1') : null;
-      const sc2 = ehSucata ? metrosPorSC(g.medicoes, 'SC2') : null;
-      const sc3 = ehSucata ? metrosPorSC(g.medicoes, 'SC3') : null;
-      const totalSucata = ehSucata ? metros : null;
+      const fabricantes = unicos(novos.map((g) => upper(g.fabricante)));
 
       sheet.addRow([
         ...base,
-        descricaoPerfil(g.perfil),
-        ehNovo ? upperSeCustomizado(g.fabricante) : '',
-        pecasDoGrupo(g.medicoes),
-        ehSucata ? null : g.pesoCalculado != null ? Number(g.pesoCalculado) : null,
-        g1,
-        g2,
-        g3,
-        totalReemprego,
-        sc1,
-        sc2,
-        sc3,
+        descricaoPerfil(grupos[0].perfil),
+        fabricantes.length > 0 ? fabricantes.join(' / ') : '-',
+        grupos.reduce((acc, g) => acc + pecasDoGrupo(g.medicoes), 0),
+        // Peso estimado do que NÃO é sucata — o peso real da sucata é conferido à parte (pesoSucataReal).
+        somaOuNull(
+          grupos.filter((g) => g.tipoMaterial !== 'SUCATA').map((g) => (g.pesoCalculado != null ? Number(g.pesoCalculado) : null)),
+          arredondar3,
+        ),
+        metrosReemprego('G1'),
+        metrosReemprego('G2'),
+        metrosReemprego('G3'),
+        somaOuNull(reempregos.map(metros), arredondar2),
+        metrosPorSC(medicoesSucata, 'SC1'),
+        metrosPorSC(medicoesSucata, 'SC2'),
+        metrosPorSC(medicoesSucata, 'SC3'),
         null, // Em Classificação — sempre vazia, ver nota no topo do arquivo
-        totalSucata,
-        ehNovo ? metros : null,
-        metros,
+        somaOuNull(sucatas.map(metros), arredondar2),
+        somaOuNull(novos.map(metros), arredondar2),
+        arredondar2(grupos.reduce((acc, g) => acc + metros(g), 0)),
       ]);
     }
   }
 
-  sheet.getColumn(1).numFmt = '0';
-  sheet.getColumn(2).numFmt = '0';
-  sheet.getColumn(3).numFmt = '0';
+  formatarColunasDeData(sheet);
+}
+
+/** Valor da coluna "Tipo" do MATERIAL na planilha: NOVO, TAMPÃO, REEMPREGO G1, SUCATA. */
+function rotuloMaterial(g: Grupo): string {
+  if (g.tipoMaterial === 'NOVO') return 'NOVO';
+  if (g.tipoMaterial === 'SUCATA') return 'SUCATA';
+  if (g.tampao) return 'TAMPÃO';
+  return g.classificacao ? `REEMPREGO ${g.classificacao}` : 'REEMPREGO';
+}
+
+/** Ordem das linhas de um mesmo trilho: NOVO, depois REEMPREGO/TAMPÃO, depois SUCATA. */
+function ordemDoMaterial(g: Grupo): number {
+  return ORDEM_MATERIAL.indexOf(g.tipoMaterial as (typeof ORDEM_MATERIAL)[number]);
+}
+
+/** Remetido: uma linha por trilho + tipo de material (o material é uma coluna só na planilha). */
+function agruparPorPerfilEMaterial(grupos: Grupo[]): Grupo[][] {
+  const chaves = new Map<string, Grupo[]>();
+  for (const g of grupos) {
+    const chave = `${g.perfil}|${rotuloMaterial(g)}`;
+    chaves.set(chave, [...(chaves.get(chave) ?? []), g]);
+  }
+  return [...chaves.values()].sort(
+    (a, b) =>
+      numeroDoPerfil(a[0].perfil) - numeroDoPerfil(b[0].perfil) ||
+      ordemDoMaterial(a[0]) - ordemDoMaterial(b[0]) ||
+      rotuloMaterial(a[0]).localeCompare(rotuloMaterial(b[0])),
+  );
 }
 
 function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRelatorio[]) {
@@ -194,10 +226,13 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
     'Perfil',
     'Tipo de material',
     'Marca',
-    'Tipo/identificação',
+    'Tipo de remetido',
     'Peças',
     'Metros',
     'Toneladas',
+    'Baixa — Reserva',
+    'Depósito destino',
+    'Considerar real meta',
   ]);
 
   for (const mov of movimentacoes) {
@@ -205,6 +240,7 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
     const destinoTransportadora = [upper(mov.destino), mov.transportadora ? upper(mov.transportadora) : null]
       .filter(Boolean)
       .join(' / ');
+    const tipoRemetido = mov.remetidoDetalhe?.tipoRemetido ?? ''; // VENDA, TRANS ou INDUS — igual à planilha
 
     const base = [
       dia,
@@ -217,52 +253,44 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
       formatarPlaca(mov),
       destinoTransportadora,
     ];
+    // Preenchidas à mão na planilha mestra — o app não captura.
+    const manuais = ['', '', ''];
 
     if (mov.grupos.length === 0) {
       // Pré-cadastro ainda aguardando o Pátio confirmar a chegada — sem grupos ainda.
-      sheet.addRow([...base, '', '', '', '', null, null, null]);
+      sheet.addRow([...base, '', '', '', tipoRemetido, null, null, null, ...manuais]);
       continue;
     }
 
-    for (const g of mov.grupos) {
-      const ehNovo = g.tipoMaterial === 'NOVO';
-      const ehReemprego = g.tipoMaterial === 'REEMPREGO';
-      const ehSucata = g.tipoMaterial === 'SUCATA';
-
-      const identificacao = ehReemprego
-        ? (g.classificacao ?? '')
-        : ehSucata
-          ? [...new Set(g.medicoes.map((m) => m.classificacaoSC).filter((v): v is 'SC1' | 'SC2' | 'SC3' => Boolean(v)))]
-              .map((sc) => SC_LABEL[sc])
-              .join(', ')
-          : '';
-
-      const toneladas = g.pesoInformado != null ? Number(g.pesoInformado) : g.pesoCalculado != null ? Number(g.pesoCalculado) : null;
+    for (const grupos of agruparPorPerfilEMaterial(mov.grupos)) {
+      const marcas = unicos(grupos.filter((g) => g.tipoMaterial === 'NOVO').map((g) => upper(g.fabricante)));
 
       sheet.addRow([
         ...base,
-        g.perfil,
-        g.tipoMaterial,
-        ehNovo ? upperSeCustomizado(g.fabricante) : '',
-        identificacao,
-        pecasDoGrupo(g.medicoes),
-        Number(g.metrosTotal),
-        toneladas,
+        descricaoPerfil(grupos[0].perfil),
+        rotuloMaterial(grupos[0]),
+        marcas.length > 0 ? marcas.join(' / ') : 'N/A',
+        tipoRemetido,
+        grupos.reduce((acc, g) => acc + pecasDoGrupo(g.medicoes), 0),
+        arredondar2(grupos.reduce((acc, g) => acc + Number(g.metrosTotal), 0)),
+        // Peso da NF quando informado; senão a estimativa (metros x fator), "a confirmar".
+        somaOuNull(
+          grupos.map((g) => (g.pesoInformado != null ? Number(g.pesoInformado) : g.pesoCalculado != null ? Number(g.pesoCalculado) : null)),
+          arredondar3,
+        ),
+        ...manuais,
       ]);
     }
   }
 
-  sheet.getColumn(1).numFmt = '0';
-  sheet.getColumn(2).numFmt = '0';
-  sheet.getColumn(3).numFmt = '0';
+  formatarColunasDeData(sheet);
 }
 
 /**
- * Times New Roman 10 (Task 25) — a planilha operacional usa essa fonte, e a
- * exportação precisa copiar/colar sem precisar reformatar. Aplicada por
- * último, depois que todas as linhas já existem, para cobrir a aba inteira
- * sem perder o negrito do cabeçalho (aplicarCabecalho já define `bold: true`
- * na linha 1 antes desta função rodar).
+ * Times New Roman 10 — a planilha operacional usa essa fonte, e a exportação
+ * precisa copiar/colar sem precisar reformatar. Aplicada por último, depois que
+ * todas as linhas já existem, para cobrir a aba inteira sem perder o negrito do
+ * cabeçalho (aplicarCabecalho já define `bold: true` na linha 1 antes desta função rodar).
  */
 function aplicarFontePadrao(sheet: ExcelJS.Worksheet) {
   sheet.eachRow((row) => {

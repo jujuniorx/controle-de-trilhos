@@ -30,7 +30,7 @@ function linhasComNF(sheet: ExcelJS.Worksheet, nf: string): ExcelJS.Row[] {
 }
 
 describe('gerarRelatorioExcel — aba Recebidos', () => {
-  it('uma linha por grupo: NOVO preenche Fabricante/Peso/coluna Novo, deixa G1-G3/SC em branco', async () => {
+  it('NOVO preenche Fabricante/Peso/coluna Novo, deixa G1-G3/SC em branco', async () => {
     const nf = novaNF();
     await criarRecebimentoCaminhao(
       recebimentoCaminhaoSchema.parse({
@@ -63,11 +63,11 @@ describe('gerarRelatorioExcel — aba Recebidos', () => {
     expect(linha.getCell(2).value).toBe(10); // Mês
     expect(linha.getCell(3).value).toBe(2026); // Ano
     expect(linha.getCell(4).value).toBe('NF'); // Tipo do documento
-    expect(linha.getCell(7).value).toBe('XYZ9E88 (ABC1D23)'); // Placa: carreta prioritária + cavalo
-    expect(linha.getCell(8).value).toBe(''); // Qtd. de vagões — nunca capturado
+    expect(linha.getCell(7).value).toBe('XYZ9E88'); // Placa: a carreta (a planilha tem uma placa só)
+    expect(linha.getCell(8).value).toBe('-'); // Qtd. de vagões — nunca capturado
     expect(linha.getCell(9).value).toBe(MARCADOR_UPPER); // Origem maiúsculo
     expect(linha.getCell(10).value).toBe('TRILHOS TR-22'); // Descrição do perfil
-    expect(linha.getCell(11).value).toBe('Nippon'); // Fabricante cadastrado — não maiúsculiza
+    expect(linha.getCell(11).value).toBe('NIPPON'); // Fabricante em maiúsculas, como na planilha
     expect(linha.getCell(12).value).toBe(2); // Qtd. de peças
     expect(linha.getCell(13).value).toBe(0.22); // Peso (Ton.) = 10m x 0.022
     expect(linha.getCell(14).value).toBeNull(); // G1
@@ -191,7 +191,7 @@ describe('gerarRelatorioExcel — aba Recebidos', () => {
 });
 
 describe('gerarRelatorioExcel — aba Remetidos', () => {
-  it('uma linha por grupo, Destino/Transportadora e Reserva/Pedido maiúsculos, Toneladas = peso informado da NF', async () => {
+  it('Destino/Transportadora e Reserva/Pedido maiúsculos, Toneladas = peso informado da NF', async () => {
     const nf = novaNF();
     const preCadastro = await criarPreCadastroRemetido(
       uuid(),
@@ -232,16 +232,16 @@ describe('gerarRelatorioExcel — aba Remetidos', () => {
     expect(linha.getCell(6).value).toBe(`${MARCADOR}-r`.toUpperCase()); // Reserva/Pedido maiúsculo
     expect(linha.getCell(8).value).toBe('ABC1D23'); // Placa (só cavalo)
     expect(linha.getCell(9).value).toBe(`${MARCADOR_UPPER} / TRANSPORTES RAPIDO`); // Destino/Transportadora
-    expect(linha.getCell(10).value).toBe('TR68'); // Perfil
+    expect(linha.getCell(10).value).toBe('TRILHOS TR-68'); // Perfil
     expect(linha.getCell(11).value).toBe('SUCATA'); // Tipo de material
-    expect(linha.getCell(12).value).toBe(''); // Marca — só NOVO
-    expect(linha.getCell(13).value).toBe('SC-2 - L, SC-3'); // Tipo/identificação (classificações mistas)
+    expect(linha.getCell(12).value).toBe('N/A'); // Marca — só NOVO
+    expect(linha.getCell(13).value).toBe('VENDA'); // Tipo de remetido
     expect(linha.getCell(14).value).toBe(2); // Peças
     expect(linha.getCell(15).value).toBe(9.6); // Metros = 8.1 + 1.5
     expect(linha.getCell(16).value).toBe(2.4); // Toneladas = peso informado — nunca recalculado
   });
 
-  it('NOVO: Marca aparece (cadastrada não maiúscula), Tipo/identificação vazio; peso sem informar usa a estimativa', async () => {
+  it('NOVO: Marca aparece em maiúsculas; peso sem informar usa a estimativa', async () => {
     const nf = novaNF();
     await criarRemetidoDireto(
       uuid(),
@@ -263,8 +263,8 @@ describe('gerarRelatorioExcel — aba Remetidos', () => {
 
     const workbook = await gerarWorkbook(nf);
     const [linha] = linhasComNF(workbook.getWorksheet('Remetidos')!, nf);
-    expect(linha.getCell(12).value).toBe('Evraz'); // Marca cadastrada
-    expect(linha.getCell(13).value).toBe(''); // Tipo/identificação — não se aplica a NOVO
+    expect(linha.getCell(11).value).toBe('NOVO'); // Tipo de material
+    expect(linha.getCell(12).value).toBe('EVRAZ'); // Marca
     expect(linha.getCell(16).value).toBe(0.22); // Toneladas = estimativa (10m x 0.022), "a confirmar"
   });
 
@@ -282,6 +282,7 @@ describe('gerarRelatorioExcel — aba Remetidos', () => {
     const [linha] = linhasComNF(workbook.getWorksheet('Remetidos')!, nf);
 
     expect(linha.getCell(10).value).toBe(''); // Perfil
+    expect(linha.getCell(13).value).toBe('TRANS'); // Tipo de remetido — já conhecido no pré-cadastro
     expect(linha.getCell(15).value).toBeNull(); // Metros
     expect(linha.getCell(16).value).toBeNull(); // Toneladas
   });
