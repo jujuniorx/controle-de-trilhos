@@ -111,7 +111,7 @@ export default async function AdminHomePage() {
               <tbody>
                 {aguardandoChegada.map((r) => (
                   <tr key={r.id}>
-                    <td>{r.reservaPedido}</td>
+                    <td>{r.reservaPedido ?? '—'}</td>
                     <td>{r.destino}</td>
                     <td className="font-mono">{r.numeroDocumento ?? 'Em aberto'}</td>
                     <td className="text-right">

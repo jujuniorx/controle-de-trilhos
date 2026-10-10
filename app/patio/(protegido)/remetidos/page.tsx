@@ -28,9 +28,10 @@ export default async function RemetidosAguardandoPage() {
         <PreCadastrosPendentes />
         {remetidos.map((r) => (
           <Link key={r.id} href={`/patio/remetidos/${r.id}/confirmar`} className="card block transition hover:brightness-110">
-            <p className="font-medium text-ink">{r.reservaPedido}</p>
+            <p className="font-medium text-ink">{r.destino ?? 'Remetido'}</p>
             <p className="text-sm text-ink-muted">
-              {TIPO_REMETIDO_LABEL[r.remetidoDetalhe?.tipoRemetido ?? ''] ?? '—'} · Destino: {r.destino}
+              {TIPO_REMETIDO_LABEL[r.remetidoDetalhe?.tipoRemetido ?? ''] ?? '—'}
+              {r.reservaPedido ? ` · Reserva ${r.reservaPedido}` : ''}
             </p>
             {r.numeroDocumento && <p className="text-sm text-ink-dim">NF {r.numeroDocumento}</p>}
           </Link>

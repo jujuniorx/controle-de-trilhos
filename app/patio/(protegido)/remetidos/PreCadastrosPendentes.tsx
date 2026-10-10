@@ -43,9 +43,10 @@ export function PreCadastrosPendentes() {
     <div className="space-y-2" aria-label="Cadastros aguardando sincronização">
       {itens.map((item) => (
         <div key={item.clientId} className="card">
-          <p className="font-medium text-ink">{item.payload.reservaPedido}</p>
+          <p className="font-medium text-ink">{item.payload.destino}</p>
           <p className="text-sm text-ink-muted">
-            {TIPO_REMETIDO_LABEL[item.payload.tipoRemetido] ?? '—'} · Destino: {item.payload.destino}
+            {TIPO_REMETIDO_LABEL[item.payload.tipoRemetido] ?? '—'}
+            {item.payload.reservaPedido ? ` · Reserva ${item.payload.reservaPedido}` : ''}
           </p>
           {item.syncStatus === 'ERRO' ? (
             <div className="mt-1 flex items-center justify-between gap-2">

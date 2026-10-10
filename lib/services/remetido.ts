@@ -40,7 +40,7 @@ export async function criarPreCadastroRemetido(
       numeroDocumento: input.numeroDocumento ?? null,
       tipoTransporte: 'CAMINHAO',
       destino: input.destino,
-      reservaPedido: input.reservaPedido,
+      reservaPedido: input.reservaPedido ?? null,
       status: 'AGUARDANDO_CHEGADA',
       remetidoDetalhe: { create: { tipoRemetido: input.tipoRemetido } },
     },

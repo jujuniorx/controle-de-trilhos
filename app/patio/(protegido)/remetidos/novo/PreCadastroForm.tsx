@@ -32,7 +32,6 @@ export function PreCadastroForm() {
     const parsed = preCadastroSyncSchema.safeParse({
       clientId: crypto.randomUUID(),
       tipoRemetido: form.get('tipoRemetido'),
-      reservaPedido: form.get('reservaPedido'),
       destino: form.get('destino'),
       numeroDocumento: numeroDocumento || undefined,
     });
@@ -76,11 +75,6 @@ export function PreCadastroForm() {
             </option>
           ))}
         </select>
-      </div>
-
-      <div className="field">
-        <label htmlFor="reservaPedido">Reserva/Pedido</label>
-        <input id="reservaPedido" name="reservaPedido" required className="h-11" />
       </div>
 
       <div className="field">

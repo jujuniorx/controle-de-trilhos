@@ -12,6 +12,7 @@ test.describe('Fluxo real do Remetido — pré-cadastro + confirmação (Pátio)
         where: {
           OR: [
             { reservaPedido: { startsWith: MARCADOR } },
+            { destino: { startsWith: MARCADOR } },
             { responsavelPatio: 'Teste E2E Direto' },
             { responsavelPatio: 'Teste E2E Edicao' },
           ],
@@ -32,13 +33,12 @@ test.describe('Fluxo real do Remetido — pré-cadastro + confirmação (Pátio)
 
     await page.goto('/patio/remetidos/novo');
     await page.locator('#tipoRemetido').selectOption('VENDA');
-    await page.locator('#reservaPedido').fill(MARCADOR);
-    await page.locator('#destino').fill('Usina Rondonópolis');
+    await page.locator('#destino').fill(`${MARCADOR}-destino`);
     await page.getByRole('button', { name: 'Cadastrar e aguardar chegada' }).click();
     await page.waitForURL('**/patio/remetidos');
 
-    await expect(page.getByText(MARCADOR)).toBeVisible();
-    await page.getByText(MARCADOR).click();
+    await expect(page.getByText(`${MARCADOR}-destino`)).toBeVisible();
+    await page.getByText(`${MARCADOR}-destino`).click();
     await page.waitForURL(/\/patio\/remetidos\/[a-z0-9]+\/confirmar$/);
     const movimentacaoId = page.url().split('/').slice(-2)[0];
 

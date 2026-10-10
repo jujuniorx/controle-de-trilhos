@@ -11,7 +11,8 @@ export const CLASSIFICACOES_REEMPREGO_REMETIDO = ['G1', 'G2', 'G3'] as const;
 
 export const preCadastroRemetidoSchema = z.object({
   tipoRemetido: z.enum(TIPOS_REMETIDO),
-  reservaPedido: z.string().trim().min(1, 'Informe a reserva/pedido.'),
+  // Opcional: o Pátio não precisa informar (igual ao lançamento direto); fica nulo.
+  reservaPedido: z.string().trim().min(1).optional(),
   destino: z.string().trim().min(1, 'Informe o destino.'),
   numeroDocumento: z.string().regex(NF_REGEX, MSG_NF_INVALIDA).optional(),
 });

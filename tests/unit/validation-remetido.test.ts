@@ -39,6 +39,12 @@ function grupoValido(overrides: Record<string, unknown> = {}) {
 }
 
 describe('preCadastroRemetidoSchema', () => {
+  it('aceita um pré-cadastro sem reserva/pedido (o Pátio não precisa informar)', () => {
+    const resultado = preCadastroRemetidoSchema.safeParse({ tipoRemetido: 'VENDA', destino: 'Usina Rondonópolis' });
+    expect(resultado.success).toBe(true);
+    if (resultado.success) expect(resultado.data.reservaPedido).toBeUndefined();
+  });
+
   it('aceita um pré-cadastro válido sem NF', () => {
     const resultado = preCadastroRemetidoSchema.safeParse(preCadastroValido());
     expect(resultado.success).toBe(true);
