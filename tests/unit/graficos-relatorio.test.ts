@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { montarDadosGraficos } from '@/lib/services/graficosRelatorio';
 import { resumoRelatorio, type MovimentacaoRelatorio } from '@/lib/services/relatorio';
 
-function mov(p: Partial<MovimentacaoRelatorio> & { grupos?: unknown[] }): MovimentacaoRelatorio {
+function mov(p: Record<string, unknown>): MovimentacaoRelatorio {
   return {
     id: Math.random().toString(),
     tipo: 'RECEBIMENTO',
