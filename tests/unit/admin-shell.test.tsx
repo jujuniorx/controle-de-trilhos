@@ -1,6 +1,11 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import { AdminShell } from '@/components/admin/AdminShell';
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn(), back: vi.fn() }),
+  usePathname: () => '/admin/relatorios',
+}));
 
 describe('AdminShell', () => {
   afterEach(cleanup);
