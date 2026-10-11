@@ -1213,3 +1213,58 @@ a.card:hover { transform: translateY(-2px); }
   .donut-legenda { flex: 1 1 100%; }
   .grafico-colunas { height: 190px; }
 }
+
+/* ── Efeitos ao passar o mouse (só com mouse e sem "reduzir movimento") ── */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  /* colunas */
+  .grafico-barra { transition: scale .22s cubic-bezier(.3, .7, .2, 1), filter .2s ease, box-shadow .25s ease; }
+  .grafico-col:hover .grafico-barra { scale: 1.14 1.04; filter: brightness(1.18); }
+  .grafico-col:hover .grafico-cor-rec.grafico-barra { box-shadow: 0 0 18px color-mix(in srgb, var(--viz-1) 75%, transparent); }
+  .grafico-col:hover .grafico-cor-env.grafico-barra { box-shadow: 0 0 18px color-mix(in srgb, var(--viz-2) 75%, transparent); }
+  .grafico-val { transition: scale .2s ease, color .2s ease; }
+  .grafico-col:hover .grafico-val { scale: 1.2; color: var(--ink); font-weight: 700; }
+  .grafico-eixo { transition: color .2s ease; }
+  .grafico-grupo:hover .grafico-eixo { color: var(--ink); font-weight: 600; }
+
+  /* pizzas: fatia e legenda se acendem juntas */
+  .donut-fatia:hover { stroke-width: 7; filter: drop-shadow(0 0 2px rgba(255, 255, 255, .35)); }
+  .donut-legenda li { padding: 4px 8px; margin: -4px -8px; border-radius: 8px; transition: background .18s ease, translate .18s ease; }
+  .donut-legenda li:hover { background: color-mix(in srgb, var(--ink) 8%, transparent); translate: 3px 0; }
+  .donut-wrap:has(.donut-fatia:nth-child(1):hover) .donut-legenda li:nth-child(1),
+  .donut-wrap:has(.donut-fatia:nth-child(2):hover) .donut-legenda li:nth-child(2),
+  .donut-wrap:has(.donut-fatia:nth-child(3):hover) .donut-legenda li:nth-child(3),
+  .donut-wrap:has(.donut-fatia:nth-child(4):hover) .donut-legenda li:nth-child(4),
+  .donut-wrap:has(.donut-fatia:nth-child(5):hover) .donut-legenda li:nth-child(5),
+  .donut-wrap:has(.donut-fatia:nth-child(6):hover) .donut-legenda li:nth-child(6) { background: color-mix(in srgb, var(--ink) 8%, transparent); translate: 3px 0; }
+  .donut-wrap:has(.donut-legenda li:nth-child(1):hover) .donut-fatia { opacity: .3; }
+  .donut-wrap:has(.donut-legenda li:nth-child(2):hover) .donut-fatia { opacity: .3; }
+  .donut-wrap:has(.donut-legenda li:nth-child(3):hover) .donut-fatia { opacity: .3; }
+  .donut-wrap:has(.donut-legenda li:nth-child(4):hover) .donut-fatia { opacity: .3; }
+  .donut-wrap:has(.donut-legenda li:nth-child(5):hover) .donut-fatia { opacity: .3; }
+  .donut-wrap:has(.donut-legenda li:nth-child(6):hover) .donut-fatia { opacity: .3; }
+  .donut-wrap:has(.donut-legenda li:nth-child(1):hover) .donut-fatia:nth-child(1),
+  .donut-wrap:has(.donut-legenda li:nth-child(2):hover) .donut-fatia:nth-child(2),
+  .donut-wrap:has(.donut-legenda li:nth-child(3):hover) .donut-fatia:nth-child(3),
+  .donut-wrap:has(.donut-legenda li:nth-child(4):hover) .donut-fatia:nth-child(4),
+  .donut-wrap:has(.donut-legenda li:nth-child(5):hover) .donut-fatia:nth-child(5),
+  .donut-wrap:has(.donut-legenda li:nth-child(6):hover) .donut-fatia:nth-child(6) { opacity: 1; stroke-width: 7; }
+
+  /* rankings (origem/destino) */
+  .grafico-rank li { padding: 3px 6px; margin: -3px -6px; border-radius: 8px; transition: background .18s ease, translate .18s ease; }
+  .grafico-rank li:hover { background: color-mix(in srgb, var(--ink) 7%, transparent); translate: 3px 0; }
+  .grafico-rank-barra { transition: filter .2s ease, scale .2s ease, box-shadow .25s ease; }
+  .grafico-rank li:hover .grafico-rank-barra { filter: brightness(1.2); scale: 1 1.5; box-shadow: 0 0 12px color-mix(in srgb, var(--viz-1) 70%, transparent); }
+  .grafico-rank li:hover .grafico-rank-valor { color: var(--ink); font-weight: 600; }
+
+  /* cartões de números, gráficos e linhas das tabelas */
+  .stat-tile { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+  .stat-tile:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--primary) 45%, var(--line)); box-shadow: 0 10px 24px color-mix(in srgb, var(--primary) 16%, transparent); }
+  .card.grafico:hover { box-shadow: 0 10px 28px rgba(0, 0, 0, .18); }
+  .tbl-wrap tbody tr { transition: background .15s ease, box-shadow .15s ease; }
+  .tbl-wrap tbody tr:hover { box-shadow: inset 3px 0 0 var(--primary); }
+  .tbl-action { transition: translate .18s ease; display: inline-block; }
+  .tbl-action:hover { translate: 4px 0; }
+  .btn:not(:disabled) { transition: transform .15s ease, box-shadow .2s ease, background .15s ease, border-color .15s ease; }
+  .btn:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 22%, transparent); }
+  .btn:not(:disabled):active { transform: scale(.98); box-shadow: none; }
+}
