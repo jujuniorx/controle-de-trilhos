@@ -11,9 +11,9 @@
  */
 export const BEND = 0;
 export const BITOLA_METADE = 12.5; // metade da distância entre os trilhos, na base
-export const DORMENTE_METADE = 19; // metade do comprimento do dormente, na base
+export const DORMENTE_METADE = 16.5; // metade do comprimento do dormente, na base
 export const LASTRO_METADE = 27; // metade da largura do lastro de pedra, na base
-export const QTD_DORMENTES = 22;
+export const QTD_DORMENTES = 40;
 export const DURACAO_DORMENTES_S = 6;
 
 const f = (n: number) => Math.round(n * 100) / 100;
