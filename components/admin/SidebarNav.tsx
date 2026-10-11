@@ -17,7 +17,7 @@ export const NAV_ITEMS_DONO = [
 
 const tracos = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
 
-const ICONES: Record<string, ReactNode> = {
+const ICONES_NAV: Record<string, ReactNode> = {
   '/admin': (
     <svg width="18" height="18" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
       <path d="M4 13l3-8h10l3 8M4 13v6h16v-6M4 13h4l1 2h6l1-2h4" />
@@ -48,7 +48,7 @@ export function SidebarNav({ onNavigate, className, dono }: { onNavigate?: () =>
     const ativo = i.href === '/admin' ? pathname === '/admin' : pathname === i.href || pathname.startsWith(`${i.href}/`);
     return (
       <Link key={i.href} href={i.href} data-active={ativo} onClick={onNavigate}>
-        <span className="nav-icone">{ICONES[i.href]}</span>
+        <span className="nav-icone">{ICONES_NAV[i.href]}</span>
         {i.label}
       </Link>
     );

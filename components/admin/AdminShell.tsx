@@ -9,6 +9,47 @@ import { InstalarApp } from '@/components/InstalarApp';
 import { AlternarTema } from '@/components/ui/AlternarTema';
 import { BotaoSair } from '@/components/admin/BotaoSair';
 import { GestosApp } from '@/components/ui/GestosApp';
+import { BarraAbas, type Aba } from '@/components/ui/BarraAbas';
+
+const tracos = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.9, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
+
+const ICONES_NAV = {
+  inicio: (
+    <svg width="24" height="24" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
+      <path d="M4 13l3-8h10l3 8M4 13v6h16v-6M4 13h4l1 2h6l1-2h4" />
+    </svg>
+  ),
+  relatorios: (
+    <svg width="24" height="24" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
+      <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+    </svg>
+  ),
+  usuarios: (
+    <svg width="24" height="24" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
+      <circle cx="9" cy="8" r="3.5" />
+      <path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M17 11a3 3 0 1 0 0-6M18.5 14.7c1.6.7 2.7 2.2 3 4.3" />
+    </svg>
+  ),
+};
+
+function abasDoAdmin(dono: boolean): Aba[] {
+  const abas: Aba[] = [
+    { href: '/admin', rotulo: 'Pendências', icone: ICONES_NAV.inicio },
+    { href: '/admin/relatorios', rotulo: 'Relatórios', icone: ICONES_NAV.relatorios },
+  ];
+  if (dono) abas.push({ href: '/admin/usuarios', rotulo: 'Usuários', icone: ICONES_NAV.usuarios });
+  abas.push({
+    rotulo: 'Mais',
+    icone: (
+      <svg width="24" height="24" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
+        <circle cx="5" cy="12" r="1.2" />
+        <circle cx="12" cy="12" r="1.2" />
+        <circle cx="19" cy="12" r="1.2" />
+      </svg>
+    ),
+  });
+  return abas;
+}
 
 function iniciaisDe(nome: string): string {
   return nome
@@ -21,8 +62,8 @@ function iniciaisDe(nome: string): string {
 
 export function AdminShell({ nome, ehDono = false, children }: { nome: string; ehDono?: boolean; children: ReactNode }) {
   return (
-    <div className="area-admin flex min-h-screen flex-col bg-background md:flex-row">
-      <GestosApp raiz="/admin" />
+    <div className="area-admin com-abas flex min-h-screen flex-col bg-background md:flex-row">
+      <GestosApp />
       <header className="ct-topbar relative flex h-14 flex-none items-center justify-between px-3 md:hidden">
         <div className="flex items-center gap-2">
           <MobileNav dono={ehDono} />
@@ -71,6 +112,7 @@ export function AdminShell({ nome, ehDono = false, children }: { nome: string; e
         {ehDono && <MenuExcluir />}
         <main className="min-w-0 flex-1">{children}</main>
       </div>
+      <BarraAbas abas={abasDoAdmin(ehDono)} raiz="/admin" />
     </div>
   );
 }
