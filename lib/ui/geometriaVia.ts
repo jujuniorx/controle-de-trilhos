@@ -10,11 +10,11 @@
  * gerados por scripts/gerar-keyframes-via.mjs — se mudar aqui, rode o script de novo.
  */
 export const BEND = 0;
-export const BITOLA_METADE = 13.5; // metade da distância entre os trilhos, na base
-export const DORMENTE_METADE = 22; // metade do comprimento do dormente, na base
-export const LASTRO_METADE = 31; // metade da largura do lastro de pedra, na base
+export const BITOLA_METADE = 12.5; // metade da distância entre os trilhos, na base
+export const DORMENTE_METADE = 19; // metade do comprimento do dormente, na base
+export const LASTRO_METADE = 27; // metade da largura do lastro de pedra, na base
 export const QTD_DORMENTES = 22;
-export const DURACAO_DORMENTES_S = 5;
+export const DURACAO_DORMENTES_S = 6;
 
 const f = (n: number) => Math.round(n * 100) / 100;
 export const centro = (t: number) => 50 + BEND * (1 - t) * (1 - t);
@@ -48,10 +48,10 @@ export function geometriaVia() {
   const R = BITOLA_METADE;
   return {
     lastro: faixa(0, 1.2, LASTRO_METADE * 2),
-    lastroBorda: faixa(0, 0.4, LASTRO_METADE * 2 + 5),
-    sombra: [faixa(L + 0.9, 0.2, 3.6), faixa(R + 0.9, 0.2, 3.6)],
-    corpo: [faixa(L, 0.12, 2.3), faixa(R, 0.12, 2.3)],
-    topo: [faixa(L, 0.06, 1.1, -0.2), faixa(R, 0.06, 1.1, -0.2)],
+    lastroBorda: faixa(0, 0.4, LASTRO_METADE * 2 + 7),
+    sombra: [faixa(L + 1.2, 0.2, 4.8), faixa(R + 1.2, 0.2, 4.8)],
+    corpo: [faixa(L, 0.14, 3.2), faixa(R, 0.14, 3.2)],
+    topo: [faixa(L, 0.07, 1.4, 0.4), faixa(R, 0.07, 1.4, -0.4)],
     brilho: [linha(L - 0.2), linha(R - 0.2)],
   };
 }

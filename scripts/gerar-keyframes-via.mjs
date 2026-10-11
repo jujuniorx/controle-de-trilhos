@@ -3,10 +3,10 @@
 // Uso: node scripts/gerar-keyframes-via.mjs --escrever   (sem a flag, só imprime)
 // Constantes iguais às de lib/ui/geometriaVia.ts.
 const BEND = 0;
-const DORMENTE_METADE = 22;
+const DORMENTE_METADE = 19;
 const LOCO_LARGURA = 30; // % da largura da via
 const FAROL_LARGURA = 10; // idem
-const Z0 = 14; // distância em que o dormente "nasce"
+const Z0 = 9; // distância em que o dormente "nasce"
 const Z_FIM = 0.9; // já passou da base da tela
 const r = (n, d = 3) => Number(n.toFixed(d));
 const e = (z) => 1 / z;
@@ -31,7 +31,7 @@ css += '}\n@keyframes via-engorda {\n';
 for (const [pc, ev, p] of passos(0, 100, 25, (ev, p) => [ev, p]).map(([a, [b, c]]) => [a, b, c])) {
   const tx = (desvio(ev) / (DORMENTE_METADE * 2)) * 100;
   const op = p < 0.1 ? r(p / 0.1, 2) : 1;
-  css += `  ${pc}% { transform: translateX(${r(tx, 2)}%) scale(${r(ev)}); opacity: ${op}; }\n`;
+  css += `  ${pc}% { transform: translateX(${r(tx, 2)}%) scale(${r(ev)}, ${r(ev * ev)}); opacity: ${op}; }\n`;
 }
 css += '}\n';
 
