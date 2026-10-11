@@ -845,8 +845,6 @@ html[data-tema="escuro"] .grafico-area {
    ====================================================================== */
 @keyframes sobe-fade { from { opacity: 0; transform: translateY(14px); } }
 @keyframes pagina-entra { from { opacity: 0; transform: translateY(8px); } }
-@keyframes brilho-respira { from { opacity: .65; } to { opacity: 1; } }
-@keyframes via-corre { to { background-position: 0 0, -64px 0; } }
 @keyframes la-quadro { from { transform: scale(.6); opacity: 0; } }
 @keyframes la-trilho { from { transform: scaleX(0); } }
 @keyframes la-dorm { from { transform: scaleY(0); opacity: 0; } }
@@ -860,26 +858,6 @@ html[data-tema="escuro"] .grafico-area {
 
 /* Transição entre páginas (app/template.tsx) */
 .pagina-anim { flex: 1 1 auto; display: flex; flex-direction: column; animation: pagina-entra .35s ease-out backwards; }
-
-/* Fundo de trilhos em perspectiva */
-.fundo-trilhos { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
-.fundo-trilhos-brilho {
-  position: absolute; inset: 0;
-  background:
-    radial-gradient(60% 55% at 15% 0%, rgba(59, 130, 196, .35), transparent 70%),
-    radial-gradient(55% 45% at 100% 100%, rgba(91, 155, 213, .22), transparent 70%);
-  animation: brilho-respira 8s ease-in-out infinite alternate;
-}
-.fundo-trilhos-via { position: absolute; left: 0; right: 0; bottom: 0; height: 52%; overflow: hidden; -webkit-mask-image: linear-gradient(to top, #000 55%, transparent); mask-image: linear-gradient(to top, #000 55%, transparent); }
-.via-lastro { position: absolute; inset: 0; background: linear-gradient(to top, rgba(127, 178, 240, .16), transparent 70%); clip-path: polygon(47% 0, 53% 0, 100% 100%, 0 100%); }
-.via-trilhos { position: absolute; inset: 0; width: 100%; height: 100%; }
-.via-trilho-corpo { fill: #8fb4de; opacity: .9; }
-.via-trilho-brilho { fill: #e6f1ff; opacity: .75; }
-/* cada dormente: o contêiner desce até a base; a barra cresce junto (mesma curva => perspectiva coerente) */
-.via-dorm { position: absolute; inset: 0; animation: via-avanca var(--dur, 3.6s) cubic-bezier(.5, 0, 1, .6) var(--atraso, 0s) infinite; }
-.via-dorm::after { content: ''; position: absolute; left: 3%; right: 3%; top: 0; height: 16px; border-radius: 3px; background: linear-gradient(to bottom, rgba(150, 172, 200, .55), rgba(110, 132, 160, .35)); transform-origin: center top; animation: via-engorda var(--dur, 3.6s) cubic-bezier(.5, 0, 1, .6) var(--atraso, 0s) infinite; }
-@keyframes via-avanca { from { transform: translateY(0); } to { transform: translateY(100%); } }
-@keyframes via-engorda { from { transform: scale(.03, .1); opacity: 0; } 12% { opacity: 1; } to { transform: scale(1, 1); opacity: 1; } }
 
 /* Marca animada */
 .logo-animada .la-quadro { transform-box: fill-box; transform-origin: center; animation: la-quadro .6s cubic-bezier(.2, .9, .3, 1.2) backwards; }
@@ -983,7 +961,7 @@ a.card:hover { transform: translateY(-2px); }
 .tbl-wrap tbody tr:hover { background: color-mix(in srgb, var(--primary) 6%, transparent); }
 
 @media (prefers-reduced-motion: reduce) {
-  .pagina-anim, .fundo-trilhos-brilho, .via-dorm, .via-dorm::after, .logo-animada *, .home-titulo, .home-frase, .home-instalar, .home-privacidade,
+  .pagina-anim, .logo-animada *, .home-titulo, .home-frase, .home-instalar, .home-privacidade,
   .entrada-card, .entrada-marca-nome, .entrada-marca-frase, .entrada-form-caixa, .boas-vindas-saudacao, .pend-tile,
   .rel-indicators .stat-tile, .checagem-fundo, .checagem-anel, .checagem-risco, .aviso-sucesso, .vazio svg, .esqueleto, .abertura-nome { animation: none !important; }
   .abertura { transition: none; }
@@ -1071,6 +1049,207 @@ a.card:hover { transform: translateY(-2px); }
 :is(html:not([data-tema]) .area-admin, html[data-tema="claro"] .area-admin) .ct-sidebar { background: linear-gradient(180deg, #0b1b31, #091524); }
 
 @media (prefers-reduced-motion: reduce) {
-  .via-dorm { display: none; }
   .nav-icone { transition: none; }
 }
+
+/* trilhos:inicio — fundo de linha férrea em perspectiva (geometria: lib/ui/geometriaVia.ts) */
+@keyframes brilho-respira { from { opacity: .6; } to { opacity: 1; } }
+@keyframes trilho-reflexo { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -100; } }
+@keyframes farol-distante { 0%, 100% { opacity: .35; transform: translate(-50%, -50%) scale(.8); } 50% { opacity: .95; transform: translate(-50%, -50%) scale(1.15); } }
+/* trilhos:keyframes */
+@keyframes via-avanca {
+  0% { transform: translateY(7.14%); }
+  4% { transform: translateY(7.42%); }
+  8% { transform: translateY(7.72%); }
+  12% { transform: translateY(8.05%); }
+  16% { transform: translateY(8.4%); }
+  20% { transform: translateY(8.79%); }
+  24% { transform: translateY(9.21%); }
+  28% { transform: translateY(9.68%); }
+  32% { transform: translateY(10.2%); }
+  36% { transform: translateY(10.77%); }
+  40% { transform: translateY(11.42%); }
+  44% { transform: translateY(12.14%); }
+  48% { transform: translateY(12.97%); }
+  52% { transform: translateY(13.91%); }
+  56% { transform: translateY(15.01%); }
+  60% { transform: translateY(16.29%); }
+  64% { transform: translateY(17.81%); }
+  68% { transform: translateY(19.64%); }
+  72% { transform: translateY(21.89%); }
+  76% { transform: translateY(24.73%); }
+  80% { transform: translateY(28.41%); }
+  84% { transform: translateY(33.38%); }
+  88% { transform: translateY(40.45%); }
+  92% { transform: translateY(51.33%); }
+  96% { transform: translateY(70.22%); }
+  100% { transform: translateY(111.11%); }
+}
+@keyframes via-engorda {
+  0% { transform: translateX(13.72%) scale(0.071); opacity: 0; }
+  4% { transform: translateX(13.64%) scale(0.074); opacity: 0.4; }
+  8% { transform: translateX(13.55%) scale(0.077); opacity: 0.8; }
+  12% { transform: translateX(13.45%) scale(0.08); opacity: 1; }
+  16% { transform: translateX(13.35%) scale(0.084); opacity: 1; }
+  20% { transform: translateX(13.24%) scale(0.088); opacity: 1; }
+  24% { transform: translateX(13.11%) scale(0.092); opacity: 1; }
+  28% { transform: translateX(12.98%) scale(0.097); opacity: 1; }
+  32% { transform: translateX(12.83%) scale(0.102); opacity: 1; }
+  36% { transform: translateX(12.67%) scale(0.108); opacity: 1; }
+  40% { transform: translateX(12.48%) scale(0.114); opacity: 1; }
+  44% { transform: translateX(12.28%) scale(0.121); opacity: 1; }
+  48% { transform: translateX(12.05%) scale(0.13); opacity: 1; }
+  52% { transform: translateX(11.79%) scale(0.139); opacity: 1; }
+  56% { transform: translateX(11.49%) scale(0.15); opacity: 1; }
+  60% { transform: translateX(11.15%) scale(0.163); opacity: 1; }
+  64% { transform: translateX(10.75%) scale(0.178); opacity: 1; }
+  68% { transform: translateX(10.27%) scale(0.196); opacity: 1; }
+  72% { transform: translateX(9.71%) scale(0.219); opacity: 1; }
+  76% { transform: translateX(9.01%) scale(0.247); opacity: 1; }
+  80% { transform: translateX(8.15%) scale(0.284); opacity: 1; }
+  84% { transform: translateX(7.06%) scale(0.334); opacity: 1; }
+  88% { transform: translateX(5.64%) scale(0.405); opacity: 1; }
+  92% { transform: translateX(3.77%) scale(0.513); opacity: 1; }
+  96% { transform: translateX(1.41%) scale(0.702); opacity: 1; }
+  100% { transform: translateX(0%) scale(1.111); opacity: 1; }
+}
+@keyframes via-trem-y {
+  0%, 62% { transform: translateY(0); visibility: hidden; }
+  62% { transform: translateY(7.14%); visibility: visible; }
+  63.17% { transform: translateY(7.43%); visibility: visible; }
+  64.33% { transform: translateY(7.75%); visibility: visible; }
+  65.5% { transform: translateY(8.09%); visibility: visible; }
+  66.67% { transform: translateY(8.46%); visibility: visible; }
+  67.83% { transform: translateY(8.87%); visibility: visible; }
+  69% { transform: translateY(9.32%); visibility: visible; }
+  70.17% { transform: translateY(9.82%); visibility: visible; }
+  71.33% { transform: translateY(10.38%); visibility: visible; }
+  72.5% { transform: translateY(11%); visibility: visible; }
+  73.67% { transform: translateY(11.71%); visibility: visible; }
+  74.83% { transform: translateY(12.51%); visibility: visible; }
+  76% { transform: translateY(13.42%); visibility: visible; }
+  77.17% { transform: translateY(14.48%); visibility: visible; }
+  78.33% { transform: translateY(15.73%); visibility: visible; }
+  79.5% { transform: translateY(17.2%); visibility: visible; }
+  80.67% { transform: translateY(18.99%); visibility: visible; }
+  81.83% { transform: translateY(21.18%); visibility: visible; }
+  83% { transform: translateY(23.95%); visibility: visible; }
+  84.17% { transform: translateY(27.55%); visibility: visible; }
+  85.33% { transform: translateY(32.43%); visibility: visible; }
+  86.5% { transform: translateY(39.41%); visibility: visible; }
+  87.67% { transform: translateY(50.21%); visibility: visible; }
+  88.83% { transform: translateY(69.16%); visibility: visible; }
+  90% { transform: translateY(111.11%); visibility: visible; }
+  90.01%, 100% { transform: translateY(140%); visibility: hidden; }
+}
+@keyframes via-loco {
+  0%, 62% { opacity: 0; transform: translate(-50%, -100%) scale(0.07); }
+  62% { opacity: 0; transform: translate(-29.88%, -100%) scale(0.071); }
+  63.17% { opacity: 0.59; transform: translate(-30.01%, -100%) scale(0.074); }
+  64.33% { opacity: 1; transform: translate(-30.14%, -100%) scale(0.077); }
+  65.5% { opacity: 1; transform: translate(-30.29%, -100%) scale(0.081); }
+  66.67% { opacity: 1; transform: translate(-30.45%, -100%) scale(0.085); }
+  67.83% { opacity: 1; transform: translate(-30.62%, -100%) scale(0.089); }
+  69% { opacity: 1; transform: translate(-30.82%, -100%) scale(0.093); }
+  70.17% { opacity: 1; transform: translate(-31.03%, -100%) scale(0.098); }
+  71.33% { opacity: 1; transform: translate(-31.26%, -100%) scale(0.104); }
+  72.5% { opacity: 1; transform: translate(-31.52%, -100%) scale(0.11); }
+  73.67% { opacity: 1; transform: translate(-31.81%, -100%) scale(0.117); }
+  74.83% { opacity: 1; transform: translate(-32.14%, -100%) scale(0.125); }
+  76% { opacity: 1; transform: translate(-32.51%, -100%) scale(0.134); }
+  77.17% { opacity: 1; transform: translate(-32.94%, -100%) scale(0.145); }
+  78.33% { opacity: 1; transform: translate(-33.43%, -100%) scale(0.157); }
+  79.5% { opacity: 1; transform: translate(-34%, -100%) scale(0.172); }
+  80.67% { opacity: 1; transform: translate(-34.69%, -100%) scale(0.19); }
+  81.83% { opacity: 1; transform: translate(-35.5%, -100%) scale(0.212); }
+  83% { opacity: 1; transform: translate(-36.51%, -100%) scale(0.24); }
+  84.17% { opacity: 1; transform: translate(-37.75%, -100%) scale(0.276); }
+  85.33% { opacity: 1; transform: translate(-39.35%, -100%) scale(0.324); }
+  86.5% { opacity: 1; transform: translate(-41.43%, -100%) scale(0.394); }
+  87.67% { opacity: 1; transform: translate(-44.22%, -100%) scale(0.502); }
+  88.83% { opacity: 0.59; transform: translate(-47.78%, -100%) scale(0.692); }
+  90% { opacity: 0; transform: translate(-50%, -100%) scale(1.111); }
+  100% { opacity: 0; transform: translate(-50%, -100%) scale(1.4); }
+}
+@keyframes via-farol {
+  0%, 62% { opacity: 0; }
+  62% { opacity: 0.2; transform: translate(10.36%, -57.57%) scale(0.181); }
+  63.17% { opacity: 0.42; transform: translate(9.98%, -57.88%) scale(0.184); }
+  64.33% { opacity: 0.43; transform: translate(9.57%, -58.21%) scale(0.188); }
+  65.5% { opacity: 0.43; transform: translate(9.13%, -58.57%) scale(0.192); }
+  66.67% { opacity: 0.43; transform: translate(8.65%, -58.97%) scale(0.196); }
+  67.83% { opacity: 0.44; transform: translate(8.13%, -59.4%) scale(0.201); }
+  69% { opacity: 0.44; transform: translate(7.55%, -59.88%) scale(0.206); }
+  70.17% { opacity: 0.45; transform: translate(6.92%, -60.41%) scale(0.212); }
+  71.33% { opacity: 0.45; transform: translate(6.22%, -61%) scale(0.219); }
+  72.5% { opacity: 0.46; transform: translate(5.44%, -61.66%) scale(0.227); }
+  73.67% { opacity: 0.47; transform: translate(4.57%, -62.41%) scale(0.236); }
+  74.83% { opacity: 0.48; transform: translate(3.59%, -63.26%) scale(0.246); }
+  76% { opacity: 0.48; transform: translate(2.47%, -64.23%) scale(0.258); }
+  77.17% { opacity: 0.49; transform: translate(1.19%, -65.35%) scale(0.273); }
+  78.33% { opacity: 0.51; transform: translate(-0.29%, -66.67%) scale(0.29); }
+  79.5% { opacity: 0.52; transform: translate(-2.01%, -68.24%) scale(0.311); }
+  80.67% { opacity: 0.54; transform: translate(-4.06%, -70.13%) scale(0.337); }
+  81.83% { opacity: 0.56; transform: translate(-6.51%, -72.45%) scale(0.37); }
+  83% { opacity: 0.59; transform: translate(-9.52%, -75.39%) scale(0.413); }
+  84.17% { opacity: 0.63; transform: translate(-13.26%, -79.21%) scale(0.472); }
+  85.33% { opacity: 0.67; transform: translate(-18.04%, -84.38%) scale(0.555); }
+  86.5% { opacity: 0.74; transform: translate(-24.3%, -91.77%) scale(0.68); }
+  87.67% { opacity: 0.78; transform: translate(-32.65%, -103.22%) scale(0.888); }
+  88.83% { opacity: 0.39; transform: translate(-43.34%, -123.31%) scale(1.284); }
+  90% { opacity: 0; transform: translate(-50%, -167.78%) scale(2.276); }
+  100% { opacity: 0; }
+}
+/* trilhos:fim-keyframes */
+.fundo-trilhos { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.fundo-trilhos-brilho {
+  position: absolute; inset: 0; animation: brilho-respira 8s ease-in-out infinite alternate;
+  background:
+    linear-gradient(to bottom, transparent calc(var(--horizonte, 44%) - 16%), rgba(150, 190, 235, .14) var(--horizonte, 44%), transparent calc(var(--horizonte, 44%) + 6%)),
+    radial-gradient(70% 45% at var(--fuga-x, 57%) var(--horizonte, 46%), rgba(120, 175, 235, .34), transparent 70%),
+    radial-gradient(60% 50% at 10% 0%, rgba(59, 130, 196, .22), transparent 70%);
+}
+.fundo-trilhos-via {
+  position: absolute; left: 0; right: 0; bottom: 0; height: var(--altura-via, 56%); overflow: hidden;
+  background: linear-gradient(to bottom, transparent 0, rgba(9, 16, 26, .5) 16%, rgba(7, 12, 19, .92) 100%);
+}
+.via-neblina { position: absolute; left: 0; right: 0; top: 0; height: 22%; background: linear-gradient(to bottom, rgba(150, 190, 235, .13), transparent); }
+.via-farol-distante { position: absolute; left: 57%; top: 0; width: 7px; height: 7px; border-radius: 50%; background: #fff6dc; box-shadow: 0 0 14px 5px rgba(255, 230, 170, .65); animation: farol-distante 3.2s ease-in-out infinite; }
+.via-cena { position: absolute; inset: 0; width: 100%; height: 100%; }
+.via-lastro { fill: url(#lastro-grad); }
+.via-lastro-borda { fill: rgba(190, 205, 225, .10); }
+.via-brita { position: absolute; inset: 0; opacity: .5; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.6 -.7'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); -webkit-mask-image: linear-gradient(to top, #000 30%, transparent 85%); mask-image: linear-gradient(to top, #000 30%, transparent 85%); }
+.via-sombra { fill: rgba(0, 0, 0, .5); }
+.via-trilho-corpo { fill: #5d7490; }
+.via-trilho-topo { fill: #dfeaf8; }
+.via-reflexo { fill: none; stroke: #fff; stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 5 95; vector-effect: non-scaling-stroke; filter: drop-shadow(0 0 4px rgba(255, 255, 255, .9)); animation: trilho-reflexo 5s cubic-bezier(.5, 0, 1, .75) infinite; }
+.via-reflexo:nth-of-type(2) { animation-delay: -2.4s; }
+.via-dorm { position: absolute; inset: 0; will-change: transform; animation: via-avanca var(--dur, 5s) linear var(--atraso, 0s) infinite; }
+.via-dorm::after {
+  content: ''; position: absolute; left: 28%; right: 28%; top: 0; height: 30px; border-radius: 3px; transform-origin: center top;
+  background:
+    radial-gradient(circle at 19.3% 50%, #e3ecf8 0 3.5px, transparent 4.5px),
+    radial-gradient(circle at 80.7% 50%, #e3ecf8 0 3.5px, transparent 4.5px),
+    linear-gradient(to bottom, #aab6c6 0, #7d8aa0 35%, #4d596b 100%);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, .4);
+  will-change: transform, opacity;
+  animation: via-engorda var(--dur, 5s) linear var(--atraso, 0s) infinite;
+}
+.via-trem { position: absolute; inset: 0; visibility: hidden; animation: via-trem-y 36s linear infinite; will-change: transform; }
+.via-farol { position: absolute; left: 50%; top: 0; width: 10%; aspect-ratio: 1; border-radius: 50%; opacity: 0; animation: via-farol 36s linear infinite; background: radial-gradient(circle, #fff 0 9%, rgba(255, 240, 200, .9) 22%, rgba(255, 226, 160, .32) 48%, transparent 70%); mix-blend-mode: screen; }
+.via-loco { position: absolute; left: 50%; top: 0; width: 30%; aspect-ratio: 100 / 88; opacity: 0; transform-origin: 50% 100%; animation: via-loco 36s linear infinite; }
+.via-loco svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.loco-luz { filter: drop-shadow(0 0 5px rgba(255, 244, 214, .95)); }
+@media (prefers-reduced-motion: reduce) {
+  .via-dorm, .via-trem, .via-farol-distante, .fundo-trilhos-brilho { display: none; }
+  .via-reflexo { animation: none; display: none; }
+}
+/* trilhos:fim */
+
+/* Posição do horizonte por tela (a via ocupa a parte de baixo). */
+.fundo-trilhos { --altura-via: 56%; --horizonte: 44%; --fuga-x: 57%; }
+.home-entrada .fundo-trilhos { --altura-via: 64%; --horizonte: 36%; }
+.entrada-marca .fundo-trilhos { --altura-via: 60%; --horizonte: 40%; }
+.patio-hero .fundo-trilhos { --altura-via: 70%; --horizonte: 30%; }
+/* O texto precisa continuar legível por cima do fundo. */
+.home-conteudo::before { content: ''; position: absolute; inset: -40px -60px; z-index: -1; background: radial-gradient(closest-side, rgba(8, 14, 22, .72), transparent); }
