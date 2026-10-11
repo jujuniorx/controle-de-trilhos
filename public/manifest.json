@@ -1,7 +1,7 @@
 {
   "id": "/",
   "name": "Controle de Trilhos",
-  "short_name": "Trilhos",
+  "short_name": "Controle de Trilhos",
   "description": "Recebimento, remessa e conferência de trilhos",
   "lang": "pt-BR",
   "start_url": "/patio/acesso",

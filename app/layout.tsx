@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   // iPhone/iPad: ao "Adicionar à Tela de Início" abre em tela cheia, com ícone e nome próprios.
   icons: { apple: "/icons/apple-touch-icon.png" },
-  appleWebApp: { capable: true, title: "Trilhos", statusBarStyle: "black-translucent" },
+  appleWebApp: { capable: true, title: "Controle de Trilhos", statusBarStyle: "black-translucent" },
 };
 
 // Sem isso, o Next.js não injeta NENHUMA tag <meta name="viewport">: o
