@@ -20,7 +20,10 @@ function gerarNonce(): string {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith('/admin') && pathname !== '/admin/login' && pathname !== '/admin/reset-senha') {
+  if (pathname.startsWith('/admin') &&
+      pathname !== '/admin/login' &&
+      pathname !== '/admin/reset-senha' &&
+      !pathname.startsWith('/admin/resetar-tudo')) {
     if (!request.cookies.get('sessao_admin')) {
       return NextResponse.redirect(new URL('/admin/login', request.url));
     }
