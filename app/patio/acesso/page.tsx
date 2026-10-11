@@ -3,17 +3,26 @@
 import { useActionState } from 'react';
 import Link from 'next/link';
 import { TelaEntrada } from '@/components/ui/TelaEntrada';
+import { useOnlineStatus } from '@/lib/hooks/useOnlineStatus';
 import { acessarPatioAction, type EstadoAcessoPatio } from './actions';
 
 const ESTADO_INICIAL: EstadoAcessoPatio = {};
 
 export default function AcessoPatioPage() {
   const [estado, formAction, enviando] = useActionState(acessarPatioAction, ESTADO_INICIAL);
+  const online = useOnlineStatus();
 
   return (
     <TelaEntrada area="area-patio">
       <h1 className="font-condensed text-2xl font-bold uppercase tracking-wide text-ink">Acesso do Pátio</h1>
       <p className="mt-1 text-sm text-ink-muted">Digite o código de acesso do Pátio para continuar.</p>
+
+      {!online && (
+        <div role="status" className="aviso-offline mt-3 rounded-lg">
+          <strong>Sem internet.</strong> O código só pode ser conferido com sinal. Se este aparelho já entrou antes,
+          abra o <Link href="/patio" className="underline">Pátio</Link> e continue lançando normalmente.
+        </div>
+      )}
 
       <form action={formAction} className="mt-4 space-y-4">
         <div className="field">

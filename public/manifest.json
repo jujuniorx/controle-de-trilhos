@@ -4,7 +4,7 @@
   "short_name": "Controle de Trilhos",
   "description": "Recebimento, remessa e conferência de trilhos",
   "lang": "pt-BR",
-  "start_url": "/patio/acesso",
+  "start_url": "/patio",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",

@@ -2,7 +2,6 @@
 
 import { ProgressoEtapas } from '@/components/ui/ProgressoEtapas';
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   PERFIS,
   CLASSIFICACOES_REEMPREGO,
@@ -22,6 +21,7 @@ import {
   limparRascunhoRecebimento,
 } from '@/lib/offline/db';
 import { sincronizarPendentes } from '@/lib/offline/sync';
+import { ConfirmacaoRecebimento } from '@/components/patio/ConfirmacaoRecebimento';
 
 type TipoMaterial = 'NOVO' | 'REEMPREGO' | 'SUCATA';
 type ModoMedicao = 'INDIVIDUAL' | 'QTD_COMPRIMENTO';
@@ -138,8 +138,8 @@ function validarDados(d: Dados) {
 }
 
 export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: Partial<Record<string, number>> }) {
-  const router = useRouter();
   const [clientId, setClientId] = useState(novoUuid);
+  const [confirmadoId, setConfirmadoId] = useState<string | null>(null);
   // true até a leitura do rascunho no Dexie terminar — enquanto isso, o efeito
   // que GRAVA o rascunho fica pausado, para não sobrescrever um rascunho salvo
   // com o estado em branco do primeiro render.
@@ -386,8 +386,12 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
     void sincronizarPendentes().catch(() => {});
 
     setEnviando(false);
-    router.push(`/patio/recebimentos/${parsed.data.clientId}/confirmado`);
+    // Confirmação na própria tela (sem trocar de rota): assim funciona sem internet.
+    setConfirmadoId(parsed.data.clientId);
+    window.scrollTo(0, 0);
   }
+
+  if (confirmadoId) return <ConfirmacaoRecebimento clientId={confirmadoId} />;
 
   return (
     <main className="mx-auto max-w-xl lg:max-w-3xl p-6">

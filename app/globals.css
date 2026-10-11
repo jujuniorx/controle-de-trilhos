@@ -1319,3 +1319,6 @@ a.card:hover { transform: translateY(-2px); }
   .folha-mais, .folha-fundo, .aba[data-ativa="true"]::before { animation: none; }
   .aba, .aba-icone { transition: none; }
 }
+
+/* Aviso de falta de internet (Pátio) */
+.aviso-offline { padding: 10px 16px; background: color-mix(in srgb, var(--warn, #d99a1b) 18%, var(--surface)); color: var(--ink); border-bottom: 1px solid color-mix(in srgb, var(--warn, #d99a1b) 40%, transparent); font-size: .85rem; line-height: 1.4; animation: sobe-fade .35s ease-out; }

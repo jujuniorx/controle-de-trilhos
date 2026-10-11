@@ -6,6 +6,7 @@ import { Logo } from '@/components/ui/Logo';
 import { AlternarTema } from '@/components/ui/AlternarTema';
 import { BarraAbas, type Aba } from '@/components/ui/BarraAbas';
 import { GestosApp } from '@/components/ui/GestosApp';
+import { AquecerOffline } from '@/components/patio/AquecerOffline';
 
 const tracos = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.9, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
 
@@ -61,6 +62,7 @@ export function PatioShell({ children }: { children: ReactNode }) {
         <AlternarTema padrao="escuro" className="ml-auto" />
       </header>
       <GestosApp />
+      <AquecerOffline />
       <IndicadorSincronizacao />
       <InstalarApp />
       <main className="min-w-0 flex-1">{children}</main>

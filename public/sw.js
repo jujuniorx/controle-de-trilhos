@@ -2,12 +2,15 @@
 // tablet que rodou a versão anterior ainda tem esse conteúdo gravado em disco no
 // cache 'trilhos-app-shell-v1'. Trocar o nome faz o handler de `activate` abaixo
 // apagar o cache antigo inteiro na próxima ativação — é o que completa a correção.
-const CACHE_NAME = 'trilhos-app-shell-v2';
+const CACHE_NAME = 'trilhos-app-shell-v3';
+// Telas do Pátio (HTML) guardadas para uso sem internet. NUNCA inclui /admin.
+const PATIO_CACHE = 'trilhos-patio-v1';
 const APP_SHELL = [
   '/',
   '/patio/acesso',
   '/admin/login',
   '/manifest.json',
+  '/offline.html',
 ];
 
 // Install event: cache the app shell
@@ -25,7 +28,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
+          if (cacheName !== CACHE_NAME && cacheName !== PATIO_CACHE) {
             return caches.delete(cacheName);
           }
         })
@@ -36,7 +39,7 @@ self.addEventListener('activate', (event) => {
 
 // Exact public shell URLs — safe to cache at runtime because they carry no
 // session-specific content (same set precached at INSTALL time above).
-const RUNTIME_CACHEABLE_EXACT = ['/', '/patio/acesso', '/admin/login', '/manifest.json'];
+const RUNTIME_CACHEABLE_EXACT = ['/', '/patio/acesso', '/admin/login', '/manifest.json', '/offline.html'];
 
 // Only static, non-authenticated assets may be cached at runtime. In
 // particular, this must NEVER match authenticated page HTML/RSC payloads
@@ -91,4 +94,103 @@ self.addEventListener('fetch', (event) => {
         return caches.match(event.request);
       })
   );
+});
+
+// ── Pátio sem internet ───────────────────────────────────────────────────────
+// O Pátio precisa abrir e funcionar sem sinal (os lançamentos ficam no aparelho e são
+// enviados depois). Por isso as TELAS do Pátio (/patio e /patio/*, nunca /admin) ficam
+// guardadas: rede primeiro; se a rede falhar, usa a cópia guardada.
+// Respostas redirecionadas (sessão expirada → /patio/acesso) nunca são guardadas.
+function ehNavegacaoPatio(request, url) {
+  return (
+    request.mode === 'navigate' &&
+    url.origin === self.location.origin &&
+    (url.pathname === '/patio' || url.pathname.startsWith('/patio/')) &&
+    url.pathname !== '/patio/acesso'
+  );
+}
+
+function comLimite(promessa, ms) {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error('timeout')), ms);
+    promessa.then(
+      (v) => {
+        clearTimeout(t);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(t);
+        reject(e);
+      },
+    );
+  });
+}
+
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
+  if (!ehNavegacaoPatio(event.request, url)) return;
+
+  event.respondWith(
+    (async () => {
+      const cache = await caches.open(PATIO_CACHE);
+      const guardada = await cache.match(url.pathname);
+      try {
+        // Com cópia guardada, não deixa o operador esperando uma rede "pendurada".
+        const resposta = guardada ? await comLimite(fetch(event.request), 6000) : await fetch(event.request);
+        if (resposta && resposta.status === 200 && resposta.type === 'basic' && !resposta.redirected) {
+          cache.put(url.pathname, resposta.clone());
+        }
+        return resposta;
+      } catch {
+        return (
+          guardada ||
+          (await cache.match('/patio')) ||
+          (await caches.match('/offline.html')) ||
+          Response.error()
+        );
+      }
+    })(),
+  );
+});
+
+// Aquecimento: a página manda a lista de telas do Pátio; o service worker baixa o HTML (já
+// com o cookie de acesso) e também os arquivos JS/CSS que cada tela usa, para abrir offline.
+const PADRAO_ATIVOS = /(?:\/_next\/)?static\/(?:chunks|css)\/[A-Za-z0-9_\-./%~()@[\]]+?\.(?:js|css)/g;
+
+async function aquecerPatio(urls) {
+  const telas = await caches.open(PATIO_CACHE);
+  const estaticos = await caches.open(CACHE_NAME);
+  for (const bruta of urls) {
+    try {
+      const url = new URL(bruta, self.location.origin);
+      if (url.origin !== self.location.origin || !(url.pathname === '/patio' || url.pathname.startsWith('/patio/'))) continue;
+      const resposta = await fetch(url.pathname, { credentials: 'same-origin', redirect: 'manual', headers: { Accept: 'text/html' } });
+      if (resposta.status !== 200 || resposta.type !== 'basic') continue;
+      const html = await resposta.clone().text();
+      await telas.put(url.pathname, resposta);
+      const ativos = new Set();
+      for (const achado of html.match(PADRAO_ATIVOS) || []) {
+        const caminho = achado.startsWith('/_next/') ? achado : '/_next/' + achado.replace(/^\//, '');
+        ativos.add(caminho);
+        ativos.add(caminho.replace(/\[/g, '%5B').replace(/\]/g, '%5D'));
+      }
+      for (const ativo of ativos) {
+        try {
+          if (await estaticos.match(ativo)) continue;
+          const r = await fetch(ativo);
+          if (r.ok) await estaticos.put(ativo, r);
+        } catch {
+          // Um arquivo que não baixou não impede o resto.
+        }
+      }
+    } catch {
+      // Sem rede agora: tenta de novo na próxima abertura.
+    }
+  }
+}
+
+self.addEventListener('message', (event) => {
+  if (!event.data || event.data.tipo !== 'aquecer-patio' || !Array.isArray(event.data.urls)) return;
+  event.waitUntil(aquecerPatio(event.data.urls));
 });

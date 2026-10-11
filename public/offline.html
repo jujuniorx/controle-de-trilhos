@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sem conexão — Controle de Trilhos</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; background: linear-gradient(160deg, #0b1b31, #0b1118 62%); color: #e8edf2; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; text-align: center; }
+  main { max-width: 380px; }
+  .icone { width: 72px; height: 72px; margin: 0 auto 18px; border-radius: 20px; display: grid; place-items: center; background: #1c2a3d; color: #7fb2f0; }
+  h1 { margin: 0 0 8px; font-size: 1.4rem; letter-spacing: .03em; text-transform: uppercase; }
+  p { margin: 0 0 20px; color: #9fb2c8; line-height: 1.5; }
+  a, button { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 22px; border-radius: 12px; border: 0; background: #4a97e0; color: #06131f; font: 600 1rem system-ui, sans-serif; text-decoration: none; cursor: pointer; }
+</style>
+</head>
+<body>
+<main>
+  <div class="icone" aria-hidden="true">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.8a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 20h.01M3 3l18 18"/></svg>
+  </div>
+  <h1>Sem conexão</h1>
+  <p>Esta tela ainda não foi guardada neste aparelho. Volte para o início do Pátio ou tente de novo quando o sinal voltar. O que você já lançou continua salvo.</p>
+  <button type="button" onclick="location.reload()">Tentar de novo</button>
+</main>
+</body>
+</html>
