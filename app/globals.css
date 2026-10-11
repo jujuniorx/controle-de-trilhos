@@ -876,7 +876,7 @@ html[data-tema="escuro"] .grafico-area {
 .home-cards { margin-top: 28px; width: 100%; display: flex; flex-direction: column; gap: 12px; }
 .entrada-card {
   display: flex; align-items: center; gap: 14px; text-align: left; padding: 16px 18px; border-radius: 16px;
-  background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .12); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  background: rgba(10, 20, 34, .72); border: 1px solid rgba(255, 255, 255, .14); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
   color: #fff; text-decoration: none;
   transition: transform .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
   animation: sobe-fade .6s ease-out backwards; animation-delay: calc(.8s + var(--i, 0) * .12s);
@@ -898,15 +898,15 @@ html[data-tema="escuro"] .grafico-area {
   flex: 1; display: grid; grid-template-columns: 1fr; background: var(--background);
   min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
 }
-.entrada-marca { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; min-height: 210px; padding: 28px 20px; color: #fff; background: linear-gradient(155deg, #0b1b31, #12315a 70%, #0f4c99); }
+.entrada-marca { position: relative; overflow: hidden; display: flex; align-items: flex-start; justify-content: center; min-height: 270px; padding: 30px 20px; color: #fff; background: linear-gradient(155deg, #0b1b31, #12315a 70%, #0f4c99); }
 .entrada-marca-conteudo { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; }
 .entrada-marca-nome { margin-top: 14px; font-family: var(--font-barlow-cond), sans-serif; font-size: 1.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; line-height: 1.05; animation: sobe-fade .7s ease-out .5s backwards; }
 .entrada-marca-frase { margin-top: 6px; color: #b9cde6; font-size: .9rem; animation: sobe-fade .7s ease-out .65s backwards; }
-.entrada-form { display: flex; align-items: center; justify-content: center; padding: 28px 20px; }
-.entrada-form-caixa { width: 100%; max-width: 380px; animation: sobe-fade .6s ease-out .25s backwards; }
+.entrada-form { display: flex; align-items: center; justify-content: center; padding: 28px 20px; background: radial-gradient(55% 45% at 50% 42%, rgba(47, 111, 184, .16), transparent 72%), var(--background); }
+.entrada-form-caixa { display: flex; flex-direction: column; width: 100%; max-width: 380px; animation: sobe-fade .6s ease-out .25s backwards; }
 @media (min-width: 860px) {
   .entrada-tela { grid-template-columns: 1.1fr 1fr; }
-  .entrada-marca { min-height: 0; padding: 48px; }
+  .entrada-marca { min-height: 0; padding: 14vh 48px 48px; }
   .entrada-marca-nome { font-size: 2.4rem; }
 }
 
@@ -1154,7 +1154,12 @@ a.card:hover { transform: translateY(-2px); }
 /* Posição do horizonte por tela (a via ocupa a parte de baixo). */
 .fundo-trilhos { --altura-via: 56%; --horizonte: 44%; --fuga-x: 50%; }
 .home-entrada .fundo-trilhos { --altura-via: 64%; --horizonte: 36%; }
-.entrada-marca .fundo-trilhos { --altura-via: 60%; --horizonte: 40%; }
+.entrada-marca .fundo-trilhos { --altura-via: 34%; --horizonte: 66%; }
+@media (min-width: 860px) { .entrada-marca .fundo-trilhos { --altura-via: 46%; --horizonte: 54%; } }
 .patio-hero .fundo-trilhos { --altura-via: 70%; --horizonte: 30%; }
 /* O texto precisa continuar legível por cima do fundo. */
-.home-conteudo::before { content: ''; position: absolute; inset: -40px -60px; z-index: -1; background: radial-gradient(closest-side, rgba(8, 14, 22, .72), transparent); }
+.home-conteudo::before { content: ''; position: absolute; inset: -60px -90px; z-index: -1; background: radial-gradient(closest-side, rgba(7, 12, 20, .9) 35%, transparent); }
+.home-entrada .fundo-trilhos-via { opacity: .7; }
+.patio-hero .fundo-trilhos-via { opacity: .6; }
+.patio-hero-texto::before { content: ''; position: absolute; inset: -30px -50px -30px -30px; z-index: -1; background: radial-gradient(closest-side, rgba(8, 15, 26, .78) 40%, transparent); }
+.entrada-marca-conteudo::before { content: ''; position: absolute; inset: -30px -60px; z-index: -1; background: radial-gradient(closest-side, rgba(8, 15, 26, .55) 40%, transparent); }
