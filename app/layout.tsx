@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Barlow, Barlow_Condensed, Geist_Mono } from "next/font/google";
 import { cookies } from "next/headers";
 import { RegistrarServiceWorker } from "@/components/RegistrarServiceWorker";
+import { AberturaApp } from "@/components/AberturaApp";
 import { TEMA_COOKIE, temaValido } from "@/lib/tema/tema";
 import "./globals.css";
 
@@ -70,6 +71,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         {children}
         <RegistrarServiceWorker />
+        <AberturaApp />
       </body>
     </html>
   );

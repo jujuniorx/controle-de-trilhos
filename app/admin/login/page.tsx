@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react';
 import Link from 'next/link';
-import { Logo } from '@/components/ui/Logo';
+import { TelaEntrada } from '@/components/ui/TelaEntrada';
 import { loginAction, type EstadoLogin } from './actions';
 
 const ESTADO_INICIAL: EstadoLogin = {};
@@ -11,8 +11,7 @@ export default function LoginPage() {
   const [estado, formAction, enviando] = useActionState(loginAction, ESTADO_INICIAL);
 
   return (
-    <main className="area-admin mx-auto flex min-h-screen max-w-sm flex-col justify-center p-6">
-      <Logo size={56} className="mb-6" />
+    <TelaEntrada area="area-admin">
       <h1 className="font-condensed text-2xl font-bold uppercase tracking-wide text-ink">Login do Administrativo</h1>
       <p className="mt-1 text-sm text-ink-muted">Entre com seu usuário (ou e-mail) e senha para continuar.</p>
 
@@ -44,6 +43,6 @@ export default function LoginPage() {
       <Link href="/privacidade" className="mt-2 text-center text-xs text-ink-dim underline hover:text-ink">
         Privacidade e cookies
       </Link>
-    </main>
+    </TelaEntrada>
   );
 }

@@ -2,6 +2,13 @@ import Link from 'next/link';
 import { listarPendentesConferencia } from '@/lib/services/movimentacao';
 import { listarAguardandoChegada } from '@/lib/services/remetido';
 import { requireAdmin } from '@/lib/services/requireAdmin';
+import { ContadorAnimado } from '@/components/ui/ContadorAnimado';
+import { EstadoVazio } from '@/components/ui/EstadoVazio';
+
+function saudacao(): string {
+  const hora = Number(new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: 'numeric', hour12: false })) % 24;
+  return hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
+}
 
 function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
@@ -22,20 +29,38 @@ const STATUS_TEXTO: Record<string, string> = {
 };
 
 export default async function AdminHomePage() {
-  await requireAdmin();
+  const { nome } = await requireAdmin();
+  const primeiroNome = nome.trim().split(' ')[0] ?? nome;
   const [movimentacoes, aguardandoChegada] = await Promise.all([listarPendentesConferencia(), listarAguardandoChegada()]);
 
   return (
     <main className="mx-auto max-w-4xl xl:max-w-6xl space-y-6 p-6">
-      <div className="page-header flex items-center justify-between">
-        <h1 className="page-title">Movimentações pendentes de conferência</h1>
-        <div className="flex gap-2">
-          <Link href="/admin/relatorios" className="btn btn-ghost btn-sm">
-            Relatórios
-          </Link>
+      <div className="boas-vindas">
+        <div>
+          <p className="boas-vindas-saudacao">{saudacao()}, {primeiroNome}</p>
+          <h1 className="page-title">Movimentações pendentes de conferência</h1>
+        </div>
+        <Link href="/admin/relatorios" className="btn btn-ghost btn-sm">
+          Relatórios
+        </Link>
+      </div>
+
+      <div className="pend-resumo">
+        <div className="stat-tile pend-tile">
+          <p className="stat-label">Aguardando conferência</p>
+          <p className={`stat-value ${movimentacoes.length > 0 ? 'accent' : ''}`}>
+            <ContadorAnimado valor={movimentacoes.length} />
+          </p>
+          <p className="stat-unit">{movimentacoes.length === 1 ? 'movimentação' : 'movimentações'}</p>
+        </div>
+        <div className="stat-tile pend-tile">
+          <p className="stat-label">Remetidos aguardando chegada</p>
+          <p className="stat-value">
+            <ContadorAnimado valor={aguardandoChegada.length} />
+          </p>
+          <p className="stat-unit">{aguardandoChegada.length === 1 ? 'pré-cadastro' : 'pré-cadastros'}</p>
         </div>
       </div>
-      <p className="-mt-4 text-sm text-ink-muted">{movimentacoes.length} movimentação(ões) aguardando conferência.</p>
 
       <div className="card">
         <div className="tbl-wrap tbl-cards">
@@ -82,8 +107,8 @@ export default async function AdminHomePage() {
               ))}
               {movimentacoes.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="p-4 text-center text-ink-dim">
-                    Nenhuma movimentação pendente de conferência.
+                  <td colSpan={8}>
+                    <EstadoVazio titulo="Tudo conferido!" texto="Nenhuma movimentação pendente de conferência." />
                   </td>
                 </tr>
               )}
@@ -123,8 +148,8 @@ export default async function AdminHomePage() {
                 ))}
                 {aguardandoChegada.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="p-4 text-center text-ink-dim">
-                      Nenhum remetido aguardando chegada.
+                    <td colSpan={4}>
+                      <EstadoVazio titulo="Nenhum remetido aguardando chegada" />
                     </td>
                   </tr>
                 )}

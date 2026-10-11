@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { liveQuery } from 'dexie';
 import { db, type RecebimentoLocal, type SyncStatus } from '@/lib/offline/db';
 import { sincronizarPendentes } from '@/lib/offline/sync';
+import { ChecagemAnimada } from '@/components/ui/ChecagemAnimada';
 
 function metrosDaMedicao(m: { quantidade: number; comprimento: number }): number {
   return Math.round(m.quantidade * m.comprimento * 100) / 100;
@@ -96,7 +97,9 @@ export default function RecebimentoConfirmadoPage() {
   return (
     <main className="mx-auto max-w-xl lg:max-w-3xl space-y-4 p-6">
       <div className="conf-block conf-ok text-center">
-        <div className="mx-auto grid h-12 w-12 place-items-center rounded-full text-2xl text-white" style={{ background: 'var(--ok)' }}>✓</div>
+        <div className="mx-auto w-fit">
+          <ChecagemAnimada size={64} />
+        </div>
         <h1 className="mt-2 font-condensed text-lg font-bold uppercase tracking-wide" style={{ color: 'var(--ok)' }}>Recebimento salvo</h1>
         <p className="mt-1 text-sm text-ink-muted">NF {payload.dados.numeroDocumento}</p>
       </div>

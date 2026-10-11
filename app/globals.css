@@ -839,3 +839,155 @@ html[data-tema="escuro"] .grafico-area {
 @media (prefers-reduced-motion: reduce) {
   .grafico, .grafico-barra, .grafico-val, .grafico-rank-barra, .donut-fatia, .donut-total, .donut-unidade, .donut-legenda li { animation: none !important; }
 }
+
+/* ======================================================================
+   Visual v3 — entrada, animações e acabamento
+   ====================================================================== */
+@keyframes sobe-fade { from { opacity: 0; transform: translateY(14px); } }
+@keyframes pagina-entra { from { opacity: 0; transform: translateY(8px); } }
+@keyframes brilho-respira { from { opacity: .65; } to { opacity: 1; } }
+@keyframes via-corre { to { background-position: 0 0, -64px 0; } }
+@keyframes la-quadro { from { transform: scale(.6); opacity: 0; } }
+@keyframes la-trilho { from { transform: scaleX(0); } }
+@keyframes la-dorm { from { transform: scaleY(0); opacity: 0; } }
+@keyframes check-pop { from { transform: scale(.4); opacity: 0; } }
+@keyframes check-risco { from { stroke-dashoffset: 1; } }
+@keyframes check-anel { from { transform: scale(.9); opacity: .9; } to { transform: scale(1.45); opacity: 0; } }
+@keyframes aviso-in { from { opacity: 0; transform: translate(-50%, 20px); } }
+@keyframes aviso-out { to { opacity: 0; transform: translate(-50%, 10px); } }
+@keyframes vazio-flutua { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+@keyframes esqueleto { to { background-position: -200% 0; } }
+
+/* Transição entre páginas (app/template.tsx) */
+.pagina-anim { flex: 1 1 auto; display: flex; flex-direction: column; animation: pagina-entra .35s ease-out backwards; }
+
+/* Fundo de trilhos em perspectiva */
+.fundo-trilhos { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.fundo-trilhos-brilho {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(60% 55% at 15% 0%, rgba(59, 130, 196, .35), transparent 70%),
+    radial-gradient(55% 45% at 100% 100%, rgba(91, 155, 213, .22), transparent 70%);
+  animation: brilho-respira 8s ease-in-out infinite alternate;
+}
+.fundo-trilhos-via {
+  position: absolute; left: -30%; right: -30%; bottom: -8%; height: 46%;
+  transform: perspective(420px) rotateX(62deg); transform-origin: bottom;
+  background-image:
+    linear-gradient(to bottom, transparent 24%, rgba(91, 155, 213, .7) 24% 29%, transparent 29% 71%, rgba(91, 155, 213, .7) 71% 76%, transparent 76%),
+    linear-gradient(90deg, rgba(180, 200, 225, .22) 0 16%, transparent 16%);
+  background-size: 100% 100%, 64px 100%;
+  background-repeat: no-repeat, repeat-x;
+  -webkit-mask-image: linear-gradient(to top, #000 35%, transparent);
+  mask-image: linear-gradient(to top, #000 35%, transparent);
+  animation: via-corre 3.2s linear infinite;
+}
+
+/* Marca animada */
+.logo-animada .la-quadro { transform-box: fill-box; transform-origin: center; animation: la-quadro .6s cubic-bezier(.2, .9, .3, 1.2) backwards; }
+.logo-animada .la-trilho { transform-box: fill-box; transform-origin: left center; animation: la-trilho .7s cubic-bezier(.3, .7, .2, 1) backwards; }
+.logo-animada .la-dorm { transform-box: fill-box; transform-origin: center; animation: la-dorm .45s ease-out backwards; }
+
+/* Tela inicial */
+.home-entrada {
+  position: relative; overflow: hidden; flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px;
+  min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(160deg, #0b1b31 0%, #0b1118 62%); color: #e8edf2;
+}
+.home-conteudo { position: relative; z-index: 1; width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.home-titulo { margin-top: 20px; font-family: var(--font-barlow-cond), sans-serif; font-size: 2.1rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; line-height: 1.05; animation: sobe-fade .7s ease-out .5s backwards; }
+.home-frase { margin-top: 8px; color: #9fb2c8; font-size: .95rem; animation: sobe-fade .7s ease-out .65s backwards; }
+.home-cards { margin-top: 28px; width: 100%; display: flex; flex-direction: column; gap: 12px; }
+.entrada-card {
+  display: flex; align-items: center; gap: 14px; text-align: left; padding: 16px 18px; border-radius: 16px;
+  background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .12); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  color: #fff; text-decoration: none;
+  transition: transform .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+  animation: sobe-fade .6s ease-out backwards; animation-delay: calc(.8s + var(--i, 0) * .12s);
+}
+.entrada-card:hover { transform: translateY(-3px); background: rgba(255, 255, 255, .1); border-color: #5b9bd5; box-shadow: 0 12px 32px rgba(15, 95, 204, .3); }
+.entrada-card:active { transform: scale(.98); }
+.entrada-card-icone { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; flex: none; color: #fff; background: linear-gradient(135deg, #2f6fb8, #0f5fcc); }
+.entrada-card-texto { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.entrada-card-texto strong { font-family: var(--font-barlow-cond), sans-serif; font-size: 1.35rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; line-height: 1.1; }
+.entrada-card-texto small { color: #9fb2c8; font-size: .85rem; }
+.entrada-card-seta { font-size: 1.3rem; color: #7fb2f0; transition: transform .2s ease; }
+.entrada-card:hover .entrada-card-seta { transform: translateX(5px); }
+.home-instalar { margin-top: 18px; animation: sobe-fade .6s ease-out 1.1s backwards; }
+.home-privacidade { margin-top: 14px; font-size: .75rem; color: #7d90a6; text-decoration: underline; animation: sobe-fade .6s ease-out 1.2s backwards; }
+.home-privacidade:hover { color: #c9d6e8; }
+
+/* Login / acesso: painel da marca + formulário */
+.entrada-tela {
+  flex: 1; display: grid; grid-template-columns: 1fr; background: var(--background);
+  min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+}
+.entrada-marca { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; min-height: 210px; padding: 28px 20px; color: #fff; background: linear-gradient(155deg, #0b1b31, #12315a 70%, #0f4c99); }
+.entrada-marca-conteudo { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.entrada-marca-nome { margin-top: 14px; font-family: var(--font-barlow-cond), sans-serif; font-size: 1.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; line-height: 1.05; animation: sobe-fade .7s ease-out .5s backwards; }
+.entrada-marca-frase { margin-top: 6px; color: #b9cde6; font-size: .9rem; animation: sobe-fade .7s ease-out .65s backwards; }
+.entrada-form { display: flex; align-items: center; justify-content: center; padding: 28px 20px; }
+.entrada-form-caixa { width: 100%; max-width: 380px; animation: sobe-fade .6s ease-out .25s backwards; }
+@media (min-width: 860px) {
+  .entrada-tela { grid-template-columns: 1.1fr 1fr; }
+  .entrada-marca { min-height: 0; padding: 48px; }
+  .entrada-marca-nome { font-size: 2.4rem; }
+}
+
+/* Admin: boas-vindas e resumo */
+.boas-vindas { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.boas-vindas .page-title { margin: 0; }
+.boas-vindas-saudacao { font-size: .95rem; color: var(--ink-muted); margin-bottom: 2px; animation: sobe-fade .5s ease-out backwards; }
+.pend-resumo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.pend-tile { animation: sobe-fade .55s ease-out backwards; }
+.pend-tile:nth-child(2) { animation-delay: .1s; }
+.rel-indicators .stat-tile { animation: sobe-fade .55s ease-out backwards; }
+.rel-indicators .stat-tile:nth-child(2) { animation-delay: .06s; }
+.rel-indicators .stat-tile:nth-child(3) { animation-delay: .12s; }
+.rel-indicators .stat-tile:nth-child(4) { animation-delay: .18s; }
+.stat-tile { transition: transform .2s ease, box-shadow .2s ease; }
+.stat-tile:hover { transform: translateY(-2px); }
+
+/* Abertura do app instalado */
+.abertura { position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; color: #fff; background: linear-gradient(160deg, #0b1b31, #12151a); transition: opacity .5s ease; }
+.abertura-saindo { opacity: 0; }
+.abertura-nome { font-family: var(--font-barlow-cond), sans-serif; font-size: 1.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; animation: sobe-fade .6s ease-out .5s backwards; }
+
+/* Confirmação (check animado) e aviso flutuante */
+.checagem-fundo { transform-box: fill-box; transform-origin: center; animation: check-pop .5s cubic-bezier(.2, .9, .3, 1.3) backwards; }
+.checagem-anel { transform-box: fill-box; transform-origin: center; animation: check-anel .9s ease-out .3s both; }
+.checagem-risco { stroke-dasharray: 1; stroke-dashoffset: 0; animation: check-risco .5s ease-out .35s backwards; }
+.aviso-sucesso {
+  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60;
+  display: flex; align-items: center; gap: 10px; padding: 10px 20px 10px 12px; border-radius: 999px;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--ok); box-shadow: 0 10px 30px rgba(0, 0, 0, .35); font-weight: 600;
+  animation: aviso-in .4s cubic-bezier(.2, .9, .3, 1.2) backwards, aviso-out .4s ease-in 3.4s forwards;
+}
+
+/* Estado vazio e carregamento */
+.vazio { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 28px 16px; text-align: center; color: var(--ink-dim); }
+.vazio svg { color: var(--primary); animation: vazio-flutua 3s ease-in-out infinite alternate; }
+.vazio-titulo { font-weight: 600; color: var(--ink-muted); }
+.vazio-texto { font-size: .85rem; }
+.esqueleto {
+  border-radius: 12px; background-size: 200% 100%; animation: esqueleto 1.4s linear infinite;
+  background-image: linear-gradient(90deg, var(--surface) 0%, color-mix(in srgb, var(--surface) 78%, var(--ink) 10%) 50%, var(--surface) 100%);
+}
+
+/* Micro-interações */
+.btn { transition: transform .12s ease, filter .15s ease, box-shadow .2s ease, background-color .15s ease; }
+.btn:active { transform: scale(.97); }
+.btn-primary:hover { box-shadow: 0 6px 18px color-mix(in srgb, var(--primary) 35%, transparent); }
+.field input:focus, .field select:focus, .field textarea:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent); }
+a.card { transition: transform .18s ease, box-shadow .18s ease, filter .15s ease; }
+a.card:hover { transform: translateY(-2px); }
+.tbl-wrap tbody tr { transition: background-color .15s ease; }
+.tbl-wrap tbody tr:hover { background: color-mix(in srgb, var(--primary) 6%, transparent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .pagina-anim, .fundo-trilhos-brilho, .fundo-trilhos-via, .logo-animada *, .home-titulo, .home-frase, .home-instalar, .home-privacidade,
+  .entrada-card, .entrada-marca-nome, .entrada-marca-frase, .entrada-form-caixa, .boas-vindas-saudacao, .pend-tile,
+  .rel-indicators .stat-tile, .checagem-fundo, .checagem-anel, .checagem-risco, .aviso-sucesso, .vazio svg, .esqueleto, .abertura-nome { animation: none !important; }
+  .abertura { transition: none; }
+  .btn, .stat-tile, a.card, .entrada-card { transition: none; }
+}

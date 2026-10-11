@@ -53,7 +53,7 @@ export function PreCadastroForm() {
       sincronizarPendentes().catch(() => undefined),
       new Promise((resolver) => setTimeout(resolver, ESPERA_ENVIO_MS)),
     ]);
-    router.push('/patio/remetidos');
+    router.push('/patio/remetidos?salvo=cadastro');
   }
 
   return (

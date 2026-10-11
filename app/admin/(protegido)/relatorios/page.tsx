@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { fmtMetros, fmtPeso } from '@/lib/format';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { filtrosRelatorioSchema, MATERIAIS_RELATORIO, STATUS_RELATORIO } from '@/lib/validation/relatorio';
+import { EstadoVazio } from '@/components/ui/EstadoVazio';
 import { GraficosRelatorio } from '@/components/admin/GraficosRelatorio';
 import { montarDadosGraficos } from '@/lib/services/graficosRelatorio';
 import { PERFIS } from '@/lib/validation/recebimento';
@@ -245,8 +246,8 @@ export default async function RelatoriosPage({
                 ))}
                 {movimentacoes.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="p-4 text-center text-ink-dim">
-                      Nenhuma movimentação encontrada com esses filtros.
+                    <td colSpan={6}>
+                      <EstadoVazio titulo="Nada encontrado" texto="Nenhuma movimentação com esses filtros." />
                     </td>
                   </tr>
                 )}

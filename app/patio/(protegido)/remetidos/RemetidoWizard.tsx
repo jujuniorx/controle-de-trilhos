@@ -325,7 +325,7 @@ export function RemetidoWizard(props: Props) {
       setErroFinal(resultado.erro ?? 'Não foi possível salvar o remetido.');
       return;
     }
-    router.push(props.modo === 'editar' ? `/admin/remetidos/${props.movimentacaoId}` : '/patio/remetidos');
+    router.push(props.modo === 'editar' ? `/admin/remetidos/${props.movimentacaoId}` : '/patio/remetidos?salvo=carregamento');
   }
 
   return (

@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react';
 import Link from 'next/link';
-import { Logo } from '@/components/ui/Logo';
+import { TelaEntrada } from '@/components/ui/TelaEntrada';
 import { acessarPatioAction, type EstadoAcessoPatio } from './actions';
 
 const ESTADO_INICIAL: EstadoAcessoPatio = {};
@@ -11,8 +11,7 @@ export default function AcessoPatioPage() {
   const [estado, formAction, enviando] = useActionState(acessarPatioAction, ESTADO_INICIAL);
 
   return (
-    <main className="area-patio mx-auto flex min-h-screen max-w-sm flex-col justify-center p-6">
-      <Logo size={56} className="mb-6" />
+    <TelaEntrada area="area-patio">
       <h1 className="font-condensed text-2xl font-bold uppercase tracking-wide text-ink">Acesso do Pátio</h1>
       <p className="mt-1 text-sm text-ink-muted">Digite o código de acesso do Pátio para continuar.</p>
 
@@ -53,6 +52,6 @@ export default function AcessoPatioPage() {
       <Link href="/privacidade" className="mt-2 text-center text-xs text-ink-dim underline hover:text-ink">
         Privacidade e cookies
       </Link>
-    </main>
+    </TelaEntrada>
   );
 }
