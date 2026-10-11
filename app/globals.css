@@ -1041,3 +1041,8 @@ a.card:hover { transform: translateY(-2px); }
   .area-admin main h1::after, .area-patio main h1::after, .area-admin main > *, .area-patio main > *, .tbl-cards tbody tr { animation: none !important; }
   .acao-patio, .card, .grupo-card { transition: none; }
 }
+
+/* O aviso flutuante mantém as próprias animações (a regra em cascata acima não pode sobrescrevê-las). */
+.area-admin main > .aviso-sucesso, .area-patio main > .aviso-sucesso {
+  animation: aviso-in .4s cubic-bezier(.2, .9, .3, 1.2) backwards, aviso-out .4s ease-in 3.4s forwards;
+}
