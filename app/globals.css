@@ -1218,11 +1218,11 @@ a.card:hover { transform: translateY(-2px); }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   /* colunas */
   .grafico-barra { transition: scale .22s cubic-bezier(.3, .7, .2, 1), filter .2s ease, box-shadow .25s ease; }
-  .grafico-col:hover .grafico-barra { scale: 1.14 1.04; filter: brightness(1.18); }
+  .grafico-col:hover .grafico-barra { scale: 1.14 1; filter: brightness(1.18); }
   .grafico-col:hover .grafico-cor-rec.grafico-barra { box-shadow: 0 0 18px color-mix(in srgb, var(--viz-1) 75%, transparent); }
   .grafico-col:hover .grafico-cor-env.grafico-barra { box-shadow: 0 0 18px color-mix(in srgb, var(--viz-2) 75%, transparent); }
-  .grafico-val { transition: scale .2s ease, color .2s ease; }
-  .grafico-col:hover .grafico-val { scale: 1.2; color: var(--ink); font-weight: 700; }
+  .grafico-val { transition: scale .2s ease, translate .2s ease, color .2s ease; }
+  .grafico-col:hover .grafico-val { scale: 1.15; translate: 0 -5px; color: var(--ink); font-weight: 700; }
   .grafico-eixo { transition: color .2s ease; }
   .grafico-grupo:hover .grafico-eixo { color: var(--ink); font-weight: 600; }
 
@@ -1253,7 +1253,7 @@ a.card:hover { transform: translateY(-2px); }
   .grafico-rank li { padding: 3px 6px; margin: -3px -6px; border-radius: 8px; transition: background .18s ease, translate .18s ease; }
   .grafico-rank li:hover { background: color-mix(in srgb, var(--ink) 7%, transparent); translate: 3px 0; }
   .grafico-rank-barra { transition: filter .2s ease, scale .2s ease, box-shadow .25s ease; }
-  .grafico-rank li:hover .grafico-rank-barra { filter: brightness(1.2); scale: 1 1.5; box-shadow: 0 0 12px color-mix(in srgb, var(--viz-1) 70%, transparent); }
+  .grafico-rank li:hover .grafico-rank-barra { filter: brightness(1.2); scale: 1 1.4; box-shadow: 0 0 12px color-mix(in srgb, var(--viz-1) 70%, transparent); }
   .grafico-rank li:hover .grafico-rank-valor { color: var(--ink); font-weight: 600; }
 
   /* cartões de números, gráficos e linhas das tabelas */
