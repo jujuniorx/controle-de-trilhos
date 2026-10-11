@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  // Redeploy attempt
   agentRules: false,
   async headers() {
     return [
