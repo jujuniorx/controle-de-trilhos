@@ -1,12 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { SidebarNav } from './SidebarNav';
 import { BotaoSair } from './BotaoSair';
+import { EVENTO_MENU } from '@/components/ui/GestosApp';
 
 export function MobileNav({ dono }: { dono?: boolean }) {
   const [aberto, setAberto] = useState(false);
+
+  useEffect(() => {
+    const abrir = () => setAberto(true);
+    window.addEventListener(EVENTO_MENU, abrir);
+    return () => window.removeEventListener(EVENTO_MENU, abrir);
+  }, []);
 
   return (
     <div className="md:hidden">

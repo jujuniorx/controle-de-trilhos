@@ -1268,3 +1268,31 @@ a.card:hover { transform: translateY(-2px); }
   .btn:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 22%, transparent); }
   .btn:not(:disabled):active { transform: scale(.98); box-shadow: none; }
 }
+
+/* ── Gestos de aplicativo (celular): indicadores e gaveta ── */
+.gesto-voltar, .gesto-puxar {
+  position: fixed; z-index: 70; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%;
+  background: var(--surface); color: var(--primary); border: 1px solid var(--line); box-shadow: 0 6px 18px rgba(0, 0, 0, .3);
+  opacity: 0; pointer-events: none;
+}
+.gesto-voltar { left: 0; top: 50%; transform: translate(-60px, -50%); }
+.gesto-puxar { left: 50%; top: calc(env(safe-area-inset-top, 0px) + 8px); transform: translate(-50%, -60px); }
+.gesto-voltar[data-pronto="1"], .gesto-puxar[data-pronto="1"] { background: var(--primary); color: var(--on-primary, #fff); border-color: var(--primary); }
+.gesto-puxar[data-carregando="1"] svg { animation: gesto-gira .8s linear infinite; }
+@keyframes gesto-gira { to { transform: rotate(360deg); } }
+.gaveta { position: fixed; inset: 0; z-index: 80; visibility: hidden; transition: visibility 0s linear .25s; }
+.gaveta-aberta { visibility: visible; transition-delay: 0s; }
+.gaveta-fundo { position: absolute; inset: 0; background: rgba(4, 8, 14, .55); opacity: 0; transition: opacity .25s ease; -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
+.gaveta-aberta .gaveta-fundo { opacity: 1; }
+.gaveta-painel {
+  position: absolute; left: 0; top: 0; bottom: 0; width: min(82vw, 300px); padding: calc(env(safe-area-inset-top, 0px) + 20px) 14px 20px;
+  display: flex; flex-direction: column; gap: 4px; background: var(--surface); border-right: 1px solid var(--line);
+  transform: translateX(-102%); transition: transform .28s cubic-bezier(.3, .7, .2, 1); box-shadow: 8px 0 30px rgba(0, 0, 0, .35);
+}
+.gaveta-aberta .gaveta-painel { transform: none; }
+.gaveta-titulo { padding: 0 10px 10px; font-family: var(--font-condensed), sans-serif; font-size: .8rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-muted); }
+.gaveta-item { display: flex; align-items: center; min-height: 48px; padding: 0 12px; border-radius: 12px; color: var(--ink); font-weight: 600; text-decoration: none; }
+.gaveta-item:active, .gaveta-item[aria-current="page"] { background: color-mix(in srgb, var(--primary) 16%, transparent); color: var(--primary); }
+@media (prefers-reduced-motion: reduce) {
+  .gaveta-painel, .gaveta-fundo { transition: none; }
+}

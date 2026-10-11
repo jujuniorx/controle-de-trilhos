@@ -8,6 +8,7 @@ import { MenuExcluir } from '@/components/admin/MenuExcluir';
 import { InstalarApp } from '@/components/InstalarApp';
 import { AlternarTema } from '@/components/ui/AlternarTema';
 import { BotaoSair } from '@/components/admin/BotaoSair';
+import { GestosApp } from '@/components/ui/GestosApp';
 
 function iniciaisDe(nome: string): string {
   return nome
@@ -21,6 +22,7 @@ function iniciaisDe(nome: string): string {
 export function AdminShell({ nome, ehDono = false, children }: { nome: string; ehDono?: boolean; children: ReactNode }) {
   return (
     <div className="area-admin flex min-h-screen flex-col bg-background md:flex-row">
+      <GestosApp raiz="/admin" />
       <header className="ct-topbar relative flex h-14 flex-none items-center justify-between px-3 md:hidden">
         <div className="flex items-center gap-2">
           <MobileNav dono={ehDono} />
