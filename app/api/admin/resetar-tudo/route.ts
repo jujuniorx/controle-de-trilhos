@@ -16,10 +16,22 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Deletar usuário junior se existir
-    await prisma.user.deleteMany({
+    // Deletar usuário junior se existir (primeiro suas sessions)
+    const juniorExistente = await prisma.user.findUnique({
       where: { username: 'junior' },
     });
+
+    if (juniorExistente) {
+      // Deletar todas as sessions do junior
+      await prisma.session.deleteMany({
+        where: { userId: juniorExistente.id },
+      });
+
+      // Deletar o usuário
+      await prisma.user.delete({
+        where: { id: juniorExistente.id },
+      });
+    }
 
     // Criar novo usuário junior com email correto
     const senhaHash = await hashSegredo('Ju32184364@');
