@@ -1,5 +1,6 @@
 'use client';
 
+import { ProgressoEtapas } from '@/components/ui/ProgressoEtapas';
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -391,7 +392,9 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
   return (
     <main className="mx-auto max-w-xl lg:max-w-3xl p-6">
       <h1 className="font-condensed text-xl font-bold uppercase tracking-wide text-ink">Novo recebimento — Caminhão</h1>
-      <p className="mb-6 text-sm text-ink-muted">Etapa {step} de 4</p>
+      <div className="mb-6 mt-3">
+        <ProgressoEtapas etapa={step} total={4} />
+      </div>
 
       {step === 1 && (
         <section className="space-y-4">

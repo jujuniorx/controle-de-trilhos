@@ -991,3 +991,53 @@ a.card:hover { transform: translateY(-2px); }
   .abertura { transition: none; }
   .btn, .stat-tile, a.card, .entrada-card { transition: none; }
 }
+
+/* ======================================================================
+   Visual v3 (parte 2) — Pátio, formulários e telas internas
+   ====================================================================== */
+@keyframes progresso-enche { from { transform: scaleX(0); } }
+@keyframes progresso-pulsa { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 55%, transparent); } 50% { box-shadow: 0 0 0 5px transparent; } }
+
+/* Início do Pátio */
+.patio-hero { position: relative; overflow: hidden; border-radius: 20px; padding: 26px 22px; color: #fff; background: linear-gradient(155deg, #0b1b31, #12315a 70%, #0f4c99); animation: sobe-fade .6s ease-out backwards; }
+.patio-hero-texto { position: relative; z-index: 1; }
+.patio-hero-saudacao { font-size: .95rem; color: #9fc3ee; font-weight: 600; letter-spacing: .02em; }
+.patio-hero-titulo { margin-top: 2px; font-family: var(--font-barlow-cond), sans-serif; font-size: 2rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; line-height: 1.05; }
+.patio-hero-sub { margin-top: 8px; color: #c4d6ee; font-size: .9rem; max-width: 46ch; }
+.acao-patio { position: relative; animation: sobe-fade .6s ease-out backwards; animation-delay: calc(.2s + var(--i, 0) * .12s); transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+.acao-patio:hover { transform: translateY(-3px); box-shadow: 0 14px 34px color-mix(in srgb, var(--primary) 28%, transparent); }
+.acao-patio-aviso { position: absolute; top: 14px; right: 14px; font-style: normal; font-size: .72rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; background: color-mix(in srgb, var(--warn) 22%, transparent); color: var(--warn); }
+
+/* Barra de etapas */
+.progresso-segmentos { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; }
+.progresso-seg { position: relative; height: 6px; border-radius: 4px; background: var(--line-2, var(--line)); overflow: hidden; }
+.progresso-seg-ok::after { content: ''; position: absolute; inset: 0; border-radius: 4px; background: var(--primary); transform-origin: left; animation: progresso-enche .6s cubic-bezier(.3, .7, .2, 1) backwards; }
+.progresso-seg-atual { animation: progresso-pulsa 2s ease-in-out infinite; }
+.progresso-texto { margin-top: 6px; font-size: .8rem; color: var(--ink-muted); }
+
+/* Títulos com realce e entrada em cascata nas telas internas */
+.area-admin main h1::after, .area-patio main h1::after {
+  content: ''; display: block; width: 44px; height: 3px; margin-top: 8px; border-radius: 2px; transform-origin: left;
+  background: linear-gradient(90deg, var(--primary), transparent); animation: la-trilho .7s ease-out .2s backwards;
+}
+.conf-block h1::after, .patio-hero-titulo::after, .boas-vindas h1::after { display: none !important; }
+.area-admin main > *, .area-patio main > * { animation: sobe-fade .5s ease-out backwards; }
+.area-admin main > :nth-child(2), .area-patio main > :nth-child(2) { animation-delay: .06s; }
+.area-admin main > :nth-child(3), .area-patio main > :nth-child(3) { animation-delay: .12s; }
+.area-admin main > :nth-child(4), .area-patio main > :nth-child(4) { animation-delay: .18s; }
+.area-admin main > :nth-child(5), .area-patio main > :nth-child(5) { animation-delay: .24s; }
+.area-admin main > :nth-child(n+6), .area-patio main > :nth-child(n+6) { animation-delay: .3s; }
+.tbl-cards tbody tr { animation: sobe-fade .4s ease-out backwards; }
+.tbl-cards tbody tr:nth-child(2) { animation-delay: .04s; }
+.tbl-cards tbody tr:nth-child(3) { animation-delay: .08s; }
+.tbl-cards tbody tr:nth-child(4) { animation-delay: .12s; }
+.tbl-cards tbody tr:nth-child(5) { animation-delay: .16s; }
+.tbl-cards tbody tr:nth-child(n+6) { animation-delay: .2s; }
+.card, .grupo-card { transition: border-color .2s ease, box-shadow .2s ease; }
+.card:hover { border-color: color-mix(in srgb, var(--primary) 30%, var(--line)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .patio-hero, .acao-patio, .progresso-seg-ok::after, .progresso-seg-atual,
+  .area-admin main h1::after, .area-patio main h1::after, .area-admin main > *, .area-patio main > *, .tbl-cards tbody tr { animation: none !important; }
+  .acao-patio, .card, .grupo-card { transition: none; }
+}

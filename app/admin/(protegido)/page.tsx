@@ -2,13 +2,9 @@ import Link from 'next/link';
 import { listarPendentesConferencia } from '@/lib/services/movimentacao';
 import { listarAguardandoChegada } from '@/lib/services/remetido';
 import { requireAdmin } from '@/lib/services/requireAdmin';
+import { saudacao } from '@/lib/saudacao';
 import { ContadorAnimado } from '@/components/ui/ContadorAnimado';
 import { EstadoVazio } from '@/components/ui/EstadoVazio';
-
-function saudacao(): string {
-  const hora = Number(new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: 'numeric', hour12: false })) % 24;
-  return hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
-}
 
 function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
