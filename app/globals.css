@@ -1163,3 +1163,18 @@ a.card:hover { transform: translateY(-2px); }
 .patio-hero .fundo-trilhos-via { opacity: .6; }
 .patio-hero-texto::before { content: ''; position: absolute; inset: -30px -50px -30px -30px; z-index: -1; background: radial-gradient(closest-side, rgba(8, 15, 26, .78) 40%, transparent); }
 .entrada-marca-conteudo::before { content: ''; position: absolute; inset: -30px -60px; z-index: -1; background: radial-gradient(closest-side, rgba(8, 15, 26, .55) 40%, transparent); }
+
+/* Via: some suavemente embaixo (sem corte seco), mais larga e com dormentes mais finos no celular. */
+.fundo-trilhos-via { -webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent 100%); mask-image: linear-gradient(to bottom, #000 80%, transparent 100%); }
+.home-entrada .home-instalar { background: rgba(10, 20, 34, .8); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.home-entrada .home-privacidade { padding: 4px 12px; border-radius: 999px; background: rgba(8, 14, 22, .7); }
+@media (max-width: 640px) {
+  .fundo-trilhos-via { transform: scaleX(1.7); transform-origin: 50% 100%; }
+  .via-dorm::after { height: 24px; border-radius: 1px; }
+  .home-entrada { align-items: flex-start; padding-top: 11vh; }
+  .home-entrada .fundo-trilhos { --altura-via: 54%; --horizonte: 46%; }
+  .home-entrada .fundo-trilhos-via {
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .35) 0, rgba(0, 0, 0, .35) 45%, #000 78%, transparent 100%);
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .35) 0, rgba(0, 0, 0, .35) 45%, #000 78%, transparent 100%);
+  }
+}
