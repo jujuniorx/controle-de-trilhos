@@ -35,6 +35,7 @@ describe('montarDadosGraficos', () => {
     expect(d.origens[0]).toEqual({ rotulo: 'Evangelista', valor: 45 });
     expect(d.destinos).toEqual([{ rotulo: 'Ponta Grossa', valor: 20 }]);
     expect(d.perfis[0]).toEqual({ rotulo: 'TR68', valor: 55 });
+    expect(d.materiais).toEqual([{ rotulo: 'Novo', valor: 67 }]);
   });
 
   it('usa meses quando o período é longo e o total dos perfis bate com o resumo (sucata com peso real)', () => {
@@ -51,6 +52,13 @@ describe('montarDadosGraficos', () => {
     expect(d.serie.map((p) => p.rotulo)).toEqual(['mai/26', 'out/26']);
     const totalPerfis = d.perfis.reduce((s, i) => s + i.valor, 0);
     expect(totalPerfis).toBeCloseTo(resumoRelatorio(movs).toneladas, 3);
+  });
+
+  it('junta perfis além das 5 maiores em "Outros"', () => {
+    const perfis = ['TR22', 'TR32', 'TR37', 'TR40', 'TR45', 'TR50', 'TR54'];
+    const d = montarDadosGraficos([mov({ grupos: perfis.map((p, i) => grupo(p, 100 - i * 10)) })]);
+    expect(d.perfis).toHaveLength(6);
+    expect(d.perfis[5]).toEqual({ rotulo: 'Outros', valor: 70 + 60 });
   });
 
   it('sem movimentações devolve tudo vazio', () => {

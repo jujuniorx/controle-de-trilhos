@@ -17,11 +17,15 @@ export interface DadosGraficos {
   serieTruncada: boolean;
   origens: ItemRanking[];
   destinos: ItemRanking[];
+  /** Fatias do "donut": até 5 maiores + "Outros". */
   perfis: ItemRanking[];
+  materiais: ItemRanking[];
 }
 
 const MAX_PERIODOS = 12;
 const MAX_RANKING = 8;
+const MAX_FATIAS = 5;
+const ROTULO_MATERIAL: Record<string, string> = { NOVO: 'Novo', REEMPREGO: 'Reemprego', SUCATA: 'Sucata' };
 const DIA = 24 * 60 * 60 * 1000;
 const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 
@@ -44,12 +48,25 @@ function rankear(mapa: Map<string, number>): ItemRanking[] {
     .slice(0, MAX_RANKING);
 }
 
+/** Maiores fatias + "Outros" (somando o resto), sempre do maior para o menor, "Outros" por último. */
+function fatias(mapa: Map<string, number>): ItemRanking[] {
+  const todas = [...mapa.entries()]
+    .map(([rotulo, valor]) => ({ rotulo, valor }))
+    .filter((i) => i.valor > 0)
+    .sort((a, b) => b.valor - a.valor || a.rotulo.localeCompare(b.rotulo));
+  const principais = todas.slice(0, MAX_FATIAS);
+  const resto = todas.slice(MAX_FATIAS).reduce((s, i) => s + i.valor, 0);
+  const saida = principais.map((i) => ({ rotulo: i.rotulo, valor: arredondar3(i.valor) }));
+  if (resto > 0) saida.push({ rotulo: 'Outros', valor: arredondar3(resto) });
+  return saida;
+}
+
 /**
  * Peso de cada grupo de uma movimentação, com a MESMA regra de pesoMovimentacao:
  * em SUCATA de recebimento o peso real (pesoSucataReal) substitui a estimativa e é repartido
  * entre os grupos de sucata na proporção dos metros. Sobra (sem grupo de sucata) vai em "Outros".
  */
-function pesosPorPerfil(mov: MovimentacaoRelatorio): Map<string, number> {
+function pesosPorChave(mov: MovimentacaoRelatorio, chave: (g: MovimentacaoRelatorio['grupos'][number]) => string): Map<string, number> {
   const out = new Map<string, number>();
   const soma = (k: string, v: number) => out.set(k, (out.get(k) ?? 0) + v);
   const sucataComPesoReal = mov.tipo === 'RECEBIMENTO' && mov.pesoSucataReal != null;
@@ -57,10 +74,10 @@ function pesosPorPerfil(mov: MovimentacaoRelatorio): Map<string, number> {
 
   for (const g of mov.grupos) {
     if (mov.tipo === 'RECEBIMENTO' && g.tipoMaterial === 'SUCATA') {
-      if (!sucataComPesoReal) soma(g.perfil, pesoConhecidoDoGrupo(g));
+      if (!sucataComPesoReal) soma(chave(g), pesoConhecidoDoGrupo(g));
       continue;
     }
-    soma(g.perfil, pesoConhecidoDoGrupo(g));
+    soma(chave(g), pesoConhecidoDoGrupo(g));
   }
   if (sucataComPesoReal) {
     const real = Number(mov.pesoSucataReal);
@@ -69,7 +86,7 @@ function pesosPorPerfil(mov: MovimentacaoRelatorio): Map<string, number> {
       const totalM = gruposSucata.reduce((s, g) => s + Number(g.metrosTotal), 0);
       for (const g of gruposSucata) {
         const parte = totalM > 0 ? Number(g.metrosTotal) / totalM : 1 / gruposSucata.length;
-        soma(g.perfil, real * parte);
+        soma(chave(g), real * parte);
       }
     }
   }
@@ -80,6 +97,7 @@ export function montarDadosGraficos(movs: MovimentacaoRelatorio[]): DadosGrafico
   const origens = new Map<string, number>();
   const destinos = new Map<string, number>();
   const perfis = new Map<string, number>();
+  const materiais = new Map<string, number>();
 
   let min = Infinity;
   let max = -Infinity;
@@ -110,7 +128,10 @@ export function montarDadosGraficos(movs: MovimentacaoRelatorio[]): DadosGrafico
     const alvo = m.tipo === 'RECEBIMENTO' ? origens : destinos;
     if (local) alvo.set(local, (alvo.get(local) ?? 0) + peso);
 
-    for (const [perfil, v] of pesosPorPerfil(m)) perfis.set(perfil, (perfis.get(perfil) ?? 0) + v);
+    for (const [perfil, v] of pesosPorChave(m, (g) => g.perfil)) perfis.set(perfil, (perfis.get(perfil) ?? 0) + v);
+    for (const [mat, v] of pesosPorChave(m, (g) => ROTULO_MATERIAL[g.tipoMaterial] ?? g.tipoMaterial)) {
+      materiais.set(mat, (materiais.get(mat) ?? 0) + v);
+    }
   }
 
   const todos = [...buckets.entries()].sort((a, b) => a[0] - b[0]).map(([, p]) => ({
@@ -124,6 +145,7 @@ export function montarDadosGraficos(movs: MovimentacaoRelatorio[]): DadosGrafico
     serieTruncada: todos.length > MAX_PERIODOS,
     origens: rankear(origens),
     destinos: rankear(destinos),
-    perfis: rankear(perfis),
+    perfis: fatias(perfis),
+    materiais: fatias(materiais),
   };
 }
