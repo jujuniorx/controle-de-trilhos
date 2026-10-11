@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const email = request.nextUrl.searchParams.get('email');
     const novaSenha = request.nextUrl.searchParams.get('senha');
     const token = request.nextUrl.searchParams.get('token');
+    const criar = request.nextUrl.searchParams.get('criar');
 
     // Token de segurança simples
     const tokenValido = token === 'reset-trilhos-2026';
@@ -19,14 +20,61 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (!email || !novaSenha) {
+    if (!novaSenha) {
       return NextResponse.json(
-        { erro: 'Email e nova senha são obrigatórios' },
+        { erro: 'Nova senha é obrigatória' },
         { status: 400 }
       );
     }
 
-    // Atualizar usuário
+    // Se criar=true, cria um novo usuário em vez de atualizar
+    if (criar === 'true') {
+      const usuarioEmail = email || 'junior@controle-de-trilhos.local';
+
+      // Verificar se já existe
+      const existente = await prisma.user.findUnique({
+        where: { username: 'junior' },
+      });
+
+      if (existente) {
+        return NextResponse.json(
+          { erro: 'Usuário junior já existe. Use email e senha parâmetro sem criar=true para resetar' },
+          { status: 400 }
+        );
+      }
+
+      const senhaHash = await hashSegredo(novaSenha);
+
+      const novoUsuario = await prisma.user.create({
+        data: {
+          nome: 'Junior',
+          email: usuarioEmail,
+          username: 'junior',
+          senhaHash,
+          role: 'DONO',
+          ativo: true,
+        },
+      });
+
+      return NextResponse.json({
+        sucesso: true,
+        mensagem: 'Usuário criado com sucesso',
+        usuario: {
+          username: 'junior',
+          email: novoUsuario.email,
+          role: 'DONO',
+        },
+      });
+    }
+
+    // Caso contrário, atualizar usuário existente
+    if (!email) {
+      return NextResponse.json(
+        { erro: 'Email é obrigatório para atualizar' },
+        { status: 400 }
+      );
+    }
+
     const usuario = await prisma.user.findUnique({
       where: { email },
     });
@@ -56,7 +104,6 @@ export async function GET(request: NextRequest) {
       usuario: {
         email,
         username: 'junior',
-        novaSenha,
       },
     });
   } catch (error) {
