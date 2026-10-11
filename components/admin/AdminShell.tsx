@@ -7,6 +7,7 @@ import { Logo } from '@/components/ui/Logo';
 import { MenuExcluir } from '@/components/admin/MenuExcluir';
 import { InstalarApp } from '@/components/InstalarApp';
 import { AlternarTema } from '@/components/ui/AlternarTema';
+import { BotaoSair } from '@/components/admin/BotaoSair';
 
 function iniciaisDe(nome: string): string {
   return nome
@@ -33,16 +34,25 @@ export function AdminShell({ nome, ehDono = false, children }: { nome: string; e
         </div>
       </header>
 
-      <aside className="ct-sidebar hidden w-[220px] flex-none flex-col md:flex">
+      <aside className="ct-sidebar hidden w-[248px] flex-none flex-col md:flex">
         <div className="ct-sidebar-logo">
           <Logo size={32} subtitle="Administração" />
         </div>
         <SidebarNav dono={ehDono} className="flex flex-1 flex-col gap-0.5 py-2" />
         <div className="ct-sidebar-footer">
-          <div className="mb-0.5 text-[.78rem] text-ink-muted">{nome}</div>
-          <Link href="/admin/trocar-senha" className="text-[.72rem] text-ink-dim underline hover:text-ink">
-            Trocar minha senha
-          </Link>
+          <div className="ct-user">
+            <span className="ct-user-avatar" aria-hidden="true">{iniciaisDe(nome) || '?'}</span>
+            <div className="ct-user-dados">
+              <span className="ct-user-nome">{nome}</span>
+              <span className="ct-user-papel">{ehDono ? 'Dono do sistema' : 'Administrativo'}</span>
+            </div>
+          </div>
+          <div className="ct-user-acoes">
+            <Link href="/admin/trocar-senha" className="ct-user-link">
+              Trocar minha senha
+            </Link>
+            <BotaoSair />
+          </div>
         </div>
       </aside>
 

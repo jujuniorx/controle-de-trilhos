@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { SidebarNav } from './SidebarNav';
+import { BotaoSair } from './BotaoSair';
 
 export function MobileNav({ dono }: { dono?: boolean }) {
   const [aberto, setAberto] = useState(false);
@@ -22,6 +23,7 @@ export function MobileNav({ dono }: { dono?: boolean }) {
       {aberto && (
         <div className="ct-sidebar absolute inset-x-0 top-full z-50 shadow-lg">
           <SidebarNav dono={dono} className="py-2" onNavigate={() => setAberto(false)} />
+          <div className="ct-mobile-sair"><BotaoSair /></div>
         </div>
       )}
     </div>

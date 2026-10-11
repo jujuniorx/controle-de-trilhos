@@ -870,18 +870,16 @@ html[data-tema="escuro"] .grafico-area {
     radial-gradient(55% 45% at 100% 100%, rgba(91, 155, 213, .22), transparent 70%);
   animation: brilho-respira 8s ease-in-out infinite alternate;
 }
-.fundo-trilhos-via {
-  position: absolute; left: -30%; right: -30%; bottom: -8%; height: 46%;
-  transform: perspective(420px) rotateX(62deg); transform-origin: bottom;
-  background-image:
-    linear-gradient(to bottom, transparent 24%, rgba(91, 155, 213, .7) 24% 29%, transparent 29% 71%, rgba(91, 155, 213, .7) 71% 76%, transparent 76%),
-    linear-gradient(90deg, rgba(180, 200, 225, .22) 0 16%, transparent 16%);
-  background-size: 100% 100%, 64px 100%;
-  background-repeat: no-repeat, repeat-x;
-  -webkit-mask-image: linear-gradient(to top, #000 35%, transparent);
-  mask-image: linear-gradient(to top, #000 35%, transparent);
-  animation: via-corre 3.2s linear infinite;
-}
+.fundo-trilhos-via { position: absolute; left: 0; right: 0; bottom: 0; height: 52%; overflow: hidden; -webkit-mask-image: linear-gradient(to top, #000 55%, transparent); mask-image: linear-gradient(to top, #000 55%, transparent); }
+.via-lastro { position: absolute; inset: 0; background: linear-gradient(to top, rgba(127, 178, 240, .16), transparent 70%); clip-path: polygon(47% 0, 53% 0, 100% 100%, 0 100%); }
+.via-trilhos { position: absolute; inset: 0; width: 100%; height: 100%; }
+.via-trilho-corpo { fill: #8fb4de; opacity: .9; }
+.via-trilho-brilho { fill: #e6f1ff; opacity: .75; }
+/* cada dormente: o contêiner desce até a base; a barra cresce junto (mesma curva => perspectiva coerente) */
+.via-dorm { position: absolute; inset: 0; animation: via-avanca var(--dur, 3.6s) cubic-bezier(.5, 0, 1, .6) var(--atraso, 0s) infinite; }
+.via-dorm::after { content: ''; position: absolute; left: 3%; right: 3%; top: 0; height: 16px; border-radius: 3px; background: linear-gradient(to bottom, rgba(150, 172, 200, .55), rgba(110, 132, 160, .35)); transform-origin: center top; animation: via-engorda var(--dur, 3.6s) cubic-bezier(.5, 0, 1, .6) var(--atraso, 0s) infinite; }
+@keyframes via-avanca { from { transform: translateY(0); } to { transform: translateY(100%); } }
+@keyframes via-engorda { from { transform: scale(.03, .1); opacity: 0; } 12% { opacity: 1; } to { transform: scale(1, 1); opacity: 1; } }
 
 /* Marca animada */
 .logo-animada .la-quadro { transform-box: fill-box; transform-origin: center; animation: la-quadro .6s cubic-bezier(.2, .9, .3, 1.2) backwards; }
@@ -985,7 +983,7 @@ a.card:hover { transform: translateY(-2px); }
 .tbl-wrap tbody tr:hover { background: color-mix(in srgb, var(--primary) 6%, transparent); }
 
 @media (prefers-reduced-motion: reduce) {
-  .pagina-anim, .fundo-trilhos-brilho, .fundo-trilhos-via, .logo-animada *, .home-titulo, .home-frase, .home-instalar, .home-privacidade,
+  .pagina-anim, .fundo-trilhos-brilho, .via-dorm, .via-dorm::after, .logo-animada *, .home-titulo, .home-frase, .home-instalar, .home-privacidade,
   .entrada-card, .entrada-marca-nome, .entrada-marca-frase, .entrada-form-caixa, .boas-vindas-saudacao, .pend-tile,
   .rel-indicators .stat-tile, .checagem-fundo, .checagem-anel, .checagem-risco, .aviso-sucesso, .vazio svg, .esqueleto, .abertura-nome { animation: none !important; }
   .abertura { transition: none; }
@@ -1045,4 +1043,34 @@ a.card:hover { transform: translateY(-2px); }
 /* O aviso flutuante mantém as próprias animações (a regra em cascata acima não pode sobrescrevê-las). */
 .area-admin main > .aviso-sucesso, .area-patio main > .aviso-sucesso {
   animation: aviso-in .4s cubic-bezier(.2, .9, .3, 1.2) backwards, aviso-out .4s ease-in 3.4s forwards;
+}
+
+/* ---- Menu lateral do Admin (redesenhado) ---- */
+.ct-sidebar-logo { padding: 22px 18px 18px; }
+.ct-sidebar-logo .ct-logo-text .name { white-space: nowrap; font-size: 1.05rem; }
+.ct-sidebar-logo .ct-logo-text .sub { margin-top: 4px; }
+.ct-sidebar-nav { padding-inline: 12px; }
+.ct-sidebar-nav a { border-left: 0; border-radius: 10px; padding: 8px 10px; gap: 12px; font-weight: 600; }
+.ct-sidebar-nav a[data-active="true"] { box-shadow: inset 3px 0 0 var(--primary); }
+.nav-icone { display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 9px; background: color-mix(in srgb, var(--ink) 8%, transparent); transition: background .15s ease, color .15s ease, transform .15s ease; }
+.ct-sidebar-nav a:hover .nav-icone { background: color-mix(in srgb, var(--ink) 15%, transparent); transform: scale(1.06); }
+.ct-sidebar-nav a[data-active="true"] .nav-icone { background: var(--primary); color: #fff; }
+.ct-sidebar-nav .nav-section { padding: 16px 10px 6px; }
+.ct-sidebar-footer { padding: 14px 12px 16px; }
+.ct-user { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; background: color-mix(in srgb, var(--ink) 7%, transparent); }
+.ct-user-avatar { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: #fff; font-weight: 700; font-size: .85rem; }
+.ct-user-dados { min-width: 0; display: flex; flex-direction: column; }
+.ct-user-nome { color: var(--ink); font-weight: 600; font-size: .86rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ct-user-papel { font-size: .7rem; color: var(--ink-dim); }
+.ct-user-acoes { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; padding-inline: 2px; }
+.ct-user-link { font-size: .75rem; color: var(--ink-muted); text-decoration: underline; }
+.ct-user-link:hover { color: var(--ink); }
+.ct-sair { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; font-size: .78rem; font-weight: 600; color: var(--ink-muted); transition: background .15s ease, color .15s ease; }
+.ct-sair:hover { background: rgba(239, 68, 68, .16); color: #ff9b93; }
+.ct-mobile-sair { padding: 4px 16px 12px; }
+:is(html:not([data-tema]) .area-admin, html[data-tema="claro"] .area-admin) .ct-sidebar { background: linear-gradient(180deg, #0b1b31, #091524); }
+
+@media (prefers-reduced-motion: reduce) {
+  .via-dorm { display: none; }
+  .nav-icone { transition: none; }
 }
