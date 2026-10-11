@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { SidebarNav } from './SidebarNav';
 import { BotaoSair } from './BotaoSair';
 
@@ -23,7 +24,12 @@ export function MobileNav({ dono }: { dono?: boolean }) {
       {aberto && (
         <div className="ct-sidebar absolute inset-x-0 top-full z-50 shadow-lg">
           <SidebarNav dono={dono} className="py-2" onNavigate={() => setAberto(false)} />
-          <div className="ct-mobile-sair"><BotaoSair /></div>
+          <div className="ct-mobile-sair">
+            <Link href="/admin/trocar-senha" className="ct-user-link" onClick={() => setAberto(false)}>
+              Trocar minha senha
+            </Link>
+            <BotaoSair />
+          </div>
         </div>
       )}
     </div>

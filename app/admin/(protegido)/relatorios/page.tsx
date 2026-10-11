@@ -124,7 +124,8 @@ export default async function RelatoriosPage({
       </div>
 
       <form method="get" className="card">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="filtros-form grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="filtros-base">
           <div className="field">
             <label htmlFor="f-inicio">Período (início)</label>
             <input id="f-inicio" type="date" name="dataInicio" defaultValue={filtros.dataInicio} className="h-10" />
@@ -133,6 +134,12 @@ export default async function RelatoriosPage({
             <label htmlFor="f-fim">Período (fim)</label>
             <input id="f-fim" type="date" name="dataFim" defaultValue={filtros.dataFim} className="h-10" />
           </div>
+          </div>
+          <input type="checkbox" id="f-mais" className="filtros-toggle" defaultChecked={Boolean(filtros.tipo || filtros.status || filtros.perfil || filtros.material || filtros.origemDestino || filtros.numeroDocumento)} />
+          <label htmlFor="f-mais" className="filtros-mais-btn">
+            Mais filtros
+          </label>
+          <div className="filtros-extra">
           <div className="field">
             <label htmlFor="f-tipo">Tipo</label>
             <select id="f-tipo" name="tipo" defaultValue={filtros.tipo ?? ''} className="h-10">
@@ -182,13 +189,14 @@ export default async function RelatoriosPage({
             <label htmlFor="f-nf">Nota fiscal</label>
             <input id="f-nf" type="text" inputMode="numeric" name="numeroDocumento" defaultValue={filtros.numeroDocumento} className="h-10" />
           </div>
+          </div>
         </div>
-        <div className="mt-3 flex gap-2">
-          <button type="submit" className="btn btn-primary">
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+          <button type="submit" className="btn btn-primary w-full sm:w-auto">
             Filtrar
           </button>
           {temFiltro && (
-            <Link href="/admin/relatorios" className="btn btn-secondary">
+            <Link href="/admin/relatorios" className="btn btn-secondary w-full sm:w-auto">
               Limpar filtros
             </Link>
           )}

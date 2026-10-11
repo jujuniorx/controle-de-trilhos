@@ -28,9 +28,7 @@ export function AdminShell({ nome, ehDono = false, children }: { nome: string; e
         </div>
         <div className="flex items-center gap-3">
           <AlternarTema padrao="claro" />
-          <Link href="/admin/trocar-senha" className="text-xs text-ink-dim underline hover:text-ink">
-            Trocar senha
-          </Link>
+          <span className="ct-user-avatar" aria-hidden="true">{iniciaisDe(nome) || '?'}</span>
         </div>
       </header>
 
