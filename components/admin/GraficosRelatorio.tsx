@@ -1,5 +1,8 @@
+import type { CSSProperties } from 'react';
 import { fmtPeso } from '@/lib/format';
 import type { DadosGraficos, ItemRanking } from '@/lib/services/graficosRelatorio';
+
+const idx = (n: number) => ({ '--i': n }) as CSSProperties;
 
 /** Cor de cada fatia pela posição (ordem fixa); "Outros" sempre no cinza neutro. */
 function corDa(i: ItemRanking, indice: number): string {
@@ -43,7 +46,7 @@ function Donut({ titulo, itens, vazio }: { titulo: string; itens: ItemRanking[];
                     stroke={corDa(item, indice)}
                     strokeDasharray={`${tam} ${100 - tam}`}
                     strokeDashoffset={-(ini + (fatias.length === 1 ? 0 : GAP / 2))}
-                    style={{ ['--i' as string]: indice }}
+                    style={idx(indice)}
                   >
                     <title>{`${item.rotulo}: ${fmtPeso(item.valor)} t (${pct.toFixed(1).replace('.', ',')}%)`}</title>
                   </circle>
@@ -55,7 +58,7 @@ function Donut({ titulo, itens, vazio }: { titulo: string; itens: ItemRanking[];
           </svg>
           <ul className="donut-legenda">
             {fatias.map(({ item, indice, pct }) => (
-              <li key={item.rotulo} style={{ ['--i' as string]: indice }}>
+              <li key={item.rotulo} style={idx(indice)}>
                 <i className="grafico-cor" style={{ background: corDa(item, indice) }} />
                 <span className="donut-nome">{item.rotulo}</span>
                 <span className="donut-valor">{fmtPeso(item.valor)} t</span>
@@ -79,7 +82,7 @@ function Ranking({ titulo, itens, vazio }: { titulo: string; itens: ItemRanking[
       ) : (
         <ul className="grafico-rank">
           {itens.map((i, n) => (
-            <li key={i.rotulo} style={{ ['--i' as string]: n }}>
+            <li key={i.rotulo} style={idx(n)}>
               <span className="grafico-rank-nome" title={i.rotulo}>{i.rotulo}</span>
               <span className="grafico-rank-trilha" aria-hidden>
                 <span className="grafico-rank-barra" style={{ width: `${max > 0 ? Math.max((i.valor / max) * 100, 2) : 0}%` }} />
@@ -119,7 +122,7 @@ export function GraficosRelatorio({ dados }: { dados: DadosGraficos }) {
             <div
               key={p.rotulo}
               className="grafico-grupo"
-              style={{ ['--i' as string]: n }}
+              style={idx(n)}
               title={`${p.rotulo} — recebido ${fmtPeso(p.recebido)} t, enviado ${fmtPeso(p.enviado)} t`}
             >
               <div className="grafico-par">
