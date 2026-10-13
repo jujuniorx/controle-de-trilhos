@@ -33,7 +33,7 @@ const MSG_PELO_MENOS_UMA_PLACA =
 export const dadosCarregamentoSchema = z
   .object({
     data: z.string().min(1, 'Informe a data do recebimento.'),
-    numeroDocumento: z.string().regex(NF_REGEX, MSG_NF_INVALIDA),
+    numeroDocumento: z.string().regex(NF_REGEX, MSG_NF_INVALIDA).optional(),
     origem: z.string().trim().min(1, 'Informe a origem do material.'),
     // Nenhuma placa é individualmente obrigatória — a regra é "pelo menos uma
     // das três" (refine abaixo). Um cavalo pode puxar até 2 carretas; a 2ª é opcional.
