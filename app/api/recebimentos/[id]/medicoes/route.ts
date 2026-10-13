@@ -61,7 +61,7 @@ export async function POST(
     });
 
     // Registrar histórico
-    await prisma.historicoRecebimento.create({
+    await prisma.historico.create({
       data: {
         movimentacaoId: id,
         acao: 'MEDICAO_ADICIONADA',

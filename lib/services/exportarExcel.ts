@@ -203,15 +203,14 @@ function aplicarCoresRecebidos(sheet: ExcelJS.Worksheet) {
 
 /** Aplica bordas em todas as células da planilha. */
 function aplicarBordas(sheet: ExcelJS.Worksheet) {
-  const bordaPadrao: ExcelJS.Borders = {
-    top: { style: 'thin' as const, color: { argb: 'FF000000' } },
-    left: { style: 'thin' as const, color: { argb: 'FF000000' } },
-    bottom: { style: 'thin' as const, color: { argb: 'FF000000' } },
-    right: { style: 'thin' as const, color: { argb: 'FF000000' } },
-  };
   sheet.eachRow((row) => {
     row.eachCell((cell) => {
-      cell.border = bordaPadrao;
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      };
     });
   });
 }
