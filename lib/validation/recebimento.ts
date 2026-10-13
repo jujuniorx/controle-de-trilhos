@@ -56,10 +56,10 @@ const comprimentoSchema = z
 
 const medicaoSchema = z.object({
   clientId: z.string().uuid(),
-  modo: z.enum(['INDIVIDUAL', 'QTD_COMPRIMENTO']),
+  modo: z.enum(['INDIVIDUAL', 'QTD_COMPRIMENTO'] as const),
   quantidade: z.number().int().min(1).max(99),
   comprimento: comprimentoSchema,
-  classificacaoSC: z.enum(['SC1', 'SC2', 'SC3', 'DIVERSOS']).optional(),
+  classificacaoSC: z.enum(['SC1', 'SC2', 'SC3', 'DIVERSOS'] as const).optional(),
 });
 
 const grupoNovoSchema = z
