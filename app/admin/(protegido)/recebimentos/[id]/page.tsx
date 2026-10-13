@@ -5,6 +5,7 @@ import { buscarMovimentacaoDetalhe, resumoPeso } from '@/lib/services/movimentac
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { pecasDoGrupo } from '@/lib/domain/regras';
 import { ConferenciaPainel } from './ConferenciaPainel';
+import { EditarMedicoesPainel } from './EditarMedicoesPainel';
 
 function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
@@ -94,7 +95,12 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
 
       {/* 3. Medições */}
       <section className="card">
-        <h2 className="card-title">Medições</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="card-title !mb-0">Medições</h2>
+          {mov.status === 'CONFERIDO' && (
+            <EditarMedicoesPainel grupos={mov.grupos} movimentacaoId={mov.id} statusRecebimento={mov.status} />
+          )}
+        </div>
         <div className="space-y-3">
           {mov.grupos.map((g, i) => (
             <div key={g.id}>
