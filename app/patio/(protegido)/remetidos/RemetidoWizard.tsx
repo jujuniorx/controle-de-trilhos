@@ -73,6 +73,16 @@ function dataDeHojeLocal(): string {
   return `${agora.getFullYear()}-${mes}-${dia}`;
 }
 
+/**
+ * Formata a Nota Fiscal enquanto o Pátio digita: a base da NF sempre tem 6
+ * dígitos, então o traço do sufixo (ex.: "087781-1") é inserido sozinho
+ * assim que o 7º dígito é digitado — ninguém precisa procurar a tecla "-".
+ */
+function formatarNF(texto: string): string {
+  const digitos = texto.replace(/\D/g, '').slice(0, 10); // 6 da base + até 4 do sufixo
+  return digitos.length > 6 ? `${digitos.slice(0, 6)}-${digitos.slice(6)}` : digitos;
+}
+
 function parseComprimento(texto: string): { valor?: number; erro?: string } {
   // Normaliza espaços "invisíveis" (NBSP etc. — comuns em teclados de
   // tablet/Android). Aceita tanto vírgula (formato BR, com ponto como
@@ -402,7 +412,7 @@ export function RemetidoWizard(props: Props) {
             disabled={Boolean(numeroDocumentoPreCadastrado)}
             className="h-11 disabled:text-ink-dim"
             value={dados.numeroDocumento}
-            onChange={(e) => setDados({ ...dados, numeroDocumento: e.target.value.replace(/[^\d-]/g, '').slice(0, 14) })}
+            onChange={(e) => setDados({ ...dados, numeroDocumento: formatarNF(e.target.value) })}
           />
           {errosDados.numeroDocumento && <p className="text-sm text-bad">{errosDados.numeroDocumento}</p>}
         </div>
