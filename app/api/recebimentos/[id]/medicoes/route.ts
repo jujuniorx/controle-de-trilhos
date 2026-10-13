@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Decimal } from '@prisma/client/runtime/library';
 import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 
@@ -43,8 +44,8 @@ export async function POST(
         grupoId,
         modo: 'INDIVIDUAL',
         quantidade: Number(quantidade),
-        comprimento: parseFloat(String(comprimento)),
-        metros: parseFloat(String(metros)),
+        comprimento: new Decimal(comprimento),
+        metros: new Decimal(metros),
       },
     });
 
@@ -57,11 +58,11 @@ export async function POST(
 
     await prisma.grupo.update({
       where: { id: grupoId },
-      data: { metrosTotal: parseFloat(String(metrosTotal)) },
+      data: { metrosTotal: new Decimal(metrosTotal) },
     });
 
     // Registrar histórico
-    await prisma.historico.create({
+    await prisma.historicoAlteracao.create({
       data: {
         movimentacaoId: id,
         acao: 'MEDICAO_ADICIONADA',
