@@ -201,6 +201,21 @@ function aplicarCoresRecebidos(sheet: ExcelJS.Worksheet) {
   });
 }
 
+/** Aplica bordas em todas as células da planilha. */
+function aplicarBordas(sheet: ExcelJS.Worksheet) {
+  const bordaPadrao = {
+    top: { style: 'thin', color: { argb: 'FF000000' } },
+    left: { style: 'thin', color: { argb: 'FF000000' } },
+    bottom: { style: 'thin', color: { argb: 'FF000000' } },
+    right: { style: 'thin', color: { argb: 'FF000000' } },
+  };
+  sheet.eachRow((row) => {
+    row.eachCell((cell) => {
+      cell.border = bordaPadrao;
+    });
+  });
+}
+
 /** Valor da coluna "Tipo" do MATERIAL na planilha: NOVO, TAMPÃO, REEMPREGO G1, SUCATA. */
 function rotuloMaterial(g: Grupo): string {
   if (g.tipoMaterial === 'NOVO') return 'NOVO';
@@ -330,6 +345,9 @@ export async function gerarRelatorioExcel(movimentacoes: MovimentacaoRelatorio[]
 
   aplicarFontePadrao(recebidos);
   aplicarFontePadrao(remetidos);
+
+  aplicarBordas(recebidos);
+  aplicarBordas(remetidos);
 
   return workbook.xlsx.writeBuffer();
 }
