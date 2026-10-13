@@ -90,9 +90,10 @@ function formatarColunasDeData(sheet: ExcelJS.Worksheet) {
 function aplicarCabecalho(sheet: ExcelJS.Worksheet, colunas: string[]) {
   sheet.addRow(colunas);
   const headerRow = sheet.getRow(1);
-  headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } }; // branco
+  headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, name: 'Calibri', size: 11 }; // branco, negrito
   headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2D5AA6' } }; // azul escuro
   headerRow.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+  headerRow.height = 18; // altura padronizada
   sheet.views = [{ state: 'frozen', ySplit: 1 }];
   sheet.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: colunas.length } };
   sheet.columns.forEach((c) => (c.width = 16));
