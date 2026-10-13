@@ -13,7 +13,7 @@ export const PERFIS = [
 ] as const;
 
 export const CLASSIFICACOES_REEMPREGO = ['G1', 'G2', 'G3'] as const;
-export const CLASSIFICACOES_SC = ['SC1', 'SC2', 'SC3'] as const;
+export const CLASSIFICACOES_SC = ['SC1', 'SC2', 'SC3', 'DIVERSOS'] as const;
 
 // Lista fechada de marcas (V1.2 §11) — "OUTROS" libera o texto livre em fabricanteOutro.
 export const MARCAS = ['NIPPON', 'EVRAZ', 'PANGANG', 'OUTROS'] as const;

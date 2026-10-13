@@ -25,7 +25,7 @@ import { ConfirmacaoRecebimento } from '@/components/patio/ConfirmacaoRecebiment
 
 type TipoMaterial = 'NOVO' | 'REEMPREGO' | 'SUCATA';
 type ModoMedicao = 'INDIVIDUAL' | 'QTD_COMPRIMENTO';
-type ClassificacaoSC = 'SC1' | 'SC2' | 'SC3';
+type ClassificacaoSC = 'SC1' | 'SC2' | 'SC3' | 'DIVERSOS';
 
 interface MedicaoLocal {
   clientId: string;
@@ -300,7 +300,7 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
       return;
     }
     if (grupoAtivo.tipoMaterial === 'SUCATA' && !draft.sc) {
-      setDraft((d) => ({ ...d, erro: 'Selecione a classificação SC1, SC2 ou SC3.' }));
+      setDraft((d) => ({ ...d, erro: 'Selecione a classificação SC1, SC2, SC3 ou Diversos.' }));
       return;
     }
     const quantidade = modoDraft === 'QTD_COMPRIMENTO' ? Math.max(1, Number(draft.quantidade) || 1) : 1;

@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "ClassificacaoSC" ADD VALUE IF NOT EXISTS 'DIVERSOS';

@@ -57,7 +57,7 @@ function unicos(valores: (string | null | undefined)[]): string[] {
   return [...new Set(valores.filter((v): v is string => Boolean(v)))];
 }
 
-function metrosPorSC(medicoes: Medicao[], sc: 'SC1' | 'SC2' | 'SC3'): number | null {
+function metrosPorSC(medicoes: Medicao[], sc: 'SC1' | 'SC2' | 'SC3' | 'DIVERSOS'): number | null {
   const soma = medicoes.filter((m) => m.classificacaoSC === sc).reduce((acc, m) => acc + Number(m.metros), 0);
   return soma > 0 ? arredondar2(soma) : null;
 }
@@ -128,6 +128,7 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
     'SC-1',
     'SC-2 - L',
     'SC-3',
+    'Diversos',
     'Em Classificação',
     'Total',
     'Novo',
@@ -177,6 +178,7 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         metrosPorSC(medicoesSucata, 'SC1'),
         metrosPorSC(medicoesSucata, 'SC2'),
         metrosPorSC(medicoesSucata, 'SC3'),
+        metrosPorSC(medicoesSucata, 'DIVERSOS'),
         null, // Em Classificação — sempre vazia, ver nota no topo do arquivo
         somaOuNull(sucatas.map(metros), arredondar2),
         somaOuNull(novos.map(metros), arredondar2),

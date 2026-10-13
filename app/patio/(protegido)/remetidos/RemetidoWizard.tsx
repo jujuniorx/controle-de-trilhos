@@ -237,7 +237,7 @@ export function RemetidoWizard(props: Props) {
       return;
     }
     if (grupoAtivo.tipoMaterial === 'SUCATA' && !draftMedicao.sc) {
-      setDraftMedicao((d) => ({ ...d, erro: 'Selecione a classificação SC1, SC2 ou SC3.' }));
+      setDraftMedicao((d) => ({ ...d, erro: 'Selecione a classificação SC1, SC2, SC3 ou Diversos.' }));
       return;
     }
     const quantidade = modoDraft === 'QTD_COMPRIMENTO' ? Math.max(1, Number(draftMedicao.quantidade) || 1) : 1;
