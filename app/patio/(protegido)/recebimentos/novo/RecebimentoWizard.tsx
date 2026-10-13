@@ -100,8 +100,14 @@ function dataDeHojeLocal(): string {
 }
 
 function parseComprimento(texto: string): { valor?: number; erro?: string } {
-  const t = texto.trim().replace(',', '.');
+  // Normaliza espaços "invisíveis" (NBSP etc. — comuns em teclados de
+  // tablet/Android). Aceita tanto vírgula (formato BR, com ponto como
+  // separador de milhar: "1.234,56") quanto ponto como decimal ("11.95").
+  let t = texto.replace(/\s/g, '').trim();
   if (!t) return { erro: 'Digite o comprimento, por exemplo 8,10.' };
+  if (t.includes(',')) {
+    t = t.replace(/\./g, '').replace(',', '.');
+  }
   if (!/^\d+(\.\d{1,2})?$/.test(t)) return { erro: 'Use números com até 2 casas decimais.' };
   const valor = Math.round(parseFloat(t) * 100) / 100;
   if (valor <= 0) return { erro: 'O comprimento precisa ser maior que zero.' };
@@ -626,11 +632,11 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
             </button>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {modoDraft === 'QTD_COMPRIMENTO' && (
               <input
                 aria-label="Quantidade"
-                className="h-11 w-20"
+                className="h-11 w-20 shrink-0"
                 inputMode="numeric"
                 value={draft.quantidade}
                 onChange={(e) => setDraft({ ...draft, quantidade: e.target.value })}
@@ -638,7 +644,7 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
             )}
             <input
               aria-label="Comprimento"
-              className="h-11 flex-1"
+              className="h-11 flex-1 min-w-[160px]"
               placeholder="Comprimento (m), ex.: 8,10"
               inputMode="decimal"
               value={draft.comprimento}

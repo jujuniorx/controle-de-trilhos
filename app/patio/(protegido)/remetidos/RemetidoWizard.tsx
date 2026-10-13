@@ -74,8 +74,14 @@ function dataDeHojeLocal(): string {
 }
 
 function parseComprimento(texto: string): { valor?: number; erro?: string } {
-  const t = texto.trim().replace(',', '.');
+  // Normaliza espaços "invisíveis" (NBSP etc. — comuns em teclados de
+  // tablet/Android). Aceita tanto vírgula (formato BR, com ponto como
+  // separador de milhar: "1.234,56") quanto ponto como decimal ("11.95").
+  let t = texto.replace(/\s/g, '').trim();
   if (!t) return { erro: 'Digite o comprimento, por exemplo 8,10.' };
+  if (t.includes(',')) {
+    t = t.replace(/\./g, '').replace(',', '.');
+  }
   if (!/^\d+(\.\d{1,2})?$/.test(t)) return { erro: 'Use números com até 2 casas decimais.' };
   const valor = Math.round(parseFloat(t) * 100) / 100;
   if (valor <= 0) return { erro: 'O comprimento precisa ser maior que zero.' };
@@ -572,11 +578,11 @@ export function RemetidoWizard(props: Props) {
                       Qtd × comprimento
                     </button>
                   </div>
-                  <div className="mt-2 flex gap-2">
+                  <div className="mt-2 flex flex-wrap gap-2">
                     {modoDraft === 'QTD_COMPRIMENTO' && (
                       <input
                         inputMode="numeric"
-                        className="h-11 w-16"
+                        className="h-11 w-16 shrink-0"
                         value={draftMedicao.quantidade}
                         onChange={(e) => setDraftMedicao((d) => ({ ...d, quantidade: e.target.value }))}
                       />
@@ -584,7 +590,7 @@ export function RemetidoWizard(props: Props) {
                     <input
                       inputMode="decimal"
                       placeholder="Comprimento (m)"
-                      className="h-11 flex-1"
+                      className="h-11 flex-1 min-w-[160px]"
                       value={draftMedicao.comprimento}
                       onChange={(e) => {
                         const texto = e.target.value;
