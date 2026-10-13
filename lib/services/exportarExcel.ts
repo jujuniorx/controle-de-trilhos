@@ -89,7 +89,10 @@ function formatarColunasDeData(sheet: ExcelJS.Worksheet) {
 
 function aplicarCabecalho(sheet: ExcelJS.Worksheet, colunas: string[]) {
   sheet.addRow(colunas);
-  sheet.getRow(1).font = { bold: true };
+  const headerRow = sheet.getRow(1);
+  headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } }; // branco
+  headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2D5AA6' } }; // azul escuro
+  headerRow.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
   sheet.views = [{ state: 'frozen', ySplit: 1 }];
   sheet.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: colunas.length } };
   sheet.columns.forEach((c) => (c.width = 16));
@@ -182,6 +185,19 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
   }
 
   formatarColunasDeData(sheet);
+  aplicarCoresRecebidos(sheet);
+}
+
+/** Coluna 23 é "Total" em Recebidos — colorir em vermelho com fundo amarelo. */
+function aplicarCoresRecebidos(sheet: ExcelJS.Worksheet) {
+  sheet.eachRow((row, rowNum) => {
+    if (rowNum === 1) return; // pula cabeçalho
+    const cellTotal = row.getCell(23); // coluna 23 = "Total"
+    if (cellTotal.value != null) {
+      cellTotal.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFF0000' } }; // vermelho
+      cellTotal.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // fundo amarelo
+    }
+  });
 }
 
 /** Valor da coluna "Tipo" do MATERIAL na planilha: NOVO, TAMPÃO, REEMPREGO G1, SUCATA. */
@@ -287,14 +303,16 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
 }
 
 /**
- * Times New Roman 10 — a planilha operacional usa essa fonte, e a exportação
- * precisa copiar/colar sem precisar reformatar. Aplicada por último, depois que
- * todas as linhas já existem, para cobrir a aba inteira sem perder o negrito do
- * cabeçalho (aplicarCabecalho já define `bold: true` na linha 1 antes desta função rodar).
+ * Calibri 11 — a planilha operacional usa essa fonte. Aplicada por último,
+ * depois que todas as linhas já existem, para cobrir a aba inteira sem perder
+ * o negrito e cor do cabeçalho (aplicarCabecalho já define isso na linha 1).
+ * Também aplica cor vermelha (FF0000) nas colunas "Total" (a coluna de totais).
  */
 function aplicarFontePadrao(sheet: ExcelJS.Worksheet) {
-  sheet.eachRow((row) => {
-    row.font = { ...row.font, name: 'Times New Roman', size: 10 };
+  sheet.eachRow((row, rowNum) => {
+    if (rowNum === 1) return; // pula cabeçalho
+    row.font = { ...row.font, name: 'Calibri', size: 11 };
+    row.height = 18; // altura padronizada
   });
 }
 
