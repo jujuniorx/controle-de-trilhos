@@ -650,6 +650,12 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
                 inputMode="numeric"
                 value={draft.quantidade}
                 onChange={(e) => setDraft({ ...draft, quantidade: e.target.value })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    adicionarMedicao();
+                  }
+                }}
               />
             )}
             <input
@@ -665,6 +671,14 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
                 const r = parseComprimento(texto);
                 const sugestao = !draft.scManual && r.valor != null ? classificarSC(r.valor) : draft.sc;
                 setDraft({ ...draft, comprimento: texto, sc: sugestao, erro: '' });
+              }}
+              onKeyDown={(e) => {
+                // Enter envia a medida direto — evita ter que tirar a mão do
+                // teclado numérico (celular ou PC) para tocar em "Adicionar".
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  adicionarMedicao();
+                }
               }}
             />
             {grupoAtivo.tipoMaterial === 'SUCATA' && (

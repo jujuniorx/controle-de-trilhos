@@ -595,6 +595,12 @@ export function RemetidoWizard(props: Props) {
                         className="h-11 w-16 shrink-0"
                         value={draftMedicao.quantidade}
                         onChange={(e) => setDraftMedicao((d) => ({ ...d, quantidade: e.target.value }))}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            adicionarMedicao();
+                          }
+                        }}
                       />
                     )}
                     <input
@@ -611,6 +617,14 @@ export function RemetidoWizard(props: Props) {
                           sc: !d.scManual && r.valor != null ? classificarSC(r.valor) : d.sc,
                           erro: '',
                         }));
+                      }}
+                      onKeyDown={(e) => {
+                        // Enter envia a medida direto — evita ter que tirar a mão do
+                        // teclado numérico (celular ou PC) para tocar em "Adicionar".
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          adicionarMedicao();
+                        }
                       }}
                     />
                     {g.tipoMaterial === 'SUCATA' && (
