@@ -1,0 +1,4 @@
+{
+  "buildCommand": "rm -rf .next node_modules/.prisma && prisma generate && next build",
+  "outputDirectory": ".next"
+}
