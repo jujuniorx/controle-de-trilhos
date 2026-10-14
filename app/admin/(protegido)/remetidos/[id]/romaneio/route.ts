@@ -35,9 +35,9 @@ const TIPO_REMETIDO_LABEL: Record<string, string> = {
   INDUS: 'Industrialização',
 };
 
-export async function GET({ params }: { params: Promise<{ id: string }> }) {
+export async function GET({ params }: { params: { id: string } }) {
   await requireAdmin();
-  const { id } = await params;
+  const { id } = params;
 
   let mov;
   try {

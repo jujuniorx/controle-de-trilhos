@@ -29,9 +29,9 @@ function convertDecimalToNumber(obj: any): any {
   return obj;
 }
 
-export async function GET({ params }: { params: Promise<{ id: string }> }) {
+export async function GET({ params }: { params: { id: string } }) {
   await requireAdmin();
-  const { id } = await params;
+  const { id } = params;
 
   let mov;
   try {
