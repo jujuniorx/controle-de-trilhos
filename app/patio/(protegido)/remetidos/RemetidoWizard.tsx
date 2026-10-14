@@ -439,7 +439,7 @@ export function RemetidoWizard(props: Props) {
             value={dados.data}
             onChange={(e) => {
               setDataTocada(true);
-              setDados({ ...dados, data: e.target.value });
+              setDados({ ...dadosBrutos, data: e.target.value });
             }}
           />
           {errosDados.data && <p className="text-sm text-bad">{errosDados.data}</p>}
@@ -452,8 +452,8 @@ export function RemetidoWizard(props: Props) {
             placeholder="Ex.: 123456 ou 087781-1"
             disabled={Boolean(numeroDocumentoPreCadastrado)}
             className="h-11 disabled:text-ink-dim"
-            value={dados.numeroDocumento}
-            onChange={(e) => setDados({ ...dados, numeroDocumento: formatarNF(e.target.value) })}
+            value={dadosBrutos.numeroDocumento}
+            onChange={(e) => setDados({ ...dadosBrutos, numeroDocumento: formatarNF(e.target.value) })}
           />
           {errosDados.numeroDocumento && <p className="text-sm text-bad">{errosDados.numeroDocumento}</p>}
         </div>
@@ -471,8 +471,8 @@ export function RemetidoWizard(props: Props) {
               id="f-carreta"
               maxLength={7}
               className="h-11 text-lg font-semibold uppercase"
-              value={dados.placaCarreta}
-              onChange={(e) => setDados({ ...dados, placaCarreta: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
+              value={dadosBrutos.placaCarreta}
+              onChange={(e) => setDados({ ...dadosBrutos, placaCarreta: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
             />
             {errosDados.placaCarreta && <p className="text-sm text-bad">{errosDados.placaCarreta}</p>}
           </div>
@@ -484,8 +484,8 @@ export function RemetidoWizard(props: Props) {
                 id="f-carreta2"
                 maxLength={7}
                 className="h-11 text-lg font-semibold uppercase"
-                value={dados.placaCarreta2}
-                onChange={(e) => setDados({ ...dados, placaCarreta2: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
+                value={dadosBrutos.placaCarreta2}
+                onChange={(e) => setDados({ ...dadosBrutos, placaCarreta2: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
               />
               {errosDados.placaCarreta2 && <p className="text-sm text-bad">{errosDados.placaCarreta2}</p>}
             </div>
@@ -501,8 +501,8 @@ export function RemetidoWizard(props: Props) {
               id="f-cavalo"
               maxLength={7}
               className="h-11 uppercase"
-              value={dados.placaCavalo}
-              onChange={(e) => setDados({ ...dados, placaCavalo: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
+              value={dadosBrutos.placaCavalo}
+              onChange={(e) => setDados({ ...dadosBrutos, placaCavalo: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
             />
             {errosDados.placaCavalo && errosDados.placaCavalo !== MSG_PELO_MENOS_UMA_PLACA && (
               <p className="text-sm text-bad">{errosDados.placaCavalo}</p>
@@ -512,11 +512,11 @@ export function RemetidoWizard(props: Props) {
 
         <div className="field">
           <label htmlFor="f-transp">Transportadora</label>
-          <input id="f-transp" className="h-11" value={dados.transportadora} onChange={(e) => setDados({ ...dados, transportadora: e.target.value })} />
+          <input id="f-transp" className="h-11" value={dadosBrutos.transportadora} onChange={(e) => setDados({ ...dadosBrutos, transportadora: e.target.value })} />
         </div>
         <div className="field">
           <label htmlFor="f-resp">Responsável (Pátio) *</label>
-          <input id="f-resp" className="h-11" value={dados.responsavelPatio} onChange={(e) => setDados({ ...dados, responsavelPatio: e.target.value })} />
+          <input id="f-resp" className="h-11" value={dadosBrutos.responsavelPatio} onChange={(e) => setDados({ ...dadosBrutos, responsavelPatio: e.target.value })} />
           {errosDados.responsavelPatio && <p className="text-sm text-bad">{errosDados.responsavelPatio}</p>}
         </div>
       </section>

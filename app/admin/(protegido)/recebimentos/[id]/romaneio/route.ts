@@ -1,4 +1,3 @@
-import { notFound } from 'next/navigation';
 import type { NextRequest } from 'next/server';
 import { buscarMovimentacaoDetalhe } from '@/lib/services/movimentacao';
 import { requireAdmin } from '@/lib/services/requireAdmin';
@@ -34,7 +33,12 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  await requireAdmin();
+  try {
+    await requireAdmin();
+  } catch (err) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
   const { id } = await params;
 
   let mov;
@@ -43,10 +47,10 @@ export async function GET(
     mov = convertDecimalToNumber(movRaw) as typeof movRaw;
   } catch (err) {
     console.error('Erro ao buscar movimentação para romaneio:', err);
-    notFound();
+    return new Response('Not Found', { status: 404 });
   }
 
-  if (!mov) notFound();
+  if (!mov) return new Response('Not Found', { status: 404 });
 
   const totalBarras = mov.grupos.reduce((acc, g) => acc + pecasDoGrupo(g.medicoes), 0);
   const totalMetros = mov.grupos.reduce((acc, g) => acc + Number(g.metrosTotal), 0);
