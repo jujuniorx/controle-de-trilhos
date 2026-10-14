@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   CLASSIFICACOES_REEMPREGO_REMETIDO,
@@ -16,6 +16,7 @@ import { criarRemetidoDiretoAction } from './novo/actions';
 // MESMO wizard/validação/cálculo do lançamento pelo Pátio, em vez de uma tela
 // e lógica de grupos/medições paralelas — só muda a action chamada no final.
 import { atualizarRemetidoAction } from '@/app/admin/(protegido)/remetidos/[id]/actions';
+import { salvarRascunhoRemetido, lerRascunhoRemetido, limparRascunhoRemetido } from '@/lib/offline/db';
 
 const TIPO_REMETIDO_LABEL: Record<(typeof TIPOS_REMETIDO)[number], string> = {
   VENDA: 'Venda',
@@ -157,29 +158,49 @@ export function RemetidoWizard(props: Props) {
   const router = useRouter();
   const numeroDocumentoPreCadastrado = props.modo === 'confirmar' ? props.numeroDocumentoPreCadastrado : null;
   const hoje = useSyncExternalStore(semInscricao, dataDeHojeLocal, () => '');
-  const [dataTocada, setDataTocada] = useState(props.modo === 'editar');
+
+  // Estado para carregar rascunho (só em modo "confirmar")
+  const [rascunhoCarregado, setRascunhoCarregado] = useState<any>(null);
+
+  // Carrega rascunho ao montar (apenas modo "confirmar")
+  useEffect(() => {
+    if (props.modo !== 'confirmar') return;
+    lerRascunhoRemetido(props.movimentacaoId).then((r) => {
+      if (r?.rascunho) setRascunhoCarregado(r.rascunho);
+    });
+  }, [props.modo, props.movimentacaoId]);
+
+  const [dataTocada, setDataTocada] = useState(
+    rascunhoCarregado ? rascunhoCarregado.dataTocada : props.modo === 'editar'
+  );
   const [identificacao, setIdentificacao] = useState<Identificacao>(
-    props.modo === 'editar'
-      ? { tipoRemetido: props.valoresIniciais.tipoRemetido, reservaPedido: props.valoresIniciais.reservaPedido, destino: props.valoresIniciais.destino }
-      : { tipoRemetido: '', reservaPedido: '', destino: '' },
+    rascunhoCarregado
+      ? rascunhoCarregado.identificacao
+      : props.modo === 'editar'
+        ? { tipoRemetido: props.valoresIniciais.tipoRemetido, reservaPedido: props.valoresIniciais.reservaPedido, destino: props.valoresIniciais.destino }
+        : { tipoRemetido: '', reservaPedido: '', destino: '' },
   );
   const [dadosBrutos, setDados] = useState<Dados>(
-    props.modo === 'editar'
-      ? props.valoresIniciais.dados
-      : {
-          data: '',
-          numeroDocumento: numeroDocumentoPreCadastrado ?? '',
-          placaCavalo: '',
-          placaCarreta: '',
-          placaCarreta2: '',
-          transportadora: '',
-          responsavelPatio: '',
-        },
+    rascunhoCarregado
+      ? rascunhoCarregado.dados
+      : props.modo === 'editar'
+        ? props.valoresIniciais.dados
+        : {
+            data: '',
+            numeroDocumento: numeroDocumentoPreCadastrado ?? '',
+            placaCavalo: '',
+            placaCarreta: '',
+            placaCarreta2: '',
+            transportadora: '',
+            responsavelPatio: '',
+          },
   );
-  const [mostrarCarreta2, setMostrarCarreta2] = useState(props.modo === 'editar' && Boolean(props.valoresIniciais.dados.placaCarreta2));
+  const [mostrarCarreta2, setMostrarCarreta2] = useState(
+    rascunhoCarregado ? Boolean(rascunhoCarregado.dados.placaCarreta2) : props.modo === 'editar' && Boolean(props.valoresIniciais.dados.placaCarreta2)
+  );
   const [attemptSubmit, setAttemptSubmit] = useState(false);
-  const [grupos, setGrupos] = useState<GrupoLocal[]>(props.modo === 'editar' ? props.valoresIniciais.grupos : []);
-  const [activeGrupoId, setActiveGrupoId] = useState<string | null>(null);
+  const [grupos, setGrupos] = useState<GrupoLocal[]>(rascunhoCarregado ? rascunhoCarregado.grupos : props.modo === 'editar' ? props.valoresIniciais.grupos : []);
+  const [activeGrupoId, setActiveGrupoId] = useState<string | null>(rascunhoCarregado ? rascunhoCarregado.activeGrupoId : null);
   const [draftPerfil, setDraftPerfil] = useState('');
   const [draftTipo, setDraftTipo] = useState<TipoMaterial>('NOVO');
   const [draftMedicao, setDraftMedicao] = useState({
@@ -189,7 +210,7 @@ export function RemetidoWizard(props: Props) {
     scManual: false,
     erro: '',
   });
-  const [modoDraft, setModoDraft] = useState<ModoMedicao>('INDIVIDUAL');
+  const [modoDraft, setModoDraft] = useState<ModoMedicao>(rascunhoCarregado ? rascunhoCarregado.modoDraft : 'INDIVIDUAL');
   const [enviando, setEnviando] = useState(false);
   const [erroFinal, setErroFinal] = useState('');
 
@@ -201,6 +222,15 @@ export function RemetidoWizard(props: Props) {
   const temIdentificacao = props.modo === 'novo' || props.modo === 'editar';
   const errosIdentificacao = attemptSubmit && temIdentificacao ? validarIdentificacao(identificacao) : {};
   const grupoAtivo = grupos.find((g) => g.clientId === activeGrupoId) ?? null;
+
+  // Auto-save em modo "confirmar" — salva medições localmente mesmo se fechar o app
+  useEffect(() => {
+    if (props.modo !== 'confirmar') return;
+    const rascunho = { identificacao, dados: dadosBrutos, grupos, activeGrupoId, modoDraft, dataTocada };
+    salvarRascunhoRemetido(props.movimentacaoId, rascunho).catch(() => {
+      // Falha silenciosa — não atrapalha a UX do pátio
+    });
+  }, [props, identificacao, dadosBrutos, grupos, activeGrupoId, modoDraft, dataTocada]);
 
   function adicionarGrupo() {
     if (!draftPerfil) return;
@@ -340,6 +370,10 @@ export function RemetidoWizard(props: Props) {
     if (!resultado.ok) {
       setErroFinal(resultado.erro ?? 'Não foi possível salvar o remetido.');
       return;
+    }
+    // Limpar rascunho ao confirmar com sucesso
+    if (props.modo === 'confirmar') {
+      limparRascunhoRemetido(props.movimentacaoId).catch(() => {});
     }
     router.push(props.modo === 'editar' ? `/admin/remetidos/${props.movimentacaoId}` : '/patio/remetidos?salvo=carregamento');
   }

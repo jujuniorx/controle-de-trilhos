@@ -35,10 +35,20 @@ export interface RascunhoRecebimento {
   atualizadoEm: number;
 }
 
+// Rascunho do wizard de Remetido em modo "confirmar" — salvo automaticamente
+// enquanto o pátio está medindo os trilhos ANTES da carreta chegar.
+// Uma única linha por movimentacaoId. `rascunho` é o estado interno do wizard.
+export interface RascunhoRemetido {
+  id: string; // movimentacaoId
+  rascunho: unknown;
+  atualizadoEm: number;
+}
+
 class TrilhosDB extends Dexie {
   recebimentos!: EntityTable<RecebimentoLocal, 'clientId'>;
   rascunhosRecebimento!: EntityTable<RascunhoRecebimento, 'id'>;
   preCadastros!: EntityTable<PreCadastroLocal, 'clientId'>;
+  rascunhosRemetido!: EntityTable<RascunhoRemetido, 'id'>;
 
   constructor() {
     super('TrilhosDB');
@@ -53,6 +63,12 @@ class TrilhosDB extends Dexie {
       recebimentos: 'clientId, syncStatus, criadoEm',
       rascunhosRecebimento: 'id',
       preCadastros: 'clientId, syncStatus, criadoEm',
+    });
+    this.version(4).stores({
+      recebimentos: 'clientId, syncStatus, criadoEm',
+      rascunhosRecebimento: 'id',
+      preCadastros: 'clientId, syncStatus, criadoEm',
+      rascunhosRemetido: 'id',
     });
   }
 }
@@ -90,4 +106,16 @@ export async function lerRascunhoRecebimento(): Promise<RascunhoRecebimento | un
 
 export async function limparRascunhoRecebimento(): Promise<void> {
   await db.rascunhosRecebimento.delete('atual');
+}
+
+export async function salvarRascunhoRemetido(movimentacaoId: string, rascunho: unknown): Promise<void> {
+  await db.rascunhosRemetido.put({ id: movimentacaoId, rascunho, atualizadoEm: Date.now() });
+}
+
+export async function lerRascunhoRemetido(movimentacaoId: string): Promise<RascunhoRemetido | undefined> {
+  return db.rascunhosRemetido.get(movimentacaoId);
+}
+
+export async function limparRascunhoRemetido(movimentacaoId: string): Promise<void> {
+  await db.rascunhosRemetido.delete(movimentacaoId);
 }
