@@ -40,11 +40,16 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
         </Link>
         <div className="page-header mt-1 !mb-0">
           <h1 className="page-title">Recebimento{mov.numeroDocumento ? ` — NF ${mov.numeroDocumento}` : ''}</h1>
-          {mov.status === 'CONFERIDO' ? (
-            <span className="badge badge-ok">CONFERIDO</span>
-          ) : (
-            <span className="badge badge-warn">PENDENTE DE CONFERÊNCIA</span>
-          )}
+          <div className="flex items-center gap-2">
+            {mov.status === 'CONFERIDO' ? (
+              <span className="badge badge-ok">CONFERIDO</span>
+            ) : (
+              <span className="badge badge-warn">PENDENTE DE CONFERÊNCIA</span>
+            )}
+            <Link href={`/admin/recebimentos/${mov.id}/romaneio`} className="btn btn-ghost btn-sm">
+              🖨️ Imprimir romaneio
+            </Link>
+          </div>
         </div>
       </div>
 

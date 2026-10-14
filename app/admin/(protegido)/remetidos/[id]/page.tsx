@@ -80,6 +80,9 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
                 Editar remetido
               </Link>
             )}
+            <Link href={`/admin/remetidos/${mov.id}/romaneio`} className="btn btn-ghost btn-sm">
+              🖨️ Imprimir romaneio
+            </Link>
           </div>
         </div>
       </div>
