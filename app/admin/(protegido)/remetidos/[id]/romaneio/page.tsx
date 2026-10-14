@@ -290,76 +290,76 @@ export default async function RomaneioPage({ params }: { params: Promise<{ id: s
         `}</style>
       </head>
       <body>
-        <div className="no-print">
-          <button className="btn" onClick={() => window.print()}>
+        <div class="no-print">
+          <button class="btn" onclick="window.print()">
             🖨️ Imprimir
           </button>
-          <button className="btn" onClick={() => window.history.back()}>
+          <button class="btn" onclick="window.history.back()">
             ← Voltar
           </button>
         </div>
 
-        <div className="container">
+        <div class="container">
           {/* Header */}
-          <div className="header">
-            <div className="header-title">ROMANEIO DE REMETIDO</div>
-            <div className="header-sub">
+          <div class="header">
+            <div class="header-title">ROMANEIO DE REMETIDO</div>
+            <div class="header-sub">
               {mov.numeroDocumento && `NF ${mov.numeroDocumento}`}
             </div>
           </div>
 
           {/* Informações principais */}
-          <div className="info-grid">
-            <div className="info-item">
-              <div className="info-label">Tipo de Remetido</div>
-              <div className="info-value">
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Tipo de Remetido</div>
+              <div class="info-value">
                 {TIPO_REMETIDO_LABEL[mov.remetidoDetalhe?.tipoRemetido ?? ''] ?? 'Em aberto'}
               </div>
             </div>
-            <div className="info-item">
-              <div className="info-label">Reserva/Pedido</div>
-              <div className="info-value">{mov.reservaPedido ?? '—'}</div>
+            <div class="info-item">
+              <div class="info-label">Reserva/Pedido</div>
+              <div class="info-value">{mov.reservaPedido ?? '—'}</div>
             </div>
-            <div className="info-item">
-              <div className="info-label">Destino</div>
-              <div className="info-value">{mov.destino}</div>
+            <div class="info-item">
+              <div class="info-label">Destino</div>
+              <div class="info-value">{mov.destino}</div>
             </div>
-            <div className="info-item">
-              <div className="info-label">Data</div>
-              <div className="info-value">{fmtData(mov.dataMovimentacao)}</div>
+            <div class="info-item">
+              <div class="info-label">Data</div>
+              <div class="info-value">{fmtData(mov.dataMovimentacao)}</div>
             </div>
-            <div className="info-item">
-              <div className="info-label">Responsável (Pátio)</div>
-              <div className="info-value">{mov.responsavelPatio ?? '—'}</div>
+            <div class="info-item">
+              <div class="info-label">Responsável (Pátio)</div>
+              <div class="info-value">{mov.responsavelPatio ?? '—'}</div>
             </div>
-            <div className="info-item">
-              <div className="info-label">Transportadora</div>
-              <div className="info-value">{mov.transportadora ?? '—'}</div>
+            <div class="info-item">
+              <div class="info-label">Transportadora</div>
+              <div class="info-value">{mov.transportadora ?? '—'}</div>
             </div>
-            <div className="info-item">
-              <div className="info-label">Cavalo</div>
-              <div className="info-value">{mov.placaCavalo ?? '—'}</div>
+            <div class="info-item">
+              <div class="info-label">Cavalo</div>
+              <div class="info-value">{mov.placaCavalo ?? '—'}</div>
             </div>
-            <div className="info-item">
-              <div className="info-label">Carreta(s)</div>
-              <div className="info-value">{[mov.placaCarreta, mov.placaCarreta2].filter(Boolean).join(' / ') || '—'}</div>
+            <div class="info-item">
+              <div class="info-label">Carreta(s)</div>
+              <div class="info-value">{[mov.placaCarreta, mov.placaCarreta2].filter(Boolean).join(' / ') || '—'}</div>
             </div>
           </div>
 
           {/* Materiais */}
-          <div className="section-title">Materiais Remetidos</div>
+          <div class="section-title">Materiais Remetidos</div>
           {mov.grupos.map((g, i) => (
             <div key={g.id}>
-              <div className="grupo-header">
+              <div class="grupo-header">
                 Grupo {i + 1} — {g.perfil} — {g.tipoMaterial}
                 {g.tampao ? ' (Tampão)' : ''}
               </div>
-              <table className="medicoes-table">
+              <table class="medicoes-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '60%' }}>Medição</th>
-                    <th style={{ width: '15%' }}>Metros</th>
-                    {g.tipoMaterial === 'SUCATA' && <th style={{ width: '25%' }}>Classificação</th>}
+                    <th style="width: 60%">Medição</th>
+                    <th style="width: 15%">Metros</th>
+                    {g.tipoMaterial === 'SUCATA' && <th style="width: 25%">Classificação</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -372,7 +372,7 @@ export default async function RomaneioPage({ params }: { params: Promise<{ id: s
                       {g.tipoMaterial === 'SUCATA' && <td>{m.classificacaoSC ?? '—'}</td>}
                     </tr>
                   ))}
-                  <tr style={{ fontWeight: 'bold', background: '#e8e8e8' }}>
+                  <tr style="font-weight: bold; background: #e8e8e8">
                     <td>SUBTOTAL - {g.perfil}</td>
                     <td>{fmtMetros(g.metrosTotal)}</td>
                     {g.tipoMaterial === 'SUCATA' && <td></td>}
@@ -383,35 +383,35 @@ export default async function RomaneioPage({ params }: { params: Promise<{ id: s
           ))}
 
           {/* Totais */}
-          <div className="section-title">Totais do Remetido</div>
-          <div className="totals">
-            <div className="total-item">
-              <div className="total-label">Barras</div>
-              <div className="total-value">{totalBarras}</div>
+          <div class="section-title">Totais do Remetido</div>
+          <div class="totals">
+            <div class="total-item">
+              <div class="total-label">Barras</div>
+              <div class="total-value">{totalBarras}</div>
             </div>
-            <div className="total-item">
-              <div className="total-label">Metros</div>
-              <div className="total-value">{fmtMetros(totalMetros)}</div>
+            <div class="total-item">
+              <div class="total-label">Metros</div>
+              <div class="total-value">{fmtMetros(totalMetros)}</div>
             </div>
-            <div className="total-item">
-              <div className="total-label">Peso (t)</div>
-              <div className="total-value">{fmtPeso(totalPeso)}</div>
+            <div class="total-item">
+              <div class="total-label">Peso (t)</div>
+              <div class="total-value">{fmtPeso(totalPeso)}</div>
             </div>
-            <div className="total-item">
-              <div className="total-label">Status</div>
-              <div className="total-value" style={{ fontSize: '12px' }}>{mov.status}</div>
+            <div class="total-item">
+              <div class="total-label">Status</div>
+              <div class="total-value" style="font-size: 12px">{mov.status}</div>
             </div>
           </div>
 
           {/* Assinaturas */}
-          <div className="signature-area">
-            <div className="signature-block">
-              <div className="signature-line"></div>
-              <div className="signature-label">Responsável Pátio</div>
+          <div class="signature-area">
+            <div class="signature-block">
+              <div class="signature-line"></div>
+              <div class="signature-label">Responsável Pátio</div>
             </div>
-            <div className="signature-block">
-              <div className="signature-line"></div>
-              <div className="signature-label">Administrativo</div>
+            <div class="signature-block">
+              <div class="signature-line"></div>
+              <div class="signature-label">Administrativo</div>
             </div>
           </div>
         </div>
