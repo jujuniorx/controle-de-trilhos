@@ -165,10 +165,11 @@ export function RemetidoWizard(props: Props) {
   // Carrega rascunho ao montar (apenas modo "confirmar")
   useEffect(() => {
     if (props.modo !== 'confirmar') return;
-    lerRascunhoRemetido(props.movimentacaoId).then((r) => {
+    const movimentacaoId = (props as { modo: 'confirmar'; movimentacaoId: string }).movimentacaoId;
+    lerRascunhoRemetido(movimentacaoId).then((r) => {
       if (r?.rascunho) setRascunhoCarregado(r.rascunho);
     });
-  }, [props.modo, props.movimentacaoId]);
+  }, [props]);
 
   const [dataTocada, setDataTocada] = useState(
     rascunhoCarregado ? rascunhoCarregado.dataTocada : props.modo === 'editar'
@@ -226,11 +227,12 @@ export function RemetidoWizard(props: Props) {
   // Auto-save em modo "confirmar" — salva medições localmente mesmo se fechar o app
   useEffect(() => {
     if (props.modo !== 'confirmar') return;
+    const movimentacaoId = (props as { modo: 'confirmar'; movimentacaoId: string }).movimentacaoId;
     const rascunho = { identificacao, dados: dadosBrutos, grupos, activeGrupoId, modoDraft, dataTocada };
-    salvarRascunhoRemetido(props.movimentacaoId, rascunho).catch(() => {
+    salvarRascunhoRemetido(movimentacaoId, rascunho).catch(() => {
       // Falha silenciosa — não atrapalha a UX do pátio
     });
-  }, [props, identificacao, dadosBrutos, grupos, activeGrupoId, modoDraft, dataTocada]);
+  }, [props.modo, identificacao, dadosBrutos, grupos, activeGrupoId, modoDraft, dataTocada]);
 
   function adicionarGrupo() {
     if (!draftPerfil) return;
@@ -373,9 +375,14 @@ export function RemetidoWizard(props: Props) {
     }
     // Limpar rascunho ao confirmar com sucesso
     if (props.modo === 'confirmar') {
-      limparRascunhoRemetido(props.movimentacaoId).catch(() => {});
+      const movimentacaoId = (props as { modo: 'confirmar'; movimentacaoId: string }).movimentacaoId;
+      limparRascunhoRemetido(movimentacaoId).catch(() => {});
     }
-    router.push(props.modo === 'editar' ? `/admin/remetidos/${props.movimentacaoId}` : '/patio/remetidos?salvo=carregamento');
+    const nextUrl =
+      props.modo === 'editar'
+        ? `/admin/remetidos/${(props as { modo: 'editar'; movimentacaoId: string }).movimentacaoId}`
+        : '/patio/remetidos?salvo=carregamento';
+    router.push(nextUrl);
   }
 
   return (
