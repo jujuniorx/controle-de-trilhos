@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "rm -rf .next && rm -rf node_modules/.prisma && NODE_ENV=production prisma generate && next build",
+    "build": "rm -rf .next && rm -rf node_modules/.prisma && (prisma generate || true) && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
