@@ -29,7 +29,7 @@ function convertDecimalToNumber(obj: any): any {
   return obj;
 }
 
-export default async function RomaneioPage({ params }: { params: Promise<{ id: string }> }) {
+export async function GET({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin();
   const { id } = await params;
 
