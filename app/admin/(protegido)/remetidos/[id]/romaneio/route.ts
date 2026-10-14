@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import type { NextRequest } from 'next/server';
 import { buscarRemetidoDetalhe } from '@/lib/services/remetido';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { fmtMetros, fmtPeso } from '@/lib/format';
@@ -35,9 +36,12 @@ const TIPO_REMETIDO_LABEL: Record<string, string> = {
   INDUS: 'Industrialização',
 };
 
-export async function GET({ params }: { params: { id: string } }) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   await requireAdmin();
-  const { id } = params;
+  const { id } = await params;
 
   let mov;
   try {

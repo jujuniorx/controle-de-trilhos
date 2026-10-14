@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import type { NextRequest } from 'next/server';
 import { buscarMovimentacaoDetalhe } from '@/lib/services/movimentacao';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { fmtMetros, fmtPeso } from '@/lib/format';
@@ -29,9 +30,12 @@ function convertDecimalToNumber(obj: any): any {
   return obj;
 }
 
-export async function GET({ params }: { params: { id: string } }) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   await requireAdmin();
-  const { id } = params;
+  const { id } = await params;
 
   let mov;
   try {
