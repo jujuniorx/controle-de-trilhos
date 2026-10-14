@@ -225,14 +225,15 @@ export function RemetidoWizard(props: Props) {
   const grupoAtivo = grupos.find((g) => g.clientId === activeGrupoId) ?? null;
 
   // Auto-save em modo "confirmar" — salva medições localmente mesmo se fechar o app
+  const movimentacaoId = props.modo === 'confirmar' ? props.movimentacaoId : null;
+
   useEffect(() => {
-    if (props.modo !== 'confirmar') return;
-    const movimentacaoId = (props as { modo: 'confirmar'; movimentacaoId: string }).movimentacaoId;
+    if (!movimentacaoId) return;
     const rascunho = { identificacao, dados: dadosBrutos, grupos, activeGrupoId, modoDraft, dataTocada };
-    salvarRascunhoRemetido(movimentacaoId, rascunho).catch(() => {
-      // Falha silenciosa — não atrapalha a UX do pátio
+    salvarRascunhoRemetido(movimentacaoId, rascunho).catch((err) => {
+      console.error('Erro ao salvar rascunho:', err);
     });
-  }, [props.modo, identificacao, dadosBrutos, grupos, activeGrupoId, modoDraft, dataTocada]);
+  }, [movimentacaoId, identificacao, dadosBrutos, grupos, activeGrupoId, modoDraft, dataTocada]);
 
   function adicionarGrupo() {
     if (!draftPerfil) return;
