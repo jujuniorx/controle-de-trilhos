@@ -8,6 +8,27 @@ function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
 }
 
+// Converter Decimal do Prisma para número recursivamente
+function convertDecimalToNumber(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj === 'object') {
+    if (obj.constructor.name === 'Decimal') {
+      return parseFloat(obj.toString());
+    }
+    if (Array.isArray(obj)) {
+      return obj.map(convertDecimalToNumber);
+    }
+    const converted: any = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        converted[key] = convertDecimalToNumber(obj[key]);
+      }
+    }
+    return converted;
+  }
+  return obj;
+}
+
 const TIPO_REMETIDO_LABEL: Record<string, string> = {
   VENDA: 'Venda',
   TRANS: 'Transferência',
@@ -20,7 +41,8 @@ export default async function RomaneioPage({ params }: { params: Promise<{ id: s
 
   let mov;
   try {
-    mov = await buscarRemetidoDetalhe(id);
+    const movRaw = await buscarRemetidoDetalhe(id);
+    mov = convertDecimalToNumber(movRaw) as typeof movRaw;
   } catch (err) {
     console.error('Erro ao buscar remetido para romaneio:', err);
     notFound();

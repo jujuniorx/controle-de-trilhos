@@ -8,13 +8,35 @@ function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
 }
 
+// Converter Decimal do Prisma para número recursivamente
+function convertDecimalToNumber(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj === 'object') {
+    if (obj.constructor.name === 'Decimal') {
+      return parseFloat(obj.toString());
+    }
+    if (Array.isArray(obj)) {
+      return obj.map(convertDecimalToNumber);
+    }
+    const converted: any = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        converted[key] = convertDecimalToNumber(obj[key]);
+      }
+    }
+    return converted;
+  }
+  return obj;
+}
+
 export default async function RomaneioPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin();
   const { id } = await params;
 
   let mov;
   try {
-    mov = await buscarMovimentacaoDetalhe(id);
+    const movRaw = await buscarMovimentacaoDetalhe(id);
+    mov = convertDecimalToNumber(movRaw) as typeof movRaw;
   } catch (err) {
     console.error('Erro ao buscar movimentação para romaneio:', err);
     notFound();
