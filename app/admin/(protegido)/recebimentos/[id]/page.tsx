@@ -39,7 +39,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
           ← Voltar à lista
         </Link>
         <div className="page-header mt-1 !mb-0">
-          <h1 className="page-title">Recebimento — NF {mov.numeroDocumento}</h1>
+          <h1 className="page-title">Recebimento{mov.numeroDocumento ? ` — NF ${mov.numeroDocumento}` : ''}</h1>
           {mov.status === 'CONFERIDO' ? (
             <span className="badge badge-ok">CONFERIDO</span>
           ) : (
@@ -53,7 +53,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
         <h2 className="card-title">Dados do recebimento</h2>
         <dl className="kv-grid">
           <div className="kv-item"><div className="kv-label">Data</div><div className="kv-val">{fmtData(mov.dataMovimentacao)}</div></div>
-          <div className="kv-item"><div className="kv-label">Nota fiscal</div><div className="kv-val font-mono">{mov.numeroDocumento}</div></div>
+          <div className="kv-item"><div className="kv-label">Nota fiscal</div><div className="kv-val font-mono">{mov.numeroDocumento ?? 'Em aberto'}</div></div>
           <div className="kv-item"><div className="kv-label">Origem</div><div className="kv-val">{mov.origem}</div></div>
           <div className="kv-item"><div className="kv-label">Transporte</div><div className="kv-val">{mov.tipoTransporte}</div></div>
           <div className="kv-item"><div className="kv-label">Carreta(s)</div><div className="kv-val font-mono">{[mov.placaCarreta, mov.placaCarreta2].filter(Boolean).join(' / ') || '—'}</div></div>

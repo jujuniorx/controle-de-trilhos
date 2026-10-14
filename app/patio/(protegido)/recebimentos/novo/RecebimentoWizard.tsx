@@ -139,7 +139,7 @@ const MSG_PELO_MENOS_UMA_PLACA =
 function validarDados(d: Dados) {
   const erros: Partial<Record<keyof Dados, string>> = {};
   if (!d.data) erros.data = 'Informe a data do recebimento.';
-  if (!NF_REGEX.test(d.numeroDocumento)) erros.numeroDocumento = MSG_NF_INVALIDA;
+  if (d.numeroDocumento && !NF_REGEX.test(d.numeroDocumento)) erros.numeroDocumento = MSG_NF_INVALIDA;
   if (!d.origem.trim()) erros.origem = 'Informe a origem do material.';
   // Nenhuma placa é individualmente obrigatória — a regra é "pelo menos uma das três".
   if (!d.placaCavalo && !d.placaCarreta && !d.placaCarreta2) {
