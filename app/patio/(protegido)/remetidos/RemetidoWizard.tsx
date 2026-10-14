@@ -344,8 +344,8 @@ export function RemetidoWizard(props: Props) {
 
     if (props.modo === 'novo' || props.modo === 'editar') {
       const parsed = lancamentoDiretoRemetidoSchema.safeParse({
-        tipoRemetido: identificacao.tipoRemetido || undefined,
-        reservaPedido: props.modo === 'editar' ? identificacao.reservaPedido || undefined : undefined,
+        tipoRemetido: identificacao.tipoRemetido && identificacao.tipoRemetido.trim() ? identificacao.tipoRemetido : undefined,
+        reservaPedido: props.modo === 'editar' && identificacao.reservaPedido ? identificacao.reservaPedido : undefined,
         destino: identificacao.destino,
         dados: dadosPayload,
         grupos: gruposPayload,
