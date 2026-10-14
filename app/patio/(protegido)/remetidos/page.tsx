@@ -15,6 +15,10 @@ const TIPO_REMETIDO_LABEL: Record<string, string> = {
   INDUS: 'Industrialização',
 };
 
+function fmtHora(d: Date | null): string {
+  return d ? d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) : '—';
+}
+
 export default async function RemetidosAguardandoPage({
   searchParams,
 }: {
@@ -48,6 +52,7 @@ export default async function RemetidosAguardandoPage({
               {r.reservaPedido ? ` · Reserva ${r.reservaPedido}` : ''}
             </p>
             {r.numeroDocumento && <p className="text-sm text-ink-dim">NF {r.numeroDocumento}</p>}
+            {r.createdAt && <p className="text-xs text-ink-muted">Enviado às {fmtHora(r.createdAt)}</p>}
           </Link>
         ))}
         {remetidos.length === 0 && (

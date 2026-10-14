@@ -10,6 +10,10 @@ function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
 }
 
+function fmtHora(d: Date | null): string {
+  return d ? d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) : '—';
+}
+
 // Mapeia o status (valor armazenado no banco, intocado) para a variante visual
 // do badge — só a aparência muda, nunca o valor persistido.
 const STATUS_BADGE: Record<string, string> = {
@@ -65,6 +69,7 @@ export default async function AdminHomePage() {
               <tr>
                 <th>Tipo</th>
                 <th>Data</th>
+                <th>Hora</th>
                 <th>NF</th>
                 <th>Origem/Destino</th>
                 <th>Caminhão</th>
@@ -80,6 +85,7 @@ export default async function AdminHomePage() {
                     <span className="badge badge-info">{m.tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'}</span>
                   </td>
                   <td data-label="Data" className="font-mono">{fmtData(m.dataMovimentacao)}</td>
+                  <td data-label="Hora" className="font-mono">{fmtHora(m.createdAt)}</td>
                   <td data-label="NF" className="font-mono">{m.numeroDocumento ?? 'Em aberto'}</td>
                   <td data-label="Origem/Destino">{m.tipo === 'RECEBIMENTO' ? m.origem : m.destino}</td>
                   <td data-label="Caminhão" className="font-mono">
@@ -126,6 +132,7 @@ export default async function AdminHomePage() {
                   <th>Reserva/Pedido</th>
                   <th>Destino</th>
                   <th>NF</th>
+                  <th>Enviado em</th>
                   <th></th>
                 </tr>
               </thead>
@@ -135,6 +142,7 @@ export default async function AdminHomePage() {
                     <td>{r.reservaPedido ?? '—'}</td>
                     <td>{r.destino}</td>
                     <td className="font-mono">{r.numeroDocumento ?? 'Em aberto'}</td>
+                    <td className="font-mono">{fmtHora(r.createdAt)}</td>
                     <td className="text-right">
                       <Link href={`/admin/remetidos/${r.id}`} className="tbl-action">
                         Ver detalhes →

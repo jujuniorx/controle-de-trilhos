@@ -93,6 +93,7 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
           <div className="kv-item"><div className="kv-label">Destino</div><div className="kv-val">{mov.destino}</div></div>
           <div className="kv-item"><div className="kv-label">Nota fiscal</div><div className="kv-val font-mono">{mov.numeroDocumento ?? 'Em aberto'}</div></div>
           <div className="kv-item"><div className="kv-label">Data</div><div className="kv-val">{fmtData(mov.dataMovimentacao)}</div></div>
+          <div className="kv-item"><div className="kv-label">Criado pelo Pátio em</div><div className="kv-val font-mono">{fmtDataHora(mov.createdAt)}</div></div>
           <div className="kv-item"><div className="kv-label">Carreta(s)</div><div className="kv-val font-mono">{[mov.placaCarreta, mov.placaCarreta2].filter(Boolean).join(' / ') || '—'}</div></div>
           <div className="kv-item"><div className="kv-label">Cavalo</div><div className="kv-val font-mono">{mov.placaCavalo ?? '—'}</div></div>
           <div className="kv-item"><div className="kv-label">Transportadora</div><div className="kv-val">{mov.transportadora ?? '—'}</div></div>

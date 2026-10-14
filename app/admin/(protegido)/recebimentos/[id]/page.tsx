@@ -53,6 +53,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
         <h2 className="card-title">Dados do recebimento</h2>
         <dl className="kv-grid">
           <div className="kv-item"><div className="kv-label">Data</div><div className="kv-val">{fmtData(mov.dataMovimentacao)}</div></div>
+          <div className="kv-item"><div className="kv-label">Criado pelo Pátio em</div><div className="kv-val font-mono">{fmtDataHora(mov.createdAt)}</div></div>
           <div className="kv-item"><div className="kv-label">Nota fiscal</div><div className="kv-val font-mono">{mov.numeroDocumento ?? 'Em aberto'}</div></div>
           <div className="kv-item"><div className="kv-label">Origem</div><div className="kv-val">{mov.origem}</div></div>
           <div className="kv-item"><div className="kv-label">Transporte</div><div className="kv-val">{mov.tipoTransporte}</div></div>
