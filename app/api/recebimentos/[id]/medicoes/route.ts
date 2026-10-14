@@ -67,7 +67,7 @@ export async function POST(
         movimentacaoId: id,
         acao: 'MEDICAO_ADICIONADA',
         usuarioNome: user.nome,
-        usuarioId: user.id,
+        usuarioId: user.userId,
       },
     });
 
