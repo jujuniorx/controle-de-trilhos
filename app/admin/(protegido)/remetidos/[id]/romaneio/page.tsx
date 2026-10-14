@@ -17,7 +17,15 @@ const TIPO_REMETIDO_LABEL: Record<string, string> = {
 export default async function RomaneioPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin();
   const { id } = await params;
-  const mov = await buscarRemetidoDetalhe(id);
+
+  let mov;
+  try {
+    mov = await buscarRemetidoDetalhe(id);
+  } catch (err) {
+    console.error('Erro ao buscar remetido para romaneio:', err);
+    notFound();
+  }
+
   if (!mov) notFound();
 
   const totalBarras = mov.grupos.reduce((acc, g) => acc + pecasDoGrupo(g.medicoes), 0);

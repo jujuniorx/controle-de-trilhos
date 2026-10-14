@@ -11,7 +11,15 @@ function fmtData(d: Date | null): string {
 export default async function RomaneioPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin();
   const { id } = await params;
-  const mov = await buscarMovimentacaoDetalhe(id);
+
+  let mov;
+  try {
+    mov = await buscarMovimentacaoDetalhe(id);
+  } catch (err) {
+    console.error('Erro ao buscar movimentação para romaneio:', err);
+    notFound();
+  }
+
   if (!mov) notFound();
 
   const totalBarras = mov.grupos.reduce((acc, g) => acc + pecasDoGrupo(g.medicoes), 0);
