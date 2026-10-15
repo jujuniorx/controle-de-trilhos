@@ -77,10 +77,11 @@ describe('gerarRelatorioExcel — aba Recebidos', () => {
     expect(linha.getCell(18).value).toBeNull(); // SC-1
     expect(linha.getCell(19).value).toBeNull(); // SC-2 - L
     expect(linha.getCell(20).value).toBeNull(); // SC-3
-    expect(linha.getCell(21).value).toBeNull(); // Em Classificação — sempre vazia
-    expect(linha.getCell(22).value).toBeNull(); // Total (sucata)
-    expect(linha.getCell(23).value).toBe(10); // Novo = metros
-    expect(linha.getCell(24).value).toBe(10); // Total = soma de metros
+    expect(linha.getCell(21).value).toBeNull(); // Diversos
+    expect(linha.getCell(22).value).toBeNull(); // Em Classificação — sempre vazia
+    expect(linha.getCell(23).value).toBeNull(); // Total (sucata)
+    expect(linha.getCell(24).value).toBe(10); // Novo = metros
+    expect(linha.getCell(25).value).toBe(10); // Total = soma de metros
   });
 
   it('marca "Outros" (texto livre) sai maiúscula no Excel — nunca no banco', async () => {
@@ -131,8 +132,8 @@ describe('gerarRelatorioExcel — aba Recebidos', () => {
     expect(linha.getCell(15).value).toBe(12); // G2
     expect(linha.getCell(16).value).toBeNull(); // G3
     expect(linha.getCell(17).value).toBe(12); // Total (reemprego)
-    expect(linha.getCell(23).value).toBeNull(); // Novo
-    expect(linha.getCell(24).value).toBe(12); // Total (soma de metros)
+    expect(linha.getCell(24).value).toBeNull(); // Novo
+    expect(linha.getCell(25).value).toBe(12); // Total (soma de metros)
   });
 
   it('SUCATA com medições de classificações SC diferentes no mesmo grupo: metros somam na coluna de cada classificação', async () => {
@@ -161,9 +162,10 @@ describe('gerarRelatorioExcel — aba Recebidos', () => {
     expect(linha.getCell(18).value).toBe(8.1); // SC-1
     expect(linha.getCell(19).value).toBeNull(); // SC-2 - L (sem medição dessa classificação)
     expect(linha.getCell(20).value).toBe(2.5); // SC-3
-    expect(linha.getCell(21).value).toBeNull(); // Em Classificação
-    expect(linha.getCell(22).value).toBe(10.6); // Total (sucata) = 8.1 + 2.5
-    expect(linha.getCell(24).value).toBe(10.6); // Total (soma de metros)
+    expect(linha.getCell(21).value).toBeNull(); // Diversos
+    expect(linha.getCell(22).value).toBeNull(); // Em Classificação
+    expect(linha.getCell(23).value).toBe(10.6); // Total (sucata) = 8.1 + 2.5
+    expect(linha.getCell(25).value).toBe(10.6); // Total (soma de metros)
   });
 
   it('placa: só cavalo (sem carreta) aparece sozinho', async () => {
