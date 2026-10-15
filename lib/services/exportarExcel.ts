@@ -183,9 +183,9 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         metrosPorSC(medicoesSucata, 'SC3'),
         metrosPorSC(medicoesSucata, 'DIVERSOS'),
         null, // Em Classificação — sempre vazia, ver nota no topo do arquivo
-        somaOuNull(sucatas.map(metros), arredondar2),
+        grupos[0].perfil === 'TOCO' ? '-' : somaOuNull(sucatas.map(metros), arredondar2),
         somaOuNull(novos.map(metros), arredondar2),
-        arredondar2(grupos.reduce((acc, g) => acc + metros(g), 0)),
+        grupos[0].perfil === 'TOCO' ? '-' : arredondar2(grupos.reduce((acc, g) => acc + metros(g), 0)),
       ]);
     }
   }
@@ -315,7 +315,8 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         rotuloMaterial(grupos[0]),
         marcas.length > 0 ? marcas.join(' / ') : 'N/A',
         tipoRemetido,
-        diversos ? '-' : grupos.reduce((acc, g) => acc + pecasDoGrupo(g.medicoes), 0),
+        // Como na planilha real: sucata é contada em metros — Peças fica "-" (e Diversos também não tem metros).
+        diversos || grupos[0].tipoMaterial === 'SUCATA' ? '-' : grupos.reduce((acc, g) => acc + pecasDoGrupo(g.medicoes), 0),
         diversos ? '-' : arredondar2(grupos.reduce((acc, g) => acc + Number(g.metrosTotal), 0)),
         diversos ? (toneladas ?? '-') : toneladas,
         ...manuais,
