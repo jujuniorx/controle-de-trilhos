@@ -10,10 +10,13 @@ export function PesoGrupoPainel({
   pesoEstimado,
   label,
   pesagem = false,
+  jaInformado = false,
 }: {
   grupoId: string;
   pesoEstimado: number;
   label: string;
+  /** Já tem peso lançado: o painel vira "corrigir" (vale também depois de conferido). */
+  jaInformado?: boolean;
   /** Diversos: o peso vem da pesagem do caminhão, não da nota fiscal. */
   pesagem?: boolean;
 }) {
@@ -45,7 +48,9 @@ export function PesoGrupoPainel({
 
   return (
     <div className="conf-block mt-2 !p-2">
-      <p className="text-xs font-medium text-warn">{label} — {pesagem ? 'peso real da pesagem' : 'peso da NF a confirmar'}</p>
+      <p className={`text-xs font-medium ${jaInformado ? 'text-ink-muted' : 'text-warn'}`}>
+        {label} — {jaInformado ? 'corrigir peso' : pesagem ? 'peso real da pesagem' : 'peso da NF a confirmar'}
+      </p>
       <div className="mt-1 flex items-center gap-2">
         <input
           className="h-9 w-28 text-sm"
@@ -58,7 +63,7 @@ export function PesoGrupoPainel({
         />
         <span className="text-sm text-ink-muted">t</span>
         <button className="btn btn-primary btn-sm h-9" disabled={salvando} onClick={salvar}>
-          {salvando ? 'Salvando...' : pesagem ? 'Salvar peso da pesagem' : 'Confirmar peso da NF'}
+          {salvando ? 'Salvando...' : jaInformado ? 'Corrigir peso' : pesagem ? 'Salvar peso da pesagem' : 'Confirmar peso da NF'}
         </button>
       </div>
       {erro && <p className="mt-1 text-sm text-bad">{erro}</p>}

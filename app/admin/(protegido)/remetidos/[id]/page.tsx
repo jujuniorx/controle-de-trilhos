@@ -192,12 +192,12 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
               ))}
               {mov.grupos
                 .map((g, i) => ({ g, i }))
-                .filter(({ g }) => g.pesoInformado == null)
                 .map(({ g, i }) => (
                   <PesoGrupoPainel
                     key={g.id}
                     grupoId={g.id}
-                    pesoEstimado={Number(g.pesoCalculado ?? 0)}
+                    pesoEstimado={g.pesoInformado != null ? Number(g.pesoInformado) : Number(g.pesoCalculado ?? 0)}
+                    jaInformado={g.pesoInformado != null}
                     label={`Grupo ${i + 1} — ${g.perfil} — ${g.tipoMaterial}`}
                     pesagem={g.perfil === 'TOCO'}
                   />
