@@ -158,10 +158,26 @@ const ESTILO = `
   .total-value { font-size: 16px; font-weight: bold; margin-top: 0.2cm; }
   .total-value.pequeno { font-size: 12px; }
   /* Por último, para vencer as regras acima: nada de botões na impressão. */
+  /* Impressão compacta: o romaneio inteiro precisa caber numa folha A4. */
   @media print {
     @page { size: A4; margin: 0; }
+    body { font-size: 10px; line-height: 1.2; }
     .acoes { display: none; }
-    .container { width: auto; min-height: 0; margin: 0; padding: 1cm; }
+    .container { width: auto; min-height: 0; margin: 0; padding: 0.8cm; }
+    .header { margin-bottom: 0.3cm; padding-bottom: 0.2cm; }
+    .header-title { font-size: 15px; }
+    .info-grid { margin-bottom: 0.3cm; gap: 0.2cm; font-size: 10px; }
+    .info-item { padding: 0.15cm; }
+    .info-value { font-size: 10px; }
+    .section-title { margin-top: 0.3cm; margin-bottom: 0.15cm; padding-bottom: 0.1cm; }
+    .grupos { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.2cm; align-items: start; }
+    .grupo-header { margin-top: 0; padding: 0.12cm; font-size: 8.5px; }
+    .medicoes-table { margin-bottom: 0; font-size: 8.5px; }
+    .medicoes-table th, .medicoes-table td { padding: 0.04cm 0.1cm; }
+    .totals { gap: 0.2cm; margin-bottom: 0; }
+    .total-item { padding: 0.15cm; }
+    .total-value { font-size: 13px; }
+    .total-value.pequeno { font-size: 10px; }
   }
 `;
 
@@ -226,7 +242,7 @@ function documento(o: OpcoesDocumento): string {
     <div class="info-grid">${infos}</div>
 
     <div class="section-title">${escaparHtml(o.tituloMateriais)}</div>
-    ${o.grupos}
+    <div class="grupos">${o.grupos}</div>
 
     <div class="section-title">${escaparHtml(o.tituloTotais)}</div>
     <div class="totals">${totais}</div>
