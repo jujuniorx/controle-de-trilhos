@@ -5,9 +5,9 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { revogarSessao } from '@/lib/services/auth';
 import { requirePortaria } from '@/lib/services/requirePortaria';
-import { confirmarSaidaCarreta, registrarChegadaCarreta, salvarDadosPortaria } from '@/lib/services/portaria';
+import { confirmarSaidaCarreta, criarEnvioPelaPortaria, registrarChegadaCarreta, salvarDadosPortaria } from '@/lib/services/portaria';
 import { ErroRegraNegocio } from '@/lib/services/errors';
-import { dadosPortariaSchema } from '@/lib/validation/portaria';
+import { dadosPortariaSchema, novoEnvioPortariaSchema } from '@/lib/validation/portaria';
 
 export interface ResultadoPortaria {
   ok: boolean;
@@ -66,6 +66,24 @@ export async function confirmarSaidaAction(id: string): Promise<ResultadoPortari
   } catch (e) {
     if (e instanceof ErroRegraNegocio) return { ok: false, erro: e.message };
     console.error('[portaria] falha ao confirmar saída', e);
+    return { ok: false, erro: 'Não foi possível concluir. Tente de novo.' };
+  }
+}
+
+/** Carreta que chegou sem aviso do Pátio: a Portaria cria o envio já com a chegada registrada. */
+export async function novoEnvioPortariaAction(entrada: unknown): Promise<ResultadoPortaria> {
+  const ator = await requirePortaria();
+  const parsed = novoEnvioPortariaSchema.safeParse(entrada);
+  if (!parsed.success) return { ok: false, erro: parsed.error.issues[0]?.message ?? 'Dados inválidos.' };
+  try {
+    await criarEnvioPelaPortaria(parsed.data, ator.nome, ator.userId);
+    revalidatePath('/portaria');
+    revalidatePath('/patio/remetidos');
+    revalidatePath('/patio');
+    return { ok: true, mensagem: 'Envio criado e Pátio avisado!' };
+  } catch (e) {
+    if (e instanceof ErroRegraNegocio) return { ok: false, erro: e.message };
+    console.error('[portaria] falha ao criar envio', e);
     return { ok: false, erro: 'Não foi possível concluir. Tente de novo.' };
   }
 }
