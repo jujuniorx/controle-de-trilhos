@@ -106,6 +106,14 @@ describe('romaneio — HTML imprimível', () => {
     expect(html).toContain('window.print()');
   });
 
+  it('não tem área de assinaturas (Pátio/Administrativo)', () => {
+    for (const html of [htmlRomaneioRecebimento(movBase(), null), htmlRomaneioRemetido(movBase(), null)]) {
+      expect(html).not.toContain('signature');
+      expect(html).not.toContain('Responsável Pátio');
+      expect(html).not.toContain('Administrativo');
+    }
+  });
+
   it('sem nonce não emite script', () => {
     expect(htmlRomaneioRecebimento(movBase(), null)).not.toContain('<script');
   });

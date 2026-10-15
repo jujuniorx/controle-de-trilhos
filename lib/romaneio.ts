@@ -156,10 +156,6 @@ const ESTILO = `
   .total-label { font-size: 9px; font-weight: bold; text-transform: uppercase; color: #666; }
   .total-value { font-size: 16px; font-weight: bold; margin-top: 0.2cm; }
   .total-value.pequeno { font-size: 12px; }
-  .signature-area { display: grid; grid-template-columns: 1fr 1fr; gap: 2cm; margin-top: 1.5cm; padding-top: 1cm; border-top: 1px solid #000; break-inside: avoid; }
-  .signature-block { text-align: center; font-size: 10px; }
-  .signature-line { border-bottom: 1px solid #000; height: 1cm; margin-bottom: 0.2cm; }
-  .signature-label { font-size: 9px; font-weight: bold; }
   /* Por último, para vencer as regras acima: nada de botões na impressão. */
   @media print {
     @page { size: A4; margin: 0; }
@@ -233,17 +229,6 @@ function documento(o: OpcoesDocumento): string {
 
     <div class="section-title">${escaparHtml(o.tituloTotais)}</div>
     <div class="totals">${totais}</div>
-
-    <div class="signature-area">
-      <div class="signature-block">
-        <div class="signature-line"></div>
-        <div class="signature-label">Responsável Pátio</div>
-      </div>
-      <div class="signature-block">
-        <div class="signature-line"></div>
-        <div class="signature-label">Administrativo</div>
-      </div>
-    </div>
   </div>
   ${script}
 </body>
