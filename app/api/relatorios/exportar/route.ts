@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     tipo: params.get('tipo') ?? undefined,
     perfil: params.get('perfil') ?? undefined,
     material: params.get('material') ?? undefined,
+    classificacao: params.get('classificacao') ?? undefined,
     origemDestino: params.get('origemDestino') ?? undefined,
     numeroDocumento: params.get('numeroDocumento') ?? undefined,
     status: params.get('status') ?? undefined,

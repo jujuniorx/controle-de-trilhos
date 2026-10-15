@@ -3,6 +3,7 @@ import { PERFIS, NF_REGEX } from '@/lib/validation/recebimento';
 
 export const TIPOS_MOVIMENTACAO = ['RECEBIMENTO', 'REMETIDO'] as const;
 export const MATERIAIS_RELATORIO = ['NOVO', 'REEMPREGO', 'SUCATA'] as const;
+export const CLASSIFICACOES_RELATORIO = ['G1', 'G2', 'G3'] as const;
 export const STATUS_RELATORIO = ['AGUARDANDO_CHEGADA', 'PENDENTE_CONFERENCIA', 'CONFERIDO'] as const;
 
 /**
@@ -16,6 +17,7 @@ export const filtrosRelatorioSchema = z.object({
   tipo: z.enum(TIPOS_MOVIMENTACAO).optional().catch(undefined),
   perfil: z.enum(PERFIS).optional().catch(undefined),
   material: z.enum(MATERIAIS_RELATORIO).optional().catch(undefined),
+  classificacao: z.enum(CLASSIFICACOES_RELATORIO).optional().catch(undefined),
   origemDestino: z.string().trim().min(1).max(120).optional().catch(undefined),
   numeroDocumento: z.string().trim().regex(NF_REGEX).optional().catch(undefined),
   status: z.enum(STATUS_RELATORIO).optional().catch(undefined),

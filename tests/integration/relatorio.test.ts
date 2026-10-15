@@ -63,6 +63,37 @@ async function criarRemetidoAguardandoChegada() {
 }
 
 describe('buscarMovimentacoesRelatorio', () => {
+  it('filtra por classificação G1/G2/G3 (só reemprego)', async () => {
+    const mk = (classificacao: 'G1' | 'G2' | 'G3') =>
+      criarRecebimentoCaminhao(
+        recebimentoCaminhaoSchema.parse({
+          clientId: uuid(),
+          dados: dadosRecebimentoBase(),
+          grupos: [
+            {
+              clientId: uuid(),
+              perfil: 'TR57',
+              tipoMaterial: 'REEMPREGO',
+              classificacao,
+              medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 8 }],
+            },
+          ],
+        }),
+      );
+    const [g1, g2, g3] = [await mk('G1'), await mk('G2'), await mk('G3')];
+    const novo = await criarRecebimentoNovo();
+
+    const ids = async (c: 'G1' | 'G2' | 'G3') =>
+      (await buscarMovimentacoesRelatorio({ origemDestino: MARCADOR, classificacao: c })).map((m) => m.id);
+    expect(await ids('G1')).toEqual(expect.arrayContaining([g1.id]));
+    expect(await ids('G1')).not.toEqual(expect.arrayContaining([g2.id]));
+    expect(await ids('G1')).not.toContain(novo.id);
+    expect(await ids('G2')).toContain(g2.id);
+    expect(await ids('G2')).not.toContain(g1.id);
+    expect(await ids('G3')).toContain(g3.id);
+    expect(await ids('G3')).not.toContain(g2.id);
+  });
+
   it('filtra por origem/destino (texto, insensível a caixa), batendo tanto Recebimento (origem) quanto Remetido (destino)', async () => {
     const recebimento = await criarRecebimentoNovo();
     const remetido = await criarRemetidoAguardandoChegada();

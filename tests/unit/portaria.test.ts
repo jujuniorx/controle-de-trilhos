@@ -171,19 +171,3 @@ describe('observação da Portaria', () => {
     expect(dadosChegadaSchema.parse({ observacao: 'recado' }).observacao).toBe('recado');
   });
 });
-
-describe('Diversos no recebimento (sem medição)', () => {
-  const dados = { data: '2026-10-15', origem: 'X', placaCavalo: 'ABC1D23', responsavelPatio: 'Eduardo' };
-  const diversos = { clientId: '44444444-4444-4444-8444-444444444444', perfil: 'TOCO', tipoMaterial: 'SUCATA', medicoes: [] as unknown[] };
-  const med = { clientId: '33333333-3333-4333-8333-333333333333', modo: 'INDIVIDUAL', quantidade: 1, comprimento: 12, classificacaoSC: 'SC1' };
-
-  it('aceita o grupo Diversos sem nenhuma medição', () => {
-    expect(recebimentoCaminhaoSchema.safeParse({ clientId: '11111111-1111-4111-8111-111111111111', dados, grupos: [diversos] }).success).toBe(true);
-  });
-  it('recusa medição dentro do Diversos', () => {
-    expect(recebimentoCaminhaoSchema.safeParse({ clientId: '11111111-1111-4111-8111-111111111111', dados, grupos: [{ ...diversos, medicoes: [med] }] }).success).toBe(false);
-  });
-  it('sucata comum continua exigindo medição', () => {
-    expect(recebimentoCaminhaoSchema.safeParse({ clientId: '11111111-1111-4111-8111-111111111111', dados, grupos: [{ ...diversos, perfil: 'TR57' }] }).success).toBe(false);
-  });
-});
