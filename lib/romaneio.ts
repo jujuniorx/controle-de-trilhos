@@ -78,47 +78,53 @@ function fmtData(d: Date | null | undefined): string {
 }
 
 function renderGrupos(grupos: GrupoRomaneio[], remetido: boolean): string {
-  return grupos
+  // Uma tabela só, uma linha por grupo: as medições ficam lado a lado na mesma linha,
+  // então o romaneio fica compacto e alinhado, não importa quantas medições cada grupo tenha.
+  const linhas = grupos
     .map((g, i) => {
       const comClassificacao = remetido && g.tipoMaterial === 'SUCATA';
-      const linhas = g.medicoes
-        .map((m, k) => {
-          const descricao =
+      const medidas = g.medicoes
+        .map((m) => {
+          const valor =
             m.quantidade > 1
-              ? `${m.quantidade} × ${fmtMetros(m.comprimento)} m`
-              : `${fmtMetros(m.comprimento)} m`;
-          return `
-            <tr>
-              <td>${k + 1}. ${descricao}</td>
-              <td>${fmtMetros(m.metros)}</td>
-              ${comClassificacao ? `<td>${texto(m.classificacaoSC)}</td>` : ''}
-            </tr>`;
+              ? `${m.quantidade}×${fmtMetros(m.comprimento)}`
+              : fmtMetros(m.comprimento);
+          const sc = comClassificacao && m.classificacaoSC ? ` <small>${escaparHtml(m.classificacaoSC)}</small>` : '';
+          return `<span class="chip">${valor}${sc}</span>`;
         })
         .join('');
       const tampao = remetido && g.tampao ? ' (Tampão)' : '';
       return `
-        <div class="grupo">
-          <div class="grupo-header">Grupo ${i + 1} — ${texto(g.perfil)} — ${texto(g.tipoMaterial)}${tampao}</div>
-          <table class="medicoes-table">
-            <thead>
-              <tr>
-                <th style="width: ${comClassificacao ? '50%' : '60%'}">Medição</th>
-                <th style="width: ${comClassificacao ? '25%' : '40%'}">Metros</th>
-                ${comClassificacao ? '<th style="width: 25%">Classificação</th>' : ''}
-              </tr>
-            </thead>
-            <tbody>
-              ${linhas}
-              <tr class="subtotal">
-                <td>SUBTOTAL - ${texto(g.perfil)}</td>
-                <td>${fmtMetros(g.metrosTotal)}</td>
-                ${comClassificacao ? '<td></td>' : ''}
-              </tr>
-            </tbody>
-          </table>
-        </div>`;
+            <tr>
+              <td class="c">${i + 1}</td>
+              <td>${texto(g.perfil)}${tampao}</td>
+              <td>${texto(g.tipoMaterial)}</td>
+              <td class="medidas">${medidas}</td>
+              <td class="n">${pecasDoGrupo(g.medicoes)}</td>
+              <td class="n">${fmtMetros(g.metrosTotal)}</td>
+            </tr>`;
     })
     .join('');
+  const nota =
+    remetido && grupos.some((g) => g.tipoMaterial === 'SUCATA')
+      ? '<div class="nota">Classificação da sucata (SC1, SC2, SC3 ou Diversos) ao lado de cada medição. N×M = N barras de M metros.</div>'
+      : '<div class="nota">N×M = N barras de M metros.</div>';
+  return `
+        <table class="grupos-table">
+          <thead>
+            <tr>
+              <th style="width: 1.2cm">Grupo</th>
+              <th style="width: 2.4cm">Perfil</th>
+              <th style="width: 2.4cm">Material</th>
+              <th>Medições (m)</th>
+              <th style="width: 1.6cm">Barras</th>
+              <th style="width: 2.2cm">Metros</th>
+            </tr>
+          </thead>
+          <tbody>${linhas}
+          </tbody>
+        </table>
+        ${nota}`;
 }
 
 function calcularTotais(grupos: GrupoRomaneio[], remetido: boolean) {
@@ -144,40 +150,28 @@ const ESTILO = `
   .info-label { font-weight: bold; font-size: 9px; color: #666; text-transform: uppercase; }
   .info-value { font-size: 11px; margin-top: 0.1cm; word-break: break-word; }
   .section-title { font-weight: bold; font-size: 12px; margin-top: 0.6cm; margin-bottom: 0.3cm; border-bottom: 1px solid #000; padding-bottom: 0.2cm; text-transform: uppercase; }
-  .grupo { break-inside: avoid; }
-  .grupo-header { font-weight: bold; background: #f0f0f0; padding: 0.3cm; margin-top: 0.4cm; }
-  .medicoes-table { width: 100%; border-collapse: collapse; margin-bottom: 0.8cm; font-size: 10px; }
-  .medicoes-table th { background: #f5f5f5; border: 1px solid #999; padding: 0.2cm; text-align: left; font-weight: bold; font-size: 9px; }
-  .medicoes-table td { border: 1px solid #999; padding: 0.2cm; text-align: right; }
-  .medicoes-table td:first-child { text-align: left; }
-  .medicoes-table tr:nth-child(even) { background: #f9f9f9; }
-  .medicoes-table tr.subtotal { font-weight: bold; background: #e8e8e8; }
+  .grupos-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .grupos-table thead { display: table-header-group; }
+  .grupos-table th { background: #f0f0f0; border: 1px solid #999; padding: 0.2cm; text-align: left; font-size: 9px; text-transform: uppercase; }
+  .grupos-table td { border: 1px solid #999; padding: 0.2cm; vertical-align: top; }
+  .grupos-table tr { break-inside: avoid; }
+  .grupos-table tbody tr:nth-child(even) { background: #f9f9f9; }
+  .grupos-table td.c { text-align: center; }
+  .grupos-table td.n { text-align: right; white-space: nowrap; font-weight: bold; }
+  .grupos-table td.medidas { line-height: 1.9; }
+  .chip { display: inline-block; border: 1px solid #bbb; border-radius: 3px; padding: 0 0.15cm; margin: 0 0.15cm 0 0; line-height: 1.5; white-space: nowrap; background: #fff; font-size: 10px; }
+  .chip small { font-size: 8px; font-weight: bold; color: #444; }
+  .nota { font-size: 9px; color: #666; margin-top: 0.2cm; }
   .totals { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4cm; margin-bottom: 1cm; break-inside: avoid; }
   .total-item { border: 2px solid #000; padding: 0.4cm; text-align: center; }
   .total-label { font-size: 9px; font-weight: bold; text-transform: uppercase; color: #666; }
   .total-value { font-size: 16px; font-weight: bold; margin-top: 0.2cm; }
   .total-value.pequeno { font-size: 12px; }
   /* Por último, para vencer as regras acima: nada de botões na impressão. */
-  /* Impressão compacta: o romaneio inteiro precisa caber numa folha A4. */
   @media print {
     @page { size: A4; margin: 0; }
-    body { font-size: 10px; line-height: 1.2; }
     .acoes { display: none; }
-    .container { width: auto; min-height: 0; margin: 0; padding: 0.8cm; }
-    .header { margin-bottom: 0.3cm; padding-bottom: 0.2cm; }
-    .header-title { font-size: 15px; }
-    .info-grid { margin-bottom: 0.3cm; gap: 0.2cm; font-size: 10px; }
-    .info-item { padding: 0.15cm; }
-    .info-value { font-size: 10px; }
-    .section-title { margin-top: 0.3cm; margin-bottom: 0.15cm; padding-bottom: 0.1cm; }
-    .grupos { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.2cm; align-items: start; }
-    .grupo-header { margin-top: 0; padding: 0.12cm; font-size: 8.5px; }
-    .medicoes-table { margin-bottom: 0; font-size: 8.5px; }
-    .medicoes-table th, .medicoes-table td { padding: 0.04cm 0.1cm; }
-    .totals { gap: 0.2cm; margin-bottom: 0; }
-    .total-item { padding: 0.15cm; }
-    .total-value { font-size: 13px; }
-    .total-value.pequeno { font-size: 10px; }
+    .container { width: auto; min-height: 0; margin: 0; padding: 1cm; }
   }
 `;
 
@@ -242,7 +236,7 @@ function documento(o: OpcoesDocumento): string {
     <div class="info-grid">${infos}</div>
 
     <div class="section-title">${escaparHtml(o.tituloMateriais)}</div>
-    <div class="grupos">${o.grupos}</div>
+    ${o.grupos}
 
     <div class="section-title">${escaparHtml(o.tituloTotais)}</div>
     <div class="totals">${totais}</div>

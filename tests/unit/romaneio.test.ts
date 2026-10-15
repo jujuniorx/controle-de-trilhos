@@ -55,7 +55,7 @@ describe('romaneio — HTML imprimível', () => {
     const html = htmlRomaneioRecebimento(movBase(), 'abc123');
     expect(html).toContain('ROMANEIO DE RECEBIMENTO');
     expect(html).toContain('14/10/2026');
-    expect(html).toContain('2 × 12,15 m');
+    expect(html).toContain('2×12,15');
     expect(html).toContain('24,30');
     expect(html).toContain('1,386');
   });
@@ -79,13 +79,13 @@ describe('romaneio — HTML imprimível', () => {
     expect(html).toContain('9,5');
   });
 
-  it('remetido SUCATA mostra a coluna de classificação', () => {
+  it('remetido SUCATA mostra a classificação ao lado da medição', () => {
     const mov = movBase();
     mov.grupos[0].tipoMaterial = 'SUCATA';
     mov.grupos[0].medicoes[0].classificacaoSC = 'SC1';
     const html = htmlRomaneioRemetido(mov, null);
-    expect(html).toContain('Classificação');
-    expect(html).toContain('SC1');
+    expect(html).toContain('Classificação da sucata');
+    expect(html).toContain('<small>SC1</small>');
   });
 
   it('escapa o que as pessoas digitam (sem injeção de HTML)', () => {
