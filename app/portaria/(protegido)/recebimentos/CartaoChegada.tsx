@@ -30,6 +30,7 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
     placaCavalo: item.placaCavalo ?? '',
     capacidadeCarga: item.capacidadeCarga != null ? String(item.capacidadeCarga).replace('.', ',') : '',
     materialPrevisto: item.materialPrevisto ?? '',
+    observacao: item.observacao ?? '',
     origem: item.origem ?? '',
   });
   const set = (campo: keyof typeof v) => (e: { target: { value: string } }) =>
@@ -111,6 +112,19 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
             {campo('capacidadeCarga', 'Capacidade de carga (t)', { inputMode: 'decimal', maxLength: 6 })}
             {campo('materialPrevisto', 'Material')}
             {campo('origem', 'Origem')}
+          </div>
+          <div className="field">
+            <label htmlFor={`${item.id}-observacao`}>Observação para o Pátio (opcional)</label>
+            <textarea
+              id={`${item.id}-observacao`}
+              rows={3}
+              maxLength={500}
+              className="min-h-[5rem] w-full"
+              placeholder="Ex.: caminhão com lona rasgada, motorista só chega às 14h..."
+              value={v.observacao}
+              onChange={set('observacao')}
+              disabled={pendente}
+            />
           </div>
 
           {liberada && <p className="text-sm text-ok">Caminhão liberado. O Pátio já pode descarregar. Você ainda pode corrigir os dados.</p>}

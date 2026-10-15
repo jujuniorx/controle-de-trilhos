@@ -163,6 +163,8 @@ export interface ChegadaPrefill {
   placaCavalo: string;
   placaCarreta: string;
   transportadora: string;
+  /** Recado da Portaria (mostrado pela página, não entra no formulário). */
+  observacao?: string;
 }
 
 export function RecebimentoWizard({

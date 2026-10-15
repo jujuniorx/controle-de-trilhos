@@ -21,6 +21,7 @@ const ficha: FichaPortaria = {
   capacidadeCarga: 32.5,
   carretaLiberadaEm: new Date('2026-10-15T14:30:00Z'),
   carretaLiberadaPor: 'Rui',
+  observacao: 'Motorista chega às 14h (avisou por telefone)',
 };
 
 describe('ficha da Portaria em PDF', () => {
@@ -32,7 +33,7 @@ describe('ficha da Portaria em PDF', () => {
   });
   it('traz os dados preenchidos, formatados, e nenhuma medição', () => {
     const texto = gerarFichaPortariaPdf(ficha).toString('latin1');
-    for (const trecho of ['FVB2B28', 'EHJ8H61', '529.982.247-25', '\\(14\\) 99876-5432', 'PINDORAMA', 'Jos\xe9 da Concei\xe7\xe3o', '32,5 t', 'Liberada em 15/10/2026, 11:30']) {
+    for (const trecho of ['FVB2B28', 'EHJ8H61', '529.982.247-25', '\\(14\\) 99876-5432', 'PINDORAMA', 'Jos\xe9 da Concei\xe7\xe3o', '32,5 t', 'Liberada em 15/10/2026, 11:30', 'Motorista chega \xe0s 14h']) {
       expect(texto.includes(trecho)).toBe(true);
     }
     expect(texto.toLowerCase().includes('metros')).toBe(false);
@@ -42,7 +43,7 @@ describe('ficha da Portaria em PDF', () => {
     expect(texto.includes('Transportes \\(Silva\\) \\\\ & Filhos')).toBe(true);
   });
   it('funciona com tudo em branco', () => {
-    const vazio: FichaPortaria = { ...ficha, situacao: { rotulo: 'Pátio medindo', ok: false }, carretaLiberadaEm: null, carretaLiberadaPor: null, placaCarreta: null, placaCavalo: null, capacidadeCarga: null, motoristaCpf: null, motoristaTelefone: null, motoristaNome: null, transportadora: null, materialPrevisto: null, origem: null, destino: null, tipoRemetido: null };
+    const vazio: FichaPortaria = { ...ficha, situacao: { rotulo: 'Pátio medindo', ok: false }, carretaLiberadaEm: null, carretaLiberadaPor: null, observacao: null, placaCarreta: null, placaCavalo: null, capacidadeCarga: null, motoristaCpf: null, motoristaTelefone: null, motoristaNome: null, transportadora: null, materialPrevisto: null, origem: null, destino: null, tipoRemetido: null };
     expect(gerarFichaPortariaPdf(vazio).length > 500).toBe(true);
     expect(nomeArquivoFicha(vazio)).toBe('ficha-portaria.pdf');
   });

@@ -54,6 +54,8 @@ export const dadosPortariaSchema = z.object({
   origem: texto(120),
   destino: texto(120),
   materialPrevisto: texto(120),
+  // Recado da Portaria para o Pátio.
+  observacao: texto(500),
   transportadora: texto(120),
   motoristaNome: texto(80),
   motoristaCpf: cpf,

@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { COMANDOS_ESQUEMA } from '@/lib/services/esquema';
 
-const MIGRATIONS = ['20261015120000_perfil_toco', '20261015120100_lixeira_movimentacao', '20261015130000_role_portaria', '20261015130100_portaria', '20261015140000_chegada_caminhao', '20261015140100_observacao'];
+const MIGRATIONS = ['20261015120000_perfil_toco', '20261015120100_lixeira_movimentacao', '20261015130000_role_portaria', '20261015130100_portaria', '20261015140000_chegada_caminhao', '20261015140100_observacao', '20261015150000_observacao_portaria'];
 
 function normalizar(sql: string): string {
   return sql.replace(/\s+/g, ' ').replace(/\( /g, '(').replace(/ \)/g, ')').replace(/ ,/g, ',').trim();

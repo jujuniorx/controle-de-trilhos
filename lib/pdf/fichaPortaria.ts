@@ -22,6 +22,8 @@ export interface FichaPortaria {
   capacidadeCarga: number | null;
   carretaLiberadaEm: Date | null;
   carretaLiberadaPor: string | null;
+  /** Observação da Portaria. */
+  observacao: string | null;
 }
 
 const TIPO: Record<string, string> = { VENDA: 'Venda', TRANS: 'Transferência', INDUS: 'Industrialização' };
@@ -93,6 +95,13 @@ export function gerarFichaPortariaPdf(f: FichaPortaria, emitidoEm: Date = new Da
     y -= altura + 14;
     p.linha(m, y, m + largura, y, [0.9, 0.91, 0.93]);
     y -= 6;
+  }
+
+  if (f.observacao) {
+    p.texto('OBSERVAÇÃO', m, y - 14, 8, 'normal', CINZA);
+    quebrarLinhas(f.observacao, 12, largura, 'normal').slice(0, 14).forEach((linha, n) =>
+      p.texto(linha, m, y - 32 - n * 16, 12, 'normal'),
+    );
   }
 
   p.texto(`Emitido em ${dataHora(emitidoEm)}`, m, 34, 9, 'normal', CINZA);

@@ -61,6 +61,7 @@ export default async function RemetidosAguardandoPage({
             </p>
             {r.numeroDocumento && <p className="text-sm text-ink-dim">NF {r.numeroDocumento}</p>}
             {r.createdAt && <p className="text-xs text-ink-muted">Enviado às {fmtHora(r.createdAt)}</p>}
+            {r.observacaoPortaria && <p className="mt-1 text-sm text-warn">Portaria: {r.observacaoPortaria}</p>}
             {estadoPortaria(r) === 'LIBERADA' && <span className="badge badge-ok mt-1">Carreta liberada — pode carregar</span>}
             {estadoPortaria(r) === 'AGUARDANDO_CARRETA' && <span className="badge badge-warn mt-1">Medido — aguardando a carreta</span>}
           </Link>

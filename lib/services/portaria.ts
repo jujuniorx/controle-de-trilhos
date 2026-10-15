@@ -31,6 +31,7 @@ const SELECT_PORTARIA = {
   medicaoConcluidaEm: true,
   carretaLiberadaEm: true,
   carretaLiberadaPor: true,
+  observacaoPortaria: true,
   createdAt: true,
   remetidoDetalhe: { select: { tipoRemetido: true } },
 } as const;
@@ -63,6 +64,7 @@ function paraBanco(d: DadosPortaria) {
     origem: d.origem ? normalizarLocal(d.origem) : null,
     destino: d.destino ? normalizarLocal(d.destino) : null,
     materialPrevisto: d.materialPrevisto ?? null,
+    observacaoPortaria: d.observacao ?? null,
     transportadora: d.transportadora ?? null,
     motoristaNome: d.motoristaNome ?? null,
     motoristaCpf: d.motoristaCpf ?? null,
@@ -133,6 +135,7 @@ export async function dadosPortariaDoRemetido(id: string) {
       medicaoConcluidaEm: true,
       carretaLiberadaEm: true,
       carretaLiberadaPor: true,
+      observacaoPortaria: true,
       status: true,
     },
   });
@@ -162,5 +165,6 @@ export async function buscarFichaPortaria(id: string) {
     capacidadeCarga: m.capacidadeCarga ? Number(m.capacidadeCarga) : null,
     carretaLiberadaEm: m.carretaLiberadaEm,
     carretaLiberadaPor: m.carretaLiberadaPor,
+    observacao: m.observacaoPortaria,
   };
 }

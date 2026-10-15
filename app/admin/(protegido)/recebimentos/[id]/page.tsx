@@ -80,6 +80,9 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
           {portaria?.liberadaEm && (
             <div className="kv-item"><div className="kv-label">Liberado para descarregar</div><div className="kv-val">{fmtDataHora(portaria.liberadaEm)}{portaria.liberadaPor ? ` · ${portaria.liberadaPor}` : ''}</div></div>
           )}
+          {portaria?.observacao && (
+            <div className="kv-item"><div className="kv-label">Observação da Portaria</div><div className="kv-val whitespace-pre-wrap">{portaria.observacao}</div></div>
+          )}
           {mov.observacao && (
             <div className="kv-item"><div className="kv-label">Observação do Pátio</div><div className="kv-val whitespace-pre-wrap">{mov.observacao}</div></div>
           )}

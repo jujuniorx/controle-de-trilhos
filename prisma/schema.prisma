@@ -164,6 +164,8 @@ model Movimentacao {
   // A Portaria libera a carreta para carregar/descarregar — dispara o aviso no Pátio.
   carretaLiberadaEm  DateTime?
   carretaLiberadaPor String?
+  // Observação escrita pela Portaria para o Pátio.
+  observacaoPortaria String?
 
   remetidoDetalhe RemetidoDetalhe?
   grupos          Grupo[]
@@ -291,6 +293,7 @@ model ChegadaCaminhao {
   placaCarreta      String?
   placaCavalo       String?
   capacidadeCarga   Decimal? // toneladas
+  observacao        String? // da Portaria, para o Pátio
   criadoPor         String
   criadoEm          DateTime  @default(now())
   liberadaEm        DateTime?

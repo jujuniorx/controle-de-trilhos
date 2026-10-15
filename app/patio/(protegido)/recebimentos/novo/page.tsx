@@ -14,5 +14,15 @@ export default async function NovoRecebimentoPage({
     // Só pré-preenche se a Portaria já liberou e o caminhão ainda não foi descarregado.
     chegadaId ? buscarChegadaLiberada(chegadaId).catch(() => null) : Promise.resolve(null),
   ]);
-  return <RecebimentoWizard fatoresCadastrados={fatores} chegada={chegada} />;
+  return (
+    <>
+      {chegada?.observacao && (
+        <aside role="note" className="card mx-auto mt-4 max-w-md border-2 border-warn p-4 lg:max-w-xl">
+          <p className="text-sm font-semibold text-warn">Observação da Portaria</p>
+          <p className="whitespace-pre-wrap text-sm text-ink">{chegada.observacao}</p>
+        </aside>
+      )}
+      <RecebimentoWizard fatoresCadastrados={fatores} chegada={chegada} />
+    </>
+  );
 }

@@ -29,6 +29,13 @@ export default async function ConfirmarRemetidoPage({ params }: { params: Promis
       <AtualizarAuto segundos={15} />
       {portaria && <PainelPortaria id={remetido.id} estado={portaria.estado} liberadaPor={portaria.carretaLiberadaPor} />}
 
+      {portaria?.observacaoPortaria && (
+        <aside role="note" className="card mt-4 border-2 border-warn p-4">
+          <p className="text-sm font-semibold text-warn">Observação da Portaria</p>
+          <p className="whitespace-pre-wrap text-sm text-ink">{portaria.observacaoPortaria}</p>
+        </aside>
+      )}
+
       <RemetidoWizard
         modo="confirmar"
         movimentacaoId={remetido.id}
