@@ -1,0 +1,19 @@
+name: diag
+on:
+  push:
+    branches: [ci-diagnostico]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npx prisma generate
+      - run: npx tsc --noEmit 2>&1 | head -60
+      - run: npx next build 2>&1 | tail -60
+        env:
+          DATABASE_URL: postgresql://u:p@localhost:5432/db
+          DIRECT_DATABASE_URL: postgresql://u:p@localhost:5432/db
