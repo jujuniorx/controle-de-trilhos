@@ -178,6 +178,8 @@ describe('Excel — aba Remetidos: uma linha por trilho e tipo de material', () 
 
     expect(sucata68.getCell(10).value).toBe('TRILHOS TR-68');
     expect(sucata68.getCell(11).value).toBe('SUCATA');
+    expect(sucata68.getCell(14).value).toBe('-'); // sucata é contada em metros: Peças fica "-", como na planilha
+    expect(sucata68.getCell(15).value).toBe(20);
   });
 
   it('pré-cadastro aguardando chegada (sem grupos) gera uma linha com os campos de material em branco', async () => {
@@ -213,6 +215,16 @@ describe('Excel — aba Remetidos: uma linha por trilho e tipo de material', () 
     expect(linhas[0].getCell(14).value).toBe('-');
     expect(linhas[0].getCell(15).value).toBe('-');
     expect(linhas[0].getCell(16).value).toBe(28.7);
+  });
+
+  it('Recebidos: Diversos (TOCO) sai como "TOCO" com "-" em peças e metros', async () => {
+    const mov = movimentacao('RECEBIMENTO', '347343-1', [{ perfil: 'TOCO', tipoMaterial: 'SUCATA', metros: 0, medicoes: [] }]);
+    const { linhas } = await lerAba([mov], 'Recebidos');
+    expect(linhas).toHaveLength(1);
+    expect(linhas[0].getCell(10).value).toBe('TOCO');
+    expect(linhas[0].getCell(12).value).toBe('-'); // peças
+    expect(linhas[0].getCell(23).value).toBe('-'); // total sucata
+    expect(linhas[0].getCell(25).value).toBe('-'); // total
   });
 
   it('Diversos (TOCO) fica depois dos perfis TR na mesma nota', async () => {
