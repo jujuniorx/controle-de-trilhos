@@ -32,3 +32,15 @@ export function motivoNaoPodeLiberar(
   if (!placaCavalo && !placaCarreta) return 'Informe ao menos uma placa (cavalo ou carreta) para liberar.';
   return null;
 }
+
+export function formatarCpf(digitos: string | null | undefined): string {
+  const d = (digitos ?? '').replace(/\D/g, '');
+  return d.length === 11 ? `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}` : d;
+}
+
+export function formatarTelefone(digitos: string | null | undefined): string {
+  const d = (digitos ?? '').replace(/\D/g, '');
+  if (d.length === 11) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+  if (d.length === 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return d;
+}

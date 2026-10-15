@@ -30,6 +30,7 @@ const SELECT_PORTARIA = {
   materialPrevisto: true,
   medicaoConcluidaEm: true,
   carretaLiberadaEm: true,
+  carretaLiberadaPor: true,
   createdAt: true,
   remetidoDetalhe: { select: { tipoRemetido: true } },
 } as const;
@@ -136,4 +137,28 @@ export async function dadosPortariaDoRemetido(id: string) {
     },
   });
   return m ? { ...m, estado: estadoPortaria(m) } : null;
+}
+
+/** Dados para a ficha em PDF da Portaria (nenhuma medição). */
+export async function buscarFichaPortaria(id: string) {
+  const m = await prisma.movimentacao.findFirst({ where: { id, tipo: 'REMETIDO' }, select: SELECT_PORTARIA });
+  if (!m) return null;
+  return {
+    estado: estadoPortaria(m),
+    destino: m.destino,
+    origem: m.origem,
+    reservaPedido: m.reservaPedido,
+    numeroDocumento: m.numeroDocumento,
+    tipoRemetido: m.remetidoDetalhe?.tipoRemetido ?? null,
+    materialPrevisto: m.materialPrevisto,
+    transportadora: m.transportadora,
+    motoristaNome: m.motoristaNome,
+    motoristaCpf: m.motoristaCpf,
+    motoristaTelefone: m.motoristaTelefone,
+    placaCarreta: m.placaCarreta,
+    placaCavalo: m.placaCavalo,
+    capacidadeCarga: m.capacidadeCarga ? Number(m.capacidadeCarga) : null,
+    carretaLiberadaEm: m.carretaLiberadaEm,
+    carretaLiberadaPor: m.carretaLiberadaPor,
+  };
 }

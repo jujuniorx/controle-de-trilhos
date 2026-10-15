@@ -103,10 +103,14 @@ export function CartaoPortaria({ item }: { item: ItemPortaria }) {
           {medindo && <p className="text-sm text-ink-muted">O Pátio ainda está medindo. Você já pode salvar os dados; a liberação só fica disponível quando ele terminar.</p>}
           {liberada && <p className="text-sm text-ok">Carreta já liberada. Você ainda pode corrigir os dados.</p>}
 
+          <p className="text-xs text-ink-muted">O PDF leva o que está <b>salvo</b>: toque em &ldquo;Salvar dados&rdquo; antes de baixar.</p>
           <div className="flex flex-wrap gap-2">
             <button type="submit" className="btn btn-ghost h-12" disabled={pendente}>
               Salvar dados
             </button>
+            <a href={`/portaria/pdf/${item.id}`} download className="btn btn-ghost h-12" aria-label="Baixar PDF com os dados preenchidos">
+              Baixar PDF
+            </a>
             {!liberada && (
               <button type="button" className="btn btn-primary h-12" disabled={pendente || medindo} onClick={() => enviar(liberarCarretaAction)}>
                 {pendente ? 'Aguarde...' : 'Liberar carreta'}
