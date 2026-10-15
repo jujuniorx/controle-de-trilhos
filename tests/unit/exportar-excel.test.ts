@@ -91,14 +91,14 @@ describe('Excel — aba Recebidos: uma linha por trilho dentro de cada nota', ()
     expect(tr55.getCell(18).value).toBe(454.7); // SC-1
     expect(tr55.getCell(19).value).toBe(33.9); // SC-2 - L
     expect(tr55.getCell(20).value).toBe(5.6); // SC-3
-    expect(tr55.getCell(22).value).toBe(494.2); // Total sucata
-    expect(tr55.getCell(23).value).toBeNull(); // Novo
-    expect(tr55.getCell(24).value).toBe(506.2); // soma de metros do veículo
+    expect(tr55.getCell(23).value).toBe(494.2); // Total sucata
+    expect(tr55.getCell(24).value).toBeNull(); // Novo
+    expect(tr55.getCell(25).value).toBe(506.2); // soma de metros do veículo
 
     expect(tr60.getCell(10).value).toBe('TRILHOS TR-60');
     expect(tr60.getCell(11).value).toBe('PANGANG');
-    expect(tr60.getCell(23).value).toBe(100);
     expect(tr60.getCell(24).value).toBe(100);
+    expect(tr60.getCell(25).value).toBe(100);
   });
 
   it('dois grupos de reemprego do mesmo perfil (G1 e G2) viram uma linha só, cada um na sua coluna', async () => {
@@ -113,7 +113,7 @@ describe('Excel — aba Recebidos: uma linha por trilho dentro de cada nota', ()
     expect(linhas[0].getCell(15).value).toBe(24); // G2
     expect(linhas[0].getCell(16).value).toBeNull(); // G3
     expect(linhas[0].getCell(17).value).toBe(36); // Total reemprego
-    expect(linhas[0].getCell(24).value).toBe(36);
+    expect(linhas[0].getCell(25).value).toBe(36);
   });
 
   it('formato como na planilha: placa única, vagões "-", dia/mês com zero à esquerda', async () => {
