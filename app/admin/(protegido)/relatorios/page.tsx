@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { fmtMetros, fmtPeso } from '@/lib/format';
 import { normalizarLocal } from '@/lib/domain/local';
 import { requireAdmin } from '@/lib/services/requireAdmin';
-import { filtrosRelatorioSchema, MATERIAIS_RELATORIO, STATUS_RELATORIO } from '@/lib/validation/relatorio';
+import { filtrosRelatorioSchema, MATERIAIS_RELATORIO, CLASSIFICACOES_RELATORIO, STATUS_RELATORIO } from '@/lib/validation/relatorio';
 import { EstadoVazio } from '@/components/ui/EstadoVazio';
 import { GraficosRelatorio } from '@/components/admin/GraficosRelatorio';
 import { montarDadosGraficos } from '@/lib/services/graficosRelatorio';
@@ -102,6 +102,7 @@ export default async function RelatoriosPage({
     tipo: first(raw.tipo),
     perfil: first(raw.perfil),
     material: first(raw.material),
+    classificacao: first(raw.classificacao),
     origemDestino: first(raw.origemDestino),
     numeroDocumento: first(raw.numeroDocumento),
     status: first(raw.status),
@@ -136,7 +137,7 @@ export default async function RelatoriosPage({
             <input id="f-fim" type="date" name="dataFim" defaultValue={filtros.dataFim} className="h-10" />
           </div>
           </div>
-          <input type="checkbox" id="f-mais" className="filtros-toggle" defaultChecked={Boolean(filtros.tipo || filtros.status || filtros.perfil || filtros.material || filtros.origemDestino || filtros.numeroDocumento)} />
+          <input type="checkbox" id="f-mais" className="filtros-toggle" defaultChecked={Boolean(filtros.tipo || filtros.status || filtros.perfil || filtros.material || filtros.classificacao || filtros.origemDestino || filtros.numeroDocumento)} />
           <label htmlFor="f-mais" className="filtros-mais-btn">
             Mais filtros
           </label>
@@ -178,6 +179,17 @@ export default async function RelatoriosPage({
               {MATERIAIS_RELATORIO.map((m) => (
                 <option key={m} value={m}>
                   {m}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="field">
+            <label htmlFor="f-class">Classificação (reemprego)</label>
+            <select id="f-class" name="classificacao" defaultValue={filtros.classificacao ?? ''} className="h-10">
+              <option value="">Todas</option>
+              {CLASSIFICACOES_RELATORIO.map((c) => (
+                <option key={c} value={c}>
+                  {c}
                 </option>
               ))}
             </select>

@@ -35,11 +35,13 @@ function montarWhere(filtros: FiltrosRelatorioInput): Prisma.MovimentacaoWhereIn
     };
   }
 
-  if (filtros.perfil || filtros.material) {
+  if (filtros.perfil || filtros.material || filtros.classificacao) {
     where.grupos = {
       some: {
         ...(filtros.perfil ? { perfil: filtros.perfil } : {}),
         ...(filtros.material ? { tipoMaterial: filtros.material } : {}),
+        // G1/G2/G3 só existem em reemprego
+        ...(filtros.classificacao ? { tipoMaterial: 'REEMPREGO' as const, classificacao: filtros.classificacao } : {}),
       },
     };
   }
