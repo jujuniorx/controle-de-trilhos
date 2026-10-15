@@ -79,7 +79,7 @@ export function PreCadastroForm() {
 
       <div className="field">
         <label htmlFor="destino">Destino</label>
-        <input id="destino" name="destino" required className="h-11" />
+        <input id="destino" name="destino" required className="h-11 uppercase" />
       </div>
 
       <div className="field">

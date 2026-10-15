@@ -446,7 +446,7 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
           </div>
           <div className="field">
             <label htmlFor="f-origem">Origem *</label>
-            <input id="f-origem" className="h-11" value={dados.origem} onChange={(e) => setDados({ ...dados, origem: e.target.value })} />
+            <input id="f-origem" className="h-11 uppercase" value={dados.origem} onChange={(e) => setDados({ ...dados, origem: e.target.value })} />
             {errosDados.origem && <p className="text-sm text-bad">{errosDados.origem}</p>}
           </div>
           <p className="text-sm text-ink-dim">Transporte: Caminhão (único suportado nesta etapa)</p>

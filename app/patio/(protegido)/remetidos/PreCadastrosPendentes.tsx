@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { liveQuery } from 'dexie';
 import { db, type PreCadastroLocal } from '@/lib/offline/db';
+import { normalizarLocal } from '@/lib/domain/local';
 
 const TIPO_REMETIDO_LABEL: Record<string, string> = {
   VENDA: 'Venda',
@@ -43,7 +44,7 @@ export function PreCadastrosPendentes() {
     <div className="space-y-2" aria-label="Cadastros aguardando sincronização">
       {itens.map((item) => (
         <div key={item.clientId} className="card">
-          <p className="font-medium text-ink">{item.payload.destino}</p>
+          <p className="font-medium text-ink">{normalizarLocal(item.payload.destino)}</p>
           <p className="text-sm text-ink-muted">
             {item.payload.tipoRemetido ? (TIPO_REMETIDO_LABEL[item.payload.tipoRemetido] ?? '—') : 'Tipo em aberto'}
             {item.payload.reservaPedido ? ` · Reserva ${item.payload.reservaPedido}` : ''}

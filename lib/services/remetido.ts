@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { calcularMetros, calcularPesoEstimado } from '@/lib/services/calculo';
 import { registrarHistorico } from '@/lib/services/historico';
 import { arredondar3 } from '@/lib/domain/regras';
+import { normalizarLocal } from '@/lib/domain/local';
 import { ErroRegraNegocio } from '@/lib/services/errors';
 import { MARCA_LABEL } from '@/lib/validation/recebimento';
 import { PESO_MAX_GRUPO_T, MSG_PESO_UNIDADE } from '@/lib/validation/remetido';
@@ -39,7 +40,7 @@ export async function criarPreCadastroRemetido(
       tipoDocumento: 'NF',
       numeroDocumento: input.numeroDocumento ?? null,
       tipoTransporte: 'CAMINHAO',
-      destino: input.destino,
+      destino: normalizarLocal(input.destino),
       reservaPedido: input.reservaPedido ?? null,
       status: 'AGUARDANDO_CHEGADA',
       remetidoDetalhe: { create: { tipoRemetido: input.tipoRemetido ?? null } },
@@ -175,7 +176,7 @@ export async function criarRemetidoDireto(
         tipoDocumento: 'NF',
         numeroDocumento: input.dados.numeroDocumento ?? null,
         tipoTransporte: 'CAMINHAO',
-        destino: input.destino,
+        destino: normalizarLocal(input.destino),
         reservaPedido: input.reservaPedido ?? null,
         status: 'PENDENTE_CONFERENCIA',
         dataMovimentacao: new Date(`${input.dados.data}T00:00:00`),
@@ -435,7 +436,7 @@ export async function atualizarRemetido(
       where: { id: movimentacaoId },
       data: {
         reservaPedido: input.reservaPedido ?? null,
-        destino: input.destino,
+        destino: normalizarLocal(input.destino),
         numeroDocumento: input.dados.numeroDocumento ?? existente.numeroDocumento,
         dataMovimentacao: new Date(`${input.dados.data}T00:00:00`),
         placaCavalo: input.dados.placaCavalo ?? null,

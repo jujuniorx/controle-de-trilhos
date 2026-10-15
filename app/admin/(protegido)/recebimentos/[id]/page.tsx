@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { fmtMetros, fmtPeso } from '@/lib/format';
+import { normalizarLocal } from '@/lib/domain/local';
 import { notFound } from 'next/navigation';
 import { buscarMovimentacaoDetalhe, resumoPeso } from '@/lib/services/movimentacao';
 import { requireAdmin } from '@/lib/services/requireAdmin';
@@ -61,7 +62,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
           <div className="kv-item"><div className="kv-label">Data</div><div className="kv-val">{fmtData(mov.dataMovimentacao)}</div></div>
           <div className="kv-item"><div className="kv-label">Criado pelo Pátio em</div><div className="kv-val font-mono">{fmtDataHora(mov.createdAt)}</div></div>
           <div className="kv-item"><div className="kv-label">Nota fiscal</div><div className="kv-val font-mono">{mov.numeroDocumento ?? 'Em aberto'}</div></div>
-          <div className="kv-item"><div className="kv-label">Origem</div><div className="kv-val">{mov.origem}</div></div>
+          <div className="kv-item"><div className="kv-label">Origem</div><div className="kv-val">{normalizarLocal(mov.origem)}</div></div>
           <div className="kv-item"><div className="kv-label">Transporte</div><div className="kv-val">{mov.tipoTransporte}</div></div>
           <div className="kv-item"><div className="kv-label">Carreta(s)</div><div className="kv-val font-mono">{[mov.placaCarreta, mov.placaCarreta2].filter(Boolean).join(' / ') || '—'}</div></div>
           <div className="kv-item"><div className="kv-label">Cavalo</div><div className="kv-val font-mono">{mov.placaCavalo ?? '—'}</div></div>

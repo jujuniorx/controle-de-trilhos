@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { fmtMetros, fmtPeso } from '@/lib/format';
+import { normalizarLocal } from '@/lib/domain/local';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { filtrosRelatorioSchema, MATERIAIS_RELATORIO, STATUS_RELATORIO } from '@/lib/validation/relatorio';
 import { EstadoVazio } from '@/components/ui/EstadoVazio';
@@ -41,7 +42,7 @@ function LinhaTabela({ mov }: { mov: MovimentacaoRelatorio }) {
       <td data-label="Tipo">{mov.tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'}</td>
       <td data-label="Data" className="font-mono">{fmtData(mov.dataMovimentacao)}</td>
       <td data-label="NF" className="font-mono">{mov.numeroDocumento ?? 'Em aberto'}</td>
-      <td data-label="Origem/Destino">{mov.tipo === 'RECEBIMENTO' ? mov.origem : mov.destino}</td>
+      <td data-label="Origem/Destino">{normalizarLocal(mov.tipo === 'RECEBIMENTO' ? mov.origem : mov.destino)}</td>
       <td data-label="Status">
         <span className={`badge ${STATUS_BADGE[mov.status] ?? 'badge-muted'}`}>{STATUS_TEXTO[mov.status] ?? mov.status}</span>
       </td>

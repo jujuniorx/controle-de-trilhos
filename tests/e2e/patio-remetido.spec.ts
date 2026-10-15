@@ -188,6 +188,6 @@ test.describe('Fluxo real do Remetido — pré-cadastro + confirmação (Pátio)
 
     const atualizado = await prisma.movimentacao.findUniqueOrThrow({ where: { id: movimentacao.id } });
     expect(atualizado.status).toBe('PENDENTE_CONFERENCIA');
-    expect(atualizado.destino).toBe('Usina Sorriso');
+    expect(atualizado.destino).toBe('USINA SORRISO'); // destino é gravado padronizado (maiúsculas)
   });
 });

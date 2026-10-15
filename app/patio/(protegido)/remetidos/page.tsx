@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { listarAguardandoChegada } from '@/lib/services/remetido';
+import { normalizarLocal } from '@/lib/domain/local';
 import { PreCadastrosPendentes } from './PreCadastrosPendentes';
 import { AvisoSucesso } from '@/components/ui/AvisoSucesso';
 import { EstadoVazio } from '@/components/ui/EstadoVazio';
@@ -46,7 +47,7 @@ export default async function RemetidosAguardandoPage({
         <PreCadastrosPendentes />
         {remetidos.map((r) => (
           <Link key={r.id} href={`/patio/remetidos/${r.id}/confirmar`} className="card block transition hover:brightness-110">
-            <p className="font-medium text-ink">{r.destino ?? 'Remetido'}</p>
+            <p className="font-medium text-ink">{normalizarLocal(r.destino) || 'Remetido'}</p>
             <p className="text-sm text-ink-muted">
               {TIPO_REMETIDO_LABEL[r.remetidoDetalhe?.tipoRemetido ?? ''] ?? '—'}
               {r.reservaPedido ? ` · Reserva ${r.reservaPedido}` : ''}

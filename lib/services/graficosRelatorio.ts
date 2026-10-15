@@ -1,4 +1,5 @@
 import { arredondar3 } from '@/lib/domain/regras';
+import { chaveLocal, normalizarLocal } from '@/lib/domain/local';
 import { pesoConhecidoDoGrupo, pesoMovimentacao, type MovimentacaoRelatorio } from '@/lib/services/relatorio';
 
 export interface PontoSerie {
@@ -46,6 +47,16 @@ function rankear(mapa: Map<string, number>): ItemRanking[] {
     .filter((i) => i.valor > 0)
     .sort((a, b) => b.valor - a.valor || a.rotulo.localeCompare(b.rotulo))
     .slice(0, MAX_RANKING);
+}
+
+/**
+ * Troca as chaves de comparação (sem acento, maiúsculas) pelo rótulo exibido, para que
+ * "Ponta Grossa" e "Ponta grossa" — inclusive registros antigos — somem numa entrada só.
+ */
+function comRotulosDeLocal(porChave: Map<string, number>, rotulos: Map<string, string>): Map<string, number> {
+  const out = new Map<string, number>();
+  for (const [chave, valor] of porChave) out.set(rotulos.get(chave) ?? chave, valor);
+  return out;
 }
 
 /** Maiores fatias + "Outros" (somando o resto), sempre do maior para o menor, "Outros" por último. */
@@ -96,6 +107,8 @@ function pesosPorChave(mov: MovimentacaoRelatorio, chave: (g: MovimentacaoRelato
 export function montarDadosGraficos(movs: MovimentacaoRelatorio[]): DadosGraficos {
   const origens = new Map<string, number>();
   const destinos = new Map<string, number>();
+  // chave de comparação -> rótulo exibido (padronizado; prefere a grafia com acento).
+  const rotulosLocal = new Map<string, string>();
   const perfis = new Map<string, number>();
   const materiais = new Map<string, number>();
 
@@ -124,9 +137,15 @@ export function montarDadosGraficos(movs: MovimentacaoRelatorio[]): DadosGrafico
     else ponto.enviado += peso;
     buckets.set(chave, ponto);
 
-    const local = (m.tipo === 'RECEBIMENTO' ? m.origem : m.destino)?.trim();
+    const local = m.tipo === 'RECEBIMENTO' ? m.origem : m.destino;
     const alvo = m.tipo === 'RECEBIMENTO' ? origens : destinos;
-    if (local) alvo.set(local, (alvo.get(local) ?? 0) + peso);
+    const chaveDoLocal = chaveLocal(local);
+    if (chaveDoLocal) {
+      alvo.set(chaveDoLocal, (alvo.get(chaveDoLocal) ?? 0) + peso);
+      const rotulo = normalizarLocal(local);
+      const atual = rotulosLocal.get(chaveDoLocal);
+      if (atual === undefined || (atual === chaveDoLocal && rotulo !== chaveDoLocal)) rotulosLocal.set(chaveDoLocal, rotulo);
+    }
 
     for (const [perfil, v] of pesosPorChave(m, (g) => g.perfil)) perfis.set(perfil, (perfis.get(perfil) ?? 0) + v);
     for (const [mat, v] of pesosPorChave(m, (g) => ROTULO_MATERIAL[g.tipoMaterial] ?? g.tipoMaterial)) {
@@ -143,8 +162,8 @@ export function montarDadosGraficos(movs: MovimentacaoRelatorio[]): DadosGrafico
     serie: todos.slice(-MAX_PERIODOS),
     granularidade,
     serieTruncada: todos.length > MAX_PERIODOS,
-    origens: rankear(origens),
-    destinos: rankear(destinos),
+    origens: rankear(comRotulosDeLocal(origens, rotulosLocal)),
+    destinos: rankear(comRotulosDeLocal(destinos, rotulosLocal)),
     perfis: fatias(perfis),
     materiais: fatias(materiais),
   };

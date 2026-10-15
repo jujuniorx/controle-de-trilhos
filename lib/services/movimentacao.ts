@@ -1,5 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
+import { normalizarLocal } from '@/lib/domain/local';
 import { calcularMetros, calcularPeso, calcularPesoEstimado } from '@/lib/services/calculo';
 import { arredondar3 } from '@/lib/domain/regras';
 import { registrarHistorico } from '@/lib/services/historico';
@@ -110,7 +111,7 @@ export async function criarRecebimentoCaminhao(input: RecebimentoCaminhaoInput) 
         placaCarreta: input.dados.placaCarreta ?? null,
         placaCarreta2: input.dados.placaCarreta2 ?? null,
         transportadora: input.dados.transportadora ?? null,
-        origem: input.dados.origem,
+        origem: normalizarLocal(input.dados.origem),
         responsavelPatio: input.dados.responsavelPatio,
         dataMovimentacao: new Date(`${input.dados.data}T00:00:00`),
       },

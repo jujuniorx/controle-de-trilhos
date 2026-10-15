@@ -93,8 +93,10 @@ describe('romaneio — HTML imprimível', () => {
       movBase({ destino: '<script>alert(1)</script>', transportadora: 'A & B "Ltda"' }),
       null,
     );
+    // O destino sai padronizado em MAIÚSCULAS e, de qualquer forma, escapado.
     expect(html).not.toContain('<script>alert(1)</script>');
-    expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
+    expect(html).not.toContain('<SCRIPT>');
+    expect(html).toContain('&lt;SCRIPT&gt;ALERT(1)&lt;/SCRIPT&gt;');
     expect(html).toContain('A &amp; B &quot;Ltda&quot;');
   });
 
@@ -104,6 +106,11 @@ describe('romaneio — HTML imprimível', () => {
     expect(html).not.toMatch(/onclick\s*=/i);
     expect(html).toContain('id="btn-imprimir"');
     expect(html).toContain('window.print()');
+  });
+
+  it('mostra origem e destino padronizados, mesmo em registros antigos com grafia diferente', () => {
+    expect(htmlRomaneioRecebimento(movBase({ origem: ' Ponta  grossa ' }), null)).toContain('PONTA GROSSA');
+    expect(htmlRomaneioRemetido(movBase({ destino: 'ponta Grossa' }), null)).toContain('PONTA GROSSA');
   });
 
   it('não tem área de assinaturas (Pátio/Administrativo)', () => {

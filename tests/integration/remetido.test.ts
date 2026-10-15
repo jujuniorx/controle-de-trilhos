@@ -319,7 +319,7 @@ describe('criarRemetidoDireto', () => {
     );
     expect(mov.remetidoDetalhe?.tipoRemetido).toBe('INDUS');
     expect(mov.reservaPedido).toBe(reservaPedido);
-    expect(mov.destino).toBe('Pátio de Sucata');
+    expect(mov.destino).toBe('PÁTIO DE SUCATA'); // destino é gravado padronizado (maiúsculas)
   });
 
   it('aceita NF ainda não conhecida (numeroDocumento ausente) e permite completá-la depois', async () => {
@@ -459,7 +459,7 @@ describe('atualizarRemetido', () => {
     const atualizado = await atualizarRemetido(mov.id, edicaoBase(), ADMIN);
 
     expect(atualizado.status).toBe('PENDENTE_CONFERENCIA');
-    expect(atualizado.destino).toBe('Usina Sorriso');
+    expect(atualizado.destino).toBe('USINA SORRISO'); // destino é gravado padronizado (maiúsculas)
     expect(atualizado.responsavelPatio).toBe('Outro Responsável');
     expect(atualizado.remetidoDetalhe?.tipoRemetido).toBe('TRANS');
     expect(atualizado.grupos).toHaveLength(1);

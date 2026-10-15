@@ -1,6 +1,7 @@
 import ExcelJS from 'exceljs';
 import type { MovimentacaoRelatorio } from '@/lib/services/relatorio';
 import { pecasDoGrupo, arredondar3 } from '@/lib/domain/regras';
+import { normalizarLocal } from '@/lib/domain/local';
 
 /**
  * Estrutura de colunas das duas abas: segue a planilha real da empresa, para
@@ -146,7 +147,7 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
       mov.tipoTransporte,
       formatarPlaca(mov),
       '-', // Qtd. de vagões — não capturado pelo app (só Caminhão existe hoje)
-      upper(mov.origem),
+      normalizarLocal(mov.origem),
     ];
 
     for (const grupos of agruparPorPerfil(mov.grupos)) {
@@ -270,7 +271,7 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
 
   for (const mov of movimentacoes) {
     const [dia, mes, ano] = diaMesAno(mov.dataMovimentacao);
-    const destinoTransportadora = [upper(mov.destino), mov.transportadora ? upper(mov.transportadora) : null]
+    const destinoTransportadora = [normalizarLocal(mov.destino),mov.transportadora ? upper(mov.transportadora) : null]
       .filter(Boolean)
       .join(' / ');
     const tipoRemetido = mov.remetidoDetalhe?.tipoRemetido ?? ''; // VENDA, TRANS ou INDUS — igual à planilha

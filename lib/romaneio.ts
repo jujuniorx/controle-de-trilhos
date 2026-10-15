@@ -15,6 +15,7 @@
 
 import { fmtMetros, fmtPeso } from '@/lib/format';
 import { pecasDoGrupo } from '@/lib/domain/regras';
+import { normalizarLocal } from '@/lib/domain/local';
 
 export interface MedicaoRomaneio {
   quantidade: number;
@@ -246,7 +247,7 @@ export function htmlRomaneioRecebimento(mov: MovimentacaoRomaneio, nonce: string
     cabecalho: 'ROMANEIO DE RECEBIMENTO',
     subtitulo: mov.numeroDocumento ? `NF ${mov.numeroDocumento}` : '',
     infos: [
-      ['Origem', mov.origem],
+      ['Origem', normalizarLocal(mov.origem)],
       ['Tipo de Transporte', mov.tipoTransporte],
       ['Data', fmtData(mov.dataMovimentacao)],
       ['Responsável (Pátio)', mov.responsavelPatio],
@@ -276,7 +277,7 @@ export function htmlRomaneioRemetido(mov: MovimentacaoRomaneio, nonce: string | 
     infos: [
       ['Tipo de Remetido', tipo ? (TIPO_REMETIDO_LABEL[tipo] ?? tipo) : 'Em aberto'],
       ['Reserva/Pedido', mov.reservaPedido],
-      ['Destino', mov.destino],
+      ['Destino', normalizarLocal(mov.destino)],
       ['Data', fmtData(mov.dataMovimentacao)],
       ['Responsável (Pátio)', mov.responsavelPatio],
       ['Transportadora', mov.transportadora],

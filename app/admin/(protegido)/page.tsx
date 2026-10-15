@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { listarPendentesConferencia } from '@/lib/services/movimentacao';
 import { listarAguardandoChegada } from '@/lib/services/remetido';
+import { normalizarLocal } from '@/lib/domain/local';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { saudacao } from '@/lib/saudacao';
 import { ContadorAnimado } from '@/components/ui/ContadorAnimado';
@@ -87,7 +88,7 @@ export default async function AdminHomePage() {
                   <td data-label="Data" className="font-mono">{fmtData(m.dataMovimentacao)}</td>
                   <td data-label="Hora" className="font-mono">{fmtHora(m.createdAt)}</td>
                   <td data-label="NF" className="font-mono">{m.numeroDocumento ?? 'Em aberto'}</td>
-                  <td data-label="Origem/Destino">{m.tipo === 'RECEBIMENTO' ? m.origem : m.destino}</td>
+                  <td data-label="Origem/Destino">{normalizarLocal(m.tipo === 'RECEBIMENTO' ? m.origem : m.destino)}</td>
                   <td data-label="Caminhão" className="font-mono">
                     {[m.placaCarreta, m.placaCarreta2, m.placaCavalo].filter(Boolean).join(' / ') || '—'}
                   </td>
@@ -140,7 +141,7 @@ export default async function AdminHomePage() {
                 {aguardandoChegada.map((r) => (
                   <tr key={r.id} data-mov-id={r.id} data-mov-rotulo={r.destino ?? r.reservaPedido ?? "Remetido aguardando chegada"}>
                     <td>{r.reservaPedido ?? '—'}</td>
-                    <td>{r.destino}</td>
+                    <td>{normalizarLocal(r.destino)}</td>
                     <td className="font-mono">{r.numeroDocumento ?? 'Em aberto'}</td>
                     <td className="font-mono">{fmtHora(r.createdAt)}</td>
                     <td className="text-right">

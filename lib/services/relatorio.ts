@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { arredondar3 } from '@/lib/domain/regras';
+import { normalizarLocal } from '@/lib/domain/local';
 import type { FiltrosRelatorioInput } from '@/lib/validation/relatorio';
 
 export type MovimentacaoRelatorio = Prisma.MovimentacaoGetPayload<{
@@ -15,9 +16,15 @@ function montarWhere(filtros: FiltrosRelatorioInput): Prisma.MovimentacaoWhereIn
   if (filtros.numeroDocumento) where.numeroDocumento = { contains: filtros.numeroDocumento };
 
   if (filtros.origemDestino) {
+    // Locais são gravados em MAIÚSCULAS (normalizarLocal). O ILIKE sozinho pode não casar
+    // "rondonópolis" com "RONDONÓPOLIS" conforme a collation do banco, então também busca
+    // pelo texto já padronizado — e continua achando os registros antigos (grafia original).
+    const padronizado = normalizarLocal(filtros.origemDestino);
     where.OR = [
       { origem: { contains: filtros.origemDestino, mode: 'insensitive' } },
       { destino: { contains: filtros.origemDestino, mode: 'insensitive' } },
+      { origem: { contains: padronizado } },
+      { destino: { contains: padronizado } },
     ];
   }
 

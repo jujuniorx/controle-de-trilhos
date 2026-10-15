@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { fmtMetros, fmtPeso } from '@/lib/format';
+import { normalizarLocal } from '@/lib/domain/local';
 import { notFound } from 'next/navigation';
 import { buscarRemetidoDetalhe, resumoPesoRemetido } from '@/lib/services/remetido';
 import { requireAdmin } from '@/lib/services/requireAdmin';
@@ -37,7 +38,7 @@ const STATUS_LABEL: Record<string, { texto: string; badge: string }> = {
 function tituloRemetido(mov: { numeroDocumento: string | null; reservaPedido: string | null; destino: string | null; dataMovimentacao: Date | null }): string {
   if (mov.numeroDocumento) return `NF ${mov.numeroDocumento}`;
   if (mov.reservaPedido) return `Reserva ${mov.reservaPedido}`;
-  if (mov.destino) return `${mov.destino} — ${fmtData(mov.dataMovimentacao)}`;
+  if (mov.destino) return `${normalizarLocal(mov.destino)} — ${fmtData(mov.dataMovimentacao)}`;
   return 'em aberto';
 }
 
@@ -94,7 +95,7 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
         <dl className="kv-grid">
           <div className="kv-item"><div className="kv-label">Tipo</div><div className="kv-val">{TIPO_REMETIDO_LABEL[mov.remetidoDetalhe?.tipoRemetido ?? ''] ?? 'Em aberto'}</div></div>
           <div className="kv-item"><div className="kv-label">Reserva/Pedido</div><div className="kv-val">{mov.reservaPedido ?? '—'}</div></div>
-          <div className="kv-item"><div className="kv-label">Destino</div><div className="kv-val">{mov.destino}</div></div>
+          <div className="kv-item"><div className="kv-label">Destino</div><div className="kv-val">{normalizarLocal(mov.destino)}</div></div>
           <div className="kv-item"><div className="kv-label">Nota fiscal</div><div className="kv-val font-mono">{mov.numeroDocumento ?? 'Em aberto'}</div></div>
           <div className="kv-item"><div className="kv-label">Data</div><div className="kv-val">{fmtData(mov.dataMovimentacao)}</div></div>
           <div className="kv-item"><div className="kv-label">Criado pelo Pátio em</div><div className="kv-val font-mono">{fmtDataHora(mov.createdAt)}</div></div>

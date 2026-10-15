@@ -480,7 +480,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
           )}
           <div className="field">
             <label htmlFor="f-destino">Destino *</label>
-            <input id="f-destino" className="h-11" value={identificacao.destino} onChange={(e) => setIdentificacao({ ...identificacao, destino: e.target.value })} />
+            <input id="f-destino" className="h-11 uppercase" value={identificacao.destino} onChange={(e) => setIdentificacao({ ...identificacao, destino: e.target.value })} />
             {errosIdentificacao.destino && <p className="text-sm text-bad">{errosIdentificacao.destino}</p>}
           </div>
         </section>
