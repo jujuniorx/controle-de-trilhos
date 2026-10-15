@@ -1,0 +1,24 @@
+name: diag
+on:
+  push:
+    branches: [ci-diag2]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund > /tmp/install.log 2>&1 || (tail -15 /tmp/install.log | while IFS= read -r l; do echo "::error title=install::$l"; done; exit 1)
+      - run: npx prisma generate > /tmp/gen.log 2>&1 || (tail -15 /tmp/gen.log | while IFS= read -r l; do echo "::error title=prisma::$l"; done; exit 1)
+      - run: |
+          npx tsc --noEmit > /tmp/tsc.log 2>&1 || true
+          echo "tsc linhas: $(wc -l < /tmp/tsc.log)"
+          head -40 /tmp/tsc.log | while IFS= read -r l; do echo "::error title=tsc::$l"; done
+      - run: |
+          npx next build > /tmp/build.log 2>&1 || true
+          tail -50 /tmp/build.log | while IFS= read -r l; do echo "::warning title=build::$l"; done
+        env:
+          DATABASE_URL: postgresql://u:p@localhost:5432/db
+          DIRECT_DATABASE_URL: postgresql://u:p@localhost:5432/db
