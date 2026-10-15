@@ -1,0 +1,37 @@
+name: diag
+on: push
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: pw, POSTGRES_DB: t }
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:pw@localhost:5432/t
+      DIRECT_DATABASE_URL: postgresql://postgres:pw@localhost:5432/t
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm install --no-audit --no-fund 2>&1 | tail -5
+      - run: npx prisma generate 2>&1 | tail -3
+      - name: migrate
+        run: |
+          npx prisma migrate deploy 2>&1 | tee mig.txt | tail -8
+          while IFS= read -r l; do echo "::error::${l}"; done < <(grep -iE "error|failed" mig.txt | head -10)
+          echo "::warning::MIGRATE EXIT $(grep -ciE 'error|failed' mig.txt)"
+      - name: seed
+        run: npx prisma db seed 2>&1 | tail -5 || true
+        continue-on-error: true
+      - name: e2e
+        run: |
+          npx vitest run tests/integration/fluxo-portaria-patio.test.ts tests/unit/exportar-excel.test.ts 2>&1 | tee e2e.txt | tail -25
+          while IFS= read -r l; do echo "::error::${l}"; done < <(grep -E "FAIL|AssertionError|Error:|✓|✗|×|Tests " e2e.txt | head -40)
+      - name: integracao
+        run: |
+          npx vitest run tests/integration 2>&1 | tee int.txt | tail -25
+          while IFS= read -r l; do echo "::error::${l}"; done < <(grep -E "FAIL|AssertionError|Test Files|Tests " int.txt | head -40)
