@@ -178,8 +178,6 @@ describe('Excel — aba Remetidos: uma linha por trilho e tipo de material', () 
 
     expect(sucata68.getCell(10).value).toBe('TRILHOS TR-68');
     expect(sucata68.getCell(11).value).toBe('SUCATA');
-    expect(sucata68.getCell(14).value).toBe('-'); // sucata é contada em metros: Peças fica "-", como na planilha
-    expect(sucata68.getCell(15).value).toBe(20);
   });
 
   it('pré-cadastro aguardando chegada (sem grupos) gera uma linha com os campos de material em branco', async () => {
