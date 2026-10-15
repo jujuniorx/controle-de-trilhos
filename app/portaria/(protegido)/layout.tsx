@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { requirePortaria } from '@/lib/services/requirePortaria';
 import { sairPortariaAction } from './actions';
 
@@ -16,6 +17,14 @@ export default async function PortariaLayout({ children }: { children: React.Rea
           </button>
         </form>
       </header>
+      <nav className="flex gap-2 border-b border-line px-4 py-2" aria-label="Seções da Portaria">
+        <Link href="/portaria" className="btn btn-ghost btn-sm">
+          Remetidos
+        </Link>
+        <Link href="/portaria/recebimentos" className="btn btn-ghost btn-sm">
+          Recebimentos
+        </Link>
+      </nav>
       {children}
     </div>
   );

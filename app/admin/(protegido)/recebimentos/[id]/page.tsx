@@ -4,6 +4,7 @@ import { normalizarLocal } from '@/lib/domain/local';
 import { notFound } from 'next/navigation';
 import { buscarMovimentacaoDetalhe, resumoPeso } from '@/lib/services/movimentacao';
 import { requireAdmin } from '@/lib/services/requireAdmin';
+import { buscarChegadaDoRecebimento } from '@/lib/services/chegada';
 import { pecasDoGrupo } from '@/lib/domain/regras';
 import { ConferenciaPainel } from './ConferenciaPainel';
 import { EditarMedicoesPainel } from './EditarMedicoesPainel';
@@ -33,6 +34,8 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
   if (!mov) notFound();
 
   const resumo = resumoPeso(mov);
+  // Dados da Portaria (se o caminhão passou por ela); nunca derruba a tela.
+  const portaria = await buscarChegadaDoRecebimento(mov.id).catch(() => null);
 
   return (
     <main className="mx-auto max-w-3xl xl:max-w-5xl space-y-4 p-6">
@@ -68,6 +71,18 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
           <div className="kv-item"><div className="kv-label">Carreta(s)</div><div className="kv-val font-mono">{[mov.placaCarreta, mov.placaCarreta2].filter(Boolean).join(' / ') || '—'}</div></div>
           <div className="kv-item"><div className="kv-label">Cavalo</div><div className="kv-val font-mono">{mov.placaCavalo ?? '—'}</div></div>
           <div className="kv-item"><div className="kv-label">Responsável (Pátio)</div><div className="kv-val">{mov.responsavelPatio}</div></div>
+          {portaria && (portaria.motoristaNome || portaria.motoristaTelefone || portaria.motoristaCpf) && (
+            <div className="kv-item"><div className="kv-label">Motorista (Portaria)</div><div className="kv-val">{[portaria.motoristaNome, portaria.motoristaTelefone, portaria.motoristaCpf && `CPF ${portaria.motoristaCpf}`].filter(Boolean).join(' · ')}</div></div>
+          )}
+          {portaria?.capacidadeCarga != null && (
+            <div className="kv-item"><div className="kv-label">Capacidade de carga</div><div className="kv-val">{portaria.capacidadeCarga.toLocaleString('pt-BR')} t</div></div>
+          )}
+          {portaria?.liberadaEm && (
+            <div className="kv-item"><div className="kv-label">Liberado para descarregar</div><div className="kv-val">{fmtDataHora(portaria.liberadaEm)}{portaria.liberadaPor ? ` · ${portaria.liberadaPor}` : ''}</div></div>
+          )}
+          {mov.observacao && (
+            <div className="kv-item"><div className="kv-label">Observação do Pátio</div><div className="kv-val whitespace-pre-wrap">{mov.observacao}</div></div>
+          )}
         </dl>
       </section>
 

@@ -42,6 +42,7 @@ export const dadosCarregamentoSchema = z
     placaCarreta2: z.string().regex(PLACA_REGEX, MSG_PLACA_INVALIDA).optional(),
     transportadora: z.string().trim().max(120).optional(),
     responsavelPatio: z.string().trim().min(3, 'Informe quem está preenchendo.'),
+    observacao: z.string().trim().max(500, 'Observação: no máximo 500 caracteres.').optional(),
   })
   .refine((d) => Boolean(d.placaCavalo) || Boolean(d.placaCarreta) || Boolean(d.placaCarreta2), {
     message: MSG_PELO_MENOS_UMA_PLACA,
@@ -114,6 +115,8 @@ export const grupoSchema = z.discriminatedUnion('tipoMaterial', [
 
 export const recebimentoCaminhaoSchema = z.object({
   clientId: z.string().uuid(),
+  // Quando o recebimento nasce de uma chegada cadastrada pela Portaria.
+  chegadaId: z.string().min(1).max(40).optional(),
   dados: dadosCarregamentoSchema,
   grupos: z.array(grupoSchema).min(1, 'Adicione ao menos um grupo antes de finalizar.'),
 });

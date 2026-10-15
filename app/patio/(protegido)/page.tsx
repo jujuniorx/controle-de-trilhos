@@ -3,6 +3,10 @@ import type { CSSProperties } from 'react';
 import { listarAguardandoChegada } from '@/lib/services/remetido';
 import { saudacao } from '@/lib/saudacao';
 import { FundoTrilhos } from '@/components/ui/FundoTrilhos';
+import { AtualizarAuto } from '@/components/AtualizarAuto';
+import { AtivarAvisos } from '@/components/patio/AtivarAvisos';
+import { listarChegadasLiberadas } from '@/lib/services/chegada';
+import { chavePublicaPush } from '@/lib/services/push';
 
 const atraso = (n: number) => ({ '--i': n }) as CSSProperties;
 
@@ -14,8 +18,16 @@ async function contarAguardando(): Promise<number> {
   }
 }
 
+async function carregarLiberadas() {
+  try {
+    return await listarChegadasLiberadas();
+  } catch {
+    return []; // idem: o aviso é um extra
+  }
+}
+
 export default async function PatioHomePage() {
-  const aguardando = await contarAguardando();
+  const [aguardando, liberadas] = await Promise.all([contarAguardando(), carregarLiberadas()]);
 
   return (
     <main className="mx-auto max-w-md space-y-5 p-6 sm:max-w-2xl lg:max-w-3xl">
@@ -27,6 +39,23 @@ export default async function PatioHomePage() {
           <p className="patio-hero-sub">Escolha uma opção. Sem internet, o registro fica guardado e é enviado depois.</p>
         </div>
       </section>
+
+      <AtualizarAuto segundos={20} />
+
+      {liberadas.length > 0 && (
+        <section aria-label="Caminhões liberados para descarregar" className="space-y-2">
+          <h2 className="font-condensed text-base font-bold uppercase tracking-wide text-ok">Liberados para descarregar</h2>
+          {liberadas.map((c) => (
+            <Link key={c.id} href={`/patio/recebimentos/novo?chegada=${c.id}`} className="card block border-2 border-ok transition hover:brightness-110">
+              <p className="font-medium text-ink">{c.placaCarreta || c.placaCavalo || 'Caminhão'}{c.origem ? ` — ${c.origem}` : ''}</p>
+              <p className="text-sm text-ink-muted">
+                {[c.transportadora, c.materialPrevisto].filter(Boolean).join(' · ') || 'Toque para registrar o recebimento'}
+              </p>
+              <span className="badge badge-ok mt-1">Pode descarregar — toque para iniciar</span>
+            </Link>
+          ))}
+        </section>
+      )}
 
       <div className="acoes-patio">
         <Link href="/patio/recebimentos/novo" className="acao-patio acao-patio-principal" style={atraso(0)}>
@@ -45,6 +74,8 @@ export default async function PatioHomePage() {
           <span>Cadastrar saída (aguardando chegada ou lançar agora) e confirmar carregamentos.</span>
         </Link>
       </div>
+
+      <AtivarAvisos chavePublica={chavePublicaPush()} />
     </main>
   );
 }

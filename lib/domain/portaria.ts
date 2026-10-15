@@ -44,3 +44,41 @@ export function formatarTelefone(digitos: string | null | undefined): string {
   if (d.length === 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
   return d;
 }
+
+// ── Recebimento: chegada do caminhão ─────────────────────────────────────────
+
+export type EstadoChegada = 'AGUARDANDO_LIBERACAO' | 'LIBERADA' | 'RECEBIDA' | 'CANCELADA';
+
+export interface ChegadaBasica {
+  liberadaEm: Date | null;
+  canceladaEm: Date | null;
+  movimentacaoId: string | null;
+}
+
+export function estadoChegada(c: ChegadaBasica): EstadoChegada {
+  if (c.canceladaEm) return 'CANCELADA';
+  if (c.movimentacaoId) return 'RECEBIDA';
+  if (c.liberadaEm) return 'LIBERADA';
+  return 'AGUARDANDO_LIBERACAO';
+}
+
+export const ROTULO_ESTADO_CHEGADA: Record<EstadoChegada, string> = {
+  AGUARDANDO_LIBERACAO: 'Chegou — aguardando liberação',
+  LIBERADA: 'Liberado para descarregar',
+  RECEBIDA: 'Descarregado',
+  CANCELADA: 'Cancelada',
+};
+
+/** Mensagem de por que NÃO dá para liberar a chegada, ou null se pode. */
+export function motivoNaoPodeLiberarChegada(
+  c: ChegadaBasica,
+  placaCavalo: string | null | undefined,
+  placaCarreta: string | null | undefined,
+): string | null {
+  const estado = estadoChegada(c);
+  if (estado === 'CANCELADA') return 'Esta chegada foi cancelada.';
+  if (estado === 'RECEBIDA') return 'O Pátio já descarregou este caminhão.';
+  if (estado === 'LIBERADA') return 'O caminhão já foi liberado.';
+  if (!placaCavalo && !placaCarreta) return 'Informe ao menos uma placa (cavalo ou carreta) para liberar.';
+  return null;
+}

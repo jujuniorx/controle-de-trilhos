@@ -3,7 +3,7 @@ import { ErroRegraNegocio } from '@/lib/services/errors';
 import { registrarHistorico } from '@/lib/services/historico';
 import { enviarAvisoPush } from '@/lib/services/push';
 import { normalizarLocal } from '@/lib/domain/local';
-import { estadoPortaria, motivoNaoPodeLiberar } from '@/lib/domain/portaria';
+import { estadoPortaria, motivoNaoPodeLiberar, ROTULO_ESTADO } from '@/lib/domain/portaria';
 import type { DadosPortaria } from '@/lib/validation/portaria';
 
 /**
@@ -143,8 +143,10 @@ export async function dadosPortariaDoRemetido(id: string) {
 export async function buscarFichaPortaria(id: string) {
   const m = await prisma.movimentacao.findFirst({ where: { id, tipo: 'REMETIDO' }, select: SELECT_PORTARIA });
   if (!m) return null;
+  const estado = estadoPortaria(m);
   return {
-    estado: estadoPortaria(m),
+    modulo: 'REMETIDO' as const,
+    situacao: { rotulo: ROTULO_ESTADO[estado], ok: estado === 'LIBERADA' },
     destino: m.destino,
     origem: m.origem,
     reservaPedido: m.reservaPedido,

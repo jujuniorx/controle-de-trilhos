@@ -56,10 +56,14 @@ interface Dados {
   placaCarreta2: string;
   transportadora: string;
   responsavelPatio: string;
+  /** Observação livre do Pátio. Rascunhos antigos não têm o campo. */
+  observacao?: string;
 }
 
 interface RascunhoWizard {
   clientId: string;
+  /** Chegada da Portaria de onde este recebimento partiu (se houver). */
+  chegadaId?: string;
   step: number;
   dadosBrutos: Dados;
   dataTocada: boolean;
@@ -153,7 +157,21 @@ function validarDados(d: Dados) {
   return erros;
 }
 
-export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: Partial<Record<string, number>> }) {
+export interface ChegadaPrefill {
+  id: string;
+  origem: string;
+  placaCavalo: string;
+  placaCarreta: string;
+  transportadora: string;
+}
+
+export function RecebimentoWizard({
+  fatoresCadastrados,
+  chegada = null,
+}: {
+  fatoresCadastrados: Partial<Record<string, number>>;
+  chegada?: ChegadaPrefill | null;
+}) {
   const [clientId, setClientId] = useState(novoUuid);
   const [confirmadoId, setConfirmadoId] = useState<string | null>(null);
   // true até a leitura do rascunho no Dexie terminar — enquanto isso, o efeito
@@ -181,6 +199,7 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
     placaCarreta2: '',
     transportadora: '',
     responsavelPatio: '',
+    observacao: '',
   });
   const [mostrarCarreta2, setMostrarCarreta2] = useState(false);
   const [grupos, setGrupos] = useState<GrupoLocal[]>([]);
@@ -200,7 +219,9 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
     let ativo = true;
     lerRascunhoRecebimento().then((registro) => {
       if (!ativo) return;
-      if (registro && ehRascunhoValido(registro.rascunho)) {
+      // Um rascunho só vale para a mesma chegada (ou para nenhuma): outro caminhão começa limpo.
+      const mesmaOrigem = registro && ehRascunhoValido(registro.rascunho) && (registro.rascunho.chegadaId ?? null) === (chegada?.id ?? null);
+      if (registro && ehRascunhoValido(registro.rascunho) && mesmaOrigem) {
         const r = registro.rascunho;
         setClientId(registro.clientId);
         setStep(r.step);
@@ -208,6 +229,15 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
         setDataTocada(r.dataTocada);
         setGrupos(r.grupos);
         setActiveGrupoId(r.activeGrupoId);
+      } else if (chegada) {
+        // Dados que a Portaria já preencheu: entram nos campos, o Pátio só confere e completa.
+        setDados((d) => ({
+          ...d,
+          origem: chegada.origem,
+          placaCavalo: chegada.placaCavalo,
+          placaCarreta: chegada.placaCarreta,
+          transportadora: chegada.transportadora,
+        }));
       }
       setRestaurando(false);
     });
@@ -221,13 +251,14 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
     if (restaurando) return;
     void salvarRascunhoRecebimento(clientId, {
       clientId,
+      chegadaId: chegada?.id,
       step,
       dadosBrutos,
       dataTocada,
       grupos,
       activeGrupoId,
     });
-  }, [restaurando, clientId, step, dadosBrutos, dataTocada, grupos, activeGrupoId]);
+  }, [restaurando, clientId, chegada?.id, step, dadosBrutos, dataTocada, grupos, activeGrupoId]);
 
   const dados = useMemo<Dados>(
     () => (dataTocada ? dadosBrutos : { ...dadosBrutos, data: dadosBrutos.data || hoje }),
@@ -334,12 +365,14 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
     setEnviando(true);
     const payload = {
       clientId,
+      chegadaId: chegada?.id,
       dados: {
         ...dados,
         placaCavalo: dados.placaCavalo || undefined,
         placaCarreta: dados.placaCarreta || undefined,
         placaCarreta2: dados.placaCarreta2 || undefined,
         transportadora: dados.transportadora || undefined,
+        observacao: dados.observacao || undefined,
       },
       grupos: grupos.map((g) => ({
         clientId: g.clientId,
@@ -518,6 +551,10 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
             <input id="f-resp" className="h-11" value={dados.responsavelPatio} onChange={(e) => setDados({ ...dados, responsavelPatio: e.target.value })} />
             {errosDados.responsavelPatio && <p className="text-sm text-bad">{errosDados.responsavelPatio}</p>}
           </div>
+          <div className="field">
+          <label htmlFor="f-obs">Observação (opcional)</label>
+          <textarea id="f-obs" rows={3} maxLength={500} className="min-h-[5rem] w-full" placeholder="Algo que o Administrativo precisa saber (avaria, falta de material, aviso...)" value={dados.observacao ?? ''} onChange={(e) => setDados({ ...dados, observacao: e.target.value })} />
+        </div>
           <button className="btn btn-primary btn-lg h-12" onClick={proximoDeDados}>
             Próximo
           </button>
@@ -735,6 +772,7 @@ export function RecebimentoWizard({ fatoresCadastrados }: { fatoresCadastrados: 
             <p>Cavalo: {dados.placaCavalo || '—'}</p>
             {dados.transportadora && <p>Transportadora: {dados.transportadora}</p>}
             <p>Responsável: {dados.responsavelPatio}</p>
+            {dados.observacao && <p>Observação: {dados.observacao}</p>}
           </div>
 
           <div className="tbl-wrap">

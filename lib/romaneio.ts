@@ -48,6 +48,7 @@ export interface MovimentacaoRomaneio {
   placaCarreta: string | null;
   placaCarreta2: string | null;
   responsavelPatio: string | null;
+  observacao?: string | null;
   dataMovimentacao: Date | null;
   status: string;
   grupos: GrupoRomaneio[];
@@ -154,6 +155,7 @@ const ESTILO = `
   .header { text-align: center; margin-bottom: 1cm; border-bottom: 2px solid #000; padding-bottom: 0.5cm; }
   .header-title { font-size: 18px; font-weight: bold; letter-spacing: 2px; }
   .header-sub { font-size: 10px; margin-top: 0.2cm; }
+  .obs { margin: -0.3cm 0 0.6cm; padding: 0.2cm 0.3cm; border: 1px solid #999; font-size: 11px; white-space: pre-wrap; }
   .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5cm; margin-bottom: 0.8cm; font-size: 11px; }
   .info-item { border: 1px solid #ddd; padding: 0.3cm; }
   .info-label { font-weight: bold; font-size: 9px; color: #666; text-transform: uppercase; }
@@ -189,6 +191,7 @@ interface OpcoesDocumento {
   cabecalho: string;
   subtitulo: string;
   infos: Array<[string, unknown]>;
+  observacao?: string | null;
   tituloMateriais: string;
   tituloTotais: string;
   grupos: string;
@@ -243,6 +246,7 @@ function documento(o: OpcoesDocumento): string {
     </div>
 
     <div class="info-grid">${infos}</div>
+    ${o.observacao ? `<div class="obs"><b>Observação:</b> ${escaparHtml(o.observacao)}</div>` : ''}
 
     <div class="section-title">${escaparHtml(o.tituloMateriais)}</div>
     ${o.grupos}
@@ -273,6 +277,7 @@ export function htmlRomaneioRecebimento(mov: MovimentacaoRomaneio, nonce: string
       ['Cavalo', mov.placaCavalo],
       ['Carreta(s)', carretas(mov)],
     ],
+    observacao: mov.observacao,
     tituloMateriais: 'Materiais Recebidos',
     tituloTotais: 'Totais do Recebimento',
     grupos: renderGrupos(mov.grupos, false),
@@ -303,6 +308,7 @@ export function htmlRomaneioRemetido(mov: MovimentacaoRomaneio, nonce: string | 
       ['Cavalo', mov.placaCavalo],
       ['Carreta(s)', carretas(mov)],
     ],
+    observacao: mov.observacao,
     tituloMateriais: 'Materiais Remetidos',
     tituloTotais: 'Totais do Remetido',
     grupos: renderGrupos(mov.grupos, true),

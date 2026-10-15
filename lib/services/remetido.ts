@@ -135,6 +135,7 @@ export async function confirmarRemetido(
         placaCarreta2: input.dados.placaCarreta2 ?? null,
         transportadora: input.dados.transportadora ?? null,
         responsavelPatio: input.dados.responsavelPatio,
+        observacao: input.dados.observacao ?? null,
       },
     });
 
@@ -190,6 +191,7 @@ export async function criarRemetidoDireto(
         placaCarreta2: input.dados.placaCarreta2 ?? null,
         transportadora: input.dados.transportadora ?? null,
         responsavelPatio: input.dados.responsavelPatio,
+        observacao: input.dados.observacao ?? null,
         remetidoDetalhe: { create: { tipoRemetido: input.tipoRemetido ?? null } },
       },
     });
@@ -457,6 +459,7 @@ export async function atualizarRemetido(
         placaCarreta2: input.dados.placaCarreta2 ?? null,
         transportadora: input.dados.transportadora ?? null,
         responsavelPatio: input.dados.responsavelPatio,
+        observacao: input.dados.observacao ?? null,
         ...(reabrindo ? { status: 'PENDENTE_CONFERENCIA' as const, conferidoPorId: null, conferidoEm: null } : {}),
       },
     });

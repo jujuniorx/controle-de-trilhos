@@ -39,6 +39,7 @@ export default async function EditarRemetidoPage({ params }: { params: Promise<{
       placaCarreta2: mov.placaCarreta2 ?? '',
       transportadora: mov.transportadora ?? '',
       responsavelPatio: mov.responsavelPatio ?? '',
+      observacao: mov.observacao ?? '',
     },
     grupos: mov.grupos.map((g) => {
       const { marca, fabricanteOutro } = g.tipoMaterial === 'NOVO' ? marcaDoFabricante(g.fabricante) : { marca: undefined, fabricanteOutro: undefined };

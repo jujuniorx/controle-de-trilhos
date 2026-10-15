@@ -58,6 +58,8 @@ interface Dados {
   placaCarreta2: string;
   transportadora: string;
   responsavelPatio: string;
+  /** Observação livre do Pátio. Rascunhos antigos não têm o campo. */
+  observacao?: string;
 }
 
 function novoUuid(): string {
@@ -244,6 +246,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
             placaCarreta2: '',
             transportadora: dadosPortaria?.transportadora ?? '',
             responsavelPatio: '',
+            observacao: '',
           },
   );
   // A Portaria pode preencher enquanto esta tela já está aberta: entra só nos campos ainda vazios.
@@ -392,6 +395,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
       placaCarreta: dados.placaCarreta || undefined,
       placaCarreta2: dados.placaCarreta2 || undefined,
       transportadora: dados.transportadora || undefined,
+      observacao: dados.observacao || undefined,
     };
     const gruposPayload = grupos.map((g) => ({
       clientId: g.clientId,
@@ -603,6 +607,10 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
           <label htmlFor="f-resp">Responsável (Pátio) *</label>
           <input id="f-resp" className="h-11" value={dadosBrutos.responsavelPatio} onChange={(e) => setDados({ ...dadosBrutos, responsavelPatio: e.target.value })} />
           {errosDados.responsavelPatio && <p className="text-sm text-bad">{errosDados.responsavelPatio}</p>}
+        </div>
+        <div className="field">
+          <label htmlFor="f-obs">Observação (opcional)</label>
+          <textarea id="f-obs" rows={3} maxLength={500} className="min-h-[5rem] w-full" placeholder="Algo que o Administrativo precisa saber (avaria, falta de material, aviso...)" value={dadosBrutos.observacao ?? ''} onChange={(e) => setDados({ ...dadosBrutos, observacao: e.target.value })} />
         </div>
       </section>
 

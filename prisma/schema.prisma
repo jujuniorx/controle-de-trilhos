@@ -150,6 +150,8 @@ model Movimentacao {
   conferidoPorId   String?
   conferidoEm      DateTime?
   pesoSucataReal   Decimal?
+  // Observação livre escrita pelo pessoal do Pátio.
+  observacao       String?
 
   // Portaria (só Remetido): dados do motorista/caminhão preenchidos na chegada.
   motoristaNome      String?
@@ -273,4 +275,30 @@ model PushSubscription {
   p256dh    String
   auth      String
   createdAt DateTime @default(now())
+}
+
+// Portaria — Recebimento: o caminhão chega, a Portaria cadastra os dados e libera para descarregar
+// (o Pátio é avisado). Sem chave estrangeira para a movimentação de propósito: excluir/restaurar
+// movimentações (Lixeira) não pode ser travado por esta tabela.
+model ChegadaCaminhao {
+  id                String    @id @default(cuid())
+  origem            String?
+  materialPrevisto  String?
+  transportadora    String?
+  motoristaNome     String?
+  motoristaCpf      String?
+  motoristaTelefone String?
+  placaCarreta      String?
+  placaCavalo       String?
+  capacidadeCarga   Decimal? // toneladas
+  criadoPor         String
+  criadoEm          DateTime  @default(now())
+  liberadaEm        DateTime?
+  liberadaPor       String?
+  canceladaEm       DateTime?
+  // Preenchidos quando o Pátio conclui o recebimento a partir desta chegada.
+  movimentacaoId    String?   @unique
+  recebidaEm        DateTime?
+
+  @@index([criadoEm])
 }

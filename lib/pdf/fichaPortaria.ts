@@ -1,9 +1,12 @@
 import { PaginaPdf, A4, montarPdf, quebrarLinhas } from '@/lib/pdf/simples';
-import { formatarCpf, formatarTelefone, ROTULO_ESTADO, type EstadoPortaria } from '@/lib/domain/portaria';
+import { formatarCpf, formatarTelefone } from '@/lib/domain/portaria';
 import { normalizarLocal } from '@/lib/domain/local';
 
 export interface FichaPortaria {
-  estado: EstadoPortaria;
+  /** De que lado a ficha é: o que sai do pátio (Remetido) ou o que chega (Recebimento). */
+  modulo: 'REMETIDO' | 'RECEBIMENTO';
+  /** Situação em texto e se é uma situação "boa" (verde) ou de espera (laranja). */
+  situacao: { rotulo: string; ok: boolean };
   destino: string | null;
   origem: string | null;
   reservaPedido: string | null;
@@ -39,12 +42,11 @@ export function gerarFichaPortariaPdf(f: FichaPortaria, emitidoEm: Date = new Da
   const largura = A4.largura - m * 2;
 
   p.retangulo(0, A4.altura - 78, A4.largura, 78, AZUL);
-  p.texto('CONTROLE DE TRILHOS', m, A4.altura - 36, 11, 'negrito', [0.75, 0.82, 0.95]);
+  p.texto(`CONTROLE DE TRILHOS  \u2022  ${f.modulo === 'REMETIDO' ? 'REMETIDO' : 'RECEBIMENTO'}`, m, A4.altura - 36, 11, 'negrito', [0.75, 0.82, 0.95]);
   p.texto('Ficha da Portaria', m, A4.altura - 62, 24, 'negrito', [1, 1, 1]);
 
   let y = A4.altura - 78 - 36;
-  const status = ROTULO_ESTADO[f.estado].toUpperCase();
-  p.texto(status, m, y, 13, 'negrito', f.estado === 'LIBERADA' ? [0.05, 0.5, 0.25] : [0.7, 0.45, 0.05]);
+  p.texto(f.situacao.rotulo.toUpperCase(), m, y, 13, 'negrito', f.situacao.ok ? [0.05, 0.5, 0.25] : [0.7, 0.45, 0.05]);
   if (f.carretaLiberadaEm) {
     const quem = f.carretaLiberadaPor ? ` por ${f.carretaLiberadaPor}` : '';
     p.texto(`Liberada em ${dataHora(f.carretaLiberadaEm)}${quem}`, m, y - 16, 10, 'normal', CINZA);
@@ -65,10 +67,14 @@ export function gerarFichaPortariaPdf(f: FichaPortaria, emitidoEm: Date = new Da
     ['Capacidade de carga', f.capacidadeCarga != null ? `${f.capacidadeCarga.toLocaleString('pt-BR')} t` : null],
     ['Material', f.materialPrevisto],
     ['Origem', f.origem ? normalizarLocal(f.origem) : null],
-    ['Destino', f.destino ? normalizarLocal(f.destino) : null],
-    ['Reserva / pedido', f.reservaPedido],
-    ['Nota fiscal', f.numeroDocumento],
-    ['Tipo de remetido', f.tipoRemetido ? (TIPO[f.tipoRemetido] ?? f.tipoRemetido) : null],
+    ...(f.modulo === 'REMETIDO'
+      ? ([
+          ['Destino', f.destino ? normalizarLocal(f.destino) : null],
+          ['Reserva / pedido', f.reservaPedido],
+          ['Nota fiscal', f.numeroDocumento],
+          ['Tipo de remetido', f.tipoRemetido ? (TIPO[f.tipoRemetido] ?? f.tipoRemetido) : null],
+        ] as Array<[string, string | null]>)
+      : []),
   ];
 
   for (let i = 0; i < campos.length; i += 2) {

@@ -4,7 +4,8 @@ import { quebrarLinhas } from '@/lib/pdf/simples';
 import { formatarCpf, formatarTelefone } from '@/lib/domain/portaria';
 
 const ficha: FichaPortaria = {
-  estado: 'LIBERADA',
+  modulo: 'REMETIDO',
+  situacao: { rotulo: 'Carreta liberada', ok: true },
   destino: 'Pindorama',
   origem: 'Ponta Grossa',
   reservaPedido: null,
@@ -41,7 +42,7 @@ describe('ficha da Portaria em PDF', () => {
     expect(texto.includes('Transportes \\(Silva\\) \\\\ & Filhos')).toBe(true);
   });
   it('funciona com tudo em branco', () => {
-    const vazio: FichaPortaria = { ...ficha, estado: 'MEDINDO', carretaLiberadaEm: null, carretaLiberadaPor: null, placaCarreta: null, placaCavalo: null, capacidadeCarga: null, motoristaCpf: null, motoristaTelefone: null, motoristaNome: null, transportadora: null, materialPrevisto: null, origem: null, destino: null, tipoRemetido: null };
+    const vazio: FichaPortaria = { ...ficha, situacao: { rotulo: 'Pátio medindo', ok: false }, carretaLiberadaEm: null, carretaLiberadaPor: null, placaCarreta: null, placaCavalo: null, capacidadeCarga: null, motoristaCpf: null, motoristaTelefone: null, motoristaNome: null, transportadora: null, materialPrevisto: null, origem: null, destino: null, tipoRemetido: null };
     expect(gerarFichaPortariaPdf(vazio).length > 500).toBe(true);
     expect(nomeArquivoFicha(vazio)).toBe('ficha-portaria.pdf');
   });

@@ -113,9 +113,18 @@ export async function criarRecebimentoCaminhao(input: RecebimentoCaminhaoInput) 
         transportadora: input.dados.transportadora ?? null,
         origem: normalizarLocal(input.dados.origem),
         responsavelPatio: input.dados.responsavelPatio,
+        observacao: input.dados.observacao ?? null,
         dataMovimentacao: new Date(`${input.dados.data}T00:00:00`),
       },
     });
+
+    // Veio de uma chegada da Portaria: marca como descarregada (só se ainda não estava ligada).
+    if (input.chegadaId) {
+      await tx.chegadaCaminhao.updateMany({
+        where: { id: input.chegadaId, movimentacaoId: null, canceladaEm: null },
+        data: { movimentacaoId: mov.id, recebidaEm: new Date() },
+      });
+    }
 
     for (const grupo of gruposParaCriar) {
       const grupoCriado = await tx.grupo.create({
