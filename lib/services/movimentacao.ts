@@ -1,3 +1,4 @@
+import { enviarAvisoPush } from '@/lib/services/push';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { normalizarLocal } from '@/lib/domain/local';
@@ -166,6 +167,29 @@ export async function criarRecebimentoCaminhao(input: RecebimentoCaminhaoInput) 
     usuarioNome: `${input.dados.responsavelPatio} (pátio)`,
     acao: 'CRIACAO',
   });
+
+  // Veio da Portaria: avisa que o caminhão foi descarregado e já pode sair.
+  if (input.chegadaId) {
+    try {
+      const chegada = await prisma.chegadaCaminhao.findFirst({
+        where: { id: input.chegadaId, movimentacaoId: movimentacao.id },
+        select: { placaCarreta: true, placaCavalo: true, origem: true },
+      });
+      if (chegada) {
+        const placa = chegada.placaCarreta ?? chegada.placaCavalo;
+        await enviarAvisoPush(
+          {
+            titulo: 'Caminhão descarregado',
+            corpo: `${chegada.origem ?? 'Recebimento'}${placa ? ` — placa ${placa}` : ''}. Pode sair.`,
+            url: '/portaria/recebimentos',
+          },
+          'PORTARIA',
+        );
+      }
+    } catch {
+      // o aviso é só um extra: o recebimento já foi salvo
+    }
+  }
 
   return movimentacao;
 }

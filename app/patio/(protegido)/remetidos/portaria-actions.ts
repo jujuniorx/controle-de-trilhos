@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { requirePatioAcesso } from '@/lib/services/requirePatioAcesso';
-import { concluirMedicao, reabrirMedicao } from '@/lib/services/portaria';
+import { desfazerLiberacaoCarreta, liberarCarreta } from '@/lib/services/portaria';
 import { ErroRegraNegocio } from '@/lib/services/errors';
 
 export interface ResultadoPortariaPatio {
@@ -14,17 +14,20 @@ async function executar(fn: () => Promise<void>): Promise<ResultadoPortariaPatio
   await requirePatioAcesso();
   try {
     await fn();
+    revalidatePath('/patio');
     revalidatePath('/patio/remetidos');
+    revalidatePath('/portaria');
     return { ok: true };
   } catch (e) {
     return { ok: false, erro: e instanceof ErroRegraNegocio ? e.message : 'Não foi possível concluir. Tente de novo.' };
   }
 }
 
-export async function concluirMedicaoAction(id: string): Promise<ResultadoPortariaPatio> {
-  return executar(() => concluirMedicao(id));
+/** Pátio: carregou e conferiu — libera a carreta para a Portaria deixar sair. */
+export async function liberarCarretaAction(id: string): Promise<ResultadoPortariaPatio> {
+  return executar(() => liberarCarreta(id));
 }
 
-export async function reabrirMedicaoAction(id: string): Promise<ResultadoPortariaPatio> {
-  return executar(() => reabrirMedicao(id));
+export async function desfazerLiberacaoAction(id: string): Promise<ResultadoPortariaPatio> {
+  return executar(() => desfazerLiberacaoCarreta(id));
 }

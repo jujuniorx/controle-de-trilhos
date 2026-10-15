@@ -22,6 +22,10 @@ export interface FichaPortaria {
   capacidadeCarga: number | null;
   carretaLiberadaEm: Date | null;
   carretaLiberadaPor: string | null;
+  /** Hora em que a Portaria registrou a chegada e hora de saída (opcionais). */
+  chegadaEm?: Date | null;
+  saidaEm?: Date | null;
+  saidaPor?: string | null;
   /** Observação da Portaria. */
   observacao: string | null;
 }
@@ -49,11 +53,18 @@ export function gerarFichaPortariaPdf(f: FichaPortaria, emitidoEm: Date = new Da
 
   let y = A4.altura - 78 - 36;
   p.texto(f.situacao.rotulo.toUpperCase(), m, y, 13, 'negrito', f.situacao.ok ? [0.05, 0.5, 0.25] : [0.7, 0.45, 0.05]);
+  const eventos: string[] = [];
+  if (f.chegadaEm) eventos.push(`Chegou em ${dataHora(f.chegadaEm)}`);
   if (f.carretaLiberadaEm) {
     const quem = f.carretaLiberadaPor ? ` por ${f.carretaLiberadaPor}` : '';
-    p.texto(`Liberada em ${dataHora(f.carretaLiberadaEm)}${quem}`, m, y - 16, 10, 'normal', CINZA);
-    y -= 16;
+    eventos.push(`Liberada em ${dataHora(f.carretaLiberadaEm)}${quem}`);
   }
+  if (f.saidaEm) eventos.push(`Saiu em ${dataHora(f.saidaEm)}${f.saidaPor ? ` (${f.saidaPor})` : ''}`);
+  for (const linha of eventos) {
+    p.texto(linha, m, y - 16, 10, 'normal', CINZA);
+    y -= 14;
+  }
+  if (eventos.length > 0) y -= 2;
   y -= 14;
   p.linha(m, y, m + largura, y);
   y -= 8;

@@ -78,7 +78,10 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
             <div className="kv-item"><div className="kv-label">Capacidade de carga</div><div className="kv-val">{portaria.capacidadeCarga.toLocaleString('pt-BR')} t</div></div>
           )}
           {portaria?.liberadaEm && (
-            <div className="kv-item"><div className="kv-label">Liberado para descarregar</div><div className="kv-val">{fmtDataHora(portaria.liberadaEm)}{portaria.liberadaPor ? ` · ${portaria.liberadaPor}` : ''}</div></div>
+            <div className="kv-item"><div className="kv-label">Chegou (Portaria)</div><div className="kv-val">{fmtDataHora(portaria.liberadaEm)}{portaria.liberadaPor ? ` · ${portaria.liberadaPor}` : ''}</div></div>
+          )}
+          {portaria?.saidaEm && (
+            <div className="kv-item"><div className="kv-label">Saída (Portaria)</div><div className="kv-val">{fmtDataHora(portaria.saidaEm)}{portaria.saidaPor ? ` · ${portaria.saidaPor}` : ''}</div></div>
           )}
           {portaria?.observacao && (
             <div className="kv-item"><div className="kv-label">Observação da Portaria</div><div className="kv-val whitespace-pre-wrap">{portaria.observacao}</div></div>

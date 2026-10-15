@@ -2,14 +2,14 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { concluirMedicaoAction, reabrirMedicaoAction } from './portaria-actions';
+import { desfazerLiberacaoAction, liberarCarretaAction } from './portaria-actions';
 import type { EstadoPortaria } from '@/lib/domain/portaria';
 
 /**
- * Fica no topo da tela de confirmação. O Pátio avisa a Portaria que terminou de medir
- * (só falta a carreta chegar) e vê aqui quando a Portaria libera a carreta.
+ * Fica no topo da tela de confirmação do remetido. Mostra em que ponto a carreta está na
+ * Portaria e, quando ela já chegou, o botão "Liberar carreta" (o Pátio é quem libera).
  */
-export function PainelPortaria({ id, estado, liberadaPor }: { id: string; estado: EstadoPortaria; liberadaPor: string | null }) {
+export function PainelPortaria({ id, estado }: { id: string; estado: EstadoPortaria }) {
   const router = useRouter();
   const [pendente, iniciar] = useTransition();
   const [erro, setErro] = useState('');
@@ -27,38 +27,32 @@ export function PainelPortaria({ id, estado, liberadaPor }: { id: string; estado
     });
   }
 
-  if (estado === 'LIBERADA') {
-    return (
-      <div role="status" className="card mt-4 border-2 border-ok p-4">
-        <p className="font-condensed text-lg font-bold uppercase tracking-wide text-ok">Carreta liberada!</p>
-        <p className="text-sm text-ink-muted">
-          A Portaria liberou{liberadaPor ? ` (${liberadaPor})` : ''}. Pode carregar/descarregar e confirmar abaixo.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="card mt-4 space-y-2">
-      {estado === 'MEDINDO' ? (
+      {estado === 'AGUARDANDO_CARRETA' && (
         <>
-          <p className="text-sm font-semibold text-ink">Terminou de medir?</p>
-          <p className="text-sm text-ink-muted">
-            Avise a Portaria que está tudo medido e só falta a carreta chegar. Ela só pode liberar a carreta depois disso.
-          </p>
-          <button type="button" className="btn btn-primary h-12" disabled={pendente} onClick={() => executar(concluirMedicaoAction)}>
-            {pendente ? 'Avisando...' : 'Medição concluída — avisar a Portaria'}
-          </button>
+          <span className="badge badge-muted">Aguardando a carreta chegar na Portaria</span>
+          <p className="text-sm text-ink-muted">Quando ela chegar, a Portaria registra e você é avisado aqui.</p>
         </>
-      ) : (
+      )}
+      {estado === 'CHEGOU' && (
         <>
-          <span className="badge badge-ok">Medição concluída — aguardando a carreta</span>
-          <p className="text-sm text-ink-muted">A Portaria já pode receber o caminhão. Você será avisado quando a carreta for liberada.</p>
-          <button type="button" className="btn btn-ghost btn-sm" disabled={pendente} onClick={() => executar(reabrirMedicaoAction)}>
-            Voltar a medir
+          <span className="badge badge-warn">Carreta na Portaria</span>
+          <p className="text-sm text-ink-muted">Carregue, confira e confirme abaixo. Depois toque em &ldquo;Liberar carreta&rdquo; para a Portaria deixar sair.</p>
+          <button type="button" className="btn btn-primary h-12" disabled={pendente} onClick={() => executar(liberarCarretaAction)}>
+            {pendente ? 'Liberando...' : 'Liberar carreta'}
           </button>
         </>
       )}
+      {estado === 'LIBERADA' && (
+        <>
+          <span className="badge badge-ok">Carreta liberada — a Portaria foi avisada</span>
+          <button type="button" className="btn btn-ghost btn-sm" disabled={pendente} onClick={() => executar(desfazerLiberacaoAction)}>
+            Liberei sem querer — desfazer
+          </button>
+        </>
+      )}
+      {estado === 'SAIU' && <span className="badge badge-ok">Carreta já saiu</span>}
       {erro && (
         <p role="alert" className="text-sm text-bad">
           {erro}

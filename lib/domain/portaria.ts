@@ -1,35 +1,56 @@
 /** Regras puras da Portaria (sem banco) — testáveis e usadas pelo serviço e pelas telas. */
 
-export type EstadoPortaria = 'MEDINDO' | 'AGUARDANDO_CARRETA' | 'LIBERADA';
+export type EstadoPortaria = 'AGUARDANDO_CARRETA' | 'CHEGOU' | 'LIBERADA' | 'SAIU';
 
 export interface MovimentacaoPortariaBasica {
   status: string;
-  medicaoConcluidaEm: Date | null;
+  chegadaPortariaEm: Date | null;
   carretaLiberadaEm: Date | null;
+  saidaPortariaEm: Date | null;
 }
 
+/**
+ * Remetido: a carreta ainda não chegou → a Portaria registrou a chegada → o Pátio liberou →
+ * a Portaria confirmou a saída. (Remetidos antigos, liberados pelo fluxo anterior, contam como liberados.)
+ */
 export function estadoPortaria(m: MovimentacaoPortariaBasica): EstadoPortaria {
+  if (m.saidaPortariaEm) return 'SAIU';
   if (m.carretaLiberadaEm) return 'LIBERADA';
-  if (m.medicaoConcluidaEm) return 'AGUARDANDO_CARRETA';
-  return 'MEDINDO';
+  if (m.chegadaPortariaEm) return 'CHEGOU';
+  return 'AGUARDANDO_CARRETA';
 }
 
 export const ROTULO_ESTADO: Record<EstadoPortaria, string> = {
-  MEDINDO: 'Pátio medindo',
-  AGUARDANDO_CARRETA: 'Medido — aguardando a carreta',
-  LIBERADA: 'Carreta liberada',
+  AGUARDANDO_CARRETA: 'Aguardando a carreta',
+  CHEGOU: 'Chegou — aguardando o Pátio',
+  LIBERADA: 'Liberada pelo Pátio — pode sair',
+  SAIU: 'Saiu',
 };
 
-/** Devolve a mensagem de por que NÃO dá para liberar, ou null se pode liberar. */
-export function motivoNaoPodeLiberar(
+/** Portaria: por que NÃO dá para registrar a chegada da carreta (null = pode). */
+export function motivoNaoPodeRegistrarChegada(
   m: MovimentacaoPortariaBasica,
   placaCavalo: string | null | undefined,
   placaCarreta: string | null | undefined,
 ): string | null {
-  if (m.status !== 'AGUARDANDO_CHEGADA') return 'Este remetido não está mais aguardando chegada.';
+  if (m.saidaPortariaEm) return 'Esta carreta já saiu.';
+  if (m.chegadaPortariaEm || m.carretaLiberadaEm) return 'A chegada desta carreta já foi registrada.';
+  if (!placaCavalo && !placaCarreta) return 'Informe ao menos uma placa (cavalo ou carreta) para registrar a chegada.';
+  return null;
+}
+
+/** Pátio: por que NÃO dá para liberar a carreta (null = pode). */
+export function motivoNaoPodeLiberar(m: MovimentacaoPortariaBasica): string | null {
+  if (m.saidaPortariaEm) return 'Esta carreta já saiu.';
   if (m.carretaLiberadaEm) return 'A carreta já foi liberada.';
-  if (!m.medicaoConcluidaEm) return 'O Pátio ainda não terminou de medir.';
-  if (!placaCavalo && !placaCarreta) return 'Informe ao menos uma placa (cavalo ou carreta) para liberar.';
+  if (!m.chegadaPortariaEm) return 'A carreta ainda não chegou na Portaria.';
+  return null;
+}
+
+/** Portaria: por que NÃO dá para confirmar a saída (null = pode). */
+export function motivoNaoPodeConfirmarSaida(m: MovimentacaoPortariaBasica): string | null {
+  if (m.saidaPortariaEm) return 'A saída desta carreta já foi confirmada.';
+  if (!m.carretaLiberadaEm) return 'O Pátio ainda não liberou esta carreta.';
   return null;
 }
 
@@ -47,29 +68,37 @@ export function formatarTelefone(digitos: string | null | undefined): string {
 
 // ── Recebimento: chegada do caminhão ─────────────────────────────────────────
 
-export type EstadoChegada = 'AGUARDANDO_LIBERACAO' | 'LIBERADA' | 'RECEBIDA' | 'CANCELADA';
+export type EstadoChegada = 'AGUARDANDO_LIBERACAO' | 'LIBERADA' | 'RECEBIDA' | 'SAIU' | 'CANCELADA';
 
 export interface ChegadaBasica {
   liberadaEm: Date | null;
   canceladaEm: Date | null;
   movimentacaoId: string | null;
+  saidaEm: Date | null;
 }
 
+/**
+ * Recebimento: rascunho na Portaria (AGUARDANDO_LIBERACAO) → chegada registrada, o Pátio vê (LIBERADA)
+ * → o Pátio descarregou (RECEBIDA) → a Portaria confirmou a saída (SAIU). As chaves antigas foram mantidas;
+ * só os rótulos mudaram.
+ */
 export function estadoChegada(c: ChegadaBasica): EstadoChegada {
   if (c.canceladaEm) return 'CANCELADA';
+  if (c.saidaEm) return 'SAIU';
   if (c.movimentacaoId) return 'RECEBIDA';
   if (c.liberadaEm) return 'LIBERADA';
   return 'AGUARDANDO_LIBERACAO';
 }
 
 export const ROTULO_ESTADO_CHEGADA: Record<EstadoChegada, string> = {
-  AGUARDANDO_LIBERACAO: 'Chegou — aguardando liberação',
-  LIBERADA: 'Liberado para descarregar',
-  RECEBIDA: 'Descarregado',
+  AGUARDANDO_LIBERACAO: 'Preencher e registrar a chegada',
+  LIBERADA: 'Chegou — aguardando o Pátio',
+  RECEBIDA: 'Descarregado — pode sair',
+  SAIU: 'Saiu',
   CANCELADA: 'Cancelada',
 };
 
-/** Mensagem de por que NÃO dá para liberar a chegada, ou null se pode. */
+/** Mensagem de por que NÃO dá para registrar a chegada, ou null se pode. */
 export function motivoNaoPodeLiberarChegada(
   c: ChegadaBasica,
   placaCavalo: string | null | undefined,
@@ -77,8 +106,18 @@ export function motivoNaoPodeLiberarChegada(
 ): string | null {
   const estado = estadoChegada(c);
   if (estado === 'CANCELADA') return 'Esta chegada foi cancelada.';
+  if (estado === 'SAIU') return 'Este caminhão já saiu.';
   if (estado === 'RECEBIDA') return 'O Pátio já descarregou este caminhão.';
-  if (estado === 'LIBERADA') return 'O caminhão já foi liberado.';
-  if (!placaCavalo && !placaCarreta) return 'Informe ao menos uma placa (cavalo ou carreta) para liberar.';
+  if (estado === 'LIBERADA') return 'A chegada já foi registrada.';
+  if (!placaCavalo && !placaCarreta) return 'Informe ao menos uma placa (cavalo ou carreta) para registrar a chegada.';
+  return null;
+}
+
+/** Portaria: por que NÃO dá para confirmar a saída do caminhão do recebimento (null = pode). */
+export function motivoNaoPodeConfirmarSaidaChegada(c: ChegadaBasica): string | null {
+  const estado = estadoChegada(c);
+  if (estado === 'SAIU') return 'A saída deste caminhão já foi confirmada.';
+  if (estado === 'CANCELADA') return 'Esta chegada foi cancelada.';
+  if (estado !== 'RECEBIDA') return 'O Pátio ainda não terminou de descarregar este caminhão.';
   return null;
 }

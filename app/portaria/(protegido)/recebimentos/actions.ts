@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { requirePortaria } from '@/lib/services/requirePortaria';
-import { cancelarChegada, criarChegada, liberarChegada, salvarDadosChegada } from '@/lib/services/chegada';
+import { cancelarChegada, confirmarSaidaChegada, criarChegada, liberarChegada, salvarDadosChegada } from '@/lib/services/chegada';
 import { ErroRegraNegocio } from '@/lib/services/errors';
 import { dadosChegadaSchema } from '@/lib/validation/chegada';
 import type { ResultadoPortaria } from '../actions';
@@ -50,10 +50,10 @@ export async function salvarChegadaAction(id: string, entrada: unknown): Promise
   });
 }
 
-export async function liberarChegadaAction(id: string, entrada: unknown): Promise<ResultadoPortaria> {
+export async function registrarChegadaAction(id: string, entrada: unknown): Promise<ResultadoPortaria> {
   return comDados(entrada, async (d, nome) => {
     await liberarChegada(id, d, nome);
-    return 'Caminhão liberado! O Pátio foi avisado.';
+    return 'Chegada registrada! O Pátio foi avisado.';
   });
 }
 
@@ -63,6 +63,17 @@ export async function cancelarChegadaAction(id: string): Promise<ResultadoPortar
     await cancelarChegada(id);
     atualizarTelas();
     return { ok: true, mensagem: 'Chegada cancelada.' };
+  } catch (e) {
+    return erro(e);
+  }
+}
+
+export async function confirmarSaidaChegadaAction(id: string): Promise<ResultadoPortaria> {
+  const ator = await requirePortaria();
+  try {
+    await confirmarSaidaChegada(id, ator.nome);
+    atualizarTelas();
+    return { ok: true, mensagem: 'Saída confirmada.' };
   } catch (e) {
     return erro(e);
   }

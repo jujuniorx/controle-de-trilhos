@@ -12,8 +12,16 @@ function chaveParaBytes(base64: string): Uint8Array<ArrayBuffer> {
   return bytes;
 }
 
-/** Botão do tablet do Pátio para ligar o aviso "carreta liberada". */
-export function AtivarAvisos({ chavePublica }: { chavePublica: string | null }) {
+/** Botão para ligar os avisos neste aparelho (tablet do Pátio ou aparelho da Portaria). */
+export function AtivarAvisos({
+  chavePublica,
+  titulo = 'Avisos da Portaria',
+  descricao = 'Receba um aviso neste aparelho quando a Portaria registrar a chegada de um caminhão.',
+}: {
+  chavePublica: string | null;
+  titulo?: string;
+  descricao?: string;
+}) {
   const [situacao, setSituacao] = useState<Situacao>('carregando');
   const [erro, setErro] = useState('');
 
@@ -79,10 +87,10 @@ export function AtivarAvisos({ chavePublica }: { chavePublica: string | null }) 
 
   return (
     <div className="card mt-4 space-y-2">
-      <p className="text-sm font-semibold text-ink">Aviso de carreta liberada</p>
+      <p className="text-sm font-semibold text-ink">{titulo}</p>
       {situacao === 'indisponivel' && (
         <p className="text-sm text-ink-muted">
-          Os avisos no aparelho não estão disponíveis aqui (no iPhone/iPad, instale o app na tela inicial). A lista abaixo
+          Os avisos no aparelho não estão disponíveis aqui (no iPhone/iPad, instale o app na tela inicial). A tela
           se atualiza sozinha.
         </p>
       )}
@@ -91,7 +99,7 @@ export function AtivarAvisos({ chavePublica }: { chavePublica: string | null }) 
       )}
       {situacao === 'desligado' && (
         <>
-          <p className="text-sm text-ink-muted">Receba um aviso no tablet quando a Portaria liberar a carreta.</p>
+          <p className="text-sm text-ink-muted">{descricao}</p>
           <button type="button" className="btn btn-primary h-12" onClick={() => void ligar()}>
             Ligar avisos neste aparelho
           </button>

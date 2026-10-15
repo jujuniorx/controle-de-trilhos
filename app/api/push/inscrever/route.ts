@@ -2,29 +2,36 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { validarAcessoPatio } from '@/lib/services/patioAcesso';
-import { removerInscricaoPush, salvarInscricaoPush } from '@/lib/services/push';
+import { validarSessao } from '@/lib/services/auth';
+import { removerInscricaoPush, salvarInscricaoPush, type SetorPush } from '@/lib/services/push';
 
 const inscricaoSchema = z.object({
   endpoint: z.url().max(1000),
   keys: z.object({ p256dh: z.string().min(1).max(300), auth: z.string().min(1).max(100) }),
 });
 
-async function autorizado(): Promise<boolean> {
-  const token = (await cookies()).get('acesso_patio')?.value;
-  return token ? validarAcessoPatio(token) : false;
+/** Quem está pedindo: tablet do Pátio (PIN) ou usuário logado (Portaria). Null = sem acesso. */
+async function setorDoPedido(): Promise<SetorPush | null> {
+  const jar = await cookies();
+  const pin = jar.get('acesso_patio')?.value;
+  if (pin && (await validarAcessoPatio(pin))) return 'PATIO';
+  const sessao = jar.get('sessao_admin')?.value;
+  if (sessao && (await validarSessao(sessao))) return 'PORTARIA';
+  return null;
 }
 
-/** O tablet do Pátio se inscreve para receber o aviso "carreta liberada". Só com o acesso do Pátio. */
+/** O aparelho se inscreve para receber avisos: o tablet do Pátio ou o computador/celular da Portaria. */
 export async function POST(request: NextRequest) {
-  if (!(await autorizado())) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 });
+  const setor = await setorDoPedido();
+  if (!setor) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 });
   const parsed = inscricaoSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ erro: 'Inscrição inválida' }, { status: 400 });
-  await salvarInscricaoPush(parsed.data.endpoint, parsed.data.keys.p256dh, parsed.data.keys.auth);
+  await salvarInscricaoPush(parsed.data.endpoint, parsed.data.keys.p256dh, parsed.data.keys.auth, setor);
   return NextResponse.json({ ok: true });
 }
 
 export async function DELETE(request: NextRequest) {
-  if (!(await autorizado())) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 });
+  if (!(await setorDoPedido())) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 });
   const parsed = z.object({ endpoint: z.string().min(1).max(1000) }).safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ erro: 'Pedido inválido' }, { status: 400 });
   await removerInscricaoPush(parsed.data.endpoint);

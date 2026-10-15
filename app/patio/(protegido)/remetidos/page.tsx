@@ -32,7 +32,7 @@ export default async function RemetidosAguardandoPage({
   const salvo = (await searchParams).salvo;
   const mensagem = typeof salvo === 'string' ? MENSAGEM_SALVO[salvo] : undefined;
   const remetidos = (await listarAguardandoChegada()).sort(
-    (a, b) => Number(estadoPortaria(b) === 'LIBERADA') - Number(estadoPortaria(a) === 'LIBERADA'),
+    (a, b) => Number(estadoPortaria(b) === 'CHEGOU') - Number(estadoPortaria(a) === 'CHEGOU'),
   );
 
   return (
@@ -62,15 +62,15 @@ export default async function RemetidosAguardandoPage({
             {r.numeroDocumento && <p className="text-sm text-ink-dim">NF {r.numeroDocumento}</p>}
             {r.createdAt && <p className="text-xs text-ink-muted">Enviado às {fmtHora(r.createdAt)}</p>}
             {r.observacaoPortaria && <p className="mt-1 text-sm text-warn">Portaria: {r.observacaoPortaria}</p>}
-            {estadoPortaria(r) === 'LIBERADA' && <span className="badge badge-ok mt-1">Carreta liberada — pode carregar</span>}
-            {estadoPortaria(r) === 'AGUARDANDO_CARRETA' && <span className="badge badge-warn mt-1">Medido — aguardando a carreta</span>}
+            {estadoPortaria(r) === 'CHEGOU' && <span className="badge badge-warn mt-1">Carreta na Portaria — pode carregar</span>}
+            {estadoPortaria(r) === 'LIBERADA' && <span className="badge badge-ok mt-1">Carreta liberada — Portaria avisada</span>}
           </Link>
         ))}
         {remetidos.length === 0 && (
           <EstadoVazio titulo="Nenhum remetido aguardando chegada" texto="Quando cadastrar um, ele aparece aqui." />
         )}
       </div>
-      <AtivarAvisos chavePublica={chavePublicaPush()} />
+      <AtivarAvisos chavePublica={chavePublicaPush()} titulo="Aviso de carreta na Portaria" descricao="Receba um aviso neste tablet quando a Portaria registrar a chegada de uma carreta ou de um caminhão." />
     </main>
   );
 }

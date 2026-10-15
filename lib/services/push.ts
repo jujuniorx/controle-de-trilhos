@@ -16,11 +16,13 @@ export function chavePublicaPush(): string | null {
   return process.env.VAPID_PUBLIC_KEY ?? null;
 }
 
-export async function salvarInscricaoPush(endpoint: string, p256dh: string, auth: string): Promise<void> {
+export type SetorPush = 'PATIO' | 'PORTARIA';
+
+export async function salvarInscricaoPush(endpoint: string, p256dh: string, auth: string, setor: SetorPush = 'PATIO'): Promise<void> {
   await prisma.pushSubscription.upsert({
     where: { endpoint },
-    create: { endpoint, p256dh, auth },
-    update: { p256dh, auth },
+    create: { endpoint, p256dh, auth, setor },
+    update: { p256dh, auth, setor },
   });
 }
 
@@ -29,11 +31,11 @@ export async function removerInscricaoPush(endpoint: string): Promise<void> {
 }
 
 /**
- * Envia o aviso para todos os aparelhos do Pátio inscritos. NUNCA lança: o aviso é um
+ * Envia o aviso para todos os aparelhos inscritos do setor (Pátio por padrão, ou Portaria). NUNCA lança: o aviso é um
  * extra — se falhar, a liberação já feita continua valendo (o Pátio também vê pela tela).
  * Devolve quantos aparelhos foram avisados.
  */
-export async function enviarAvisoPush(aviso: AvisoPush): Promise<number> {
+export async function enviarAvisoPush(aviso: AvisoPush, setor: SetorPush = 'PATIO'): Promise<number> {
   if (!pushConfigurado()) return 0;
   try {
     // web-push é CommonJS e exporta uma instância: dependendo do empacotador ela vem em `.default` ou direto.
@@ -44,7 +46,7 @@ export async function enviarAvisoPush(aviso: AvisoPush): Promise<number> {
       process.env.VAPID_PUBLIC_KEY as string,
       process.env.VAPID_PRIVATE_KEY as string,
     );
-    const inscricoes = await prisma.pushSubscription.findMany();
+    const inscricoes = await prisma.pushSubscription.findMany({ where: { setor } });
     const carga = JSON.stringify(aviso);
     let enviados = 0;
     await Promise.all(

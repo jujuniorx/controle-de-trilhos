@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { revogarSessao } from '@/lib/services/auth';
 import { requirePortaria } from '@/lib/services/requirePortaria';
-import { liberarCarreta, salvarDadosPortaria } from '@/lib/services/portaria';
+import { confirmarSaidaCarreta, registrarChegadaCarreta, salvarDadosPortaria } from '@/lib/services/portaria';
 import { ErroRegraNegocio } from '@/lib/services/errors';
 import { dadosPortariaSchema } from '@/lib/validation/portaria';
 
@@ -29,17 +29,18 @@ export async function sairPortariaAction(): Promise<void> {
   redirect('/portaria/login');
 }
 
-async function processar(id: string, entrada: unknown, liberar: boolean): Promise<ResultadoPortaria> {
+async function processar(id: string, entrada: unknown, registrarChegada: boolean): Promise<ResultadoPortaria> {
   // Server actions são endpoints públicos: a sessão é conferida aqui, não só na tela.
   const ator = await requirePortaria();
   const parsed = dadosPortariaSchema.safeParse(entrada);
   if (!parsed.success) return { ok: false, erro: parsed.error.issues[0]?.message ?? 'Dados inválidos.' };
   try {
-    if (liberar) await liberarCarreta(id, parsed.data, ator.nome, ator.userId);
+    if (registrarChegada) await registrarChegadaCarreta(id, parsed.data, ator.nome, ator.userId);
     else await salvarDadosPortaria(id, parsed.data, ator.nome, ator.userId);
     revalidatePath('/portaria');
     revalidatePath('/patio/remetidos');
-    return { ok: true, mensagem: liberar ? 'Carreta liberada! O Pátio foi avisado.' : 'Dados salvos.' };
+    revalidatePath('/patio');
+    return { ok: true, mensagem: registrarChegada ? 'Chegada registrada! O Pátio foi avisado.' : 'Dados salvos.' };
   } catch (e) {
     if (e instanceof ErroRegraNegocio) return { ok: false, erro: e.message };
     console.error('[portaria] falha', e);
@@ -51,6 +52,20 @@ export async function salvarDadosAction(id: string, entrada: unknown): Promise<R
   return processar(id, entrada, false);
 }
 
-export async function liberarCarretaAction(id: string, entrada: unknown): Promise<ResultadoPortaria> {
+export async function registrarChegadaAction(id: string, entrada: unknown): Promise<ResultadoPortaria> {
   return processar(id, entrada, true);
+}
+
+export async function confirmarSaidaAction(id: string): Promise<ResultadoPortaria> {
+  const ator = await requirePortaria();
+  try {
+    await confirmarSaidaCarreta(id, ator.nome, ator.userId);
+    revalidatePath('/portaria');
+    revalidatePath('/patio/remetidos');
+    return { ok: true, mensagem: 'Saída confirmada.' };
+  } catch (e) {
+    if (e instanceof ErroRegraNegocio) return { ok: false, erro: e.message };
+    console.error('[portaria] falha ao confirmar saída', e);
+    return { ok: false, erro: 'Não foi possível concluir. Tente de novo.' };
+  }
 }

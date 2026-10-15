@@ -41,9 +41,13 @@ export async function limparDadosPortariaAction(id: string): Promise<Resultado> 
         observacaoPortaria: null,
         carretaLiberadaEm: null,
         carretaLiberadaPor: null,
+        chegadaPortariaEm: null,
+        chegadaPortariaPor: null,
+        saidaPortariaEm: null,
+        saidaPortariaPor: null,
       },
     });
-    await registrarAuditoria(sessao, 'Dados da Portaria apagados', `Remetido ${m.destino ?? m.id}: motorista, placas, liberação e observação da Portaria`);
+    await registrarAuditoria(sessao, 'Dados da Portaria apagados', `Remetido ${m.destino ?? m.id}: motorista, placas, horários e observação da Portaria`);
   } catch (e) {
     console.error('Falha ao limpar dados da Portaria', e);
     return { ok: false, erro: 'Não foi possível apagar. Nada foi alterado.' };

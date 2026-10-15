@@ -13,6 +13,7 @@ export async function listarRemetidosDaPortaria() {
     where: {
       tipo: 'REMETIDO',
       OR: [
+        { chegadaPortariaEm: { not: null } },
         { carretaLiberadaEm: { not: null } },
         { motoristaNome: { not: null } },
         { placaCarreta: { not: null } },
@@ -31,9 +32,12 @@ export async function listarRemetidosDaPortaria() {
       placaCarreta: true,
       placaCavalo: true,
       observacaoPortaria: true,
-      medicaoConcluidaEm: true,
+      chegadaPortariaEm: true,
+      chegadaPortariaPor: true,
       carretaLiberadaEm: true,
       carretaLiberadaPor: true,
+      saidaPortariaEm: true,
+      saidaPortariaPor: true,
       createdAt: true,
     },
     orderBy: { createdAt: 'desc' },
@@ -60,6 +64,8 @@ export async function listarChegadasDaPortaria() {
       liberadaPor: true,
       canceladaEm: true,
       movimentacaoId: true,
+      saidaEm: true,
+      saidaPor: true,
     },
   });
   return lista.map((c) => ({ ...c, estado: estadoChegada(c) }));

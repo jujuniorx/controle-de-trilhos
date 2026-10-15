@@ -164,6 +164,10 @@ model Movimentacao {
   // A Portaria libera a carreta para carregar/descarregar — dispara o aviso no Pátio.
   carretaLiberadaEm  DateTime?
   carretaLiberadaPor String?
+  chegadaPortariaEm DateTime?
+  chegadaPortariaPor String?
+  saidaPortariaEm DateTime?
+  saidaPortariaPor String?
   // Observação escrita pela Portaria para o Pátio.
   observacaoPortaria String?
 
@@ -276,6 +280,7 @@ model PushSubscription {
   endpoint  String   @unique
   p256dh    String
   auth      String
+  setor String @default("PATIO")
   createdAt DateTime @default(now())
 }
 
@@ -302,6 +307,8 @@ model ChegadaCaminhao {
   // Preenchidos quando o Pátio conclui o recebimento a partir desta chegada.
   movimentacaoId    String?   @unique
   recebidaEm        DateTime?
+  saidaEm DateTime?
+  saidaPor String?
 
   @@index([criadoEm])
 }

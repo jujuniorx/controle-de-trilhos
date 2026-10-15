@@ -3,10 +3,12 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { CampoObservacao, ICONE_CAMINHAO, Secao } from '@/components/portaria/Secao';
-import { cancelarChegadaAction, liberarChegadaAction, salvarChegadaAction } from './actions';
+import { cancelarChegadaAction, confirmarSaidaChegadaAction, registrarChegadaAction, salvarChegadaAction } from './actions';
 import type { ResultadoPortaria } from '../actions';
 import { ROTULO_ESTADO_CHEGADA } from '@/lib/domain/portaria';
 import type { ItemChegada } from '@/lib/services/chegada';
+
+const BADGE_CHEGADA = { AGUARDANDO_LIBERACAO: 'badge-muted', LIBERADA: 'badge-warn', RECEBIDA: 'badge-ok', SAIU: 'badge-info', CANCELADA: 'badge-muted' } as const;
 
 function limparPlaca(v: string) {
   return v.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
@@ -16,10 +18,14 @@ function hora(d: Date): string {
   return new Date(d).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
 }
 
+function dataHora(d: Date): string {
+  return new Date(d).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo' });
+}
+
 export function CartaoChegada({ item }: { item: ItemChegada }) {
   const router = useRouter();
   const [pendente, iniciar] = useTransition();
-  const [aberto, setAberto] = useState(item.estado === 'AGUARDANDO_LIBERACAO');
+  const [aberto, setAberto] = useState(item.estado === 'AGUARDANDO_LIBERACAO' || item.estado === 'RECEBIDA');
   const [confirmaCancelar, setConfirmaCancelar] = useState(false);
   const [resultado, setResultado] = useState<ResultadoPortaria | null>(null);
   const [v, setV] = useState({
@@ -37,7 +43,10 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
   const set = (campo: keyof typeof v) => (e: { target: { value: string } }) =>
     setV((atual) => ({ ...atual, [campo]: String(campo).startsWith('placa') ? limparPlaca(e.target.value) : e.target.value }));
 
-  const liberada = item.estado === 'LIBERADA';
+  const rascunho = item.estado === 'AGUARDANDO_LIBERACAO';
+  const chegou = item.estado === 'LIBERADA';
+  const descarregado = item.estado === 'RECEBIDA';
+  const saiu = item.estado === 'SAIU';
 
   function enviar(acao: (id: string, dados: unknown) => Promise<ResultadoPortaria>) {
     setResultado(null);
@@ -76,7 +85,7 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
         inputMode={extra.inputMode}
         maxLength={extra.maxLength}
         autoComplete="off"
-        disabled={pendente}
+        disabled={pendente || saiu || descarregado}
       />
     </div>
   );
@@ -91,11 +100,12 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
           <span className="min-w-0">
           <span className="block truncate font-semibold text-ink">{titulo}</span>
           <span className="block text-sm text-ink-muted">
-            {item.origem ? `${item.origem} · ` : ''}chegou às {hora(item.criadoEm)}
+            {item.origem ? `${item.origem} · ` : ''}{item.liberadaEm ? `chegou às ${hora(item.liberadaEm)}` : `aberta às ${hora(item.criadoEm)}`}
+            {item.saidaEm ? ` · saiu ${dataHora(item.saidaEm)}` : ''}
           </span>
           </span>
         </span>
-        <span className={`badge ${liberada ? 'badge-ok' : 'badge-warn'} shrink-0`}>{ROTULO_ESTADO_CHEGADA[item.estado]}</span>
+        <span className={`badge ${BADGE_CHEGADA[item.estado]} shrink-0`}>{ROTULO_ESTADO_CHEGADA[item.estado]}</span>
       </button>
 
       {aberto && (
@@ -121,26 +131,52 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
             {campo('materialPrevisto', 'Material')}
             {campo('origem', 'Origem')}
           </Secao>
-          <CampoObservacao id={`${item.id}-observacao`} valor={v.observacao} aoMudar={(x) => setV((a) => ({ ...a, observacao: x }))} desabilitado={pendente} />
+          <CampoObservacao id={`${item.id}-observacao`} valor={v.observacao} aoMudar={(x) => setV((a) => ({ ...a, observacao: x }))} desabilitado={pendente || saiu || descarregado} />
 
-          {liberada && <p className="rounded-lg bg-ok/10 px-3 py-2 text-sm text-ok">Caminhão liberado. O Pátio já pode descarregar. Você ainda pode corrigir os dados.</p>}
+          {rascunho && <p className="text-sm text-ink-muted">Preencha ao menos uma placa e toque em &ldquo;Registrar chegada&rdquo;. O Pátio será avisado.</p>}
+          {chegou && <p className="rounded-lg bg-warn/10 px-3 py-2 text-sm text-warn">Chegada registrada. O Pátio vai descarregar; você será avisado quando terminar.</p>}
+          {descarregado && <p className="rounded-lg bg-ok/10 px-3 py-2 text-sm text-ok">O Pátio descarregou. Quando o caminhão passar pela portaria, toque em &ldquo;Saída confirmada&rdquo;.</p>}
+          {saiu && <p className="rounded-lg bg-surface-2 px-3 py-2 text-sm text-ink-muted">Caminhão saiu. Só consulta.</p>}
           <p className="text-xs text-ink-muted">O PDF leva o que está <b>salvo</b>: toque em &ldquo;Salvar dados&rdquo; antes de baixar.</p>
 
           <div className="flex flex-wrap gap-2">
-            <button type="submit" className="btn btn-ghost h-12 flex-1 sm:flex-none" disabled={pendente}>
-              Salvar dados
-            </button>
+            {!saiu && !descarregado && (
+              <button type="submit" className="btn btn-ghost h-12 flex-1 sm:flex-none" disabled={pendente}>
+                Salvar dados
+              </button>
+            )}
             <a href={`/portaria/pdf-chegada/${item.id}`} download className="btn btn-ghost h-12 flex-1 sm:flex-none" aria-label="Baixar PDF com os dados preenchidos">
               Baixar PDF
             </a>
-            {!liberada && (
-              <button type="button" className="btn btn-primary h-12 flex-1 sm:flex-none" disabled={pendente} onClick={() => enviar(liberarChegadaAction)}>
-                {pendente ? 'Aguarde...' : 'Liberar para descarregar'}
+            {rascunho && (
+              <button type="button" className="btn btn-primary h-12 flex-1 sm:flex-none" disabled={pendente} onClick={() => enviar(registrarChegadaAction)}>
+                {pendente ? 'Aguarde...' : 'Registrar chegada'}
+              </button>
+            )}
+            {descarregado && (
+              <button
+                type="button"
+                className="btn btn-primary h-12 flex-1 sm:flex-none"
+                disabled={pendente}
+                onClick={() => {
+                  setResultado(null);
+                  iniciar(async () => {
+                    try {
+                      const r = await confirmarSaidaChegadaAction(item.id);
+                      setResultado(r);
+                      if (r.ok) router.refresh();
+                    } catch {
+                      setResultado({ ok: false, erro: 'Sem conexão. Tente de novo.' });
+                    }
+                  });
+                }}
+              >
+                {pendente ? 'Aguarde...' : 'Saída confirmada'}
               </button>
             )}
           </div>
 
-          {!confirmaCancelar ? (
+          {(rascunho || chegou) && (!confirmaCancelar ? (
             <button type="button" className="text-sm text-ink-muted underline" onClick={() => setConfirmaCancelar(true)}>
               Cancelar esta chegada
             </button>
@@ -154,7 +190,7 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
                 Não
               </button>
             </div>
-          )}
+          ))}
 
           {resultado?.erro && (
             <p role="alert" className="text-sm text-bad">

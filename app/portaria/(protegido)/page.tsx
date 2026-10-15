@@ -3,6 +3,8 @@ import { listarPortaria } from '@/lib/services/portaria';
 import { AtualizarAuto } from '@/components/AtualizarAuto';
 import { EstadoVazio } from '@/components/ui/EstadoVazio';
 import { ContadorAnimado } from '@/components/ui/ContadorAnimado';
+import { AtivarAvisos } from '@/components/patio/AtivarAvisos';
+import { chavePublicaPush } from '@/lib/services/push';
 import { CartaoPortaria } from './CartaoPortaria';
 
 export const dynamic = 'force-dynamic';
@@ -16,11 +18,11 @@ export default async function PortariaPage() {
   const { nome } = await requirePortaria();
   const primeiroNome = nome.trim().split(' ')[0] ?? nome;
   const itens = await listarPortaria();
-  // Quem está pronto para a carreta chegar primeiro; depois os ainda em medição; liberadas por último.
-  const ordem = { AGUARDANDO_CARRETA: 0, MEDINDO: 1, LIBERADA: 2 } as const;
+  // O que pede ação da Portaria primeiro: liberadas (confirmar saída), depois esperando a carreta chegar, depois o resto.
+  const ordem = { LIBERADA: 0, AGUARDANDO_CARRETA: 1, CHEGOU: 2, SAIU: 3 } as const;
   itens.sort((a, b) => ordem[a.estado] - ordem[b.estado]);
-  const prontos = itens.filter((i) => i.estado === 'AGUARDANDO_CARRETA').length;
-  const medindo = itens.filter((i) => i.estado === 'MEDINDO').length;
+  const podemSair = itens.filter((i) => i.estado === 'LIBERADA').length;
+  const aguardandoPatio = itens.filter((i) => i.estado === 'CHEGOU').length;
 
   return (
     <div className="mx-auto max-w-3xl space-y-5 p-4 sm:p-6">
@@ -30,34 +32,34 @@ export default async function PortariaPage() {
           <p className="boas-vindas-saudacao">
             {saudacao()}, {primeiroNome}
           </p>
-          <h1 className="page-title">Remetidos aguardando carreta</h1>
+          <h1 className="page-title">Remetidos (carretas)</h1>
         </div>
       </div>
 
       <div className="pend-resumo">
         <div className="stat-tile pend-tile">
-          <p className="stat-label">Prontos para a carreta</p>
-          <p className={`stat-value ${prontos > 0 ? 'accent' : ''}`}>
-            <ContadorAnimado valor={prontos} />
+          <p className="stat-label">Podem sair</p>
+          <p className={`stat-value ${podemSair > 0 ? 'accent' : ''}`}>
+            <ContadorAnimado valor={podemSair} />
           </p>
-          <p className="stat-unit">medição concluída</p>
+          <p className="stat-unit">liberadas pelo Pátio</p>
         </div>
         <div className="stat-tile pend-tile">
-          <p className="stat-label">Em medição no Pátio</p>
+          <p className="stat-label">Aguardando o Pátio</p>
           <p className="stat-value">
-            <ContadorAnimado valor={medindo} />
+            <ContadorAnimado valor={aguardandoPatio} />
           </p>
-          <p className="stat-unit">ainda não liberam</p>
+          <p className="stat-unit">já chegaram</p>
         </div>
       </div>
 
       <p className="text-sm text-ink-muted">
-        Preencha os dados do motorista e do caminhão quando ele chegar. Para liberar é preciso a placa do cavalo ou da carreta — o
-        resto é opcional.
+        1) Quando a carreta chegar, preencha os dados e toque em &ldquo;Registrar chegada&rdquo; (basta uma placa). 2) O Pátio carrega e
+        libera. 3) Quando ela passar pela portaria, toque em &ldquo;Saída confirmada&rdquo;.
       </p>
 
       {itens.length === 0 ? (
-        <EstadoVazio titulo="Nenhum remetido aguardando" texto="Quando o Pátio cadastrar um, ele aparece aqui." />
+        <EstadoVazio titulo="Nenhum remetido em andamento" texto="Quando o Pátio cadastrar um, ele aparece aqui." />
       ) : (
         <div className="space-y-3">
           {itens.map((item) => (
@@ -65,6 +67,7 @@ export default async function PortariaPage() {
           ))}
         </div>
       )}
+      <AtivarAvisos chavePublica={chavePublicaPush()} titulo="Avisos do Pátio" descricao="Receba um aviso neste aparelho quando o Pátio liberar uma carreta ou terminar de descarregar um caminhão." />
     </div>
   );
 }

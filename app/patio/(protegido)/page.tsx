@@ -6,6 +6,9 @@ import { FundoTrilhos } from '@/components/ui/FundoTrilhos';
 import { AtualizarAuto } from '@/components/AtualizarAuto';
 import { AtivarAvisos } from '@/components/patio/AtivarAvisos';
 import { listarChegadasLiberadas } from '@/lib/services/chegada';
+import { listarCarretasNaPortaria } from '@/lib/services/portaria';
+import { CarretaNaPortaria } from '@/components/patio/CarretaNaPortaria';
+import { normalizarLocal } from '@/lib/domain/local';
 import { chavePublicaPush } from '@/lib/services/push';
 
 const atraso = (n: number) => ({ '--i': n }) as CSSProperties;
@@ -26,8 +29,20 @@ async function carregarLiberadas() {
   }
 }
 
+async function carregarCarretas() {
+  try {
+    return await listarCarretasNaPortaria();
+  } catch {
+    return []; // idem
+  }
+}
+
+function hora(d: Date | null): string {
+  return d ? d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }) : '';
+}
+
 export default async function PatioHomePage() {
-  const [aguardando, liberadas] = await Promise.all([contarAguardando(), carregarLiberadas()]);
+  const [aguardando, liberadas, carretas] = await Promise.all([contarAguardando(), carregarLiberadas(), carregarCarretas()]);
 
   return (
     <main className="mx-auto max-w-md space-y-5 p-6 sm:max-w-2xl lg:max-w-3xl">
@@ -42,9 +57,26 @@ export default async function PatioHomePage() {
 
       <AtualizarAuto segundos={20} />
 
+      {carretas.length > 0 && (
+        <section aria-label="Carretas na Portaria" className="space-y-2">
+          <h2 className="font-condensed text-base font-bold uppercase tracking-wide text-warn">Carretas na Portaria (remetidos)</h2>
+          {carretas.map((c) => (
+            <CarretaNaPortaria
+              key={c.id}
+              id={c.id}
+              titulo={`${c.placaCarreta || c.placaCavalo || 'Carreta'} — ${normalizarLocal(c.destino) || 'Remetido'}`}
+              detalhe={[c.transportadora, c.reservaPedido && `Reserva ${c.reservaPedido}`].filter(Boolean).join(' · ')}
+              observacao={c.observacaoPortaria}
+              chegouAs={hora(c.chegadaPortariaEm)}
+              faltaConfirmar={c.status === 'AGUARDANDO_CHEGADA'}
+            />
+          ))}
+        </section>
+      )}
+
       {liberadas.length > 0 && (
-        <section aria-label="Caminhões liberados para descarregar" className="space-y-2">
-          <h2 className="font-condensed text-base font-bold uppercase tracking-wide text-ok">Liberados para descarregar</h2>
+        <section aria-label="Caminhões na Portaria para descarregar" className="space-y-2">
+          <h2 className="font-condensed text-base font-bold uppercase tracking-wide text-ok">Caminhões na Portaria (descarregar)</h2>
           {liberadas.map((c) => (
             <Link key={c.id} href={`/patio/recebimentos/novo?chegada=${c.id}`} className="card block border-2 border-ok transition hover:brightness-110">
               <p className="font-medium text-ink">{c.placaCarreta || c.placaCavalo || 'Caminhão'}{c.origem ? ` — ${c.origem}` : ''}</p>
@@ -52,7 +84,7 @@ export default async function PatioHomePage() {
                 {[c.transportadora, c.materialPrevisto].filter(Boolean).join(' · ') || 'Toque para registrar o recebimento'}
               </p>
               {c.observacao && <p className="mt-1 text-sm text-warn">Portaria: {c.observacao}</p>}
-              <span className="badge badge-ok mt-1">Pode descarregar — toque para iniciar</span>
+              <span className="badge badge-ok mt-1">Chegou — toque para descarregar</span>
             </Link>
           ))}
         </section>
@@ -76,7 +108,7 @@ export default async function PatioHomePage() {
         </Link>
       </div>
 
-      <AtivarAvisos chavePublica={chavePublicaPush()} />
+      <AtivarAvisos chavePublica={chavePublicaPush()} titulo="Aviso de chegada na Portaria" descricao="Receba um aviso neste tablet quando a Portaria registrar a chegada de uma carreta ou de um caminhão." />
     </main>
   );
 }

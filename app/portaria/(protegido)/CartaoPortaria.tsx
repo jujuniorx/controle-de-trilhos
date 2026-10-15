@@ -3,12 +3,16 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { CampoObservacao, ICONE_CAMINHAO, Secao } from '@/components/portaria/Secao';
-import { liberarCarretaAction, salvarDadosAction, type ResultadoPortaria } from './actions';
+import { confirmarSaidaAction, registrarChegadaAction, salvarDadosAction, type ResultadoPortaria } from './actions';
 import { ROTULO_ESTADO } from '@/lib/domain/portaria';
 import type { ItemPortaria } from '@/lib/services/portaria';
 
 const TIPO_REMETIDO: Record<string, string> = { VENDA: 'Venda', TRANS: 'Transferência', INDUS: 'Industrialização' };
-const BADGE = { MEDINDO: 'badge-muted', AGUARDANDO_CARRETA: 'badge-warn', LIBERADA: 'badge-ok' } as const;
+const BADGE = { AGUARDANDO_CARRETA: 'badge-muted', CHEGOU: 'badge-warn', LIBERADA: 'badge-ok', SAIU: 'badge-info' } as const;
+
+function hora(d: Date | null): string {
+  return d ? new Date(d).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo' }) : '';
+}
 
 function limparPlaca(v: string) {
   return v.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
@@ -17,7 +21,7 @@ function limparPlaca(v: string) {
 export function CartaoPortaria({ item }: { item: ItemPortaria }) {
   const router = useRouter();
   const [pendente, iniciar] = useTransition();
-  const [aberto, setAberto] = useState(item.estado === 'AGUARDANDO_CARRETA');
+  const [aberto, setAberto] = useState(item.estado === 'AGUARDANDO_CARRETA' || item.estado === 'LIBERADA');
   const [resultado, setResultado] = useState<ResultadoPortaria | null>(null);
   const [v, setV] = useState({
     transportadora: item.transportadora ?? '',
@@ -35,8 +39,10 @@ export function CartaoPortaria({ item }: { item: ItemPortaria }) {
   const set = (campo: keyof typeof v) => (e: { target: { value: string } }) =>
     setV((atual) => ({ ...atual, [campo]: String(campo).startsWith('placa') ? limparPlaca(e.target.value) : e.target.value }));
 
+  const aguardando = item.estado === 'AGUARDANDO_CARRETA';
+  const chegou = item.estado === 'CHEGOU';
   const liberada = item.estado === 'LIBERADA';
-  const medindo = item.estado === 'MEDINDO';
+  const saiu = item.estado === 'SAIU';
 
   function enviar(acao: (id: string, dados: unknown) => Promise<ResultadoPortaria>) {
     setResultado(null);
@@ -62,7 +68,7 @@ export function CartaoPortaria({ item }: { item: ItemPortaria }) {
         inputMode={extra.inputMode}
         maxLength={extra.maxLength}
         autoComplete="off"
-        disabled={pendente}
+        disabled={pendente || saiu}
       />
     </div>
   );
@@ -79,6 +85,12 @@ export function CartaoPortaria({ item }: { item: ItemPortaria }) {
             {item.reservaPedido ? ` · Reserva ${item.reservaPedido}` : ''}
             {item.numeroDocumento ? ` · NF ${item.numeroDocumento}` : ''}
           </span>
+          {item.chegadaPortariaEm && (
+            <span className="block text-xs text-ink-muted">
+              Chegou {hora(item.chegadaPortariaEm)}
+              {item.saidaPortariaEm ? ` · Saiu ${hora(item.saidaPortariaEm)}` : ''}
+            </span>
+          )}
           </span>
         </span>
         <span className={`badge ${BADGE[item.estado]} shrink-0`}>{ROTULO_ESTADO[item.estado]}</span>
@@ -108,22 +120,47 @@ export function CartaoPortaria({ item }: { item: ItemPortaria }) {
             {campo('origem', 'Origem')}
             {campo('destino', 'Destino')}
           </Secao>
-          <CampoObservacao id={`${item.id}-observacao`} valor={v.observacao} aoMudar={(x) => setV((a) => ({ ...a, observacao: x }))} desabilitado={pendente} />
+          <CampoObservacao id={`${item.id}-observacao`} valor={v.observacao} aoMudar={(x) => setV((a) => ({ ...a, observacao: x }))} desabilitado={pendente || saiu} />
 
-          {medindo && <p className="text-sm text-ink-muted">O Pátio ainda está medindo. Você já pode salvar os dados; a liberação só fica disponível quando ele terminar.</p>}
-          {liberada && <p className="rounded-lg bg-ok/10 px-3 py-2 text-sm text-ok">Carreta já liberada. Você ainda pode corrigir os dados.</p>}
+          {aguardando && <p className="text-sm text-ink-muted">Quando a carreta chegar, preencha ao menos uma placa e toque em &ldquo;Registrar chegada&rdquo;. O Pátio será avisado.</p>}
+          {chegou && <p className="rounded-lg bg-warn/10 px-3 py-2 text-sm text-warn">Chegada registrada. Agora o Pátio carrega e libera a carreta; você será avisado.</p>}
+          {liberada && <p className="rounded-lg bg-ok/10 px-3 py-2 text-sm text-ok">O Pátio liberou a carreta. Quando ela passar pela portaria, toque em &ldquo;Saída confirmada&rdquo;.</p>}
+          {saiu && <p className="rounded-lg bg-surface-2 px-3 py-2 text-sm text-ink-muted">Carreta saiu. Só consulta.</p>}
 
           <p className="text-xs text-ink-muted">O PDF leva o que está <b>salvo</b>: toque em &ldquo;Salvar dados&rdquo; antes de baixar.</p>
           <div className="flex flex-wrap gap-2">
-            <button type="submit" className="btn btn-ghost h-12 flex-1 sm:flex-none" disabled={pendente}>
-              Salvar dados
-            </button>
+            {!saiu && (
+              <button type="submit" className="btn btn-ghost h-12 flex-1 sm:flex-none" disabled={pendente}>
+                Salvar dados
+              </button>
+            )}
             <a href={`/portaria/pdf/${item.id}`} download className="btn btn-ghost h-12 flex-1 sm:flex-none" aria-label="Baixar PDF com os dados preenchidos">
               Baixar PDF
             </a>
-            {!liberada && (
-              <button type="button" className="btn btn-primary h-12 flex-1 sm:flex-none" disabled={pendente || medindo} onClick={() => enviar(liberarCarretaAction)}>
-                {pendente ? 'Aguarde...' : 'Liberar carreta'}
+            {aguardando && (
+              <button type="button" className="btn btn-primary h-12 flex-1 sm:flex-none" disabled={pendente} onClick={() => enviar(registrarChegadaAction)}>
+                {pendente ? 'Aguarde...' : 'Registrar chegada'}
+              </button>
+            )}
+            {liberada && (
+              <button
+                type="button"
+                className="btn btn-primary h-12 flex-1 sm:flex-none"
+                disabled={pendente}
+                onClick={() => {
+                  setResultado(null);
+                  iniciar(async () => {
+                    try {
+                      const r = await confirmarSaidaAction(item.id);
+                      setResultado(r);
+                      if (r.ok) router.refresh();
+                    } catch {
+                      setResultado({ ok: false, erro: 'Sem conexão. Tente de novo.' });
+                    }
+                  });
+                }}
+              >
+                {pendente ? 'Aguarde...' : 'Saída confirmada'}
               </button>
             )}
           </div>

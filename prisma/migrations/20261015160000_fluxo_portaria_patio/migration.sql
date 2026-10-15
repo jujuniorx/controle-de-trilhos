@@ -1,0 +1,8 @@
+-- AlterTable
+ALTER TABLE "Movimentacao" ADD COLUMN IF NOT EXISTS "chegadaPortariaEm" TIMESTAMP(3), ADD COLUMN IF NOT EXISTS "chegadaPortariaPor" TEXT, ADD COLUMN IF NOT EXISTS "saidaPortariaEm" TIMESTAMP(3), ADD COLUMN IF NOT EXISTS "saidaPortariaPor" TEXT;
+
+-- AlterTable
+ALTER TABLE "ChegadaCaminhao" ADD COLUMN IF NOT EXISTS "saidaEm" TIMESTAMP(3), ADD COLUMN IF NOT EXISTS "saidaPor" TEXT;
+
+-- AlterTable
+ALTER TABLE "PushSubscription" ADD COLUMN IF NOT EXISTS "setor" TEXT NOT NULL DEFAULT 'PATIO';

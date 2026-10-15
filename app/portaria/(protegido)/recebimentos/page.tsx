@@ -2,6 +2,8 @@ import { listarChegadasPortaria } from '@/lib/services/chegada';
 import { AtualizarAuto } from '@/components/AtualizarAuto';
 import { EstadoVazio } from '@/components/ui/EstadoVazio';
 import { ContadorAnimado } from '@/components/ui/ContadorAnimado';
+import { AtivarAvisos } from '@/components/patio/AtivarAvisos';
+import { chavePublicaPush } from '@/lib/services/push';
 import { BotaoNovaChegada } from './BotaoNovaChegada';
 import { CartaoChegada } from './CartaoChegada';
 
@@ -9,8 +11,10 @@ export const dynamic = 'force-dynamic';
 
 export default async function PortariaRecebimentosPage() {
   const itens = await listarChegadasPortaria();
-  const aguardando = itens.filter((i) => i.estado === 'AGUARDANDO_LIBERACAO').length;
-  const liberadas = itens.filter((i) => i.estado === 'LIBERADA').length;
+  const ordem = { RECEBIDA: 0, AGUARDANDO_LIBERACAO: 1, LIBERADA: 2, SAIU: 3, CANCELADA: 4 } as const;
+  itens.sort((a, b) => ordem[a.estado] - ordem[b.estado]);
+  const podemSair = itens.filter((i) => i.estado === 'RECEBIDA').length;
+  const aguardandoPatio = itens.filter((i) => i.estado === 'LIBERADA').length;
   return (
     <div className="mx-auto max-w-3xl space-y-5 p-4 sm:p-6">
       <AtualizarAuto segundos={20} />
@@ -21,24 +25,24 @@ export default async function PortariaRecebimentosPage() {
 
       <div className="pend-resumo">
         <div className="stat-tile pend-tile">
-          <p className="stat-label">Aguardando liberação</p>
-          <p className={`stat-value ${aguardando > 0 ? 'accent' : ''}`}>
-            <ContadorAnimado valor={aguardando} />
+          <p className="stat-label">Podem sair</p>
+          <p className={`stat-value ${podemSair > 0 ? 'accent' : ''}`}>
+            <ContadorAnimado valor={podemSair} />
           </p>
-          <p className="stat-unit">na portaria</p>
+          <p className="stat-unit">já descarregados</p>
         </div>
         <div className="stat-tile pend-tile">
-          <p className="stat-label">Liberados</p>
+          <p className="stat-label">Aguardando o Pátio</p>
           <p className="stat-value">
-            <ContadorAnimado valor={liberadas} />
+            <ContadorAnimado valor={aguardandoPatio} />
           </p>
-          <p className="stat-unit">esperando o Pátio</p>
+          <p className="stat-unit">já chegaram</p>
         </div>
       </div>
 
       <p className="text-sm text-ink-muted">
-        Quando o caminhão chegar, cadastre os dados e libere para o Pátio descarregar. Para liberar é preciso a placa do cavalo ou
-        da carreta — o resto é opcional.
+        1) Quando o caminhão chegar, toque em &ldquo;Nova chegada&rdquo;, preencha os dados e toque em &ldquo;Registrar chegada&rdquo; (basta uma
+        placa). 2) O Pátio descarrega. 3) Quando ele passar pela portaria, toque em &ldquo;Saída confirmada&rdquo;.
       </p>
 
       {itens.length === 0 ? (
@@ -50,6 +54,7 @@ export default async function PortariaRecebimentosPage() {
           ))}
         </div>
       )}
+      <AtivarAvisos chavePublica={chavePublicaPush()} titulo="Avisos do Pátio" descricao="Receba um aviso neste aparelho quando o Pátio liberar uma carreta ou terminar de descarregar um caminhão." />
     </div>
   );
 }

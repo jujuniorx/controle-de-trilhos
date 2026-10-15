@@ -8,8 +8,8 @@ import { apagarChegadaAction, limparDadosPortariaAction } from './actions';
 
 export const dynamic = 'force-dynamic';
 
-const BADGE_REM = { MEDINDO: 'badge-muted', AGUARDANDO_CARRETA: 'badge-warn', LIBERADA: 'badge-ok' } as const;
-const BADGE_CHEG = { AGUARDANDO_LIBERACAO: 'badge-warn', LIBERADA: 'badge-info', RECEBIDA: 'badge-ok', CANCELADA: 'badge-muted' } as const;
+const BADGE_REM = { AGUARDANDO_CARRETA: 'badge-muted', CHEGOU: 'badge-warn', LIBERADA: 'badge-ok', SAIU: 'badge-info' } as const;
+const BADGE_CHEG = { AGUARDANDO_LIBERACAO: 'badge-muted', LIBERADA: 'badge-warn', RECEBIDA: 'badge-ok', SAIU: 'badge-info', CANCELADA: 'badge-muted' } as const;
 
 function dataHora(d: Date | null): string {
   return d ? new Date(d).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo' }) : '—';
@@ -48,7 +48,7 @@ export default async function AdminPortariaPage() {
                 <div className="min-w-0">
                   <p className="font-semibold text-ink">{c.placaCarreta || c.placaCavalo || c.motoristaNome || 'Caminhão sem identificação'}</p>
                   <p className="text-sm text-ink-muted">
-                    {c.origem ? `${c.origem} · ` : ''}chegou {dataHora(c.criadoEm)} · {c.criadoPor}
+                    {c.origem ? `${c.origem} · ` : ''}chegou {dataHora(c.liberadaEm ?? c.criadoEm)} · {c.criadoPor}
                   </p>
                 </div>
                 <span className={`badge ${BADGE_CHEG[c.estado]}`}>{ROTULO_ESTADO_CHEGADA[c.estado]}</span>
@@ -58,11 +58,10 @@ export default async function AdminPortariaPage() {
                   .filter(Boolean)
                   .join(' · ') || 'Sem dados de motorista'}
               </p>
-              {c.liberadaEm && (
-                <p className="text-sm text-ink-muted">
-                  Liberado {dataHora(c.liberadaEm)} por {c.liberadaPor}
-                </p>
-              )}
+              <p className="text-sm text-ink-muted">
+                Entrada: {dataHora(c.liberadaEm)} · Saída: {dataHora(c.saidaEm)}
+                {c.saidaPor ? ` (${c.saidaPor})` : ''}
+              </p>
               <Obs texto={c.observacao} />
               <div className="mt-3 flex flex-wrap gap-2">
                 <a href={`/portaria/pdf-chegada/${c.id}`} download className="btn btn-ghost btn-sm">
@@ -110,11 +109,10 @@ export default async function AdminPortariaPage() {
                   .filter(Boolean)
                   .join(' · ') || 'Sem dados de motorista'}
               </p>
-              {m.carretaLiberadaEm && (
-                <p className="text-sm text-ink-muted">
-                  Carreta liberada {dataHora(m.carretaLiberadaEm)} por {m.carretaLiberadaPor}
-                </p>
-              )}
+              <p className="text-sm text-ink-muted">
+                Entrada: {dataHora(m.chegadaPortariaEm)} · Liberada pelo Pátio: {dataHora(m.carretaLiberadaEm)} · Saída: {dataHora(m.saidaPortariaEm)}
+                {m.saidaPortariaPor ? ` (${m.saidaPortariaPor})` : ''}
+              </p>
               <Obs texto={m.observacaoPortaria} />
               <div className="mt-3 flex flex-wrap gap-2">
                 <a href={`/portaria/pdf/${m.id}`} download className="btn btn-ghost btn-sm">
@@ -126,7 +124,7 @@ export default async function AdminPortariaPage() {
                 {dono && (
                   <BotaoApagar
                     rotulo="Apagar dados da Portaria"
-                    aviso="Apagar motorista, placas, liberação e observação da Portaria deste remetido? O remetido em si continua."
+                    aviso="Apagar motorista, placas, horários e observação da Portaria deste remetido? O remetido em si continua."
                     acao={limparDadosPortariaAction.bind(null, m.id)}
                   />
                 )}

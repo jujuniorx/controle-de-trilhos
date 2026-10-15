@@ -3,13 +3,19 @@ import { ErroRegraNegocio } from '@/lib/services/errors';
 import { registrarHistorico } from '@/lib/services/historico';
 import { enviarAvisoPush } from '@/lib/services/push';
 import { normalizarLocal } from '@/lib/domain/local';
-import { estadoPortaria, motivoNaoPodeLiberar, ROTULO_ESTADO } from '@/lib/domain/portaria';
+import {
+  estadoPortaria,
+  motivoNaoPodeConfirmarSaida,
+  motivoNaoPodeLiberar,
+  motivoNaoPodeRegistrarChegada,
+  ROTULO_ESTADO,
+} from '@/lib/domain/portaria';
 import type { DadosPortaria } from '@/lib/validation/portaria';
 
 /**
- * Portaria (só Remetido). Fluxo: o Pátio cria o "aguardando chegada" e mede → marca "medição
- * concluída" → a Portaria preenche os dados do motorista/caminhão e libera a carreta → o Pátio
- * recebe o aviso. A Portaria NUNCA lê nem grava medições: as consultas abaixo só selecionam
+ * Portaria (Remetido). Fluxo: o Pátio cria o "aguardando chegada" → a carreta chega e a Portaria
+ * registra motorista/placas → o Pátio carrega, confirma e LIBERA a carreta → a Portaria confirma a
+ * saída (com horário). A Portaria NUNCA lê nem grava medições: as consultas abaixo só selecionam
  * campos de identificação.
  */
 
@@ -28,17 +34,31 @@ const SELECT_PORTARIA = {
   motoristaTelefone: true,
   capacidadeCarga: true,
   materialPrevisto: true,
-  medicaoConcluidaEm: true,
+  chegadaPortariaEm: true,
+  chegadaPortariaPor: true,
   carretaLiberadaEm: true,
   carretaLiberadaPor: true,
+  saidaPortariaEm: true,
+  saidaPortariaPor: true,
   observacaoPortaria: true,
   createdAt: true,
   remetidoDetalhe: { select: { tipoRemetido: true } },
 } as const;
 
 export async function listarPortaria() {
+  const ontem = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const lista = await prisma.movimentacao.findMany({
-    where: { tipo: 'REMETIDO', status: 'AGUARDANDO_CHEGADA' },
+    where: {
+      tipo: 'REMETIDO',
+      OR: [
+        // esperando a carreta chegar
+        { status: 'AGUARDANDO_CHEGADA', chegadaPortariaEm: null, carretaLiberadaEm: null, saidaPortariaEm: null },
+        // já chegou (ou foi liberada pelo fluxo antigo) e ainda não saiu
+        { saidaPortariaEm: null, OR: [{ chegadaPortariaEm: { not: null } }, { carretaLiberadaEm: { not: null } }] },
+        // saiu nas últimas 24 h
+        { saidaPortariaEm: { gte: ontem } },
+      ],
+    },
     select: SELECT_PORTARIA,
     orderBy: { createdAt: 'desc' },
   });
@@ -51,10 +71,9 @@ export async function listarPortaria() {
 
 export type ItemPortaria = Awaited<ReturnType<typeof listarPortaria>>[number];
 
-async function carregarAguardando(id: string) {
-  const mov = await prisma.movimentacao.findUnique({ where: { id }, select: SELECT_PORTARIA });
-  if (!mov || !mov.id) throw new ErroRegraNegocio('Remetido não encontrado.');
-  if (mov.status !== 'AGUARDANDO_CHEGADA') throw new ErroRegraNegocio('Este remetido não está mais aguardando chegada.');
+async function carregarRemetido(id: string) {
+  const mov = await prisma.movimentacao.findFirst({ where: { id, tipo: 'REMETIDO' }, select: SELECT_PORTARIA });
+  if (!mov) throw new ErroRegraNegocio('Remetido não encontrado.');
   return mov;
 }
 
@@ -76,51 +95,105 @@ function paraBanco(d: DadosPortaria) {
 }
 
 export async function salvarDadosPortaria(id: string, dados: DadosPortaria, atorNome: string, atorId?: string): Promise<void> {
-  await carregarAguardando(id);
+  const mov = await carregarRemetido(id);
+  if (mov.saidaPortariaEm) throw new ErroRegraNegocio('Esta carreta já saiu.');
   await prisma.movimentacao.update({ where: { id }, data: paraBanco(dados) });
   await registrarHistorico({ movimentacaoId: id, usuarioId: atorId, usuarioNome: `${atorNome} (portaria)`, acao: 'PORTARIA_DADOS' });
 }
 
-/** Salva os dados e libera a carreta. Exige medição concluída e ao menos uma placa. */
-export async function liberarCarreta(id: string, dados: DadosPortaria, atorNome: string, atorId?: string): Promise<void> {
-  const mov = await carregarAguardando(id);
-  const motivo = motivoNaoPodeLiberar(mov, dados.placaCavalo, dados.placaCarreta);
+/** Portaria: salva os dados e registra a chegada da carreta (hora automática). Exige ao menos uma placa. Avisa o Pátio. */
+export async function registrarChegadaCarreta(id: string, dados: DadosPortaria, atorNome: string, atorId?: string): Promise<void> {
+  const mov = await carregarRemetido(id);
+  const motivo = motivoNaoPodeRegistrarChegada(mov, dados.placaCavalo, dados.placaCarreta);
   if (motivo) throw new ErroRegraNegocio(motivo);
 
-  // updateMany com a condição no WHERE: se duas pessoas liberarem ao mesmo tempo, só uma vence
-  // (e só ela dispara o aviso).
+  // Condição no WHERE: se duas pessoas registrarem juntas, só uma vence (e só ela avisa o Pátio).
   const r = await prisma.movimentacao.updateMany({
-    where: { id, status: 'AGUARDANDO_CHEGADA', carretaLiberadaEm: null, medicaoConcluidaEm: { not: null } },
-    data: { ...paraBanco(dados), carretaLiberadaEm: new Date(), carretaLiberadaPor: atorNome },
+    where: { id, chegadaPortariaEm: null, carretaLiberadaEm: null, saidaPortariaEm: null },
+    data: { ...paraBanco(dados), chegadaPortariaEm: new Date(), chegadaPortariaPor: atorNome },
   });
-  if (r.count === 0) throw new ErroRegraNegocio('Não foi possível liberar: o remetido mudou de situação. Atualize a tela.');
+  if (r.count === 0) throw new ErroRegraNegocio('Não foi possível registrar: a situação mudou. Atualize a tela.');
 
-  await registrarHistorico({ movimentacaoId: id, usuarioId: atorId, usuarioNome: `${atorNome} (portaria)`, acao: 'CARRETA_LIBERADA' });
+  await registrarHistorico({ movimentacaoId: id, usuarioId: atorId, usuarioNome: `${atorNome} (portaria)`, acao: 'CARRETA_CHEGOU' });
 
   const placa = dados.placaCarreta ?? dados.placaCavalo;
   const destino = normalizarLocal(dados.destino ?? mov.destino) || 'Remetido';
-  await enviarAvisoPush({
-    titulo: 'Carreta liberada',
-    corpo: `${destino}${placa ? ` — placa ${placa}` : ''}. Pode carregar.`,
-    url: `/patio/remetidos/${id}/confirmar`,
+  await enviarAvisoPush(
+    {
+      titulo: 'Carreta chegou na Portaria',
+      corpo: `${destino}${placa ? ` — placa ${placa}` : ''}. Pode carregar.`,
+      url: `/patio/remetidos/${id}/confirmar`,
+    },
+    'PATIO',
+  );
+}
+
+/** Pátio: carregou e conferiu — libera a carreta para sair. Avisa a Portaria. */
+export async function liberarCarreta(id: string): Promise<void> {
+  const mov = await carregarRemetido(id);
+  const motivo = motivoNaoPodeLiberar(mov);
+  if (motivo) throw new ErroRegraNegocio(motivo);
+
+  const r = await prisma.movimentacao.updateMany({
+    where: { id, chegadaPortariaEm: { not: null }, carretaLiberadaEm: null, saidaPortariaEm: null },
+    data: { carretaLiberadaEm: new Date(), carretaLiberadaPor: 'Pátio' },
   });
+  if (r.count === 0) throw new ErroRegraNegocio('Não foi possível liberar: a situação mudou. Atualize a tela.');
+
+  await registrarHistorico({ movimentacaoId: id, usuarioNome: 'Pátio', acao: 'CARRETA_LIBERADA' });
+
+  const placa = mov.placaCarreta ?? mov.placaCavalo;
+  const destino = normalizarLocal(mov.destino) || 'Remetido';
+  await enviarAvisoPush(
+    {
+      titulo: 'Carreta liberada pelo Pátio',
+      corpo: `${destino}${placa ? ` — placa ${placa}` : ''}. Pode sair.`,
+      url: '/portaria',
+    },
+    'PORTARIA',
+  );
 }
 
-/** Pátio: terminou de medir; só falta a carreta chegar. */
-export async function concluirMedicao(id: string): Promise<void> {
-  const mov = await carregarAguardando(id);
-  if (mov.medicaoConcluidaEm) return;
-  await prisma.movimentacao.update({ where: { id }, data: { medicaoConcluidaEm: new Date() } });
-  await registrarHistorico({ movimentacaoId: id, usuarioNome: 'Pátio', acao: 'MEDICAO_CONCLUIDA' });
+/** Pátio: liberou por engano — volta para "aguardando o Pátio". Só antes da Portaria confirmar a saída. */
+export async function desfazerLiberacaoCarreta(id: string): Promise<void> {
+  const mov = await carregarRemetido(id);
+  if (mov.saidaPortariaEm) throw new ErroRegraNegocio('Esta carreta já saiu.');
+  if (!mov.carretaLiberadaEm) return;
+  await prisma.movimentacao.update({ where: { id }, data: { carretaLiberadaEm: null, carretaLiberadaPor: null } });
+  await registrarHistorico({ movimentacaoId: id, usuarioNome: 'Pátio', acao: 'LIBERACAO_DESFEITA' });
 }
 
-/** Pátio: errou ou vai medir mais. Só antes da Portaria liberar. */
-export async function reabrirMedicao(id: string): Promise<void> {
-  const mov = await carregarAguardando(id);
-  if (mov.carretaLiberadaEm) throw new ErroRegraNegocio('A carreta já foi liberada pela Portaria.');
-  if (!mov.medicaoConcluidaEm) return;
-  await prisma.movimentacao.update({ where: { id }, data: { medicaoConcluidaEm: null } });
-  await registrarHistorico({ movimentacaoId: id, usuarioNome: 'Pátio', acao: 'MEDICAO_REABERTA' });
+/** Portaria: a carreta passou pela portaria — registra a hora de saída. */
+export async function confirmarSaidaCarreta(id: string, atorNome: string, atorId?: string): Promise<void> {
+  const mov = await carregarRemetido(id);
+  const motivo = motivoNaoPodeConfirmarSaida(mov);
+  if (motivo) throw new ErroRegraNegocio(motivo);
+
+  const r = await prisma.movimentacao.updateMany({
+    where: { id, carretaLiberadaEm: { not: null }, saidaPortariaEm: null },
+    data: { saidaPortariaEm: new Date(), saidaPortariaPor: atorNome },
+  });
+  if (r.count === 0) throw new ErroRegraNegocio('Não foi possível confirmar: a situação mudou. Atualize a tela.');
+  await registrarHistorico({ movimentacaoId: id, usuarioId: atorId, usuarioNome: `${atorNome} (portaria)`, acao: 'CARRETA_SAIU' });
+}
+
+/** Pátio: carretas que a Portaria registrou e que ainda esperam a liberação. */
+export async function listarCarretasNaPortaria() {
+  return prisma.movimentacao.findMany({
+    where: { tipo: 'REMETIDO', chegadaPortariaEm: { not: null }, carretaLiberadaEm: null, saidaPortariaEm: null },
+    select: {
+      id: true,
+      destino: true,
+      reservaPedido: true,
+      placaCarreta: true,
+      placaCavalo: true,
+      transportadora: true,
+      observacaoPortaria: true,
+      chegadaPortariaEm: true,
+      status: true,
+    },
+    orderBy: { chegadaPortariaEm: 'asc' },
+  });
 }
 
 /** Estado e dados da Portaria de um remetido (usado pelo Pátio: aviso e pré-preenchimento). */
@@ -132,9 +205,10 @@ export async function dadosPortariaDoRemetido(id: string) {
       placaCarreta: true,
       transportadora: true,
       motoristaNome: true,
-      medicaoConcluidaEm: true,
+      chegadaPortariaEm: true,
       carretaLiberadaEm: true,
       carretaLiberadaPor: true,
+      saidaPortariaEm: true,
       observacaoPortaria: true,
       status: true,
     },
@@ -149,7 +223,7 @@ export async function buscarFichaPortaria(id: string) {
   const estado = estadoPortaria(m);
   return {
     modulo: 'REMETIDO' as const,
-    situacao: { rotulo: ROTULO_ESTADO[estado], ok: estado === 'LIBERADA' },
+    situacao: { rotulo: ROTULO_ESTADO[estado], ok: estado === 'LIBERADA' || estado === 'SAIU' },
     destino: m.destino,
     origem: m.origem,
     reservaPedido: m.reservaPedido,
@@ -163,8 +237,11 @@ export async function buscarFichaPortaria(id: string) {
     placaCarreta: m.placaCarreta,
     placaCavalo: m.placaCavalo,
     capacidadeCarga: m.capacidadeCarga ? Number(m.capacidadeCarga) : null,
+    chegadaEm: m.chegadaPortariaEm,
     carretaLiberadaEm: m.carretaLiberadaEm,
     carretaLiberadaPor: m.carretaLiberadaPor,
+    saidaEm: m.saidaPortariaEm,
+    saidaPor: m.saidaPortariaPor,
     observacao: m.observacaoPortaria,
   };
 }

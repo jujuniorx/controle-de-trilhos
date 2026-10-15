@@ -1,13 +1,15 @@
 import { prisma } from '@/lib/db';
 import { ErroRegraNegocio } from '@/lib/services/errors';
 import { enviarAvisoPush } from '@/lib/services/push';
+import { motivoNaoPodeConfirmarSaidaChegada } from '@/lib/domain/portaria';
 import { normalizarLocal } from '@/lib/domain/local';
 import { estadoChegada, motivoNaoPodeLiberarChegada, ROTULO_ESTADO_CHEGADA } from '@/lib/domain/portaria';
 import type { DadosChegada } from '@/lib/validation/chegada';
 
 /**
- * Portaria — Recebimento. O caminhão chega, a Portaria cadastra os dados e libera para
- * descarregar; o Pátio é avisado e faz o recebimento (medição) já com os dados preenchidos.
+ * Portaria — Recebimento. O caminhão chega, a Portaria cadastra os dados e registra a chegada
+ * (o Pátio é avisado); o Pátio descarrega e faz o recebimento (medição) já com os dados
+ * preenchidos, o que avisa a Portaria de que pode sair; a Portaria confirma a saída (com hora).
  * Nenhuma medição passa por aqui.
  */
 
@@ -33,6 +35,7 @@ async function carregarAberta(id: string) {
   if (!c) throw new ErroRegraNegocio('Chegada não encontrada.');
   const estado = estadoChegada(c);
   if (estado === 'CANCELADA') throw new ErroRegraNegocio('Esta chegada foi cancelada.');
+  if (estado === 'SAIU') throw new ErroRegraNegocio('Este caminhão já saiu.');
   if (estado === 'RECEBIDA') throw new ErroRegraNegocio('O Pátio já descarregou este caminhão.');
   return c;
 }
@@ -43,8 +46,9 @@ export async function criarChegada(atorNome: string): Promise<{ id: string }> {
 }
 
 export async function listarChegadasPortaria() {
+  const ontem = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const lista = await prisma.chegadaCaminhao.findMany({
-    where: { canceladaEm: null, movimentacaoId: null },
+    where: { canceladaEm: null, OR: [{ saidaEm: null }, { saidaEm: { gte: ontem } }] },
     orderBy: { criadoEm: 'desc' },
   });
   return lista.map((c) => ({ ...c, capacidadeCarga: num(c.capacidadeCarga), estado: estadoChegada(c) }));
@@ -70,11 +74,27 @@ export async function liberarChegada(id: string, dados: DadosChegada, atorNome: 
 
   const placa = dados.placaCarreta ?? dados.placaCavalo;
   const origem = dados.origem ? normalizarLocal(dados.origem) : '';
-  await enviarAvisoPush({
-    titulo: 'Caminhão liberado para descarregar',
-    corpo: `${origem || 'Recebimento'}${placa ? ` — placa ${placa}` : ''}. Pode descarregar.`,
-    url: `/patio/recebimentos/novo?chegada=${id}`,
+  await enviarAvisoPush(
+    {
+      titulo: 'Caminhão chegou na Portaria',
+      corpo: `${origem || 'Recebimento'}${placa ? ` — placa ${placa}` : ''}. Pode descarregar.`,
+      url: `/patio/recebimentos/novo?chegada=${id}`,
+    },
+    'PATIO',
+  );
+}
+
+/** Portaria: o caminhão (já descarregado pelo Pátio) passou pela portaria — registra a hora de saída. */
+export async function confirmarSaidaChegada(id: string, atorNome: string): Promise<void> {
+  const c = await prisma.chegadaCaminhao.findUnique({ where: { id } });
+  if (!c) throw new ErroRegraNegocio('Chegada não encontrada.');
+  const motivo = motivoNaoPodeConfirmarSaidaChegada(c);
+  if (motivo) throw new ErroRegraNegocio(motivo);
+  const r = await prisma.chegadaCaminhao.updateMany({
+    where: { id, saidaEm: null, canceladaEm: null, movimentacaoId: { not: null } },
+    data: { saidaEm: new Date(), saidaPor: atorNome },
   });
+  if (r.count === 0) throw new ErroRegraNegocio('Não foi possível confirmar: a situação mudou. Atualize a tela.');
 }
 
 /** Cancela uma chegada que ainda não foi descarregada (cadastrada por engano, caminhão foi embora). */
@@ -119,7 +139,7 @@ export async function buscarFichaChegada(id: string) {
   const estado = estadoChegada(c);
   return {
     modulo: 'RECEBIMENTO' as const,
-    situacao: { rotulo: ROTULO_ESTADO_CHEGADA[estado], ok: estado === 'LIBERADA' || estado === 'RECEBIDA' },
+    situacao: { rotulo: ROTULO_ESTADO_CHEGADA[estado], ok: estado === 'RECEBIDA' || estado === 'SAIU' },
     destino: null,
     origem: c.origem,
     reservaPedido: null,
@@ -133,8 +153,11 @@ export async function buscarFichaChegada(id: string) {
     placaCarreta: c.placaCarreta,
     placaCavalo: c.placaCavalo,
     capacidadeCarga: num(c.capacidadeCarga),
-    carretaLiberadaEm: c.liberadaEm,
-    carretaLiberadaPor: c.liberadaPor,
+    chegadaEm: c.liberadaEm,
+    carretaLiberadaEm: null,
+    carretaLiberadaPor: null,
+    saidaEm: c.saidaEm,
+    saidaPor: c.saidaPor,
     observacao: c.observacao,
   };
 }

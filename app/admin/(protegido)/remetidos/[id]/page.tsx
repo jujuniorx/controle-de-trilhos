@@ -56,7 +56,10 @@ const ACAO_LABEL: Record<string, string> = {
   MEDICAO_CONCLUIDA: 'Pátio terminou de medir',
   MEDICAO_REABERTA: 'Pátio voltou a medir',
   PORTARIA_DADOS: 'Dados do motorista/caminhão salvos pela Portaria',
-  CARRETA_LIBERADA: 'Carreta liberada pela Portaria',
+  CARRETA_CHEGOU: 'Chegada da carreta registrada pela Portaria',
+  CARRETA_LIBERADA: 'Carreta liberada pelo Pátio',
+  LIBERACAO_DESFEITA: 'Liberação da carreta desfeita pelo Pátio',
+  CARRETA_SAIU: 'Saída da carreta confirmada pela Portaria',
 };
 
 export default async function RemetidoDetalhePage({ params }: { params: Promise<{ id: string }> }) {
@@ -120,8 +123,14 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
           {mov.capacidadeCarga != null && (
             <div className="kv-item"><div className="kv-label">Capacidade de carga</div><div className="kv-val">{Number(mov.capacidadeCarga).toLocaleString('pt-BR')} t</div></div>
           )}
+          {mov.chegadaPortariaEm && (
+            <div className="kv-item"><div className="kv-label">Carreta chegou (Portaria)</div><div className="kv-val">{fmtDataHora(mov.chegadaPortariaEm)}{mov.chegadaPortariaPor ? ` · ${mov.chegadaPortariaPor}` : ''}</div></div>
+          )}
           {mov.carretaLiberadaEm && (
-            <div className="kv-item"><div className="kv-label">Carreta liberada</div><div className="kv-val">{fmtDataHora(mov.carretaLiberadaEm)}{mov.carretaLiberadaPor ? ` · ${mov.carretaLiberadaPor}` : ''}</div></div>
+            <div className="kv-item"><div className="kv-label">Liberada pelo Pátio</div><div className="kv-val">{fmtDataHora(mov.carretaLiberadaEm)}</div></div>
+          )}
+          {mov.saidaPortariaEm && (
+            <div className="kv-item"><div className="kv-label">Saída (Portaria)</div><div className="kv-val">{fmtDataHora(mov.saidaPortariaEm)}{mov.saidaPortariaPor ? ` · ${mov.saidaPortariaPor}` : ''}</div></div>
           )}
         </dl>
 
