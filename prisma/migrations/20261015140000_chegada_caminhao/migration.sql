@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE "ChegadaCaminhao" (
+CREATE TABLE IF NOT EXISTS "ChegadaCaminhao" (
     "id" TEXT NOT NULL,
     "origem" TEXT,
     "materialPrevisto" TEXT,
@@ -21,7 +21,7 @@ CREATE TABLE "ChegadaCaminhao" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ChegadaCaminhao_movimentacaoId_key" ON "ChegadaCaminhao"("movimentacaoId");
+CREATE UNIQUE INDEX IF NOT EXISTS "ChegadaCaminhao_movimentacaoId_key" ON "ChegadaCaminhao"("movimentacaoId");
 
 -- CreateIndex
-CREATE INDEX "ChegadaCaminhao_criadoEm_idx" ON "ChegadaCaminhao"("criadoEm");
+CREATE INDEX IF NOT EXISTS "ChegadaCaminhao_criadoEm_idx" ON "ChegadaCaminhao"("criadoEm");

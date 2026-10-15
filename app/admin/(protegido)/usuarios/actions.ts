@@ -6,6 +6,7 @@ import { registrarAuditoria } from '@/lib/services/auditoria';
 import { alterarAtivo, criarUsuario, redefinirSenha } from '@/lib/services/usuarios';
 import { ErroRegraNegocio } from '@/lib/services/errors';
 import { novaSenhaSchema, novoUsuarioSchema } from '@/lib/validation/usuario';
+import { atualizarEsquema } from '@/lib/services/esquema';
 
 export interface EstadoUsuarios {
   erro?: string;
@@ -64,5 +65,19 @@ export async function redefinirSenhaAction(userId: string, senha: string): Promi
     return { sucesso: `Senha de ${nome} redefinida. Passe a senha nova para a pessoa.` };
   } catch (e) {
     return { erro: mensagem(e) };
+  }
+}
+
+/** Aplica no banco as alterações que faltarem (seguro repetir). Só o dono. */
+export async function atualizarBancoAction(): Promise<EstadoUsuarios> {
+  try {
+    const ator = await exigirDono();
+    await atualizarEsquema();
+    await registrarAuditoria(ator, 'Banco de dados atualizado', 'Alterações pendentes aplicadas pela tela de Usuários');
+    revalidatePath('/admin/usuarios');
+    return { sucesso: 'Banco de dados atualizado! Já pode usar a Portaria e o campo de observação.' };
+  } catch (e) {
+    console.error('[usuarios] falha ao atualizar o banco', e);
+    return { erro: 'Não foi possível atualizar o banco agora. Tente de novo; se repetir, avise o suporte.' };
   }
 }

@@ -25,11 +25,13 @@ const placa = opcional(
     .pipe(z.string().regex(PLACA_REGEX, 'Placa inválida. Ex.: ABC1D23 (Mercosul) ou CMG1234 (padrão antigo).')),
 );
 
+// Só confere o tamanho (11 números). Não confere os dígitos verificadores de propósito: a Portaria
+// copia de um documento e um número errado não pode impedir de salvar nem de liberar a carreta.
 const cpf = opcional(
   z
     .string()
     .transform((v) => v.replace(/\D/g, ''))
-    .pipe(z.string().refine(cpfValido, 'CPF inválido. Confira os números.')),
+    .pipe(z.string().regex(/^\d{11}$/, 'CPF precisa ter 11 números.')),
 );
 
 const telefone = opcional(

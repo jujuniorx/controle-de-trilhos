@@ -2,6 +2,8 @@ import { requireDono } from '@/lib/services/requireAdmin';
 import { listarUsuarios } from '@/lib/services/usuarios';
 import { NovoUsuarioForm } from './NovoUsuarioForm';
 import { AcoesUsuario } from './AcoesUsuario';
+import { AtualizarBanco } from './AtualizarBanco';
+import { esquemaPrecisaAtualizar } from '@/lib/services/esquema';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +13,7 @@ function fmtDataHora(d: Date | null): string {
 
 export default async function UsuariosPage() {
   const dono = await requireDono();
-  const usuarios = await listarUsuarios();
+  const [usuarios, bancoPendente] = await Promise.all([listarUsuarios(), esquemaPrecisaAtualizar()]);
 
   return (
     <main className="mx-auto max-w-5xl space-y-6 p-4 md:p-6">
@@ -19,6 +21,8 @@ export default async function UsuariosPage() {
         <h1 className="font-condensed text-2xl font-bold uppercase tracking-wide text-ink">Usuários</h1>
         <p className="text-sm text-ink-muted">Quem pode entrar no Administrativo e na Portaria. Só você enxerga esta página.</p>
       </div>
+
+      {bancoPendente && <AtualizarBanco />}
 
       <NovoUsuarioForm />
 

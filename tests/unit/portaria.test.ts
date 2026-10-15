@@ -24,7 +24,9 @@ describe('dadosPortariaSchema', () => {
   });
   it('recusa placa, CPF, telefone e capacidade inválidos', () => {
     expect(dadosPortariaSchema.safeParse({ placaCavalo: 'XX12' }).success).toBe(false);
-    expect(dadosPortariaSchema.safeParse({ motoristaCpf: '111.111.111-11' }).success).toBe(false);
+    expect(dadosPortariaSchema.safeParse({ motoristaCpf: '1234567' }).success).toBe(false);
+    // dígitos verificadores NÃO são conferidos: qualquer CPF com 11 números passa
+    expect(dadosPortariaSchema.safeParse({ motoristaCpf: '123.456.789-00' }).success).toBe(true);
     expect(dadosPortariaSchema.safeParse({ motoristaTelefone: '12345' }).success).toBe(false);
     expect(dadosPortariaSchema.safeParse({ capacidadeCarga: '0' }).success).toBe(false);
     expect(dadosPortariaSchema.safeParse({ capacidadeCarga: '500' }).success).toBe(false);

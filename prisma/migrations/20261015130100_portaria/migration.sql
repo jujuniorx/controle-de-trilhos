@@ -1,16 +1,16 @@
 -- AlterTable
 ALTER TABLE "Movimentacao"
-  ADD COLUMN "motoristaNome" TEXT,
-  ADD COLUMN "motoristaCpf" TEXT,
-  ADD COLUMN "motoristaTelefone" TEXT,
-  ADD COLUMN "capacidadeCarga" DECIMAL(65,30),
-  ADD COLUMN "materialPrevisto" TEXT,
-  ADD COLUMN "medicaoConcluidaEm" TIMESTAMP(3),
-  ADD COLUMN "carretaLiberadaEm" TIMESTAMP(3),
-  ADD COLUMN "carretaLiberadaPor" TEXT;
+  ADD COLUMN IF NOT EXISTS "motoristaNome" TEXT,
+  ADD COLUMN IF NOT EXISTS "motoristaCpf" TEXT,
+  ADD COLUMN IF NOT EXISTS "motoristaTelefone" TEXT,
+  ADD COLUMN IF NOT EXISTS "capacidadeCarga" DECIMAL(65,30),
+  ADD COLUMN IF NOT EXISTS "materialPrevisto" TEXT,
+  ADD COLUMN IF NOT EXISTS "medicaoConcluidaEm" TIMESTAMP(3),
+  ADD COLUMN IF NOT EXISTS "carretaLiberadaEm" TIMESTAMP(3),
+  ADD COLUMN IF NOT EXISTS "carretaLiberadaPor" TEXT;
 
 -- CreateTable
-CREATE TABLE "PushSubscription" (
+CREATE TABLE IF NOT EXISTS "PushSubscription" (
     "id" TEXT NOT NULL,
     "endpoint" TEXT NOT NULL,
     "p256dh" TEXT NOT NULL,
@@ -20,4 +20,4 @@ CREATE TABLE "PushSubscription" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "PushSubscription_endpoint_key" ON "PushSubscription"("endpoint");
+CREATE UNIQUE INDEX IF NOT EXISTS "PushSubscription_endpoint_key" ON "PushSubscription"("endpoint");

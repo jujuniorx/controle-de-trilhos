@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE "MovimentacaoExcluida" (
+CREATE TABLE IF NOT EXISTS "MovimentacaoExcluida" (
     "id" TEXT NOT NULL,
     "movimentacaoId" TEXT NOT NULL,
     "tipo" "TipoMovimentacao" NOT NULL,
@@ -14,4 +14,4 @@ CREATE TABLE "MovimentacaoExcluida" (
 );
 
 -- CreateIndex
-CREATE INDEX "MovimentacaoExcluida_excluidoEm_idx" ON "MovimentacaoExcluida"("excluidoEm");
+CREATE INDEX IF NOT EXISTS "MovimentacaoExcluida_excluidoEm_idx" ON "MovimentacaoExcluida"("excluidoEm");
