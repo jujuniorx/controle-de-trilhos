@@ -1,5 +1,5 @@
 import type { Prisma } from '@prisma/client';
-import { prisma } from '@/lib/db';
+import { prisma, type ClienteTransacao } from '@/lib/db';
 import { calcularMetros, calcularPesoEstimado } from '@/lib/services/calculo';
 import { registrarHistorico } from '@/lib/services/historico';
 import { arredondar3 } from '@/lib/domain/regras';
@@ -65,7 +65,7 @@ function resolverFabricante(grupo: Extract<GrupoRemetidoInput, { tipoMaterial: '
 
 /** Compartilhado entre confirmarRemetido e criarRemetidoDireto — o grupo nasce do mesmo jeito nos dois fluxos. */
 async function criarGruposEMedicoes(
-  tx: Prisma.TransactionClient,
+  tx: ClienteTransacao,
   movimentacaoId: string,
   grupos: GrupoRemetidoInput[],
   /** clientId do grupo -> peso (t) já informado pelo Administrativo; usado ao editar para não perder o peso. */

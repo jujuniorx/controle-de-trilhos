@@ -54,6 +54,8 @@ function criarCliente() {
 }
 
 type Cliente = ReturnType<typeof criarCliente>;
+/** Cliente dentro de uma transação interativa (`prisma.$transaction(async (tx) => …)`). */
+export type ClienteTransacao = Omit<Cliente, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
 const globalForPrisma = globalThis as unknown as { prisma?: Cliente };
 
 export const prisma = globalForPrisma.prisma ?? criarCliente();
