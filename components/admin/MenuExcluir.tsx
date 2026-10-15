@@ -109,10 +109,10 @@ export function MenuExcluir() {
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-labelledby="excluir-titulo">
           <div className="w-full max-w-sm rounded-2xl border border-line-2 bg-surface p-5">
             <h2 id="excluir-titulo" className="font-condensed text-xl font-bold uppercase tracking-wide text-ink">
-              Excluir definitivamente?
+              Excluir?
             </h2>
             <p className="mt-2 text-sm text-ink-muted">
-              <b className="text-ink">{confirmar.rotulo}</b> será apagado com todas as medições e o histórico. Isso não pode ser desfeito.
+              <b className="text-ink">{confirmar.rotulo}</b> sai da lista e vai para a Lixeira, de onde você pode restaurar com todas as medições e o histórico.
             </p>
             {erro && (
               <p role="alert" className="mt-2 text-sm text-bad">

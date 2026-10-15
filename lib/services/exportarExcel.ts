@@ -37,10 +37,12 @@ function upper(v: string | null | undefined): string {
 
 /** "TR57" -> "TRILHOS TR-57" — nunca truncado. */
 function descricaoPerfil(perfil: string): string {
+  if (perfil === 'TOCO') return 'TOCO'; // Diversos (sucata sem medição) — igual à planilha
   return `TRILHOS ${perfil.slice(0, 2)}-${perfil.slice(2)}`;
 }
 
 function numeroDoPerfil(perfil: string): number {
+  if (perfil === 'TOCO') return Number.MAX_SAFE_INTEGER; // Diversos fica depois dos perfis TR
   return Number(perfil.slice(2));
 }
 
@@ -298,6 +300,14 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
 
     for (const grupos of agruparPorPerfilEMaterial(mov.grupos)) {
       const marcas = unicos(grupos.filter((g) => g.tipoMaterial === 'NOVO').map((g) => upper(g.fabricante)));
+      // Diversos (TOCO): sem medição — Peças e Metros ficam "-"; Toneladas só quando o Administrativo
+      // já informou o peso da pesagem (senão "-").
+      const diversos = grupos[0].perfil === 'TOCO';
+      const toneladas = somaOuNull(
+        // Peso da NF quando informado; senão a estimativa (metros x fator), "a confirmar".
+        grupos.map((g) => (g.pesoInformado != null ? Number(g.pesoInformado) : g.pesoCalculado != null ? Number(g.pesoCalculado) : null)),
+        arredondar3,
+      );
 
       sheet.addRow([
         ...base,
@@ -305,13 +315,9 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         rotuloMaterial(grupos[0]),
         marcas.length > 0 ? marcas.join(' / ') : 'N/A',
         tipoRemetido,
-        grupos.reduce((acc, g) => acc + pecasDoGrupo(g.medicoes), 0),
-        arredondar2(grupos.reduce((acc, g) => acc + Number(g.metrosTotal), 0)),
-        // Peso da NF quando informado; senão a estimativa (metros x fator), "a confirmar".
-        somaOuNull(
-          grupos.map((g) => (g.pesoInformado != null ? Number(g.pesoInformado) : g.pesoCalculado != null ? Number(g.pesoCalculado) : null)),
-          arredondar3,
-        ),
+        diversos ? '-' : grupos.reduce((acc, g) => acc + pecasDoGrupo(g.medicoes), 0),
+        diversos ? '-' : arredondar2(grupos.reduce((acc, g) => acc + Number(g.metrosTotal), 0)),
+        diversos ? (toneladas ?? '-') : toneladas,
         ...manuais,
       ]);
     }

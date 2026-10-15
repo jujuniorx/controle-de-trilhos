@@ -188,4 +188,39 @@ describe('Excel — aba Remetidos: uma linha por trilho e tipo de material', () 
     expect(linhas[0].getCell(13).value).toBe('TRANS'); // Tipo de remetido, já conhecido
     expect(linhas[0].getCell(15).value).toBeNull(); // Metros
   });
+
+  it('Diversos (TOCO): perfil "TOCO", sucata, Peças e Metros com "-"; Toneladas "-" até o Administrativo pesar', async () => {
+    const mov = movimentacao('REMETIDO', '347212-1', [
+      { perfil: 'TOCO', tipoMaterial: 'SUCATA', metros: 0, medicoes: [] },
+    ]);
+    const { linhas } = await lerAba([mov], 'Remetidos');
+    expect(linhas).toHaveLength(1);
+    const l = linhas[0];
+    expect(l.getCell(10).value).toBe('TOCO'); // Perfil
+    expect(l.getCell(11).value).toBe('SUCATA'); // Tipo de material
+    expect(l.getCell(12).value).toBe('N/A'); // Marca
+    expect(l.getCell(13).value).toBe('TRANS'); // Tipo de remetido
+    expect(l.getCell(14).value).toBe('-'); // Peças
+    expect(l.getCell(15).value).toBe('-'); // Metros
+    expect(l.getCell(16).value).toBe('-'); // Toneladas (ainda sem pesagem)
+  });
+
+  it('Diversos (TOCO) com o peso da pesagem informado mostra as toneladas e continua com "-" em Peças e Metros', async () => {
+    const mov = movimentacao('REMETIDO', '347212-1', [
+      { perfil: 'TOCO', tipoMaterial: 'SUCATA', metros: 0, medicoes: [], pesoInformado: 28.7 },
+    ]);
+    const { linhas } = await lerAba([mov], 'Remetidos');
+    expect(linhas[0].getCell(14).value).toBe('-');
+    expect(linhas[0].getCell(15).value).toBe('-');
+    expect(linhas[0].getCell(16).value).toBe(28.7);
+  });
+
+  it('Diversos (TOCO) fica depois dos perfis TR na mesma nota', async () => {
+    const mov = movimentacao('REMETIDO', '1-1', [
+      { perfil: 'TOCO', tipoMaterial: 'SUCATA', metros: 0, medicoes: [] },
+      { perfil: 'TR68', tipoMaterial: 'SUCATA', metros: 20, pecas: 2, pesoCalculado: 1.36 },
+    ]);
+    const { linhas } = await lerAba([mov], 'Remetidos');
+    expect(linhas.map((l) => l.getCell(10).value)).toEqual(['TRILHOS TR-68', 'TOCO']);
+  });
 });

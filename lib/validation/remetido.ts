@@ -7,6 +7,13 @@ const MSG_PELO_MENOS_UMA_PLACA =
   'Informe ao menos uma placa: a do cavalo ou a de uma das carretas (no máximo 2 carretas).';
 
 export const TIPOS_REMETIDO = ['VENDA', 'TRANS', 'INDUS'] as const;
+
+/**
+ * "Diversos" do Remetido: tocos de sucata pesados juntos, SEM medição. O Pátio só lança o
+ * grupo (perfil TOCO, material SUCATA); o peso real vem da pesagem do caminhão e só o
+ * Administrativo informa (PesoGrupoPainel). Na planilha: Peças e Metros ficam "-".
+ */
+export const PERFIL_TOCO = 'TOCO' as const;
 export const CLASSIFICACOES_REEMPREGO_REMETIDO = ['G1', 'G2', 'G3'] as const;
 
 export const preCadastroRemetidoSchema = z.object({
@@ -114,10 +121,25 @@ const grupoRemetidoReempregoSchema = grupoRemetidoBaseSchema
     'Toda medição de reemprego precisa ter comprimento igual ou maior que 7 m.',
   );
 
-const grupoRemetidoSucataSchema = grupoRemetidoBaseSchema.extend({
-  tipoMaterial: z.literal('SUCATA'),
-  medicoes: z.array(medicaoRemetidoSchema.required({ classificacaoSC: true })).min(1, 'Adicione ao menos uma medição.'),
-});
+const grupoRemetidoSucataSchema = grupoRemetidoBaseSchema
+  .extend({
+    tipoMaterial: z.literal('SUCATA'),
+    // TOCO = Diversos (só peso, sem medição). Os demais perfis exigem medições com classificação SC.
+    perfil: z.enum([...PERFIS, PERFIL_TOCO]),
+    medicoes: z.array(medicaoRemetidoSchema.required({ classificacaoSC: true })),
+  })
+  .refine((g) => g.perfil === PERFIL_TOCO || g.medicoes.length >= 1, {
+    message: 'Adicione ao menos uma medição.',
+    path: ['medicoes'],
+  })
+  .refine((g) => g.perfil !== PERFIL_TOCO || g.medicoes.length === 0, {
+    message: 'Diversos (TOCO) não tem medição — só o peso, informado depois pelo Administrativo.',
+    path: ['medicoes'],
+  })
+  .refine((g) => g.perfil !== PERFIL_TOCO || g.pesoInformado == null, {
+    message: 'O peso do Diversos é informado pelo Administrativo, depois da pesagem.',
+    path: ['pesoInformado'],
+  });
 
 export const grupoRemetidoSchema = z.discriminatedUnion('tipoMaterial', [
   grupoRemetidoNovoSchema,

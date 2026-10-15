@@ -325,3 +325,54 @@ describe('lancamentoDiretoRemetidoSchema', () => {
     expect(resultado.success).toBe(false);
   });
 });
+
+describe('Diversos (TOCO) — sucata só de peso, sem medição', () => {
+  const dadosDireto = () => ({ destino: 'Cruzeiro', dados: dadosConfirmacaoValidos() });
+
+  it('aceita o grupo TOCO/SUCATA sem medições (peso vem depois, do Administrativo)', () => {
+    const r = lancamentoDiretoRemetidoSchema.safeParse({
+      ...dadosDireto(),
+      grupos: [{ clientId: uuid(), perfil: 'TOCO', tipoMaterial: 'SUCATA', medicoes: [] }],
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it('recusa peso informado pelo Pátio no Diversos', () => {
+    const r = lancamentoDiretoRemetidoSchema.safeParse({
+      ...dadosDireto(),
+      grupos: [{ clientId: uuid(), perfil: 'TOCO', tipoMaterial: 'SUCATA', pesoInformado: 28.7, medicoes: [] }],
+    });
+    expect(r.success).toBe(false);
+  });
+
+  it('recusa medição dentro do Diversos', () => {
+    const r = lancamentoDiretoRemetidoSchema.safeParse({
+      ...dadosDireto(),
+      grupos: [
+        {
+          clientId: uuid(),
+          perfil: 'TOCO',
+          tipoMaterial: 'SUCATA',
+          medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 2, classificacaoSC: 'SC3' }],
+        },
+      ],
+    });
+    expect(r.success).toBe(false);
+  });
+
+  it('TOCO só existe como SUCATA', () => {
+    const r = lancamentoDiretoRemetidoSchema.safeParse({
+      ...dadosDireto(),
+      grupos: [{ clientId: uuid(), perfil: 'TOCO', tipoMaterial: 'NOVO', marca: 'NIPPON', medicoes: [] }],
+    });
+    expect(r.success).toBe(false);
+  });
+
+  it('sucata de perfil normal continua exigindo ao menos uma medição', () => {
+    const r = lancamentoDiretoRemetidoSchema.safeParse({
+      ...dadosDireto(),
+      grupos: [{ clientId: uuid(), perfil: 'TR57', tipoMaterial: 'SUCATA', medicoes: [] }],
+    });
+    expect(r.success).toBe(false);
+  });
+});

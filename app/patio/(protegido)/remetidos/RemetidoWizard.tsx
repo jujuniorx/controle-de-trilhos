@@ -7,6 +7,7 @@ import {
   TIPOS_REMETIDO,
   confirmacaoRemetidoSchema,
   lancamentoDiretoRemetidoSchema,
+  PERFIL_TOCO,
 } from '@/lib/validation/remetido';
 import { PERFIS, MARCAS, MARCA_LABEL, PLACA_REGEX, NF_REGEX, MSG_NF_INVALIDA, CLASSIFICACOES_SC } from '@/lib/validation/recebimento';
 import { validarReemprego, classificarSC, pecasDoGrupo } from '@/lib/domain/regras';
@@ -284,15 +285,17 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
 
   function adicionarGrupo() {
     if (!draftPerfil) return;
+    const diversos = draftPerfil === PERFIL_TOCO;
     const g: GrupoLocal = {
       clientId: novoUuid(),
       perfil: draftPerfil,
-      tipoMaterial: draftTipo,
+      // Diversos (TOCO) é sempre sucata e não tem medição — só o peso, depois, pelo Administrativo.
+      tipoMaterial: diversos ? 'SUCATA' : draftTipo,
       tampao: false,
       medicoes: [],
     };
     setGrupos((prev) => [...prev, g]);
-    setActiveGrupoId(g.clientId);
+    setActiveGrupoId(diversos ? null : g.clientId);
     setDraftPerfil('');
   }
 
@@ -341,7 +344,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
   }
 
   const grupoIncompleto = (g: GrupoLocal) =>
-    g.medicoes.length === 0 ||
+    (g.perfil !== PERFIL_TOCO && g.medicoes.length === 0) ||
     (g.tipoMaterial === 'REEMPREGO' && !g.classificacao) ||
     (g.tipoMaterial === 'NOVO' && !g.marca) ||
     (g.tipoMaterial === 'NOVO' && g.marca === 'OUTROS' && !g.fabricanteOutro?.trim());
@@ -585,7 +588,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
           <div key={g.clientId} className="grupo-card !mb-0 p-3">
             <div className="flex items-center justify-between">
               <span className="grupo-title">
-                {g.perfil} — {g.tipoMaterial}
+                {g.perfil === PERFIL_TOCO ? 'DIVERSOS (TOCO) — SUCATA' : `${g.perfil} — ${g.tipoMaterial}`}
                 {g.tampao ? ' (Tampão)' : ''}
               </span>
               <button className="text-sm text-bad" onClick={() => removerGrupo(g.clientId)}>
@@ -651,6 +654,11 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
               </div>
             )}
 
+            {g.perfil === PERFIL_TOCO ? (
+              <p className="mt-2 text-sm text-ink-muted">
+                Diversos não tem medição. O peso é informado pelo Administrativo depois que o caminhão for pesado.
+              </p>
+            ) : (
             <div className="mt-2">
               <p className="text-sm text-ink-muted">
                 {g.medicoes.length === 0
@@ -755,6 +763,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
                 </button>
               )}
             </div>
+            )}
           </div>
         ))}
 
@@ -766,8 +775,14 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
                 {p}
               </option>
             ))}
+            <option value={PERFIL_TOCO}>TOCO — Diversos (só peso)</option>
           </select>
-          <select className="h-11 w-28" value={draftTipo} onChange={(e) => setDraftTipo(e.target.value as TipoMaterial)}>
+          <select
+            className="h-11 w-28"
+            value={draftPerfil === PERFIL_TOCO ? 'SUCATA' : draftTipo}
+            disabled={draftPerfil === PERFIL_TOCO}
+            onChange={(e) => setDraftTipo(e.target.value as TipoMaterial)}
+          >
             <option value="NOVO">NOVO</option>
             <option value="REEMPREGO">REEMPREGO</option>
             <option value="SUCATA">SUCATA</option>

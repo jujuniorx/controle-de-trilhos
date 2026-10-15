@@ -27,6 +27,8 @@ export interface MedicaoRomaneio {
 export interface GrupoRomaneio {
   perfil: string;
   tipoMaterial: string;
+  /** G1, G2 ou G3 — só no Reemprego. */
+  classificacao?: string | null;
   tampao?: boolean | null;
   metrosTotal: unknown;
   pesoCalculado?: unknown;
@@ -94,14 +96,21 @@ function renderGrupos(grupos: GrupoRomaneio[], remetido: boolean): string {
         })
         .join('');
       const tampao = remetido && g.tampao ? ' (Tampão)' : '';
+      // Reemprego mostra a classificação ao lado do material: REEMPREGO G1 / G2 / G3.
+      const material =
+        g.tipoMaterial === 'REEMPREGO' && g.classificacao
+          ? `${texto(g.tipoMaterial)} ${escaparHtml(g.classificacao)}`
+          : texto(g.tipoMaterial);
+      // Diversos (TOCO): sem medição — só o peso, informado depois da pesagem.
+      const diversos = g.perfil === 'TOCO';
       return `
             <tr>
               <td class="c">${i + 1}</td>
               <td>${texto(g.perfil)}${tampao}</td>
-              <td>${texto(g.tipoMaterial)}</td>
-              <td class="medidas">${medidas}</td>
-              <td class="n">${pecasDoGrupo(g.medicoes)}</td>
-              <td class="n">${fmtMetros(g.metrosTotal)}</td>
+              <td>${material}</td>
+              <td class="medidas">${diversos ? '<span class="nota">Diversos — sem medição, só o peso (pesagem)</span>' : medidas}</td>
+              <td class="n">${diversos ? '-' : pecasDoGrupo(g.medicoes)}</td>
+              <td class="n">${diversos ? '-' : fmtMetros(g.metrosTotal)}</td>
             </tr>`;
     })
     .join('');

@@ -10,11 +10,15 @@ export async function excluirMovimentacaoAction(id: string): Promise<{ ok: boole
   const sessao = await requireAdmin();
   if (sessao.role !== 'DONO') return { ok: false, erro: 'Só o dono do sistema pode excluir movimentações.' };
   try {
-    const { rotulo, tipo } = await excluirMovimentacao(id);
-    await registrarAuditoria(sessao, 'Exclusão de movimentação', `${tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'} ${rotulo}`);
+    const { rotulo, tipo } = await excluirMovimentacao(id, sessao);
+    await registrarAuditoria(sessao, 'Exclusão de movimentação', `${tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'} ${rotulo} (vai para a lixeira)`);
   } catch (e) {
     if (e instanceof ErroRegraNegocio) return { ok: false, erro: e.message };
-    return { ok: false, erro: 'Não foi possível excluir. Tente de novo.' };
+    console.error('Falha ao excluir movimentação', e);
+    return {
+      ok: false,
+      erro: 'Não foi possível excluir. Nada foi apagado. Se isso continuar, as migrações do banco (lixeira) podem estar pendentes.',
+    };
   }
   revalidatePath('/admin', 'layout');
   return { ok: true };

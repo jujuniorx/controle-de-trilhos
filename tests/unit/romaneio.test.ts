@@ -113,6 +113,23 @@ describe('romaneio — HTML imprimível', () => {
     expect(htmlRomaneioRemetido(movBase({ destino: 'ponta Grossa' }), null)).toContain('PONTA GROSSA');
   });
 
+  it('reemprego mostra a classificação G1/G2/G3 ao lado do material', () => {
+    const mov = movBase();
+    mov.grupos[0].tipoMaterial = 'REEMPREGO';
+    mov.grupos[0].classificacao = 'G2';
+    expect(htmlRomaneioRecebimento(mov, null)).toContain('REEMPREGO G2');
+    expect(htmlRomaneioRemetido(mov, null)).toContain('REEMPREGO G2');
+  });
+
+  it('Diversos (TOCO) não tem medição: mostra "-" em barras e metros', () => {
+    const mov = movBase();
+    mov.grupos[0] = { ...mov.grupos[0], perfil: 'TOCO', tipoMaterial: 'SUCATA', medicoes: [], metrosTotal: new Decimal('0') };
+    const html = htmlRomaneioRemetido(mov, null);
+    expect(html).toContain('TOCO');
+    expect(html).toContain('Diversos — sem medição');
+    expect(html).toContain('<td class="n">-</td>');
+  });
+
   it('não tem área de assinaturas (Pátio/Administrativo)', () => {
     for (const html of [htmlRomaneioRecebimento(movBase(), null), htmlRomaneioRemetido(movBase(), null)]) {
       expect(html).not.toContain('signature');

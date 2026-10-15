@@ -5,7 +5,18 @@ import { useRouter } from 'next/navigation';
 import { informarPesoGrupoAction } from './actions';
 import { PESO_MAX_GRUPO_T, MSG_PESO_UNIDADE } from '@/lib/validation/remetido';
 
-export function PesoGrupoPainel({ grupoId, pesoEstimado, label }: { grupoId: string; pesoEstimado: number; label: string }) {
+export function PesoGrupoPainel({
+  grupoId,
+  pesoEstimado,
+  label,
+  pesagem = false,
+}: {
+  grupoId: string;
+  pesoEstimado: number;
+  label: string;
+  /** Diversos: o peso vem da pesagem do caminhão, não da nota fiscal. */
+  pesagem?: boolean;
+}) {
   const router = useRouter();
   const [pesoTexto, setPesoTexto] = useState(pesoEstimado > 0 ? String(pesoEstimado).replace('.', ',') : '');
   const [erro, setErro] = useState('');
@@ -34,7 +45,7 @@ export function PesoGrupoPainel({ grupoId, pesoEstimado, label }: { grupoId: str
 
   return (
     <div className="conf-block mt-2 !p-2">
-      <p className="text-xs font-medium text-warn">{label} — peso da NF a confirmar</p>
+      <p className="text-xs font-medium text-warn">{label} — {pesagem ? 'peso real da pesagem' : 'peso da NF a confirmar'}</p>
       <div className="mt-1 flex items-center gap-2">
         <input
           className="h-9 w-28 text-sm"
@@ -47,7 +58,7 @@ export function PesoGrupoPainel({ grupoId, pesoEstimado, label }: { grupoId: str
         />
         <span className="text-sm text-ink-muted">t</span>
         <button className="btn btn-primary btn-sm h-9" disabled={salvando} onClick={salvar}>
-          {salvando ? 'Salvando...' : 'Confirmar peso da NF'}
+          {salvando ? 'Salvando...' : pesagem ? 'Salvar peso da pesagem' : 'Confirmar peso da NF'}
         </button>
       </div>
       {erro && <p className="mt-1 text-sm text-bad">{erro}</p>}

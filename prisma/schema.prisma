@@ -51,6 +51,9 @@ enum PerfilTrilho {
   TR57
   TR60
   TR68
+  // "Diversos" do Remetido: tocos de sucata pesados juntos, sem medição — só o peso
+  // (informado pelo Administrativo na pesagem). Só existe em grupos de SUCATA do Remetido.
+  TOCO
 }
 
 enum TipoMaterial {
@@ -217,6 +220,22 @@ model LogAuditoria {
   criadoEm    DateTime @default(now())
 
   @@index([criadoEm])
+}
+
+// Lixeira: cópia completa (JSON) de uma movimentação no momento em que o dono a exclui.
+// Permite restaurar com tudo (grupos, medições, anexos, histórico) pela tela /admin/lixeira.
+model MovimentacaoExcluida {
+  id              String           @id @default(cuid())
+  movimentacaoId  String
+  tipo            TipoMovimentacao
+  rotulo          String
+  dados           Json
+  excluidoPorId   String?
+  excluidoPorNome String
+  excluidoEm      DateTime         @default(now())
+  restauradoEm    DateTime?
+
+  @@index([excluidoEm])
 }
 
 model HistoricoAlteracao {

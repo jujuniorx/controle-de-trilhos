@@ -12,6 +12,7 @@ export const NAV_ITEMS = [
 /** Itens extras, só para o DONO. */
 export const NAV_ITEMS_DONO = [
   { href: '/admin/usuarios', label: 'Usuários' },
+  { href: '/admin/lixeira', label: 'Lixeira' },
   { href: '/admin/auditoria', label: 'Auditoria' },
 ] as const;
 
@@ -32,6 +33,11 @@ const ICONES_NAV: Record<string, ReactNode> = {
     <svg width="18" height="18" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
       <circle cx="9" cy="8" r="3.5" />
       <path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M17 11a3 3 0 1 0 0-6M18.5 14.7c1.6.7 2.7 2.2 3 4.3" />
+    </svg>
+  ),
+  '/admin/lixeira': (
+    <svg width="18" height="18" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
+      <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" />
     </svg>
   ),
   '/admin/auditoria': (

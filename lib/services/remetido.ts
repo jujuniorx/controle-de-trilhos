@@ -6,7 +6,7 @@ import { arredondar3 } from '@/lib/domain/regras';
 import { normalizarLocal } from '@/lib/domain/local';
 import { ErroRegraNegocio } from '@/lib/services/errors';
 import { MARCA_LABEL } from '@/lib/validation/recebimento';
-import { PESO_MAX_GRUPO_T, MSG_PESO_UNIDADE } from '@/lib/validation/remetido';
+import { PESO_MAX_GRUPO_T, MSG_PESO_UNIDADE, PERFIL_TOCO } from '@/lib/validation/remetido';
 import type {
   PreCadastroRemetidoInput,
   ConfirmacaoRemetidoInput,
@@ -68,6 +68,8 @@ async function criarGruposEMedicoes(
   tx: Prisma.TransactionClient,
   movimentacaoId: string,
   grupos: GrupoRemetidoInput[],
+  /** clientId do grupo -> peso (t) já informado pelo Administrativo; usado ao editar para não perder o peso. */
+  pesosPreservados: Map<string, number> = new Map(),
 ): Promise<void> {
   for (const grupo of grupos) {
     const metrosPorMedicao = grupo.medicoes.map((m) => calcularMetros(m.quantidade, m.comprimento));
@@ -75,7 +77,10 @@ async function criarGruposEMedicoes(
     // Sem peso da NF informado pelo Pátio: estimativa provisória, mesma fórmula
     // do Reemprego (metros x fator do perfil) — sinalizada "a confirmar" na
     // Conferência enquanto pesoInformado continuar nulo.
-    const pesoCalculado = grupo.pesoInformado == null ? await calcularPesoEstimado(metrosTotal, grupo.perfil) : null;
+    const pesoInformado = grupo.pesoInformado ?? pesosPreservados.get(grupo.clientId) ?? null;
+    // Diversos (TOCO) não tem medição nem fator: o peso só existe depois da pesagem (Administrativo).
+    const pesoCalculado =
+      pesoInformado != null || grupo.perfil === PERFIL_TOCO ? null : await calcularPesoEstimado(metrosTotal, grupo.perfil);
 
     const grupoCriado = await tx.grupo.create({
       data: {
@@ -88,7 +93,7 @@ async function criarGruposEMedicoes(
         fabricante: grupo.tipoMaterial === 'NOVO' ? resolverFabricante(grupo) : null,
         metrosTotal,
         pesoCalculado,
-        pesoInformado: grupo.pesoInformado ?? null,
+        pesoInformado,
       },
     });
 
@@ -429,6 +434,14 @@ export async function atualizarRemetido(
     // Grupos/medições são recriados do zero a cada edição (mesmo padrão dos
     // dois fluxos de criação) — mais simples e seguro do que tentar diferenciar
     // e atualizar grupo a grupo, e evita qualquer resíduo de medição removida.
+    // O peso que o Administrativo já informou (pesagem/NF) não pode sumir numa edição:
+    // guarda por clientId do grupo e reaplica nos grupos recriados.
+    const gruposAntigos = await tx.grupo.findMany({ where: { movimentacaoId } });
+    const pesosPreservados = new Map<string, number>();
+    for (const g of gruposAntigos) {
+      if (g.pesoInformado != null) pesosPreservados.set(g.clientId, Number(g.pesoInformado));
+    }
+
     await tx.medicao.deleteMany({ where: { grupo: { movimentacaoId } } });
     await tx.grupo.deleteMany({ where: { movimentacaoId } });
 
@@ -454,7 +467,7 @@ export async function atualizarRemetido(
       update: { tipoRemetido: input.tipoRemetido ?? null },
     });
 
-    await criarGruposEMedicoes(tx, movimentacaoId, input.grupos);
+    await criarGruposEMedicoes(tx, movimentacaoId, input.grupos, pesosPreservados);
 
     return tx.movimentacao.findUniqueOrThrow({
       where: { id: movimentacaoId },

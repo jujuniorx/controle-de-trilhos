@@ -128,7 +128,8 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
                   <div className="grupo-header">
                     <div className="grupo-header-left">
                       <span className="grupo-title">
-                        Grupo {i + 1} — {g.perfil} — {g.tipoMaterial}
+                        Grupo {i + 1} — {g.perfil === 'TOCO' ? 'TOCO (Diversos)' : g.perfil} — {g.tipoMaterial}
+                        {g.tipoMaterial === 'REEMPREGO' && g.classificacao ? ` ${g.classificacao}` : ''}
                         {g.tampao ? ' (Tampão)' : ''}
                       </span>
                       <span className="grupo-meta">
@@ -137,11 +138,21 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
                         {g.tipoMaterial === 'SUCATA' && (
                           <>Classificações: {[...new Set(g.medicoes.map((m) => m.classificacaoSC).filter(Boolean))].join(', ')} · </>
                         )}
-                        {pecasDoGrupo(g.medicoes)} {pecasDoGrupo(g.medicoes) === 1 ? 'barra' : 'barras'} · {fmtMetros(g.metrosTotal)} m
+                        {g.perfil === 'TOCO' ? (
+                          <>Sem medição — só o peso</>
+                        ) : (
+                          <>
+                            {pecasDoGrupo(g.medicoes)} {pecasDoGrupo(g.medicoes) === 1 ? 'barra' : 'barras'} · {fmtMetros(g.metrosTotal)} m
+                          </>
+                        )}
                       </span>
                     </div>
                     {g.pesoInformado != null ? (
                       <span className="whitespace-nowrap font-mono font-semibold text-ink">{fmtPeso(Number(g.pesoInformado))} t</span>
+                    ) : g.perfil === 'TOCO' ? (
+                      <span className="whitespace-nowrap text-right font-mono font-semibold text-warn">
+                        - <span className="text-xs font-normal">(aguardando pesagem)</span>
+                      </span>
                     ) : (
                       <span className="whitespace-nowrap text-right font-mono font-semibold text-warn">
                         {fmtPeso(Number(g.pesoCalculado ?? 0))} t <span className="text-xs font-normal">(estimado, a confirmar)</span>
@@ -159,6 +170,7 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
                     grupoId={g.id}
                     pesoEstimado={Number(g.pesoCalculado ?? 0)}
                     label={`Grupo ${i + 1} — ${g.perfil} — ${g.tipoMaterial}`}
+                    pesagem={g.perfil === 'TOCO'}
                   />
                 ))}
             </div>
@@ -175,6 +187,7 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
                   </p>
                   <div className="grupo-card">
                     <div className="grupo-body !border-t-0 !pt-2">
+                      {g.perfil === 'TOCO' && <p className="text-sm text-ink-muted">Diversos — sem medição.</p>}
                       {g.medicoes.map((m, k) => (
                         <div key={m.id} className="medicao-row">
                           <span>
