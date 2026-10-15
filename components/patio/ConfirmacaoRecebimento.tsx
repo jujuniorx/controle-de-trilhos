@@ -18,7 +18,9 @@ function metrosDoGrupo(medicoes: { quantidade: number; comprimento: number }[]):
 function mensagemStatus(status: SyncStatus, erro?: string): string {
   switch (status) {
     case 'PENDENTE':
-      return 'Salvo neste dispositivo — aguardando conexão para sincronizar com o servidor.';
+      return erro
+        ? `Salvo neste dispositivo. O servidor não aceitou ainda e vai tentar de novo (${erro}).`
+        : 'Salvo neste dispositivo — aguardando conexão para sincronizar com o servidor.';
     case 'SINCRONIZANDO':
       return 'Salvo neste dispositivo, sincronizando...';
     case 'SINCRONIZADO':

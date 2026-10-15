@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { validarAcessoPatio } from '@/lib/services/patioAcesso';
 import { recebimentoCaminhaoSchema } from '@/lib/validation/recebimento';
 import { criarRecebimentoCaminhao } from '@/lib/services/movimentacao';
-import { ErroRegraNegocio } from '@/lib/services/errors';
+import { ErroRegraNegocio, resumirErro } from '@/lib/services/errors';
 
 /**
  * Recebe um Recebimento capturado offline (fila Dexie) e o persiste.
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     // vazaria detalhes internos do Prisma/schema.
     console.error('[POST /api/sync] falha ao criar recebimento', erro);
     return NextResponse.json(
-      { ok: false, erro: 'Falha temporária ao sincronizar. Tentaremos novamente.' },
+      { ok: false, erro: 'Falha temporária ao sincronizar. Tentaremos novamente.', detalhe: resumirErro(erro) },
       { status: 503 },
     );
   }

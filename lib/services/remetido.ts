@@ -97,19 +97,18 @@ async function criarGruposEMedicoes(
       },
     });
 
-    for (const [i, medicao] of grupo.medicoes.entries()) {
-      await tx.medicao.create({
-        data: {
-          clientId: medicao.clientId,
-          grupoId: grupoCriado.id,
-          modo: medicao.modo,
-          quantidade: medicao.quantidade,
-          comprimento: medicao.comprimento,
-          metros: metrosPorMedicao[i],
-          classificacaoSC: grupo.tipoMaterial === 'SUCATA' ? medicao.classificacaoSC : null,
-        },
-      });
-    }
+    // Uma ida só ao banco por grupo: evita estourar o limite de 5 s da transação em cargas grandes.
+    await tx.medicao.createMany({
+      data: grupo.medicoes.map((medicao, i) => ({
+        clientId: medicao.clientId,
+        grupoId: grupoCriado.id,
+        modo: medicao.modo,
+        quantidade: medicao.quantidade,
+        comprimento: medicao.comprimento,
+        metros: metrosPorMedicao[i],
+        classificacaoSC: grupo.tipoMaterial === 'SUCATA' ? medicao.classificacaoSC : null,
+      })),
+    });
   }
 }
 

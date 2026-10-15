@@ -6,6 +6,9 @@ export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
     errorFormat: 'pretty',
+    // O padrão (5 s) estoura em cargas grandes no banco remoto; transação que estoura volta atrás e o
+    // recebimento nunca salva. 30 s dá folga sem prender conexões.
+    transactionOptions: { timeout: 30_000, maxWait: 10_000 },
   });
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;

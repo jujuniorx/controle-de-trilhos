@@ -12,6 +12,7 @@ interface RespostaSync {
   ok?: boolean;
   id?: string;
   erro?: string;
+  detalhe?: string;
 }
 
 // Teto para uma tentativa "em voo": se um registro ficou em SINCRONIZANDO por mais
@@ -88,9 +89,10 @@ async function sincronizarFila(tabela: TabelaFila, url: string, fetchImpl: typeo
       } else if (ehFalhaRecuperavel(resposta.status)) {
         // Mesmo tratamento de uma falha de rede: continua na fila, sem marcar erro
         // para o operador — não há nada que ele possa fazer, e vai ser reenviado.
+        // O motivo (quando o servidor informa) fica guardado só para mostrar na tela de confirmação.
         await tabela.update(registro.clientId, {
           syncStatus: 'PENDENTE',
-          erro: undefined,
+          erro: corpo.detalhe,
           syncIniciadoEm: undefined,
         });
       } else {

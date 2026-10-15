@@ -18,3 +18,17 @@ export class ErroRegraNegocio extends Error {
     this.name = 'ErroRegraNegocio';
   }
 }
+
+/**
+ * Resumo curto e seguro de uma exceção inesperada (código do Prisma ou nome + 1ª linha, sem SQL
+ * nem dados). Vai na resposta 503 do sync para o tablet mostrar o motivo real em vez de ficar
+ * "carregando" sem explicação.
+ */
+export function resumirErro(erro: unknown): string {
+  if (!(erro instanceof Error)) return 'erro desconhecido';
+  const codigo = (erro as { code?: unknown }).code;
+  const linhas = erro.message.split('\n').map((l) => l.trim()).filter(Boolean);
+  const ultima = linhas[linhas.length - 1] ?? '';
+  const texto = `${typeof codigo === 'string' ? codigo : erro.name}: ${ultima}`;
+  return texto.length > 160 ? `${texto.slice(0, 157)}...` : texto;
+}

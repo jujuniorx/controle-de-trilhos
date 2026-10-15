@@ -140,26 +140,26 @@ export async function criarRecebimentoCaminhao(input: RecebimentoCaminhaoInput) 
         },
       });
 
-      for (const medicao of grupo.medicoes) {
-        await tx.medicao.create({
-          data: {
-            clientId: medicao.clientId,
-            grupoId: grupoCriado.id,
-            modo: medicao.modo,
-            quantidade: medicao.quantidade,
-            comprimento: medicao.comprimento,
-            metros: medicao.metros,
-            classificacaoSC: medicao.classificacaoSC,
-          },
-        });
-      }
+      // Uma ida só ao banco por grupo (antes era uma por medição): num caminhão grande, as idas
+      // somadas estouravam o limite de 5 s da transação e o recebimento nunca chegava a salvar.
+      await tx.medicao.createMany({
+        data: grupo.medicoes.map((medicao) => ({
+          clientId: medicao.clientId,
+          grupoId: grupoCriado.id,
+          modo: medicao.modo,
+          quantidade: medicao.quantidade,
+          comprimento: medicao.comprimento,
+          metros: medicao.metros,
+          classificacaoSC: medicao.classificacaoSC,
+        })),
+      });
     }
 
     return tx.movimentacao.findUniqueOrThrow({
       where: { id: mov.id },
       include: { grupos: { include: { medicoes: true } } },
     });
-  });
+  }, { timeout: 30_000, maxWait: 10_000 });
 
   await registrarHistorico({
     movimentacaoId: movimentacao.id,

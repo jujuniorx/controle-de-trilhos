@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { validarAcessoPatio } from '@/lib/services/patioAcesso';
 import { preCadastroSyncSchema } from '@/lib/validation/remetido';
 import { criarPreCadastroRemetido } from '@/lib/services/remetido';
-import { ErroRegraNegocio } from '@/lib/services/errors';
+import { ErroRegraNegocio, resumirErro } from '@/lib/services/errors';
 
 /**
  * Recebe um pré-cadastro de remetido ("aguardando chegada") capturado no Pátio —
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
     console.error('[POST /api/sync/pre-cadastro] falha ao criar pré-cadastro', erro);
     return NextResponse.json(
-      { ok: false, erro: 'Falha temporária ao sincronizar. Tentaremos novamente.' },
+      { ok: false, erro: 'Falha temporária ao sincronizar. Tentaremos novamente.', detalhe: resumirErro(erro) },
       { status: 503 },
     );
   }
