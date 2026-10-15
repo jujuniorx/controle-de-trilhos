@@ -13,7 +13,8 @@ function fmtData(d: Date | null): string {
 }
 
 function fmtDataHora(d: Date): string {
-  return d.toLocaleString('pt-BR');
+  // Instante real (não só data): sempre no fuso de Brasília, não no do servidor (UTC).
+  return d.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 }
 
 const ACAO_LABEL: Record<string, string> = {

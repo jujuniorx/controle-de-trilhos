@@ -21,7 +21,7 @@ const TIPO_REMETIDO_LABEL: Record<string, string> = {
 };
 
 function fmtHora(d: Date | null): string {
-  return d ? d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) : '—';
+  return d ? d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }) : '—';
 }
 
 export default async function RemetidosAguardandoPage({
