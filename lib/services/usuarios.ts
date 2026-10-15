@@ -17,7 +17,7 @@ export async function criarUsuario(dados: NovoUsuarioInput): Promise<{ id: strin
   });
   if (existente) throw new ErroRegraNegocio('Já existe uma conta com esse usuário.');
   const user = await prisma.user.create({
-    data: { nome: dados.nome, username: dados.username, email, senhaHash: await hashSegredo(dados.senha) },
+    data: { nome: dados.nome, username: dados.username, email, senhaHash: await hashSegredo(dados.senha), role: dados.perfil },
   });
   return { id: user.id, nome: user.nome };
 }

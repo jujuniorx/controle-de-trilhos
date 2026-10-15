@@ -17,7 +17,7 @@ export default async function UsuariosPage() {
     <main className="mx-auto max-w-5xl space-y-6 p-4 md:p-6">
       <div>
         <h1 className="font-condensed text-2xl font-bold uppercase tracking-wide text-ink">Usuários</h1>
-        <p className="text-sm text-ink-muted">Quem pode entrar no Administrativo. Só você enxerga esta página.</p>
+        <p className="text-sm text-ink-muted">Quem pode entrar no Administrativo e na Portaria. Só você enxerga esta página.</p>
       </div>
 
       <NovoUsuarioForm />
@@ -38,6 +38,7 @@ export default async function UsuariosPage() {
               <tr key={u.id}>
                 <td data-label="Nome" className="p-3 font-semibold">
                   {u.nome} {u.role === 'DONO' && <span className="badge badge-muted ml-1">Dono</span>}
+                  {u.role === 'PORTARIA' && <span className="badge badge-muted ml-1">Portaria</span>}
                 </td>
                 <td data-label="Usuário" className="p-3 font-mono">{u.username ?? u.email}</td>
                 <td data-label="Situação" className="p-3">

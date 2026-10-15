@@ -84,6 +84,8 @@ enum Role {
   ADMIN
   // Dono do sistema: além do que o ADMIN faz, gerencia usuários, exclui movimentações e vê a auditoria.
   DONO
+  // Portaria: só vê e preenche os dados do motorista/caminhão e libera a carreta. Nunca entra no Administrativo.
+  PORTARIA
 }
 
 model User {
@@ -148,6 +150,18 @@ model Movimentacao {
   conferidoPorId   String?
   conferidoEm      DateTime?
   pesoSucataReal   Decimal?
+
+  // Portaria (só Remetido): dados do motorista/caminhão preenchidos na chegada.
+  motoristaNome      String?
+  motoristaCpf       String?
+  motoristaTelefone  String?
+  capacidadeCarga    Decimal? // toneladas
+  materialPrevisto   String?
+  // O Pátio marca que terminou de medir (só falta a carreta chegar).
+  medicaoConcluidaEm DateTime?
+  // A Portaria libera a carreta para carregar/descarregar — dispara o aviso no Pátio.
+  carretaLiberadaEm  DateTime?
+  carretaLiberadaPor String?
 
   remetidoDetalhe RemetidoDetalhe?
   grupos          Grupo[]
@@ -249,4 +263,14 @@ model HistoricoAlteracao {
   valorAntigo    String?
   valorNovo      String?
   timestamp      DateTime     @default(now())
+}
+
+// Aparelhos do Pátio que aceitaram receber avisos (web push). O Pátio não tem usuário, então
+// a inscrição é só do aparelho (endpoint único).
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
 }

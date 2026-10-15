@@ -33,7 +33,7 @@ export async function criarSessao(userId: string): Promise<{ token: string; expi
 
 export async function validarSessao(
   token: string,
-): Promise<{ userId: string; nome: string; role: 'ADMIN' | 'DONO' } | null> {
+): Promise<{ userId: string; nome: string; role: 'ADMIN' | 'DONO' | 'PORTARIA' } | null> {
   const session = await prisma.session.findUnique({
     where: { tokenHash: hashToken(token) },
     include: { user: { select: { nome: true, role: true, ativo: true } } },

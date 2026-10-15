@@ -30,6 +30,7 @@ export async function criarUsuarioAction(_e: EstadoUsuarios, formData: FormData)
       nome: String(formData.get('nome') ?? ''),
       username: String(formData.get('username') ?? ''),
       senha: String(formData.get('senha') ?? ''),
+      perfil: String(formData.get('perfil') || 'ADMIN'),
     });
     if (!parsed.success) return { erro: parsed.error.issues[0]?.message ?? 'Dados inválidos.' };
     const criado = await criarUsuario(parsed.data);

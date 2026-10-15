@@ -6,6 +6,8 @@ export async function requireAdmin(): Promise<{ userId: string; nome: string; ro
   const token = (await cookies()).get('sessao_admin')?.value;
   const sessao = token ? await validarSessao(token) : null;
   if (!sessao) redirect('/admin/login');
+  // A Portaria usa a mesma conta/login, mas nunca entra no Administrativo.
+  if (sessao.role === 'PORTARIA') redirect('/portaria');
   return sessao;
 }
 

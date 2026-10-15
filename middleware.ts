@@ -26,6 +26,12 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  if (pathname.startsWith('/portaria') && pathname !== '/portaria/login') {
+    if (!request.cookies.get('sessao_admin')) {
+      return NextResponse.redirect(new URL('/portaria/login', request.url));
+    }
+  }
+
   if (pathname.startsWith('/patio') && pathname !== '/patio/acesso') {
     if (!request.cookies.get('acesso_patio')) {
       return NextResponse.redirect(new URL('/patio/acesso', request.url));

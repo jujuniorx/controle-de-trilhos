@@ -194,3 +194,42 @@ self.addEventListener('message', (event) => {
   if (!event.data || event.data.tipo !== 'aquecer-patio' || !Array.isArray(event.data.urls)) return;
   event.waitUntil(aquecerPatio(event.data.urls));
 });
+
+// ── Avisos (push) ────────────────────────────────────────────────────────────
+// A Portaria libera a carreta → o servidor manda um aviso para o tablet do Pátio.
+self.addEventListener('push', (event) => {
+  let aviso = { titulo: 'Controle de Trilhos', corpo: '', url: '/patio/remetidos' };
+  try {
+    if (event.data) aviso = { ...aviso, ...event.data.json() };
+  } catch {
+    // aviso sem corpo legível: mostra o padrão
+  }
+  event.waitUntil(
+    self.registration.showNotification(aviso.titulo, {
+      body: aviso.corpo,
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      tag: 'carreta-liberada',
+      renotify: true,
+      requireInteraction: true,
+      data: { url: aviso.url },
+    }),
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const destino = new URL((event.notification.data && event.notification.data.url) || '/patio/remetidos', self.location.origin);
+  // Só abre telas do próprio sistema (nunca um endereço vindo de fora).
+  const url = destino.origin === self.location.origin ? destino.href : self.location.origin + '/patio/remetidos';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((janelas) => {
+      for (const janela of janelas) {
+        if (janela.url.startsWith(self.location.origin) && 'focus' in janela) {
+          return janela.focus().then((j) => ('navigate' in j ? j.navigate(url) : j));
+        }
+      }
+      return self.clients.openWindow(url);
+    }),
+  );
+});

@@ -14,6 +14,8 @@ export const novoUsuarioSchema = z.object({
     .toLowerCase()
     .regex(/^[a-z0-9._-]{3,30}$/, 'Usuário: 3 a 30 caracteres, só letras minúsculas, números, ponto, hífen ou _.'),
   senha,
+  // Quem cria a conta escolhe: Administrativo (padrão) ou Portaria.
+  perfil: z.enum(['ADMIN', 'PORTARIA']).default('ADMIN'),
 });
 
 export const novaSenhaSchema = z.object({ senha });

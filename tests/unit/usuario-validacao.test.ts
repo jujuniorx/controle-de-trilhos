@@ -4,7 +4,7 @@ import { novoUsuarioSchema, novaSenhaSchema } from '@/lib/validation/usuario';
 describe('novoUsuarioSchema', () => {
   it('normaliza o usuário para minúsculas e aceita dados válidos', () => {
     const r = novoUsuarioSchema.parse({ nome: ' Ana ', username: 'Ana.Silva', senha: 'abcdefg1' });
-    expect(r).toEqual({ nome: 'Ana', username: 'ana.silva', senha: 'abcdefg1' });
+    expect(r).toEqual({ nome: 'Ana', username: 'ana.silva', senha: 'abcdefg1', perfil: 'ADMIN' });
   });
   it('recusa usuário com espaço ou muito curto', () => {
     expect(novoUsuarioSchema.safeParse({ nome: 'Ana', username: 'a b', senha: 'abcdefg1' }).success).toBe(false);

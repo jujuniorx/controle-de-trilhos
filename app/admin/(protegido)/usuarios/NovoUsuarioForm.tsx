@@ -8,7 +8,7 @@ export function NovoUsuarioForm() {
   return (
     <form action={formAction} className="card space-y-3 p-4">
       <h2 className="card-title">Nova conta</h2>
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="field">
           <label htmlFor="nome">Nome *</label>
           <input id="nome" name="nome" required className="h-12" autoComplete="off" />
@@ -20,6 +20,13 @@ export function NovoUsuarioForm() {
         <div className="field">
           <label htmlFor="senha">Senha inicial *</label>
           <input id="senha" name="senha" type="text" required className="h-12" autoComplete="off" />
+        </div>
+        <div className="field">
+          <label htmlFor="perfil">Tipo de conta</label>
+          <select id="perfil" name="perfil" defaultValue="ADMIN" className="h-12">
+            <option value="ADMIN">Administrativo</option>
+            <option value="PORTARIA">Portaria (só libera carretas)</option>
+          </select>
         </div>
       </div>
       <p className="hint">Senha com ao menos 8 caracteres, uma letra e um número. A pessoa pode trocá-la depois.</p>

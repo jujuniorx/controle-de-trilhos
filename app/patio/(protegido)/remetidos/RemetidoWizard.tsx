@@ -152,7 +152,13 @@ export interface ValoresIniciaisEdicao {
 
 type Props =
   | { modo: 'novo' }
-  | { modo: 'confirmar'; movimentacaoId: string; numeroDocumentoPreCadastrado: string | null }
+  | {
+      modo: 'confirmar';
+      movimentacaoId: string;
+      numeroDocumentoPreCadastrado: string | null;
+      /** O que a Portaria já preencheu: entra nos campos vazios (nunca sobrescreve o que o Pátio digitou). */
+      dadosPortaria?: { placaCavalo: string; placaCarreta: string; transportadora: string };
+    }
   | { modo: 'editar'; movimentacaoId: string; valoresIniciais: ValoresIniciaisEdicao };
 
 // Rascunho do modo "confirmar": o Pátio vai medindo os trilhos ANTES da carreta
@@ -219,21 +225,39 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
         ? { tipoRemetido: props.valoresIniciais.tipoRemetido, reservaPedido: props.valoresIniciais.reservaPedido, destino: props.valoresIniciais.destino }
         : { tipoRemetido: '', reservaPedido: '', destino: '' },
   );
+  const dadosPortaria = props.modo === 'confirmar' ? props.dadosPortaria : undefined;
   const [dadosBrutos, setDados] = useState<Dados>(
     rascunhoInicial
-      ? rascunhoInicial.dados
+      ? {
+          ...rascunhoInicial.dados,
+          placaCavalo: rascunhoInicial.dados.placaCavalo || dadosPortaria?.placaCavalo || '',
+          placaCarreta: rascunhoInicial.dados.placaCarreta || dadosPortaria?.placaCarreta || '',
+          transportadora: rascunhoInicial.dados.transportadora || dadosPortaria?.transportadora || '',
+        }
       : props.modo === 'editar'
         ? props.valoresIniciais.dados
         : {
             data: '',
             numeroDocumento: numeroDocumentoPreCadastrado ?? '',
-            placaCavalo: '',
-            placaCarreta: '',
+            placaCavalo: dadosPortaria?.placaCavalo ?? '',
+            placaCarreta: dadosPortaria?.placaCarreta ?? '',
             placaCarreta2: '',
-            transportadora: '',
+            transportadora: dadosPortaria?.transportadora ?? '',
             responsavelPatio: '',
           },
   );
+  // A Portaria pode preencher enquanto esta tela já está aberta: entra só nos campos ainda vazios.
+  const portariaCavalo = dadosPortaria?.placaCavalo ?? '';
+  const portariaCarreta = dadosPortaria?.placaCarreta ?? '';
+  const portariaTransportadora = dadosPortaria?.transportadora ?? '';
+  useEffect(() => {
+    setDados((atual) => ({
+      ...atual,
+      placaCavalo: atual.placaCavalo || portariaCavalo,
+      placaCarreta: atual.placaCarreta || portariaCarreta,
+      transportadora: atual.transportadora || portariaTransportadora,
+    }));
+  }, [portariaCavalo, portariaCarreta, portariaTransportadora]);
   const [mostrarCarreta2, setMostrarCarreta2] = useState(
     rascunhoInicial ? Boolean(rascunhoInicial.dados.placaCarreta2) : props.modo === 'editar' && Boolean(props.valoresIniciais.dados.placaCarreta2)
   );

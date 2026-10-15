@@ -4,6 +4,10 @@ import { normalizarLocal } from '@/lib/domain/local';
 import { PreCadastrosPendentes } from './PreCadastrosPendentes';
 import { AvisoSucesso } from '@/components/ui/AvisoSucesso';
 import { EstadoVazio } from '@/components/ui/EstadoVazio';
+import { AtualizarAuto } from '@/components/AtualizarAuto';
+import { AtivarAvisos } from '@/components/patio/AtivarAvisos';
+import { chavePublicaPush } from '@/lib/services/push';
+import { estadoPortaria } from '@/lib/domain/portaria';
 
 const MENSAGEM_SALVO: Record<string, string> = {
   cadastro: 'Remetido cadastrado!',
@@ -27,11 +31,14 @@ export default async function RemetidosAguardandoPage({
 }) {
   const salvo = (await searchParams).salvo;
   const mensagem = typeof salvo === 'string' ? MENSAGEM_SALVO[salvo] : undefined;
-  const remetidos = await listarAguardandoChegada();
+  const remetidos = (await listarAguardandoChegada()).sort(
+    (a, b) => Number(estadoPortaria(b) === 'LIBERADA') - Number(estadoPortaria(a) === 'LIBERADA'),
+  );
 
   return (
     <main className="mx-auto max-w-md lg:max-w-xl p-6">
       <AvisoSucesso mensagem={mensagem} />
+      <AtualizarAuto />
       <h1 className="font-condensed text-xl font-bold uppercase tracking-wide text-ink">Remetidos</h1>
 
       <Link href="/patio/remetidos/novo" className="btn btn-primary mt-4 h-12">
@@ -54,12 +61,15 @@ export default async function RemetidosAguardandoPage({
             </p>
             {r.numeroDocumento && <p className="text-sm text-ink-dim">NF {r.numeroDocumento}</p>}
             {r.createdAt && <p className="text-xs text-ink-muted">Enviado às {fmtHora(r.createdAt)}</p>}
+            {estadoPortaria(r) === 'LIBERADA' && <span className="badge badge-ok mt-1">Carreta liberada — pode carregar</span>}
+            {estadoPortaria(r) === 'AGUARDANDO_CARRETA' && <span className="badge badge-warn mt-1">Medido — aguardando a carreta</span>}
           </Link>
         ))}
         {remetidos.length === 0 && (
           <EstadoVazio titulo="Nenhum remetido aguardando chegada" texto="Quando cadastrar um, ele aparece aqui." />
         )}
       </div>
+      <AtivarAvisos chavePublica={chavePublicaPush()} />
     </main>
   );
 }

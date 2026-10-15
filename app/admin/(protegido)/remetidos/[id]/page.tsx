@@ -52,6 +52,10 @@ const ACAO_LABEL: Record<string, string> = {
   EDICAO: 'Remetido editado pelo Administrativo',
   REABERTURA: 'Conferência reaberta',
   CONFERENCIA: 'Remetido conferido',
+  MEDICAO_CONCLUIDA: 'Pátio terminou de medir',
+  MEDICAO_REABERTA: 'Pátio voltou a medir',
+  PORTARIA_DADOS: 'Dados do motorista/caminhão salvos pela Portaria',
+  CARRETA_LIBERADA: 'Carreta liberada pela Portaria',
 };
 
 export default async function RemetidoDetalhePage({ params }: { params: Promise<{ id: string }> }) {
@@ -103,6 +107,15 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
           <div className="kv-item"><div className="kv-label">Cavalo</div><div className="kv-val font-mono">{mov.placaCavalo ?? '—'}</div></div>
           <div className="kv-item"><div className="kv-label">Transportadora</div><div className="kv-val">{mov.transportadora ?? '—'}</div></div>
           <div className="kv-item"><div className="kv-label">Responsável (Pátio)</div><div className="kv-val">{mov.responsavelPatio ?? '—'}</div></div>
+          {(mov.motoristaNome || mov.motoristaTelefone || mov.motoristaCpf) && (
+            <div className="kv-item"><div className="kv-label">Motorista (Portaria)</div><div className="kv-val">{[mov.motoristaNome, mov.motoristaTelefone, mov.motoristaCpf && `CPF ${mov.motoristaCpf}`].filter(Boolean).join(' · ')}</div></div>
+          )}
+          {mov.capacidadeCarga != null && (
+            <div className="kv-item"><div className="kv-label">Capacidade de carga</div><div className="kv-val">{Number(mov.capacidadeCarga).toLocaleString('pt-BR')} t</div></div>
+          )}
+          {mov.carretaLiberadaEm && (
+            <div className="kv-item"><div className="kv-label">Carreta liberada</div><div className="kv-val">{fmtDataHora(mov.carretaLiberadaEm)}{mov.carretaLiberadaPor ? ` · ${mov.carretaLiberadaPor}` : ''}</div></div>
+          )}
         </dl>
 
         {mov.status !== 'AGUARDANDO_CHEGADA' && mov.numeroDocumento == null && <NfPainel movimentacaoId={mov.id} />}

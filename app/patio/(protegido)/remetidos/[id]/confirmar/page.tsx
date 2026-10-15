@@ -1,7 +1,10 @@
 import { notFound, redirect } from 'next/navigation';
 import { buscarRemetidoDetalhe } from '@/lib/services/remetido';
 import { normalizarLocal } from '@/lib/domain/local';
+import { dadosPortariaDoRemetido } from '@/lib/services/portaria';
+import { AtualizarAuto } from '@/components/AtualizarAuto';
 import { RemetidoWizard } from '../../RemetidoWizard';
+import { PainelPortaria } from '../../PainelPortaria';
 
 const TIPO_REMETIDO_LABEL: Record<string, string> = {
   VENDA: 'Venda',
@@ -14,6 +17,7 @@ export default async function ConfirmarRemetidoPage({ params }: { params: Promis
   const remetido = await buscarRemetidoDetalhe(id);
   if (!remetido) notFound();
   if (remetido.status !== 'AGUARDANDO_CHEGADA') redirect('/patio/remetidos');
+  const portaria = await dadosPortariaDoRemetido(id);
 
   return (
     <main className="mx-auto max-w-md lg:max-w-xl p-4">
@@ -22,7 +26,19 @@ export default async function ConfirmarRemetidoPage({ params }: { params: Promis
         {TIPO_REMETIDO_LABEL[remetido.remetidoDetalhe?.tipoRemetido ?? ''] ?? '—'} · Destino: {normalizarLocal(remetido.destino)}
       </p>
 
-      <RemetidoWizard modo="confirmar" movimentacaoId={remetido.id} numeroDocumentoPreCadastrado={remetido.numeroDocumento} />
+      <AtualizarAuto segundos={15} />
+      {portaria && <PainelPortaria id={remetido.id} estado={portaria.estado} liberadaPor={portaria.carretaLiberadaPor} />}
+
+      <RemetidoWizard
+        modo="confirmar"
+        movimentacaoId={remetido.id}
+        numeroDocumentoPreCadastrado={remetido.numeroDocumento}
+        dadosPortaria={{
+          placaCavalo: portaria?.placaCavalo ?? '',
+          placaCarreta: portaria?.placaCarreta ?? '',
+          transportadora: portaria?.transportadora ?? '',
+        }}
+      />
     </main>
   );
 }
