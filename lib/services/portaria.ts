@@ -245,3 +245,49 @@ export async function buscarFichaPortaria(id: string) {
     observacao: m.observacaoPortaria,
   };
 }
+
+/**
+ * Portaria: a carreta chegou e o Pátio NÃO tinha cadastrado o envio antes. A Portaria cria o envio
+ * aqui mesmo, já com a chegada registrada. O Pátio recebe o aviso e depois confere as medidas
+ * (mesma tela de confirmação de sempre). Destino e ao menos uma placa são obrigatórios.
+ */
+export async function criarEnvioPelaPortaria(
+  dados: DadosPortaria & { destino: string },
+  atorNome: string,
+  atorId?: string,
+): Promise<string> {
+  const placa = dados.placaCarreta ?? dados.placaCavalo;
+  if (!dados.placaCavalo && !dados.placaCarreta) {
+    throw new ErroRegraNegocio('Informe ao menos uma placa (cavalo ou carreta) para registrar a chegada.');
+  }
+  const agora = new Date();
+  const mov = await prisma.movimentacao.create({
+    data: {
+      clientId: crypto.randomUUID(),
+      tipo: 'REMETIDO',
+      tipoDocumento: 'NF',
+      tipoTransporte: 'CAMINHAO',
+      status: 'AGUARDANDO_CHEGADA',
+      ...paraBanco(dados),
+      destino: normalizarLocal(dados.destino),
+      chegadaPortariaEm: agora,
+      chegadaPortariaPor: atorNome,
+      remetidoDetalhe: { create: { tipoRemetido: null } },
+    },
+    select: { id: true },
+  });
+
+  await registrarHistorico({ movimentacaoId: mov.id, usuarioId: atorId, usuarioNome: `${atorNome} (portaria)`, acao: 'PORTARIA_CRIOU_ENVIO' });
+  await registrarHistorico({ movimentacaoId: mov.id, usuarioId: atorId, usuarioNome: `${atorNome} (portaria)`, acao: 'CARRETA_CHEGOU' });
+
+  const destino = normalizarLocal(dados.destino);
+  await enviarAvisoPush(
+    {
+      titulo: 'Carreta chegou na Portaria (sem aviso antes)',
+      corpo: `${destino}${placa ? ` — placa ${placa}` : ''}. Pode carregar.`,
+      url: `/patio/remetidos/${mov.id}/confirmar`,
+    },
+    'PATIO',
+  );
+  return mov.id;
+}

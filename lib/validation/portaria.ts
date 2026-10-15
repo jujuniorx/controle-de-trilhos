@@ -68,3 +68,12 @@ export const dadosPortariaSchema = z.object({
 export type DadosPortaria = z.infer<typeof dadosPortariaSchema>;
 
 export const MSG_PRECISA_DE_PLACA = 'Informe ao menos uma placa (cavalo ou carreta) para liberar.';
+
+/** Envio criado pela própria Portaria (carreta que chegou sem o Pátio ter cadastrado): destino obrigatório. */
+export const novoEnvioPortariaSchema = dadosPortariaSchema
+  .extend({ destino: z.string().trim().min(1, 'Informe o destino.').max(120, 'Máximo de 120 caracteres.') })
+  .refine((d) => Boolean(d.placaCavalo || d.placaCarreta), {
+    message: 'Informe ao menos uma placa (cavalo ou carreta).',
+    path: ['placaCarreta'],
+  });
+export type NovoEnvioPortariaInput = z.infer<typeof novoEnvioPortariaSchema>;

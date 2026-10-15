@@ -6,6 +6,7 @@ import { ContadorAnimado } from '@/components/ui/ContadorAnimado';
 import { AtivarAvisos } from '@/components/patio/AtivarAvisos';
 import { chavePublicaPush } from '@/lib/services/push';
 import { CartaoPortaria } from './CartaoPortaria';
+import { NovoEnvioPortaria } from './NovoEnvioPortaria';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,9 +55,12 @@ export default async function PortariaPage() {
       </div>
 
       <p className="text-sm text-ink-muted">
-        1) Quando a carreta chegar, preencha os dados e toque em &ldquo;Registrar chegada&rdquo; (basta uma placa). 2) O Pátio carrega e
-        libera. 3) Quando ela passar pela portaria, toque em &ldquo;Saída confirmada&rdquo;.
+        1) Quando a carreta chegar, procure o envio na lista e toque em &ldquo;Registrar chegada&rdquo; (basta uma placa). Se ela não
+        estiver na lista, toque em &ldquo;Carreta sem aviso do Pátio&rdquo;. 2) O Pátio carrega e libera. 3) Quando ela passar pela
+        portaria, toque em &ldquo;Saída confirmada&rdquo;.
       </p>
+
+      <NovoEnvioPortaria />
 
       {itens.length === 0 ? (
         <EstadoVazio titulo="Nenhum remetido em andamento" texto="Quando o Pátio cadastrar um, ele aparece aqui." />

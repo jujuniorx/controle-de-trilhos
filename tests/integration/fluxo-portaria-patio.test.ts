@@ -11,6 +11,7 @@ import {
   confirmarSaidaCarreta,
   listarPortaria,
   listarCarretasNaPortaria,
+  criarEnvioPelaPortaria,
 } from '@/lib/services/portaria';
 import { criarChegada, liberarChegada, confirmarSaidaChegada, buscarChegadaLiberada } from '@/lib/services/chegada';
 import { criarRecebimentoCaminhao } from '@/lib/services/movimentacao';
@@ -143,6 +144,26 @@ describe('Fluxo Portaria ↔ Pátio — Recebimento (caminhão que vai descarreg
     expect(corrigido.status).toBe('PENDENTE_CONFERENCIA');
     await conferirRecebimento(mov.id, ADMIN);
     expect((await prisma.movimentacao.findUniqueOrThrow({ where: { id: mov.id } })).status).toBe('CONFERIDO');
+  });
+});
+
+describe('Carreta que chegou sem aviso do Pátio — a Portaria cria o envio', () => {
+  it('cria o envio com a chegada já registrada e o Pátio passa a ver', async () => {
+    const id = await criarEnvioPelaPortaria(
+      { destino: 'Usina Sem Aviso', placaCarreta: 'DEF2G34', motoristaNome: 'Pedro', origem: MARCADOR } as never,
+      'Portaria Teste',
+    );
+    const mov = await prisma.movimentacao.findUniqueOrThrow({ where: { id } });
+    expect(mov.status).toBe('AGUARDANDO_CHEGADA');
+    expect(mov.chegadaPortariaEm).not.toBeNull();
+    expect(mov.motoristaNome).toBe('Pedro');
+    expect((await listarCarretasNaPortaria()).some((c) => c.id === id)).toBe(true);
+    const acoes = (await prisma.historicoAlteracao.findMany({ where: { movimentacaoId: id } })).map((h) => h.acao);
+    expect(acoes).toEqual(expect.arrayContaining(['PORTARIA_CRIOU_ENVIO', 'CARRETA_CHEGOU']));
+  });
+
+  it('recusa sem placa', async () => {
+    expect(await erroDe(criarEnvioPelaPortaria({ destino: 'Usina', origem: MARCADOR } as never, 'Portaria Teste'))).toMatch(/placa/);
   });
 });
 

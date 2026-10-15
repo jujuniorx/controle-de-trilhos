@@ -60,6 +60,7 @@ const ACAO_LABEL: Record<string, string> = {
   MEDICAO_CONCLUIDA: 'Pátio terminou de medir',
   MEDICAO_REABERTA: 'Pátio voltou a medir',
   PORTARIA_DADOS: 'Dados do motorista/caminhão salvos pela Portaria',
+  PORTARIA_CRIOU_ENVIO: 'Envio criado pela Portaria (carreta chegou sem aviso do Pátio)',
   CARRETA_CHEGOU: 'Chegada da carreta registrada pela Portaria',
   CARRETA_LIBERADA: 'Carreta liberada pelo Pátio',
   LIBERACAO_DESFEITA: 'Liberação da carreta desfeita pelo Pátio',
