@@ -129,10 +129,12 @@ export async function confirmarRemetido(
         status: 'PENDENTE_CONFERENCIA',
         numeroDocumento: input.dados.numeroDocumento ?? existente.numeroDocumento,
         dataMovimentacao: new Date(`${input.dados.data}T00:00:00`),
-        placaCavalo: input.dados.placaCavalo ?? null,
-        placaCarreta: input.dados.placaCarreta ?? null,
-        placaCarreta2: input.dados.placaCarreta2 ?? null,
-        transportadora: input.dados.transportadora ?? null,
+        // Não apaga o que a Portaria já registrou quando o Pátio não informa: no "Aguardando
+        // chegada" o Pátio não tem essas informações (só a Portaria sabe quando a carreta chega).
+        placaCavalo: input.dados.placaCavalo ?? existente.placaCavalo,
+        placaCarreta: input.dados.placaCarreta ?? existente.placaCarreta,
+        placaCarreta2: input.dados.placaCarreta2 ?? existente.placaCarreta2,
+        transportadora: input.dados.transportadora ?? existente.transportadora,
         responsavelPatio: input.dados.responsavelPatio,
         observacao: input.dados.observacao ?? null,
       },

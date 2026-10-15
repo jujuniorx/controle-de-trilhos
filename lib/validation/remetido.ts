@@ -38,8 +38,9 @@ export const preCadastroSyncSchema = preCadastroRemetidoSchema.extend({
 });
 export type PreCadastroSyncInput = z.infer<typeof preCadastroSyncSchema>;
 
-export const dadosConfirmacaoSchema = z
-  .object({
+// Base da confirmação: sem a regra de placa. No "Aguardando chegada" o Pátio só mede;
+// a placa vem da Portaria (ela é quem sabe quando a carreta chega), então não é exigida aqui.
+const dadosConfirmacaoBaseSchema = z.object({
     data: z.string().min(1, 'Informe a data.'),
     numeroDocumento: z.string().regex(NF_REGEX, MSG_NF_INVALIDA).optional(),
     placaCavalo: z.string().regex(PLACA_REGEX, MSG_PLACA_INVALIDA).optional(),
@@ -48,11 +49,13 @@ export const dadosConfirmacaoSchema = z
     transportadora: z.string().trim().max(120).optional(),
     responsavelPatio: z.string().trim().min(3, 'Informe quem está preenchendo.'),
     observacao: z.string().trim().max(500, 'Observação: no máximo 500 caracteres.').optional(),
-  })
-  .refine((d) => Boolean(d.placaCavalo) || Boolean(d.placaCarreta) || Boolean(d.placaCarreta2), {
-    message: MSG_PELO_MENOS_UMA_PLACA,
-    path: ['placaCavalo'],
-  });
+});
+
+// Lançamento direto (Pátio com o caminhão na frente): aqui a placa é obrigatória.
+export const dadosConfirmacaoSchema = dadosConfirmacaoBaseSchema.refine(
+  (d) => Boolean(d.placaCavalo) || Boolean(d.placaCarreta) || Boolean(d.placaCarreta2),
+  { message: MSG_PELO_MENOS_UMA_PLACA, path: ['placaCavalo'] },
+);
 
 const comprimentoSchema = z
   .number()
@@ -151,7 +154,7 @@ export const grupoRemetidoSchema = z.discriminatedUnion('tipoMaterial', [
 export type GrupoRemetidoInput = z.infer<typeof grupoRemetidoSchema>;
 
 export const confirmacaoRemetidoSchema = z.object({
-  dados: dadosConfirmacaoSchema,
+  dados: dadosConfirmacaoBaseSchema,
   grupos: z.array(grupoRemetidoSchema).min(1, 'Adicione ao menos um grupo antes de finalizar.'),
 });
 
