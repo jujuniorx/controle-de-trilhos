@@ -7,6 +7,8 @@ import { requireAdmin } from '@/lib/services/requireAdmin';
 import { buscarChegadaDoRecebimento } from '@/lib/services/chegada';
 import { pecasDoGrupo } from '@/lib/domain/regras';
 import { ConferenciaPainel } from './ConferenciaPainel';
+import { NfsPainel } from '@/app/admin/(protegido)/NfsPainel';
+import { rotuloNfs, nfsEmTexto } from '@/lib/nf';
 import { EditarMedicoesPainel } from './EditarMedicoesPainel';
 
 function fmtData(d: Date | null): string {
@@ -44,7 +46,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
           ← Voltar à lista
         </Link>
         <div className="page-header mt-1 !mb-0">
-          <h1 className="page-title">Recebimento{mov.numeroDocumento ? ` — NF ${mov.numeroDocumento}` : ''}</h1>
+          <h1 className="page-title">Recebimento{mov.numeroDocumento ? ` — ${rotuloNfs(mov)}` : ''}</h1>
           <div className="flex items-center gap-2">
             {mov.status === 'CONFERIDO' ? (
               <span className="badge badge-ok">CONFERIDO</span>
@@ -65,7 +67,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
         <dl className="kv-grid">
           <div className="kv-item"><div className="kv-label">Data</div><div className="kv-val">{fmtData(mov.dataMovimentacao)}</div></div>
           <div className="kv-item"><div className="kv-label">Criado pelo Pátio em</div><div className="kv-val font-mono">{fmtDataHora(mov.createdAt)}</div></div>
-          <div className="kv-item"><div className="kv-label">Nota fiscal</div><div className="kv-val font-mono">{mov.numeroDocumento ?? 'Em aberto'}</div></div>
+          <div className="kv-item"><div className="kv-label">Nota fiscal</div><div className="kv-val font-mono">{nfsEmTexto(mov) || 'Em aberto'}</div></div>
           <div className="kv-item"><div className="kv-label">Origem</div><div className="kv-val">{normalizarLocal(mov.origem)}</div></div>
           <div className="kv-item"><div className="kv-label">Transporte</div><div className="kv-val">{mov.tipoTransporte}</div></div>
           <div className="kv-item"><div className="kv-label">Carreta(s)</div><div className="kv-val font-mono">{[mov.placaCarreta, mov.placaCarreta2].filter(Boolean).join(' / ') || '—'}</div></div>
@@ -90,6 +92,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
             <div className="kv-item"><div className="kv-label">Observação do Pátio</div><div className="kv-val whitespace-pre-wrap">{mov.observacao}</div></div>
           )}
         </dl>
+        <NfsPainel movimentacaoId={mov.id} principal={mov.numeroDocumento} extras={mov.numerosDocumentoExtras} />
       </section>
 
       {/* 2. Materiais recebidos */}

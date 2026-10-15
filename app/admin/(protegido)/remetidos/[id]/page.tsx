@@ -7,6 +7,8 @@ import { requireAdmin } from '@/lib/services/requireAdmin';
 import { pecasDoGrupo } from '@/lib/domain/regras';
 import { ConferenciaPainel } from '@/app/admin/(protegido)/recebimentos/[id]/ConferenciaPainel';
 import { NfPainel } from './NfPainel';
+import { NfsPainel } from '@/app/admin/(protegido)/NfsPainel';
+import { rotuloNfs } from '@/lib/nf';
 import { PesoGrupoPainel } from './PesoGrupoPainel';
 import { TipoRemetidoPainel } from './TipoRemetidoPainel';
 
@@ -36,8 +38,8 @@ const STATUS_LABEL: Record<string, { texto: string; badge: string }> = {
 // como identificação principal. NF é a referência mais usada na operação;
 // na falta dela, cai para reserva/pedido e por último destino+data — sempre
 // algo que a operação reconhece, nunca o id técnico.
-function tituloRemetido(mov: { numeroDocumento: string | null; reservaPedido: string | null; destino: string | null; dataMovimentacao: Date | null }): string {
-  if (mov.numeroDocumento) return `NF ${mov.numeroDocumento}`;
+function tituloRemetido(mov: { numeroDocumento: string | null; numerosDocumentoExtras?: string[]; reservaPedido: string | null; destino: string | null; dataMovimentacao: Date | null }): string {
+  if (mov.numeroDocumento) return rotuloNfs(mov);
   if (mov.reservaPedido) return `Reserva ${mov.reservaPedido}`;
   if (mov.destino) return `${normalizarLocal(mov.destino)} — ${fmtData(mov.dataMovimentacao)}`;
   return 'em aberto';
@@ -48,6 +50,8 @@ const ACAO_LABEL: Record<string, string> = {
   CONFIRMACAO_CHEGADA: 'Chegada confirmada pelo Pátio',
   LANCAMENTO_DIRETO: 'Remetido lançado direto pelo Pátio',
   NF_INFORMADA: 'Nota fiscal informada/corrigida',
+  NF_ADICIONADA: 'Outra nota fiscal adicionada',
+  NF_REMOVIDA: 'Nota fiscal extra removida',
   PESO_NF_INFORMADO: 'Peso da NF informado/corrigido',
   TIPO_REMETIDO_INFORMADO: 'Tipo de remetido informado',
   EDICAO: 'Remetido editado pelo Administrativo',
@@ -135,6 +139,9 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
         </dl>
 
         {mov.status !== 'AGUARDANDO_CHEGADA' && mov.numeroDocumento == null && <NfPainel movimentacaoId={mov.id} />}
+        {mov.numeroDocumento != null && (
+          <NfsPainel movimentacaoId={mov.id} principal={mov.numeroDocumento} extras={mov.numerosDocumentoExtras} />
+        )}
         {mov.status !== 'AGUARDANDO_CHEGADA' && mov.remetidoDetalhe?.tipoRemetido == null && (
           <TipoRemetidoPainel movimentacaoId={mov.id} />
         )}

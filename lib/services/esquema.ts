@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 /**
  * Atualização do banco pela própria tela do dono ("Usuários"), para quando o `prisma migrate deploy`
  * não rodou no deploy. Aplica as MESMAS alterações das migrations recentes (prisma/migrations/2026101513*,
- * 2026101514*, 2026101515*, 2026101516*, e as duas de 2026101512*), todas escritas para poderem rodar mais de uma vez
+ * 2026101514*, 2026101515*, 2026101516*, 2026101517*, e as duas de 2026101512*), todas escritas para poderem rodar mais de uma vez
  * (IF NOT EXISTS): rodar aqui e depois o migrate deploy não dá conflito. Um teste confere que esta
  * lista continua igual aos arquivos de migration.
  *
@@ -35,6 +35,8 @@ export const COMANDOS_ESQUEMA: readonly string[] = [
   `ALTER TABLE "Movimentacao" ADD COLUMN IF NOT EXISTS "chegadaPortariaEm" TIMESTAMP(3), ADD COLUMN IF NOT EXISTS "chegadaPortariaPor" TEXT, ADD COLUMN IF NOT EXISTS "saidaPortariaEm" TIMESTAMP(3), ADD COLUMN IF NOT EXISTS "saidaPortariaPor" TEXT`,
   `ALTER TABLE "ChegadaCaminhao" ADD COLUMN IF NOT EXISTS "saidaEm" TIMESTAMP(3), ADD COLUMN IF NOT EXISTS "saidaPor" TEXT`,
   `ALTER TABLE "PushSubscription" ADD COLUMN IF NOT EXISTS "setor" TEXT NOT NULL DEFAULT 'PATIO'`,
+  // 20261015170000_nfs_extras
+  `ALTER TABLE "Movimentacao" ADD COLUMN IF NOT EXISTS "numerosDocumentoExtras" TEXT[] DEFAULT ARRAY[]::TEXT[]`,
 ];
 
 /** Está faltando algo? Confere uma coluna e duas tabelas das migrations recentes. Nunca lança. */
@@ -48,6 +50,7 @@ export async function esquemaPrecisaAtualizar(): Promise<boolean> {
         AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'ChegadaCaminhao' AND column_name = 'observacao')
         AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Movimentacao' AND column_name = 'saidaPortariaEm')
         AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'ChegadaCaminhao' AND column_name = 'saidaEm')
+        AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Movimentacao' AND column_name = 'numerosDocumentoExtras')
         AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'PushSubscription' AND column_name = 'setor')
         AND EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'ChegadaCaminhao')
         AND EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'PushSubscription')
