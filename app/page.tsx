@@ -24,6 +24,15 @@ function IconeGrafico() {
   );
 }
 
+function IconePortaria() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 21V9l9-5 9 5v12M3 21h18" />
+      <path d="M8 21v-6h8v6M8 15h8M12 15v6" />
+    </svg>
+  );
+}
+
 export default function Home() {
   return (
     <main className="home-entrada">
@@ -44,7 +53,17 @@ export default function Home() {
             </span>
             <span className="entrada-card-seta" aria-hidden="true">→</span>
           </Link>
-          <Link href="/admin/login" className="entrada-card" style={atraso(1)}>
+          <Link href="/portaria/login" className="entrada-card" style={atraso(1)}>
+            <span className="entrada-card-icone">
+              <IconePortaria />
+            </span>
+            <span className="entrada-card-texto">
+              <strong>Portaria</strong>
+              <small>Dados do motorista e liberar carretas</small>
+            </span>
+            <span className="entrada-card-seta" aria-hidden="true">→</span>
+          </Link>
+          <Link href="/admin/login" className="entrada-card" style={atraso(2)}>
             <span className="entrada-card-icone">
               <IconeGrafico />
             </span>

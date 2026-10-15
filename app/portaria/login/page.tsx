@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
+import Link from 'next/link';
 import { TelaEntrada } from '@/components/ui/TelaEntrada';
 import { loginPortariaAction, type EstadoLoginPortaria } from './actions';
 
@@ -30,6 +31,9 @@ export default function LoginPortariaPage() {
           </p>
         )}
       </form>
+      <Link href="/" className="mt-6 text-center text-sm text-ink-muted underline hover:text-ink">
+        ← Voltar ao início (trocar de setor)
+      </Link>
     </TelaEntrada>
   );
 }

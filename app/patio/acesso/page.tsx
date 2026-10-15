@@ -56,7 +56,7 @@ export default function AcessoPatioPage() {
       </form>
 
       <Link href="/" className="mt-6 text-center text-sm text-ink-muted underline hover:text-ink">
-        ← Voltar ao início (trocar entre Pátio e Administrativo)
+        ← Voltar ao início (trocar de setor)
       </Link>
       <Link href="/privacidade" className="mt-2 text-center text-xs text-ink-dim underline hover:text-ink">
         Privacidade e cookies
