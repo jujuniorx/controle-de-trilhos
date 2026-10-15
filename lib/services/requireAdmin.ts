@@ -8,7 +8,8 @@ export async function requireAdmin(): Promise<{ userId: string; nome: string; ro
   if (!sessao) redirect('/admin/login');
   // A Portaria usa a mesma conta/login, mas nunca entra no Administrativo.
   if (sessao.role === 'PORTARIA') redirect('/portaria');
-  return sessao;
+  // `role` (não o objeto) é o que o TypeScript estreitou acima: devolve com o papel já sem PORTARIA.
+  return { ...sessao, role: sessao.role };
 }
 
 /** Só o DONO passa; um ADMIN comum volta para a tela inicial do Administrativo. */
