@@ -92,8 +92,8 @@ describe('Fluxo Portaria ↔ Pátio — Remetido (carreta que vai carregar)', ()
   });
 });
 
-describe('Fluxo Portaria ↔ Pátio — Recebimento (caminhão que vai descarregar), com Diversos', () => {
-  it('Portaria registra → Pátio recebe (Diversos sem medição) → Portaria confirma a saída → Admin informa/corrige o peso', async () => {
+describe('Fluxo Portaria ↔ Pátio — Recebimento (caminhão que vai descarregar)', () => {
+  it('Portaria registra → Pátio recebe → Portaria confirma a saída → Admin informa/corrige o peso', async () => {
     const { id: chegadaId } = await criarChegada('Portaria Teste');
     const dados = dadosChegadaSchema.parse({ origem: MARCADOR, placaCarreta: 'XYZ9E88', transportadora: 'Ana', motoristaNome: 'Maria' });
 
@@ -107,7 +107,7 @@ describe('Fluxo Portaria ↔ Pátio — Recebimento (caminhão que vai descarreg
     // Ainda não descarregou: não pode sair
     expect(await erroDe(confirmarSaidaChegada(chegadaId, 'Portaria Teste'))).not.toBe('');
 
-    // Pátio recebe: um grupo medido + um grupo Diversos (sem nenhuma medição)
+    // Pátio recebe a sucata medida
     const input = recebimentoCaminhaoSchema.parse({
       clientId: uuid(),
       chegadaId,
@@ -119,23 +119,10 @@ describe('Fluxo Portaria ↔ Pátio — Recebimento (caminhão que vai descarreg
           tipoMaterial: 'SUCATA',
           medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 2, comprimento: 5, classificacaoSC: 'SC1' }],
         },
-        { clientId: uuid(), perfil: 'TOCO', tipoMaterial: 'SUCATA', medicoes: [] },
       ],
     });
     const mov = await criarRecebimentoCaminhao(input);
-    const diversos = mov.grupos.find((g) => g.perfil === 'TOCO');
-    expect(diversos?.medicoes).toHaveLength(0);
-    expect(Number(diversos?.metrosTotal)).toBe(0);
-    expect(diversos?.pesoCalculado).toBeNull();
-
-    // Diversos com medição é recusado pela validação
-    expect(
-      recebimentoCaminhaoSchema.safeParse({
-        ...input,
-        clientId: uuid(),
-        grupos: [{ clientId: uuid(), perfil: 'TOCO', tipoMaterial: 'SUCATA', medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 3, classificacaoSC: 'SC1' }] }],
-      }).success,
-    ).toBe(false);
+    expect(mov.grupos).toHaveLength(1);
 
     // A chegada ficou ligada ao recebimento e agora a Portaria pode confirmar a saída
     const chegada = await prisma.chegadaCaminhao.findUniqueOrThrow({ where: { id: chegadaId } });

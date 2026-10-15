@@ -41,20 +41,6 @@ async function prepararGrupos(input: RecebimentoCaminhaoInput): Promise<GrupoPar
     const metrosTotal = metrosPorMedicao.reduce((a, b) => a + b, 0);
 
     if (grupo.tipoMaterial === 'SUCATA') {
-      if (grupo.perfil === 'TOCO') {
-        // Diversos: sem medição e sem fator — o peso real vem da pesagem (pesoSucataReal), pelo Administrativo.
-        gruposParaCriar.push({
-          clientId: grupo.clientId,
-          perfil: grupo.perfil,
-          tipoMaterial: 'SUCATA',
-          classificacao: null,
-          fabricante: null,
-          metrosTotal: 0,
-          pesoCalculado: null,
-          medicoes: [],
-        });
-        continue;
-      }
       // Estimativa (metros x fator) — NUNCA pode bloquear o salvamento do Pátio.
       // Se o fator do perfil não estiver cadastrado, fica sem estimativa (null),
       // igual ao comportamento anterior a esta estimativa existir. O peso REAL

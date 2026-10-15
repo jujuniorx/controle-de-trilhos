@@ -168,7 +168,7 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         ...base,
         descricaoPerfil(grupos[0].perfil),
         fabricantes.length > 0 ? fabricantes.join(' / ') : '-',
-        grupos[0].perfil === 'TOCO' ? '-' : grupos.reduce((acc, g) => acc + pecasDoGrupo(g.medicoes), 0),
+        grupos.reduce((acc, g) => acc + pecasDoGrupo(g.medicoes), 0),
         // Peso estimado do que NÃO é sucata — o peso real da sucata é conferido à parte (pesoSucataReal).
         somaOuNull(
           grupos.filter((g) => g.tipoMaterial !== 'SUCATA').map((g) => (g.pesoCalculado != null ? Number(g.pesoCalculado) : null)),
@@ -183,9 +183,9 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         metrosPorSC(medicoesSucata, 'SC3'),
         metrosPorSC(medicoesSucata, 'DIVERSOS'),
         null, // Em Classificação — sempre vazia, ver nota no topo do arquivo
-        grupos[0].perfil === 'TOCO' ? '-' : somaOuNull(sucatas.map(metros), arredondar2),
+        somaOuNull(sucatas.map(metros), arredondar2),
         somaOuNull(novos.map(metros), arredondar2),
-        grupos[0].perfil === 'TOCO' ? '-' : arredondar2(grupos.reduce((acc, g) => acc + metros(g), 0)),
+        arredondar2(grupos.reduce((acc, g) => acc + metros(g), 0)),
       ]);
     }
   }
