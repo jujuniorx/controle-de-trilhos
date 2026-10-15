@@ -109,11 +109,12 @@ function metrosDoGrupo(g: GrupoLocal): number {
 const MSG_PLACA_INVALIDA = 'Placa inválida. Ex.: ABC1D23 (Mercosul) ou CMG1234 (padrão antigo).';
 const MSG_PELO_MENOS_UMA_PLACA = 'Informe ao menos uma placa: a do cavalo ou a de uma das carretas.';
 
-function validarDados(d: Dados) {
+function validarDados(d: Dados, exigirPlaca: boolean) {
   const erros: Partial<Record<keyof Dados, string>> = {};
   if (!d.data) erros.data = 'Informe a data.';
   if (!d.placaCavalo && !d.placaCarreta && !d.placaCarreta2) {
-    erros.placaCavalo = MSG_PELO_MENOS_UMA_PLACA;
+    // Na confirmação de um envio aguardando chegada a placa vem da Portaria, não é exigida do Pátio.
+    if (exigirPlaca) erros.placaCavalo = MSG_PELO_MENOS_UMA_PLACA;
   } else {
     if (d.placaCavalo && !PLACA_REGEX.test(d.placaCavalo)) erros.placaCavalo = MSG_PLACA_INVALIDA;
     if (d.placaCarreta && !PLACA_REGEX.test(d.placaCarreta)) erros.placaCarreta = MSG_PLACA_INVALIDA;
@@ -284,7 +285,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
     () => (dataTocada ? dadosBrutos : { ...dadosBrutos, data: dadosBrutos.data || hoje }),
     [dadosBrutos, dataTocada, hoje],
   );
-  const errosDados = attemptSubmit ? validarDados(dados) : {};
+  const errosDados = attemptSubmit ? validarDados(dados, props.modo !== 'confirmar') : {};
   const temIdentificacao = props.modo === 'novo' || props.modo === 'editar';
   const errosIdentificacao = attemptSubmit && temIdentificacao ? validarIdentificacao(identificacao) : {};
   const grupoAtivo = grupos.find((g) => g.clientId === activeGrupoId) ?? null;
@@ -381,7 +382,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
   async function confirmar() {
     setAttemptSubmit(true);
     setErroFinal('');
-    if (Object.keys(validarDados(dados)).length > 0) return;
+    if (Object.keys(validarDados(dados, props.modo !== 'confirmar')).length > 0) return;
     if (temIdentificacao && Object.keys(validarIdentificacao(identificacao)).length > 0) return;
     if (!podeConfirmar) {
       setErroFinal('Complete todos os grupos (medições e classificação) antes de confirmar.');
