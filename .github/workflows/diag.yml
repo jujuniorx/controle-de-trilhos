@@ -1,0 +1,24 @@
+name: diag
+on: push
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm install --no-audit --no-fund 2>&1 | tail -5
+      - run: npx prisma generate 2>&1 | tail -3
+      - name: tsc
+        run: |
+          npx tsc --noEmit 2>&1 | tee tsc.txt | tail -5
+          while IFS= read -r l; do echo "::error::${l}"; done < <(grep "error TS" tsc.txt | head -40)
+      - name: unit
+        run: |
+          npx vitest run tests/unit 2>&1 | tee unit.txt | tail -15
+          while IFS= read -r l; do echo "::error::${l}"; done < <(grep -E "FAIL|AssertionError" unit.txt | head -30)
+      - name: build
+        run: |
+          DATABASE_URL=postgresql://x:x@localhost:5432/x npx next build 2>&1 | tee build.txt | tail -15
+          while IFS= read -r l; do echo "::error::${l}"; done < <(grep -iE "error|failed" build.txt | head -30)
+          if grep -q "Compiled successfully" build.txt; then echo "::warning::BUILD OK"; fi
