@@ -534,76 +534,81 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
           />
           {errosDados.data && <p className="text-sm text-bad">{errosDados.data}</p>}
         </div>
-        <div className="field">
-          <label htmlFor="f-nf">Nota fiscal {numeroDocumentoPreCadastrado ? '' : '(se já souber)'}</label>
-          <input
-            id="f-nf"
-            inputMode="numeric"
-            placeholder="Ex.: 123456 ou 087781-1"
-            disabled={Boolean(numeroDocumentoPreCadastrado)}
-            className="h-11 disabled:text-ink-dim"
-            value={dadosBrutos.numeroDocumento}
-            onChange={(e) => setDados({ ...dadosBrutos, numeroDocumento: formatarNF(e.target.value) })}
-          />
-          {errosDados.numeroDocumento && <p className="text-sm text-bad">{errosDados.numeroDocumento}</p>}
-        </div>
-
-        <div className="rounded-lg border-2 p-3" style={{ borderColor: 'var(--b1)', background: 'color-mix(in srgb, var(--b0) 40%, transparent)' }}>
-          <p className="text-sm font-semibold text-primary">Placas * — informe ao menos uma</p>
-          <p className="text-xs text-ink-dim">A placa da carreta é a informação mais usada na operação.</p>
-          {errosDados.placaCavalo === MSG_PELO_MENOS_UMA_PLACA && (
-            <p className="mt-1 text-sm text-bad">{errosDados.placaCavalo}</p>
-          )}
-
-          <div className="field mt-2">
-            <label htmlFor="f-carreta">1ª carreta</label>
+        {/* Aguardando chegada: NF, placas e transportadora são da Portaria/Administrativo, não do Pátio. */}
+        {props.modo !== 'confirmar' && (
+          <>
+          <div className="field">
+            <label htmlFor="f-nf">Nota fiscal {numeroDocumentoPreCadastrado ? '' : '(se já souber)'}</label>
             <input
-              id="f-carreta"
-              maxLength={7}
-              className="h-11 text-lg font-semibold uppercase"
-              value={dadosBrutos.placaCarreta}
-              onChange={(e) => setDados({ ...dadosBrutos, placaCarreta: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
+              id="f-nf"
+              inputMode="numeric"
+              placeholder="Ex.: 123456 ou 087781-1"
+              disabled={Boolean(numeroDocumentoPreCadastrado)}
+              className="h-11 disabled:text-ink-dim"
+              value={dadosBrutos.numeroDocumento}
+              onChange={(e) => setDados({ ...dadosBrutos, numeroDocumento: formatarNF(e.target.value) })}
             />
-            {errosDados.placaCarreta && <p className="text-sm text-bad">{errosDados.placaCarreta}</p>}
+            {errosDados.numeroDocumento && <p className="text-sm text-bad">{errosDados.numeroDocumento}</p>}
           </div>
 
-          {mostrarCarreta2 ? (
+          <div className="rounded-lg border-2 p-3" style={{ borderColor: 'var(--b1)', background: 'color-mix(in srgb, var(--b0) 40%, transparent)' }}>
+            <p className="text-sm font-semibold text-primary">Placas * — informe ao menos uma</p>
+            <p className="text-xs text-ink-dim">A placa da carreta é a informação mais usada na operação.</p>
+            {errosDados.placaCavalo === MSG_PELO_MENOS_UMA_PLACA && (
+              <p className="mt-1 text-sm text-bad">{errosDados.placaCavalo}</p>
+            )}
+
             <div className="field mt-2">
-              <label htmlFor="f-carreta2">2ª carreta (opcional)</label>
+              <label htmlFor="f-carreta">1ª carreta</label>
               <input
-                id="f-carreta2"
+                id="f-carreta"
                 maxLength={7}
                 className="h-11 text-lg font-semibold uppercase"
-                value={dadosBrutos.placaCarreta2}
-                onChange={(e) => setDados({ ...dadosBrutos, placaCarreta2: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
+                value={dadosBrutos.placaCarreta}
+                onChange={(e) => setDados({ ...dadosBrutos, placaCarreta: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
               />
-              {errosDados.placaCarreta2 && <p className="text-sm text-bad">{errosDados.placaCarreta2}</p>}
+              {errosDados.placaCarreta && <p className="text-sm text-bad">{errosDados.placaCarreta}</p>}
             </div>
-          ) : (
-            <button type="button" className="mt-2 text-sm text-primary underline" onClick={() => setMostrarCarreta2(true)}>
-              + Adicionar segunda carreta
-            </button>
-          )}
 
-          <div className="field mt-3">
-            <label htmlFor="f-cavalo">Placa do cavalo</label>
-            <input
-              id="f-cavalo"
-              maxLength={7}
-              className="h-11 uppercase"
-              value={dadosBrutos.placaCavalo}
-              onChange={(e) => setDados({ ...dadosBrutos, placaCavalo: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
-            />
-            {errosDados.placaCavalo && errosDados.placaCavalo !== MSG_PELO_MENOS_UMA_PLACA && (
-              <p className="text-sm text-bad">{errosDados.placaCavalo}</p>
+            {mostrarCarreta2 ? (
+              <div className="field mt-2">
+                <label htmlFor="f-carreta2">2ª carreta (opcional)</label>
+                <input
+                  id="f-carreta2"
+                  maxLength={7}
+                  className="h-11 text-lg font-semibold uppercase"
+                  value={dadosBrutos.placaCarreta2}
+                  onChange={(e) => setDados({ ...dadosBrutos, placaCarreta2: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
+                />
+                {errosDados.placaCarreta2 && <p className="text-sm text-bad">{errosDados.placaCarreta2}</p>}
+              </div>
+            ) : (
+              <button type="button" className="mt-2 text-sm text-primary underline" onClick={() => setMostrarCarreta2(true)}>
+                + Adicionar segunda carreta
+              </button>
             )}
-          </div>
-        </div>
 
-        <div className="field">
-          <label htmlFor="f-transp">Transportadora</label>
-          <input id="f-transp" className="h-11" value={dadosBrutos.transportadora} onChange={(e) => setDados({ ...dadosBrutos, transportadora: e.target.value })} />
-        </div>
+            <div className="field mt-3">
+              <label htmlFor="f-cavalo">Placa do cavalo</label>
+              <input
+                id="f-cavalo"
+                maxLength={7}
+                className="h-11 uppercase"
+                value={dadosBrutos.placaCavalo}
+                onChange={(e) => setDados({ ...dadosBrutos, placaCavalo: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
+              />
+              {errosDados.placaCavalo && errosDados.placaCavalo !== MSG_PELO_MENOS_UMA_PLACA && (
+                <p className="text-sm text-bad">{errosDados.placaCavalo}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="field">
+            <label htmlFor="f-transp">Transportadora</label>
+            <input id="f-transp" className="h-11" value={dadosBrutos.transportadora} onChange={(e) => setDados({ ...dadosBrutos, transportadora: e.target.value })} />
+          </div>
+          </>
+        )}
         <div className="field">
           <label htmlFor="f-resp">Responsável (Pátio) *</label>
           <input id="f-resp" className="h-11" value={dadosBrutos.responsavelPatio} onChange={(e) => setDados({ ...dadosBrutos, responsavelPatio: e.target.value })} />
