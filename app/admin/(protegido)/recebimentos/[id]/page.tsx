@@ -10,6 +10,7 @@ import { ConferenciaPainel } from './ConferenciaPainel';
 import { NfsPainel } from '@/app/admin/(protegido)/NfsPainel';
 import { rotuloNfs, nfsEmTexto } from '@/lib/nf';
 import { EditarMedicoesPainel } from './EditarMedicoesPainel';
+import { HistoricoMovimentacao } from '@/components/admin/HistoricoMovimentacao';
 
 function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
@@ -19,15 +20,6 @@ function fmtDataHora(d: Date): string {
   // Instante real (não só data): sempre no fuso de Brasília, não no do servidor (UTC).
   return d.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 }
-
-const ACAO_LABEL: Record<string, string> = {
-  CRIACAO: 'Recebimento criado pelo Pátio',
-  PESO_INFORMADO: 'Peso da sucata informado/corrigido',
-  REABERTURA: 'Conferência reaberta',
-  CONFERENCIA: 'Recebimento conferido',
-  ANEXO: 'Documento de pesagem anexado',
-  ANEXO_SUBSTITUIDO: 'Documento de pesagem substituído',
-};
 
 export default async function RecebimentoDetalhePage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin();
@@ -223,29 +215,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
       {/* 7. Histórico */}
       <section className="card">
         <h2 className="card-title">Histórico</h2>
-        {mov.historico.length === 0 ? (
-          <p className="text-sm text-ink-dim">Nenhuma movimentação registrada ainda.</p>
-        ) : (
-          <div>
-            {mov.historico.map((h) => (
-              <div key={h.id} className="hist-row">
-                <div className="hist-dot" />
-                <div>
-                  <div className="hist-text">
-                    <strong>{ACAO_LABEL[h.acao] ?? h.acao}</strong>
-                  </div>
-                  <div className="hist-text">{h.usuarioNome}</div>
-                  {(h.valorAntigo != null || h.valorNovo != null) && (
-                    <div className="hist-text">
-                      {h.valorAntigo ?? '—'} → {h.valorNovo ?? '—'}
-                    </div>
-                  )}
-                  <div className="hist-time">{fmtDataHora(h.timestamp)}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <HistoricoMovimentacao historico={mov.historico} />
       </section>
     </main>
   );
