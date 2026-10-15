@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { CampoObservacao, ICONE_CAMINHAO, Secao } from '@/components/portaria/Secao';
 import { cancelarChegadaAction, liberarChegadaAction, salvarChegadaAction } from './actions';
 import type { ResultadoPortaria } from '../actions';
 import { ROTULO_ESTADO_CHEGADA } from '@/lib/domain/portaria';
@@ -83,12 +84,15 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
   const titulo = item.placaCarreta || item.placaCavalo || item.motoristaNome || 'Caminhão sem identificação';
 
   return (
-    <section className="card space-y-3 p-4">
+    <section className="card space-y-4">
       <button type="button" className="flex w-full items-start justify-between gap-3 text-left" onClick={() => setAberto((a) => !a)} aria-expanded={aberto}>
-        <span>
-          <span className="block font-medium text-ink">{titulo}</span>
+        <span className="flex min-w-0 items-start gap-3">
+          <span className="grid h-10 w-10 flex-none place-items-center rounded-xl bg-primary/15 text-primary">{ICONE_CAMINHAO}</span>
+          <span className="min-w-0">
+          <span className="block truncate font-semibold text-ink">{titulo}</span>
           <span className="block text-sm text-ink-muted">
             {item.origem ? `${item.origem} · ` : ''}chegou às {hora(item.criadoEm)}
+          </span>
           </span>
         </span>
         <span className={`badge ${liberada ? 'badge-ok' : 'badge-warn'} shrink-0`}>{ROTULO_ESTADO_CHEGADA[item.estado]}</span>
@@ -102,43 +106,35 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
             enviar(salvarChegadaAction);
           }}
         >
-          <div className="grid gap-3 sm:grid-cols-2">
+          <Secao titulo="Motorista">
             {campo('transportadora', 'Empresa (transportadora)')}
             {campo('motoristaNome', 'Motorista')}
             {campo('motoristaCpf', 'CPF do motorista', { inputMode: 'numeric', maxLength: 14 })}
             {campo('motoristaTelefone', 'Telefone do motorista', { inputMode: 'tel', maxLength: 16 })}
+          </Secao>
+          <Secao titulo="Caminhão">
             {campo('placaCarreta', 'Placa da carreta', { maxLength: 7 })}
             {campo('placaCavalo', 'Placa do cavalo', { maxLength: 7 })}
             {campo('capacidadeCarga', 'Capacidade de carga (t)', { inputMode: 'decimal', maxLength: 6 })}
+          </Secao>
+          <Secao titulo="Carga">
             {campo('materialPrevisto', 'Material')}
             {campo('origem', 'Origem')}
-          </div>
-          <div className="field">
-            <label htmlFor={`${item.id}-observacao`}>Observação para o Pátio (opcional)</label>
-            <textarea
-              id={`${item.id}-observacao`}
-              rows={3}
-              maxLength={500}
-              className="min-h-[5rem] w-full"
-              placeholder="Ex.: caminhão com lona rasgada, motorista só chega às 14h..."
-              value={v.observacao}
-              onChange={set('observacao')}
-              disabled={pendente}
-            />
-          </div>
+          </Secao>
+          <CampoObservacao id={`${item.id}-observacao`} valor={v.observacao} aoMudar={(x) => setV((a) => ({ ...a, observacao: x }))} desabilitado={pendente} />
 
-          {liberada && <p className="text-sm text-ok">Caminhão liberado. O Pátio já pode descarregar. Você ainda pode corrigir os dados.</p>}
+          {liberada && <p className="rounded-lg bg-ok/10 px-3 py-2 text-sm text-ok">Caminhão liberado. O Pátio já pode descarregar. Você ainda pode corrigir os dados.</p>}
           <p className="text-xs text-ink-muted">O PDF leva o que está <b>salvo</b>: toque em &ldquo;Salvar dados&rdquo; antes de baixar.</p>
 
           <div className="flex flex-wrap gap-2">
-            <button type="submit" className="btn btn-ghost h-12" disabled={pendente}>
+            <button type="submit" className="btn btn-ghost h-12 flex-1 sm:flex-none" disabled={pendente}>
               Salvar dados
             </button>
-            <a href={`/portaria/pdf-chegada/${item.id}`} download className="btn btn-ghost h-12" aria-label="Baixar PDF com os dados preenchidos">
+            <a href={`/portaria/pdf-chegada/${item.id}`} download className="btn btn-ghost h-12 flex-1 sm:flex-none" aria-label="Baixar PDF com os dados preenchidos">
               Baixar PDF
             </a>
             {!liberada && (
-              <button type="button" className="btn btn-primary h-12" disabled={pendente} onClick={() => enviar(liberarChegadaAction)}>
+              <button type="button" className="btn btn-primary h-12 flex-1 sm:flex-none" disabled={pendente} onClick={() => enviar(liberarChegadaAction)}>
                 {pendente ? 'Aguarde...' : 'Liberar para descarregar'}
               </button>
             )}

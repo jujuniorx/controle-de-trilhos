@@ -17,7 +17,7 @@ export default async function NovoRecebimentoPage({
   return (
     <>
       {chegada?.observacao && (
-        <aside role="note" className="card mx-auto mt-4 max-w-md border-2 border-warn p-4 lg:max-w-xl">
+        <aside role="note" className="card mx-auto mt-4 max-w-md border-2 border-warn bg-warn/10 p-4 lg:max-w-xl">
           <p className="text-sm font-semibold text-warn">Observação da Portaria</p>
           <p className="whitespace-pre-wrap text-sm text-ink">{chegada.observacao}</p>
         </aside>

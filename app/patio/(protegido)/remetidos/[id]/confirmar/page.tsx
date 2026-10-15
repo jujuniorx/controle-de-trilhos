@@ -30,7 +30,7 @@ export default async function ConfirmarRemetidoPage({ params }: { params: Promis
       {portaria && <PainelPortaria id={remetido.id} estado={portaria.estado} liberadaPor={portaria.carretaLiberadaPor} />}
 
       {portaria?.observacaoPortaria && (
-        <aside role="note" className="card mt-4 border-2 border-warn p-4">
+        <aside role="note" className="card mt-4 border-2 border-warn bg-warn/10 p-4">
           <p className="text-sm font-semibold text-warn">Observação da Portaria</p>
           <p className="whitespace-pre-wrap text-sm text-ink">{portaria.observacaoPortaria}</p>
         </aside>

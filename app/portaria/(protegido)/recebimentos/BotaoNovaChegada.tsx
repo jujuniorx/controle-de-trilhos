@@ -9,7 +9,7 @@ export function BotaoNovaChegada() {
   const [pendente, iniciar] = useTransition();
   const [erro, setErro] = useState('');
   return (
-    <div>
+    <div className="flex flex-col items-end">
       <button
         type="button"
         className="btn btn-primary h-12"
