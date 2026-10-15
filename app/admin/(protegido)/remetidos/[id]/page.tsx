@@ -108,6 +108,9 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
           <div className="kv-item"><div className="kv-label">Cavalo</div><div className="kv-val font-mono">{mov.placaCavalo ?? '—'}</div></div>
           <div className="kv-item"><div className="kv-label">Transportadora</div><div className="kv-val">{mov.transportadora ?? '—'}</div></div>
           <div className="kv-item"><div className="kv-label">Responsável (Pátio)</div><div className="kv-val">{mov.responsavelPatio ?? '—'}</div></div>
+          {mov.observacaoPortaria && (
+            <div className="kv-item"><div className="kv-label">Observação da Portaria</div><div className="kv-val whitespace-pre-wrap">{mov.observacaoPortaria}</div></div>
+          )}
           {mov.observacao && (
             <div className="kv-item"><div className="kv-label">Observação do Pátio</div><div className="kv-val whitespace-pre-wrap">{mov.observacao}</div></div>
           )}

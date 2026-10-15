@@ -17,6 +17,7 @@ function paraBanco(d: DadosChegada) {
   return {
     origem: d.origem ? normalizarLocal(d.origem) : null,
     materialPrevisto: d.materialPrevisto ?? null,
+    observacao: d.observacao ?? null,
     transportadora: d.transportadora ?? null,
     motoristaNome: d.motoristaNome ?? null,
     motoristaCpf: d.motoristaCpf ?? null,
@@ -86,7 +87,7 @@ export async function cancelarChegada(id: string): Promise<void> {
 export async function listarChegadasLiberadas() {
   return prisma.chegadaCaminhao.findMany({
     where: { liberadaEm: { not: null }, canceladaEm: null, movimentacaoId: null },
-    select: { id: true, origem: true, transportadora: true, placaCarreta: true, placaCavalo: true, liberadaEm: true, materialPrevisto: true },
+    select: { id: true, origem: true, transportadora: true, placaCarreta: true, placaCavalo: true, liberadaEm: true, materialPrevisto: true, observacao: true },
     orderBy: { liberadaEm: 'asc' },
   });
 }
@@ -101,6 +102,7 @@ export async function buscarChegadaLiberada(id: string) {
     placaCavalo: c.placaCavalo ?? '',
     placaCarreta: c.placaCarreta ?? '',
     transportadora: c.transportadora ?? '',
+    observacao: c.observacao ?? '',
   };
 }
 
@@ -133,5 +135,6 @@ export async function buscarFichaChegada(id: string) {
     capacidadeCarga: num(c.capacidadeCarga),
     carretaLiberadaEm: c.liberadaEm,
     carretaLiberadaPor: c.liberadaPor,
+    observacao: c.observacao,
   };
 }

@@ -29,6 +29,7 @@ export function CartaoPortaria({ item }: { item: ItemPortaria }) {
     origem: item.origem ?? '',
     destino: item.destino ?? '',
     materialPrevisto: item.materialPrevisto ?? '',
+    observacao: item.observacaoPortaria ?? '',
   });
   const set = (campo: keyof typeof v) => (e: { target: { value: string } }) =>
     setV((atual) => ({ ...atual, [campo]: String(campo).startsWith('placa') ? limparPlaca(e.target.value) : e.target.value }));
@@ -98,6 +99,19 @@ export function CartaoPortaria({ item }: { item: ItemPortaria }) {
             {campo('materialPrevisto', 'Material')}
             {campo('origem', 'Origem')}
             {campo('destino', 'Destino')}
+          </div>
+          <div className="field">
+            <label htmlFor={`${item.id}-observacao`}>Observação para o Pátio (opcional)</label>
+            <textarea
+              id={`${item.id}-observacao`}
+              rows={3}
+              maxLength={500}
+              className="min-h-[5rem] w-full"
+              placeholder="Ex.: caminhão com lona rasgada, motorista só chega às 14h..."
+              value={v.observacao}
+              onChange={set('observacao')}
+              disabled={pendente}
+            />
           </div>
 
           {medindo && <p className="text-sm text-ink-muted">O Pátio ainda está medindo. Você já pode salvar os dados; a liberação só fica disponível quando ele terminar.</p>}

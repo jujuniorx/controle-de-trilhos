@@ -122,3 +122,12 @@ describe('observação do Pátio e chegadaId no recebimento', () => {
     expect(recebimentoCaminhaoSchema.safeParse({ ...base, dados: { ...base.dados, observacao: 'a'.repeat(501) } }).success).toBe(false);
   });
 });
+
+describe('observação da Portaria', () => {
+  it('é opcional, aparada e limitada a 500 caracteres', () => {
+    expect(dadosPortariaSchema.parse({ observacao: '  lona rasgada  ' }).observacao).toBe('lona rasgada');
+    expect(dadosPortariaSchema.parse({ observacao: '' }).observacao).toBe(undefined);
+    expect(dadosPortariaSchema.safeParse({ observacao: 'a'.repeat(501) }).success).toBe(false);
+    expect(dadosChegadaSchema.parse({ observacao: 'recado' }).observacao).toBe('recado');
+  });
+});

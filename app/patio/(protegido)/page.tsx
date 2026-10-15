@@ -51,6 +51,7 @@ export default async function PatioHomePage() {
               <p className="text-sm text-ink-muted">
                 {[c.transportadora, c.materialPrevisto].filter(Boolean).join(' · ') || 'Toque para registrar o recebimento'}
               </p>
+              {c.observacao && <p className="mt-1 text-sm text-warn">Portaria: {c.observacao}</p>}
               <span className="badge badge-ok mt-1">Pode descarregar — toque para iniciar</span>
             </Link>
           ))}
