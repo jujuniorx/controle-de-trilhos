@@ -3,6 +3,8 @@ import { requireAdmin } from '@/lib/services/requireAdmin';
 import { listarChegadasDaPortaria, listarRemetidosDaPortaria } from '@/lib/services/portaria-admin';
 import { ROTULO_ESTADO, ROTULO_ESTADO_CHEGADA } from '@/lib/domain/portaria';
 import { EstadoVazio } from '@/components/ui/EstadoVazio';
+import { BotaoApagar } from './BotaoApagar';
+import { apagarChegadaAction, limparDadosPortariaAction } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,7 +26,8 @@ function Obs({ texto }: { texto: string | null }) {
 }
 
 export default async function AdminPortariaPage() {
-  await requireAdmin();
+  const { role } = await requireAdmin();
+  const dono = role === 'DONO';
   const [remetidos, chegadas] = await Promise.all([listarRemetidosDaPortaria(), listarChegadasDaPortaria()]);
 
   return (
@@ -70,6 +73,13 @@ export default async function AdminPortariaPage() {
                     Ver recebimento
                   </Link>
                 )}
+                {dono && (
+                  <BotaoApagar
+                    rotulo="Apagar chegada"
+                    aviso="Apagar esta chegada de vez? Não dá para desfazer."
+                    acao={apagarChegadaAction.bind(null, c.id)}
+                  />
+                )}
               </div>
             </article>
           ))
@@ -113,6 +123,13 @@ export default async function AdminPortariaPage() {
                 <Link href={`/admin/remetidos/${m.id}`} className="btn btn-ghost btn-sm">
                   Ver remetido
                 </Link>
+                {dono && (
+                  <BotaoApagar
+                    rotulo="Apagar dados da Portaria"
+                    aviso="Apagar motorista, placas, liberação e observação da Portaria deste remetido? O remetido em si continua."
+                    acao={limparDadosPortariaAction.bind(null, m.id)}
+                  />
+                )}
               </div>
             </article>
           ))
