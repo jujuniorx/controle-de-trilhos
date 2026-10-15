@@ -11,6 +11,7 @@ import { NfsPainel } from '@/app/admin/(protegido)/NfsPainel';
 import { rotuloNfs } from '@/lib/nf';
 import { PesoGrupoPainel } from './PesoGrupoPainel';
 import { TipoRemetidoPainel } from './TipoRemetidoPainel';
+import { HistoricoMovimentacao } from '@/components/admin/HistoricoMovimentacao';
 
 function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
@@ -44,28 +45,6 @@ function tituloRemetido(mov: { numeroDocumento: string | null; numerosDocumentoE
   if (mov.destino) return `${normalizarLocal(mov.destino)} — ${fmtData(mov.dataMovimentacao)}`;
   return 'em aberto';
 }
-
-const ACAO_LABEL: Record<string, string> = {
-  PRE_CADASTRO: 'Pré-cadastro criado pelo Administrativo',
-  CONFIRMACAO_CHEGADA: 'Chegada confirmada pelo Pátio',
-  LANCAMENTO_DIRETO: 'Remetido lançado direto pelo Pátio',
-  NF_INFORMADA: 'Nota fiscal informada/corrigida',
-  NF_ADICIONADA: 'Outra nota fiscal adicionada',
-  NF_REMOVIDA: 'Nota fiscal extra removida',
-  PESO_NF_INFORMADO: 'Peso da NF informado/corrigido',
-  TIPO_REMETIDO_INFORMADO: 'Tipo de remetido informado',
-  EDICAO: 'Remetido editado pelo Administrativo',
-  REABERTURA: 'Conferência reaberta',
-  CONFERENCIA: 'Remetido conferido',
-  MEDICAO_CONCLUIDA: 'Pátio terminou de medir',
-  MEDICAO_REABERTA: 'Pátio voltou a medir',
-  PORTARIA_DADOS: 'Dados do motorista/caminhão salvos pela Portaria',
-  PORTARIA_CRIOU_ENVIO: 'Envio criado pela Portaria (carreta chegou sem aviso do Pátio)',
-  CARRETA_CHEGOU: 'Chegada da carreta registrada pela Portaria',
-  CARRETA_LIBERADA: 'Carreta liberada pelo Pátio',
-  LIBERACAO_DESFEITA: 'Liberação da carreta desfeita pelo Pátio',
-  CARRETA_SAIU: 'Saída da carreta confirmada pela Portaria',
-};
 
 export default async function RemetidoDetalhePage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin();
@@ -275,29 +254,7 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
       {/* 6. Histórico */}
       <section className="card">
         <h2 className="card-title">Histórico</h2>
-        {mov.historico.length === 0 ? (
-          <p className="text-sm text-ink-dim">Nenhuma movimentação registrada ainda.</p>
-        ) : (
-          <div>
-            {mov.historico.map((h) => (
-              <div key={h.id} className="hist-row">
-                <div className="hist-dot" />
-                <div>
-                  <div className="hist-text">
-                    <strong>{ACAO_LABEL[h.acao] ?? h.acao}</strong>
-                  </div>
-                  <div className="hist-text">{h.usuarioNome}</div>
-                  {(h.valorAntigo != null || h.valorNovo != null) && (
-                    <div className="hist-text">
-                      {h.valorAntigo ?? '—'} → {h.valorNovo ?? '—'}
-                    </div>
-                  )}
-                  <div className="hist-time">{fmtDataHora(h.timestamp)}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <HistoricoMovimentacao historico={mov.historico} />
       </section>
     </main>
   );
