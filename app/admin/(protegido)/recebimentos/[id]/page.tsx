@@ -46,9 +46,10 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
             ) : (
               <span className="badge badge-warn">PENDENTE DE CONFERÊNCIA</span>
             )}
-            <Link href={`/admin/recebimentos/${mov.id}/romaneio`} className="btn btn-ghost btn-sm">
+            {/* <a> e não <Link>: o romaneio é um documento HTML puro (route handler), sem prefetch/RSC. */}
+            <a href={`/admin/recebimentos/${mov.id}/romaneio`} className="btn btn-ghost btn-sm">
               🖨️ Imprimir romaneio
-            </Link>
+            </a>
           </div>
         </div>
       </div>

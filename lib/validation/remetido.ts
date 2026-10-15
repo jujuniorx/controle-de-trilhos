@@ -10,7 +10,11 @@ export const TIPOS_REMETIDO = ['VENDA', 'TRANS', 'INDUS'] as const;
 export const CLASSIFICACOES_REEMPREGO_REMETIDO = ['G1', 'G2', 'G3'] as const;
 
 export const preCadastroRemetidoSchema = z.object({
-  tipoRemetido: z.enum(TIPOS_REMETIDO),
+  // Opcional: no "Aguardando chegada" o Pátio mede os trilhos antes do caminhão
+  // chegar e muitas vezes não sabe o tipo (Venda/Transferência/Industrialização).
+  // O Administrativo completa depois — ver informarTipoRemetido em services/remetido.
+  // Só o destino é obrigatório.
+  tipoRemetido: z.enum(TIPOS_REMETIDO).optional(),
   // Opcional: o Pátio não precisa informar (igual ao lançamento direto); fica nulo.
   reservaPedido: z.string().trim().min(1).optional(),
   destino: z.string().trim().min(1, 'Informe o destino.'),

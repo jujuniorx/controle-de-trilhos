@@ -1,0 +1,117 @@
+import { describe, it, expect } from 'vitest';
+import {
+  htmlRomaneioRecebimento,
+  htmlRomaneioRemetido,
+  escaparHtml,
+  type MovimentacaoRomaneio,
+} from '@/lib/romaneio';
+
+// Imita o Decimal do Prisma: objeto (não number) que só vira número via valueOf/toString.
+class Decimal {
+  constructor(private readonly v: string) {}
+  toString() {
+    return this.v;
+  }
+  valueOf() {
+    return this.v;
+  }
+}
+
+function movBase(overrides: Partial<MovimentacaoRomaneio> = {}): MovimentacaoRomaneio {
+  return {
+    id: 'mov1',
+    numeroDocumento: '123456',
+    origem: 'Usina Norte',
+    destino: 'Jales',
+    reservaPedido: null,
+    tipoTransporte: 'CAMINHAO',
+    transportadora: 'Translog',
+    placaCavalo: 'ABC1D23',
+    placaCarreta: 'XYZ9E88',
+    placaCarreta2: null,
+    responsavelPatio: 'Rafael',
+    dataMovimentacao: new Date('2026-10-14T00:00:00.000Z'),
+    status: 'PENDENTE_CONFERENCIA',
+    remetidoDetalhe: { tipoRemetido: null },
+    grupos: [
+      {
+        perfil: 'TR57',
+        tipoMaterial: 'NOVO',
+        tampao: false,
+        metrosTotal: new Decimal('24.30'),
+        pesoCalculado: new Decimal('1.386'),
+        pesoInformado: null,
+        medicoes: [
+          { quantidade: 2, comprimento: new Decimal('12.15'), metros: new Decimal('24.30'), classificacaoSC: null },
+        ],
+      },
+    ],
+    ...overrides,
+  };
+}
+
+describe('romaneio — HTML imprimível', () => {
+  it('gera o recebimento com Date e Decimal sem estourar (regressão do erro 500)', () => {
+    const html = htmlRomaneioRecebimento(movBase(), 'abc123');
+    expect(html).toContain('ROMANEIO DE RECEBIMENTO');
+    expect(html).toContain('14/10/2026');
+    expect(html).toContain('2 × 12,15 m');
+    expect(html).toContain('24,30');
+    expect(html).toContain('1,386');
+  });
+
+  it('data nula vira "—" em vez de estourar', () => {
+    const html = htmlRomaneioRecebimento(movBase({ dataMovimentacao: null }), null);
+    expect(html).toContain('ROMANEIO DE RECEBIMENTO');
+  });
+
+  it('remetido sem tipo mostra "Em aberto" e sem destino/NF não quebra', () => {
+    const html = htmlRomaneioRemetido(movBase({ numeroDocumento: null, destino: null }), null);
+    expect(html).toContain('Em aberto');
+    expect(html).toContain('ROMANEIO DE REMETIDO');
+  });
+
+  it('remetido com tipo mostra o rótulo e usa o peso informado quando existe', () => {
+    const mov = movBase({ remetidoDetalhe: { tipoRemetido: 'TRANS' } });
+    mov.grupos[0].pesoInformado = new Decimal('9.5');
+    const html = htmlRomaneioRemetido(mov, null);
+    expect(html).toContain('Transferência');
+    expect(html).toContain('9,5');
+  });
+
+  it('remetido SUCATA mostra a coluna de classificação', () => {
+    const mov = movBase();
+    mov.grupos[0].tipoMaterial = 'SUCATA';
+    mov.grupos[0].medicoes[0].classificacaoSC = 'SC1';
+    const html = htmlRomaneioRemetido(mov, null);
+    expect(html).toContain('Classificação');
+    expect(html).toContain('SC1');
+  });
+
+  it('escapa o que as pessoas digitam (sem injeção de HTML)', () => {
+    const html = htmlRomaneioRemetido(
+      movBase({ destino: '<script>alert(1)</script>', transportadora: 'A & B "Ltda"' }),
+      null,
+    );
+    expect(html).not.toContain('<script>alert(1)</script>');
+    expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
+    expect(html).toContain('A &amp; B &quot;Ltda&quot;');
+  });
+
+  it('botões usam script com nonce, nunca onclick inline (o CSP bloqueia onclick)', () => {
+    const html = htmlRomaneioRecebimento(movBase(), 'nonce-xyz');
+    expect(html).toContain('<script nonce="nonce-xyz">');
+    expect(html).not.toMatch(/onclick\s*=/i);
+    expect(html).toContain('id="btn-imprimir"');
+    expect(html).toContain('window.print()');
+  });
+
+  it('sem nonce não emite script', () => {
+    expect(htmlRomaneioRecebimento(movBase(), null)).not.toContain('<script');
+  });
+
+  it('escaparHtml cobre os cinco caracteres perigosos', () => {
+    expect(escaparHtml(`<>&"'`)).toBe('&lt;&gt;&amp;&quot;&#39;');
+    expect(escaparHtml(null)).toBe('');
+  });
+});

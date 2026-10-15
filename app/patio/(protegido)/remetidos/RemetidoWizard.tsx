@@ -154,36 +154,73 @@ type Props =
   | { modo: 'confirmar'; movimentacaoId: string; numeroDocumentoPreCadastrado: string | null }
   | { modo: 'editar'; movimentacaoId: string; valoresIniciais: ValoresIniciaisEdicao };
 
+// Rascunho do modo "confirmar": o Pátio vai medindo os trilhos ANTES da carreta
+// chegar e pode fechar o app a qualquer momento. Fica no IndexedDB (lib/offline/db).
+interface RascunhoLocal {
+  identificacao: Identificacao;
+  dados: Dados;
+  grupos: GrupoLocal[];
+  activeGrupoId: string | null;
+  modoDraft: ModoMedicao;
+  dataTocada: boolean;
+}
+
+function rascunhoValido(r: unknown): r is RascunhoLocal {
+  if (typeof r !== 'object' || r === null) return false;
+  const o = r as Record<string, unknown>;
+  return (
+    Array.isArray(o.grupos) &&
+    typeof o.dados === 'object' && o.dados !== null &&
+    typeof o.identificacao === 'object' && o.identificacao !== null
+  );
+}
+
 export function RemetidoWizard(props: Props) {
+  // O rascunho vem do IndexedDB (assíncrono), mas o useState só usa o valor inicial na
+  // PRIMEIRA renderização — por isso o wizard só monta depois que o rascunho foi lido.
+  // Além disso o auto-save não pode rodar antes disso: senão sobrescreveria o rascunho
+  // guardado com um estado vazio (era isso que fazia as medições "sumirem").
+  const movimentacaoId = props.modo === 'confirmar' ? props.movimentacaoId : null;
+  const [rascunho, setRascunho] = useState<RascunhoLocal | null | undefined>(movimentacaoId ? undefined : null);
+
+  useEffect(() => {
+    if (!movimentacaoId) return;
+    let cancelado = false;
+    lerRascunhoRemetido(movimentacaoId)
+      .then((r) => {
+        const salvo: unknown = r?.rascunho;
+        if (!cancelado) setRascunho(rascunhoValido(salvo) ? salvo : null);
+      })
+      .catch(() => {
+        if (!cancelado) setRascunho(null);
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, [movimentacaoId]);
+
+  if (rascunho === undefined) return <p className="mt-4 text-sm text-ink-muted">Carregando...</p>;
+  return <RemetidoWizardInterno props={props} rascunhoInicial={rascunho} />;
+}
+
+function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascunhoInicial: RascunhoLocal | null }) {
   const router = useRouter();
   const numeroDocumentoPreCadastrado = props.modo === 'confirmar' ? props.numeroDocumentoPreCadastrado : null;
   const hoje = useSyncExternalStore(semInscricao, dataDeHojeLocal, () => '');
 
-  // Estado para carregar rascunho (só em modo "confirmar")
-  const [rascunhoCarregado, setRascunhoCarregado] = useState<any>(null);
-
-  // Carrega rascunho ao montar (apenas modo "confirmar")
-  useEffect(() => {
-    if (props.modo !== 'confirmar') return;
-    const movimentacaoId = (props as { modo: 'confirmar'; movimentacaoId: string }).movimentacaoId;
-    lerRascunhoRemetido(movimentacaoId).then((r) => {
-      if (r?.rascunho) setRascunhoCarregado(r.rascunho);
-    });
-  }, [props]);
-
   const [dataTocada, setDataTocada] = useState(
-    rascunhoCarregado ? rascunhoCarregado.dataTocada : props.modo === 'editar'
+    rascunhoInicial ? rascunhoInicial.dataTocada : props.modo === 'editar'
   );
   const [identificacao, setIdentificacao] = useState<Identificacao>(
-    rascunhoCarregado
-      ? rascunhoCarregado.identificacao
+    rascunhoInicial
+      ? rascunhoInicial.identificacao
       : props.modo === 'editar'
         ? { tipoRemetido: props.valoresIniciais.tipoRemetido, reservaPedido: props.valoresIniciais.reservaPedido, destino: props.valoresIniciais.destino }
         : { tipoRemetido: '', reservaPedido: '', destino: '' },
   );
   const [dadosBrutos, setDados] = useState<Dados>(
-    rascunhoCarregado
-      ? rascunhoCarregado.dados
+    rascunhoInicial
+      ? rascunhoInicial.dados
       : props.modo === 'editar'
         ? props.valoresIniciais.dados
         : {
@@ -197,11 +234,11 @@ export function RemetidoWizard(props: Props) {
           },
   );
   const [mostrarCarreta2, setMostrarCarreta2] = useState(
-    rascunhoCarregado ? Boolean(rascunhoCarregado.dados.placaCarreta2) : props.modo === 'editar' && Boolean(props.valoresIniciais.dados.placaCarreta2)
+    rascunhoInicial ? Boolean(rascunhoInicial.dados.placaCarreta2) : props.modo === 'editar' && Boolean(props.valoresIniciais.dados.placaCarreta2)
   );
   const [attemptSubmit, setAttemptSubmit] = useState(false);
-  const [grupos, setGrupos] = useState<GrupoLocal[]>(rascunhoCarregado ? rascunhoCarregado.grupos : props.modo === 'editar' ? props.valoresIniciais.grupos : []);
-  const [activeGrupoId, setActiveGrupoId] = useState<string | null>(rascunhoCarregado ? rascunhoCarregado.activeGrupoId : null);
+  const [grupos, setGrupos] = useState<GrupoLocal[]>(rascunhoInicial ? rascunhoInicial.grupos : props.modo === 'editar' ? props.valoresIniciais.grupos : []);
+  const [activeGrupoId, setActiveGrupoId] = useState<string | null>(rascunhoInicial ? rascunhoInicial.activeGrupoId : null);
   const [draftPerfil, setDraftPerfil] = useState('');
   const [draftTipo, setDraftTipo] = useState<TipoMaterial>('NOVO');
   const [draftMedicao, setDraftMedicao] = useState({
@@ -211,7 +248,7 @@ export function RemetidoWizard(props: Props) {
     scManual: false,
     erro: '',
   });
-  const [modoDraft, setModoDraft] = useState<ModoMedicao>(rascunhoCarregado ? rascunhoCarregado.modoDraft : 'INDIVIDUAL');
+  const [modoDraft, setModoDraft] = useState<ModoMedicao>(rascunhoInicial ? rascunhoInicial.modoDraft : 'INDIVIDUAL');
   const [enviando, setEnviando] = useState(false);
   const [erroFinal, setErroFinal] = useState('');
 
@@ -224,15 +261,25 @@ export function RemetidoWizard(props: Props) {
   const errosIdentificacao = attemptSubmit && temIdentificacao ? validarIdentificacao(identificacao) : {};
   const grupoAtivo = grupos.find((g) => g.clientId === activeGrupoId) ?? null;
 
-  // Auto-save em modo "confirmar" — salva medições localmente mesmo se fechar o app
+  // Auto-save em modo "confirmar" — a cada alteração (inclusive cada medição lançada) o
+  // rascunho vai para o IndexedDB, então nada se perde se o app for fechado. O estado
+  // inicial já veio do rascunho (ver RemetidoWizard), então salvar no mount é inofensivo.
   const movimentacaoId = props.modo === 'confirmar' ? props.movimentacaoId : null;
+  const [salvoEm, setSalvoEm] = useState<string | null>(null);
+  const [falhaRascunho, setFalhaRascunho] = useState(false);
 
   useEffect(() => {
     if (!movimentacaoId) return;
-    const rascunho = { identificacao, dados: dadosBrutos, grupos, activeGrupoId, modoDraft, dataTocada };
-    salvarRascunhoRemetido(movimentacaoId, rascunho).catch((err) => {
-      console.error('Erro ao salvar rascunho:', err);
-    });
+    const rascunhoAtual: RascunhoLocal = { identificacao, dados: dadosBrutos, grupos, activeGrupoId, modoDraft, dataTocada };
+    salvarRascunhoRemetido(movimentacaoId, rascunhoAtual)
+      .then(() => {
+        setFalhaRascunho(false);
+        setSalvoEm(new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
+      })
+      .catch((err) => {
+        console.error('Erro ao salvar rascunho:', err);
+        setFalhaRascunho(true);
+      });
   }, [movimentacaoId, identificacao, dadosBrutos, grupos, activeGrupoId, modoDraft, dataTocada]);
 
   function adicionarGrupo() {
@@ -388,6 +435,16 @@ export function RemetidoWizard(props: Props) {
 
   return (
     <div className="mt-4 space-y-4">
+      {movimentacaoId && falhaRascunho && (
+        <p role="alert" className="text-sm text-bad">
+          Não foi possível guardar o rascunho neste aparelho. Não feche o app antes de confirmar.
+        </p>
+      )}
+      {movimentacaoId && !falhaRascunho && salvoEm && (
+        <p role="status" className="text-xs text-ink-muted">
+          Rascunho salvo neste aparelho às {salvoEm}
+        </p>
+      )}
       {temIdentificacao && (
         <section className="card space-y-3">
           <h2 className="card-title !mb-0">Identificação do remetido</h2>

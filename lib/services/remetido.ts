@@ -42,7 +42,7 @@ export async function criarPreCadastroRemetido(
       destino: input.destino,
       reservaPedido: input.reservaPedido ?? null,
       status: 'AGUARDANDO_CHEGADA',
-      remetidoDetalhe: { create: { tipoRemetido: input.tipoRemetido } },
+      remetidoDetalhe: { create: { tipoRemetido: input.tipoRemetido ?? null } },
     },
     include: { grupos: { include: { medicoes: true } }, remetidoDetalhe: true, historico: { orderBy: { timestamp: 'desc' } } },
   });

@@ -29,9 +29,11 @@ export function PreCadastroForm() {
 
     const form = new FormData(evento.currentTarget);
     const numeroDocumento = String(form.get('numeroDocumento') ?? '').trim();
+    // "Não sei / completar depois" chega como string vazia: vira undefined (opcional).
+    const tipoRemetido = String(form.get('tipoRemetido') ?? '').trim();
     const parsed = preCadastroSyncSchema.safeParse({
       clientId: crypto.randomUUID(),
-      tipoRemetido: form.get('tipoRemetido'),
+      tipoRemetido: tipoRemetido || undefined,
       destino: form.get('destino'),
       numeroDocumento: numeroDocumento || undefined,
     });
@@ -64,11 +66,9 @@ export function PreCadastroForm() {
       </p>
 
       <div className="field">
-        <label htmlFor="tipoRemetido">Tipo de remetido</label>
-        <select id="tipoRemetido" name="tipoRemetido" required className="h-11" defaultValue="">
-          <option value="" disabled>
-            Selecione
-          </option>
+        <label htmlFor="tipoRemetido">Tipo de remetido (opcional — o Administrativo completa depois)</label>
+        <select id="tipoRemetido" name="tipoRemetido" className="h-11" defaultValue="">
+          <option value="">Não sei / completar depois</option>
           {TIPOS_REMETIDO.map((t) => (
             <option key={t} value={t}>
               {TIPO_REMETIDO_LABEL[t]}

@@ -45,7 +45,7 @@ export function PreCadastrosPendentes() {
         <div key={item.clientId} className="card">
           <p className="font-medium text-ink">{item.payload.destino}</p>
           <p className="text-sm text-ink-muted">
-            {TIPO_REMETIDO_LABEL[item.payload.tipoRemetido] ?? '—'}
+            {item.payload.tipoRemetido ? (TIPO_REMETIDO_LABEL[item.payload.tipoRemetido] ?? '—') : 'Tipo em aberto'}
             {item.payload.reservaPedido ? ` · Reserva ${item.payload.reservaPedido}` : ''}
           </p>
           {item.syncStatus === 'ERRO' ? (

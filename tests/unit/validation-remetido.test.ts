@@ -55,9 +55,15 @@ describe('preCadastroRemetidoSchema', () => {
     expect(resultado.success).toBe(true);
   });
 
-  it('rejeita tipoRemetido ausente', () => {
+  it('aceita tipoRemetido ausente — só o destino é obrigatório no Aguardando chegada', () => {
     const { tipoRemetido, ...resto } = preCadastroValido();
     const resultado = preCadastroRemetidoSchema.safeParse(resto);
+    expect(resultado.success).toBe(true);
+    if (resultado.success) expect(resultado.data.tipoRemetido).toBeUndefined();
+  });
+
+  it('rejeita tipoRemetido com valor fora da lista', () => {
+    const resultado = preCadastroRemetidoSchema.safeParse({ ...preCadastroValido(), tipoRemetido: 'QUALQUER' });
     expect(resultado.success).toBe(false);
   });
 

@@ -80,9 +80,10 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
                 Editar remetido
               </Link>
             )}
-            <Link href={`/admin/remetidos/${mov.id}/romaneio`} className="btn btn-ghost btn-sm">
+            {/* <a> e não <Link>: o romaneio é um documento HTML puro (route handler), sem prefetch/RSC. */}
+            <a href={`/admin/remetidos/${mov.id}/romaneio`} className="btn btn-ghost btn-sm">
               🖨️ Imprimir romaneio
-            </Link>
+            </a>
           </div>
         </div>
       </div>
