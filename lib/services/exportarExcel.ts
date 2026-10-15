@@ -1,3 +1,4 @@
+import { nfsEmTexto } from '@/lib/nf';
 import ExcelJS from 'exceljs';
 import type { MovimentacaoRelatorio } from '@/lib/services/relatorio';
 import { pecasDoGrupo, arredondar3 } from '@/lib/domain/regras';
@@ -145,7 +146,7 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
       mes,
       ano,
       mov.tipoDocumento,
-      mov.numeroDocumento ?? '',
+      nfsEmTexto(mov),
       mov.tipoTransporte,
       formatarPlaca(mov),
       '-', // Qtd. de vagões — não capturado pelo app (só Caminhão existe hoje)
@@ -283,7 +284,7 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
       mes,
       ano,
       mov.tipoDocumento,
-      mov.numeroDocumento ?? '',
+      nfsEmTexto(mov),
       upper(mov.reservaPedido),
       mov.tipoTransporte,
       formatarPlaca(mov),

@@ -13,7 +13,12 @@ function montarWhere(filtros: FiltrosRelatorioInput): Prisma.MovimentacaoWhereIn
 
   if (filtros.tipo) where.tipo = filtros.tipo;
   if (filtros.status) where.status = filtros.status;
-  if (filtros.numeroDocumento) where.numeroDocumento = { contains: filtros.numeroDocumento };
+  if (filtros.numeroDocumento) {
+    // Acha tanto pela NF principal quanto pelas NFs extras do mesmo carregamento.
+    where.AND = [
+      { OR: [{ numeroDocumento: { contains: filtros.numeroDocumento } }, { numerosDocumentoExtras: { has: filtros.numeroDocumento } }] },
+    ];
+  }
 
   if (filtros.origemDestino) {
     // Locais são gravados em MAIÚSCULAS (normalizarLocal). O ILIKE sozinho pode não casar

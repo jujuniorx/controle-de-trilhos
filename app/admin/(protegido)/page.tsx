@@ -1,3 +1,4 @@
+import { nfsEmTexto, rotuloNfs } from '@/lib/nf';
 import Link from 'next/link';
 import { listarPendentesConferencia } from '@/lib/services/movimentacao';
 import { listarAguardandoChegada } from '@/lib/services/remetido';
@@ -81,13 +82,13 @@ export default async function AdminHomePage() {
             </thead>
             <tbody>
               {movimentacoes.map((m) => (
-                <tr key={m.id} data-mov-id={m.id} data-mov-rotulo={m.numeroDocumento ? `NF ${m.numeroDocumento}` : (m.destino ?? m.origem ?? 'Movimentação em aberto')}>
+                <tr key={m.id} data-mov-id={m.id} data-mov-rotulo={m.numeroDocumento ? rotuloNfs(m) : (m.destino ?? m.origem ?? 'Movimentação em aberto')}>
                   <td data-label="Tipo">
                     <span className="badge badge-info">{m.tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'}</span>
                   </td>
                   <td data-label="Data" className="font-mono">{fmtData(m.dataMovimentacao)}</td>
                   <td data-label="Hora" className="font-mono">{fmtHora(m.createdAt)}</td>
-                  <td data-label="NF" className="font-mono">{m.numeroDocumento ?? 'Em aberto'}</td>
+                  <td data-label="NF" className="font-mono">{nfsEmTexto(m) || 'Em aberto'}</td>
                   <td data-label="Origem/Destino">{normalizarLocal(m.tipo === 'RECEBIMENTO' ? m.origem : m.destino)}</td>
                   <td data-label="Caminhão" className="font-mono">
                     {[m.placaCarreta, m.placaCarreta2, m.placaCavalo].filter(Boolean).join(' / ') || '—'}

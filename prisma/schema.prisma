@@ -135,6 +135,8 @@ model Movimentacao {
   tipo             TipoMovimentacao
   tipoDocumento    String
   numeroDocumento  String?
+  // Carregamento com mais de uma NF: a principal fica em numeroDocumento; as outras, aqui.
+  numerosDocumentoExtras String[] @default([])
   tipoTransporte   TipoTransporte
   placaCavalo      String?
   placaCarreta     String?

@@ -13,6 +13,7 @@
 //    atributos inline como onclick="..." são bloqueados. Os botões usam um <script>
 //    com o nonce da requisição (cabeçalho x-nonce definido em middleware.ts).
 
+import { rotuloNfs } from '@/lib/nf';
 import { fmtMetros, fmtPeso } from '@/lib/format';
 import { pecasDoGrupo } from '@/lib/domain/regras';
 import { normalizarLocal } from '@/lib/domain/local';
@@ -39,6 +40,7 @@ export interface GrupoRomaneio {
 export interface MovimentacaoRomaneio {
   id: string;
   numeroDocumento: string | null;
+  numerosDocumentoExtras?: string[];
   origem: string | null;
   destino: string | null;
   reservaPedido: string | null;
@@ -266,9 +268,9 @@ function carretas(mov: MovimentacaoRomaneio): string | null {
 export function htmlRomaneioRecebimento(mov: MovimentacaoRomaneio, nonce: string | null): string {
   const t = calcularTotais(mov.grupos, false);
   return documento({
-    titulo: mov.numeroDocumento ? `NF ${mov.numeroDocumento}` : `Recebimento ${mov.id}`,
+    titulo: rotuloNfs(mov) || `Recebimento ${mov.id}`,
     cabecalho: 'ROMANEIO DE RECEBIMENTO',
-    subtitulo: mov.numeroDocumento ? `NF ${mov.numeroDocumento}` : '',
+    subtitulo: rotuloNfs(mov),
     infos: [
       ['Origem', normalizarLocal(mov.origem)],
       ['Tipo de Transporte', mov.tipoTransporte],
@@ -295,9 +297,9 @@ export function htmlRomaneioRemetido(mov: MovimentacaoRomaneio, nonce: string | 
   const t = calcularTotais(mov.grupos, true);
   const tipo = mov.remetidoDetalhe?.tipoRemetido;
   return documento({
-    titulo: mov.numeroDocumento ? `NF ${mov.numeroDocumento}` : `Remetido ${mov.id}`,
+    titulo: rotuloNfs(mov) || `Remetido ${mov.id}`,
     cabecalho: 'ROMANEIO DE REMETIDO',
-    subtitulo: mov.numeroDocumento ? `NF ${mov.numeroDocumento}` : '',
+    subtitulo: rotuloNfs(mov),
     infos: [
       ['Tipo de Remetido', tipo ? (TIPO_REMETIDO_LABEL[tipo] ?? tipo) : 'Em aberto'],
       ['Reserva/Pedido', mov.reservaPedido],
