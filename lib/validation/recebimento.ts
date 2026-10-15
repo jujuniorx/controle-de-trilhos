@@ -14,6 +14,10 @@ export const PERFIS = [
 
 export const CLASSIFICACOES_REEMPREGO = ['G1', 'G2', 'G3'] as const;
 export const CLASSIFICACOES_SC = ['SC1', 'SC2', 'SC3', 'DIVERSOS'] as const;
+/** O que o Pátio escolhe ao medir sucata. "Diversos" não é medido: é um grupo à parte (perfil TOCO, só peso). */
+export const CLASSIFICACOES_SC_MEDIDAS = ['SC1', 'SC2', 'SC3'] as const;
+/** Perfil do grupo "Diversos": tocos de sucata pesados juntos, sem medição. */
+export const PERFIL_DIVERSOS = 'TOCO' as const;
 
 // Lista fechada de marcas (V1.2 §11) — "OUTROS" libera o texto livre em fabricanteOutro.
 export const MARCAS = ['NIPPON', 'EVRAZ', 'PANGANG', 'OUTROS'] as const;
@@ -98,14 +102,22 @@ const grupoReempregoSchema = z.object({
     ),
 });
 
-const grupoSucataSchema = z.object({
-  clientId: z.string().uuid(),
-  perfil: z.enum(PERFIS),
-  tipoMaterial: z.literal('SUCATA'),
-  medicoes: z
-    .array(medicaoSchema.required({ classificacaoSC: true }))
-    .min(1, 'Adicione ao menos uma medição.'),
-});
+// Sucata medida (perfil TR) OU "Diversos" (perfil TOCO): sem medição — o peso vem da pesagem, pelo Administrativo.
+const grupoSucataSchema = z
+  .object({
+    clientId: z.string().uuid(),
+    perfil: z.enum([...PERFIS, PERFIL_DIVERSOS]),
+    tipoMaterial: z.literal('SUCATA'),
+    medicoes: z.array(medicaoSchema.required({ classificacaoSC: true })),
+  })
+  .refine((g) => g.perfil === PERFIL_DIVERSOS || g.medicoes.length >= 1, {
+    message: 'Adicione ao menos uma medição.',
+    path: ['medicoes'],
+  })
+  .refine((g) => g.perfil !== PERFIL_DIVERSOS || g.medicoes.length === 0, {
+    message: 'Diversos não tem medição — só o peso, informado depois pelo Administrativo.',
+    path: ['medicoes'],
+  });
 
 export const grupoSchema = z.discriminatedUnion('tipoMaterial', [
   grupoNovoSchema,

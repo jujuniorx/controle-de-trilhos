@@ -101,15 +101,23 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
               <div className="grupo-header">
                 <div className="grupo-header-left">
                   <span className="grupo-title">
-                    Grupo {i + 1} — {g.perfil} — {g.tipoMaterial}
+                    Grupo {i + 1} — {g.perfil === 'TOCO' ? 'DIVERSOS' : g.perfil} — {g.tipoMaterial}
                   </span>
                   <span className="grupo-meta">
                     {g.tipoMaterial === 'NOVO' && g.fabricante && <>Fabricante: {g.fabricante} · </>}
                     {g.tipoMaterial === 'REEMPREGO' && <>Classificação: {g.classificacao} · </>}
-                    {pecasDoGrupo(g.medicoes)} {pecasDoGrupo(g.medicoes) === 1 ? 'barra' : 'barras'} · {fmtMetros(g.metrosTotal)} m
+                    {g.perfil === 'TOCO' ? (
+                      'Sem medição — o peso vem da pesagem'
+                    ) : (
+                      <>
+                        {pecasDoGrupo(g.medicoes)} {pecasDoGrupo(g.medicoes) === 1 ? 'barra' : 'barras'} · {fmtMetros(g.metrosTotal)} m
+                      </>
+                    )}
                   </span>
                 </div>
-                {g.tipoMaterial === 'SUCATA' ? (
+                {g.perfil === 'TOCO' ? (
+                  <span className="whitespace-nowrap text-right text-sm text-ink-muted">peso na pesagem</span>
+                ) : g.tipoMaterial === 'SUCATA' ? (
                   <span className="whitespace-nowrap text-right font-mono">
                     <span className="font-semibold text-ink">{fmtPeso(Number(g.pesoCalculado ?? 0))} t</span>{' '}
                     <span className="text-xs text-warn">(estimado, a confirmar)</span>
@@ -135,10 +143,11 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
           {mov.grupos.map((g, i) => (
             <div key={g.id}>
               <p className="mb-1 text-sm font-medium text-ink-muted">
-                Grupo {i + 1} — {g.perfil}
+                Grupo {i + 1} — {g.perfil === 'TOCO' ? 'Diversos' : g.perfil}
               </p>
               <div className="grupo-card">
                 <div className="grupo-body !border-t-0 !pt-2">
+                  {g.perfil === 'TOCO' && <p className="text-sm text-ink-muted">Diversos — sem medição.</p>}
                   {g.medicoes.map((m, k) => (
                     <div key={m.id} className="medicao-row">
                       <span>

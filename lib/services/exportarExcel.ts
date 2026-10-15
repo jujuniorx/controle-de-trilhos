@@ -168,7 +168,7 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         ...base,
         descricaoPerfil(grupos[0].perfil),
         fabricantes.length > 0 ? fabricantes.join(' / ') : '-',
-        grupos.reduce((acc, g) => acc + pecasDoGrupo(g.medicoes), 0),
+        grupos[0].perfil === 'TOCO' ? '-' : grupos.reduce((acc, g) => acc + pecasDoGrupo(g.medicoes), 0),
         // Peso estimado do que NÃO é sucata — o peso real da sucata é conferido à parte (pesoSucataReal).
         somaOuNull(
           grupos.filter((g) => g.tipoMaterial !== 'SUCATA').map((g) => (g.pesoCalculado != null ? Number(g.pesoCalculado) : null)),

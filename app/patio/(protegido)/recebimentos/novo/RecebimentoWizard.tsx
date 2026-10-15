@@ -5,7 +5,8 @@ import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import {
   PERFIS,
   CLASSIFICACOES_REEMPREGO,
-  CLASSIFICACOES_SC,
+  CLASSIFICACOES_SC_MEDIDAS,
+  PERFIL_DIVERSOS,
   PLACA_REGEX,
   NF_REGEX,
   MSG_NF_INVALIDA,
@@ -301,9 +302,11 @@ export function RecebimentoWizard({
   }
 
   function adicionarGrupo(perfil: string, tipoMaterial: TipoMaterial) {
-    const g: GrupoLocal = { clientId: novoUuid(), perfil, tipoMaterial, medicoes: [] };
+    const diversos = perfil === PERFIL_DIVERSOS;
+    // Diversos é sempre sucata e não tem medição: o grupo nasce pronto, sem abrir a tela de medidas.
+    const g: GrupoLocal = { clientId: novoUuid(), perfil, tipoMaterial: diversos ? 'SUCATA' : tipoMaterial, medicoes: [] };
     setGrupos((prev) => [...prev, g]);
-    setActiveGrupoId(g.clientId);
+    setActiveGrupoId(diversos ? null : g.clientId);
   }
 
   function atualizarGrupo(id: string, patch: Partial<GrupoLocal>) {
@@ -333,7 +336,7 @@ export function RecebimentoWizard({
       return;
     }
     if (grupoAtivo.tipoMaterial === 'SUCATA' && !draft.sc) {
-      setDraft((d) => ({ ...d, erro: 'Selecione a classificação SC1, SC2, SC3 ou Diversos.' }));
+      setDraft((d) => ({ ...d, erro: 'Selecione a classificação SC1, SC2 ou SC3.' }));
       return;
     }
     const quantidade = modoDraft === 'QTD_COMPRIMENTO' ? Math.max(1, Number(draft.quantidade) || 1) : 1;
@@ -357,7 +360,7 @@ export function RecebimentoWizard({
   }
 
   const grupoIncompleto = (g: GrupoLocal) =>
-    g.medicoes.length === 0 ||
+    (g.perfil !== PERFIL_DIVERSOS && g.medicoes.length === 0) ||
     (g.tipoMaterial === 'REEMPREGO' && !g.classificacao) ||
     (g.tipoMaterial === 'NOVO' && !g.marca) ||
     (g.tipoMaterial === 'NOVO' && g.marca === 'OUTROS' && !g.fabricanteOutro?.trim());
@@ -570,7 +573,7 @@ export function RecebimentoWizard({
             <div key={g.clientId} className="grupo-card !mb-0 p-3">
               <div className="flex items-center justify-between">
                 <span className="grupo-title">
-                  Grupo {i + 1} — {g.perfil} — {g.tipoMaterial}
+                  Grupo {i + 1} — {g.perfil === PERFIL_DIVERSOS ? 'DIVERSOS — SUCATA' : `${g.perfil} — ${g.tipoMaterial}`}
                 </span>
                 <button className="text-sm text-bad" onClick={() => removerGrupo(g.clientId)}>
                   Excluir
@@ -633,14 +636,22 @@ export function RecebimentoWizard({
                   )}
                 </div>
               )}
-              <p className="mt-2 text-sm text-ink-muted">
-                {g.medicoes.length === 0
-                  ? 'Nenhuma medição adicionada'
-                  : `${pecasDoGrupo(g.medicoes)} ${pecasDoGrupo(g.medicoes) === 1 ? 'barra' : 'barras'} · ${metrosDoGrupo(g).toFixed(2).replace('.', ',')} m`}
-              </p>
-              <button className="btn btn-secondary btn-sm mt-2" onClick={() => abrirMedicoes(g.clientId)}>
-                {g.medicoes.length ? 'Medir' : 'Lançar medidas'}
-              </button>
+              {g.perfil === PERFIL_DIVERSOS ? (
+                <p className="mt-2 text-sm text-ink-muted">
+                  Diversos não tem medição. O peso é informado pelo Administrativo depois que o caminhão for pesado.
+                </p>
+              ) : (
+                <>
+                  <p className="mt-2 text-sm text-ink-muted">
+                    {g.medicoes.length === 0
+                      ? 'Nenhuma medição adicionada'
+                      : `${pecasDoGrupo(g.medicoes)} ${pecasDoGrupo(g.medicoes) === 1 ? 'barra' : 'barras'} · ${metrosDoGrupo(g).toFixed(2).replace('.', ',')} m`}
+                  </p>
+                  <button className="btn btn-secondary btn-sm mt-2" onClick={() => abrirMedicoes(g.clientId)}>
+                    {g.medicoes.length ? 'Medir' : 'Lançar medidas'}
+                  </button>
+                </>
+              )}
             </div>
           ))}
 
@@ -728,7 +739,7 @@ export function RecebimentoWizard({
                 onChange={(e) => setDraft({ ...draft, sc: e.target.value as ClassificacaoSC, scManual: true })}
               >
                 <option value="">SC?</option>
-                {CLASSIFICACOES_SC.map((sc) => (
+                {CLASSIFICACOES_SC_MEDIDAS.map((sc) => (
                   <option key={sc}>{sc}</option>
                 ))}
               </select>
@@ -792,6 +803,16 @@ export function RecebimentoWizard({
                   const fator = fatoresCadastrados[g.perfil];
                   const metros = metrosDoGrupo(g);
                   const peso = fator != null ? Math.round(metros * fator * 1000) / 1000 : null;
+                  if (g.perfil === PERFIL_DIVERSOS) {
+                    return (
+                      <tr key={g.clientId}>
+                        <td>Grupo {i + 1} (Diversos)</td>
+                        <td>SUCATA</td>
+                        <td className="text-right font-mono">—</td>
+                        <td className="text-right text-sm text-ink-muted">Sem medição — peso na pesagem</td>
+                      </tr>
+                    );
+                  }
                   return (
                     <tr key={g.clientId}>
                       <td>
@@ -864,6 +885,7 @@ function NovoGrupoForm({ onAdd }: { onAdd: (perfil: string, tipoMaterial: TipoMa
           {PERFIS.map((p) => (
             <option key={p}>{p}</option>
           ))}
+          <option value={PERFIL_DIVERSOS}>Diversos (sem medição — só peso)</option>
         </select>
       </div>
       <div className="field">
@@ -871,7 +893,8 @@ function NovoGrupoForm({ onAdd }: { onAdd: (perfil: string, tipoMaterial: TipoMa
         <select
           aria-label="Tipo de material do novo grupo"
           className="h-10"
-          value={tipoMaterial}
+          value={perfil === PERFIL_DIVERSOS ? 'SUCATA' : tipoMaterial}
+          disabled={perfil === PERFIL_DIVERSOS}
           onChange={(e) => setTipoMaterial(e.target.value as TipoMaterial)}
         >
           <option value="NOVO">NOVO</option>

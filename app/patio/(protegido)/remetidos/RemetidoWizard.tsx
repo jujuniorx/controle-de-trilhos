@@ -9,7 +9,7 @@ import {
   lancamentoDiretoRemetidoSchema,
   PERFIL_TOCO,
 } from '@/lib/validation/remetido';
-import { PERFIS, MARCAS, MARCA_LABEL, PLACA_REGEX, NF_REGEX, MSG_NF_INVALIDA, CLASSIFICACOES_SC } from '@/lib/validation/recebimento';
+import { PERFIS, MARCAS, MARCA_LABEL, PLACA_REGEX, NF_REGEX, MSG_NF_INVALIDA, CLASSIFICACOES_SC, CLASSIFICACOES_SC_MEDIDAS } from '@/lib/validation/recebimento';
 import { validarReemprego, classificarSC, pecasDoGrupo } from '@/lib/domain/regras';
 import { confirmarRemetidoAction } from './[id]/confirmar/actions';
 import { criarRemetidoDiretoAction } from './novo/actions';
@@ -347,7 +347,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
       return;
     }
     if (grupoAtivo.tipoMaterial === 'SUCATA' && !draftMedicao.sc) {
-      setDraftMedicao((d) => ({ ...d, erro: 'Selecione a classificação SC1, SC2, SC3 ou Diversos.' }));
+      setDraftMedicao((d) => ({ ...d, erro: 'Selecione a classificação SC1, SC2 ou SC3.' }));
       return;
     }
     const quantidade = modoDraft === 'QTD_COMPRIMENTO' ? Math.max(1, Number(draftMedicao.quantidade) || 1) : 1;
@@ -775,7 +775,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
                         }
                       >
                         <option value="">SC</option>
-                        {CLASSIFICACOES_SC.map((sc) => (
+                        {CLASSIFICACOES_SC_MEDIDAS.map((sc) => (
                           <option key={sc} value={sc}>
                             {sc}
                           </option>
@@ -807,7 +807,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
                 {p}
               </option>
             ))}
-            <option value={PERFIL_TOCO}>TOCO — Diversos (só peso)</option>
+            <option value={PERFIL_TOCO}>Diversos (sem medição — só peso)</option>
           </select>
           <select
             className="h-11 w-28"

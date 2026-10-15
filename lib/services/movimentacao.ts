@@ -41,6 +41,20 @@ async function prepararGrupos(input: RecebimentoCaminhaoInput): Promise<GrupoPar
     const metrosTotal = metrosPorMedicao.reduce((a, b) => a + b, 0);
 
     if (grupo.tipoMaterial === 'SUCATA') {
+      if (grupo.perfil === 'TOCO') {
+        // Diversos: sem medição e sem fator — o peso real vem da pesagem (pesoSucataReal), pelo Administrativo.
+        gruposParaCriar.push({
+          clientId: grupo.clientId,
+          perfil: grupo.perfil,
+          tipoMaterial: 'SUCATA',
+          classificacao: null,
+          fabricante: null,
+          metrosTotal: 0,
+          pesoCalculado: null,
+          medicoes: [],
+        });
+        continue;
+      }
       // Estimativa (metros x fator) — NUNCA pode bloquear o salvamento do Pátio.
       // Se o fator do perfil não estiver cadastrado, fica sem estimativa (null),
       // igual ao comportamento anterior a esta estimativa existir. O peso REAL
@@ -143,7 +157,7 @@ export async function criarRecebimentoCaminhao(input: RecebimentoCaminhaoInput) 
 
       // Uma ida só ao banco por grupo (antes era uma por medição): num caminhão grande, as idas
       // somadas estouravam o limite de 5 s da transação e o recebimento nunca chegava a salvar.
-      await tx.medicao.createMany({
+      if (grupo.medicoes.length > 0) await tx.medicao.createMany({
         data: grupo.medicoes.map((medicao) => ({
           clientId: medicao.clientId,
           grupoId: grupoCriado.id,
