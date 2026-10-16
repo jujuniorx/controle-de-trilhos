@@ -1,4 +1,4 @@
-import { informativoDoAno } from '@/lib/services/informativo';
+import { informativoDoAno, METROS_POR_BARRA } from '@/lib/services/informativo';
 import { fmtMetros } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
@@ -31,53 +31,48 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
         </form>
       </header>
 
-      <section className="card space-y-2" aria-label="Gráfico mensal">
-        <p className="text-sm text-ink-muted">Trilho por mês em {ano}: o que chegou na usina e o que ainda não chegou</p>
-        <style>{`
-  .inf-barra { transform-box: fill-box; transform-origin: 50% 100%; animation: inf-cresce 0.9s cubic-bezier(.2,.8,.2,1) both; }
-  .inf-barra-falta { transform-box: fill-box; transform-origin: 50% 100%; animation: inf-cresce 0.9s cubic-bezier(.2,.8,.2,1) both; }
-  .inf-valor { opacity: 0; animation: inf-surge 0.5s ease forwards; }
-  .inf-meta { stroke-dasharray: 900; stroke-dashoffset: 900; animation: inf-desenha 1.2s ease 0.9s forwards; }
-  .inf-meta-texto { opacity: 0; animation: inf-surge 0.5s ease 1.6s forwards; }
-  @keyframes inf-cresce { from { transform: scaleY(0); } to { transform: scaleY(1); } }
-  @keyframes inf-surge { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-  @keyframes inf-desenha { to { stroke-dashoffset: 0; } }
-  @media (prefers-reduced-motion: reduce) {
-    .inf-barra, .inf-barra-falta, .inf-valor, .inf-meta, .inf-meta-texto { animation: none; opacity: 1; transform: none; stroke-dashoffset: 0; }
-  }
-`}</style>
-        <svg viewBox={`0 0 ${W} ${H + 30}`} className="h-auto w-full" role="img" aria-label="Chegou na usina, ainda não chegou e meta por mês">
+      <section className="card space-y-4" aria-label="Gráfico mensal">
+        <p className="text-sm text-ink-muted">Trilhos por mês em {ano}: chegou na usina e recolhido</p>
+        <svg viewBox={`0 0 ${W} ${H + 30}`} className="h-auto w-full" role="img" aria-label="Chegou na usina e recolhido por mês">
           {(() => {
-            const topo = Math.max(r.metaM, ...r.meses.map((m) => m.recebido + m.naoChegou), 1);
+            const topo = Math.max(1, ...r.meses.map((m) => Math.max(m.recebido, m.w61, m.w62)));
             const y = (v: number) => base - (v / topo) * (H - 30);
-            return (
-              <>
-                <line className="inf-meta" pathLength={900} x1="0" x2={W} y1={y(r.metaM)} y2={y(r.metaM)} stroke="currentColor" strokeWidth="2" strokeDasharray="6 4" strokeOpacity="0.7" />
-                <text className="inf-meta-texto" x={W - 4} y={y(r.metaM) - 6} textAnchor="end" fontSize="12" fill="currentColor">Meta {fmtMetros(r.metaM)}</text>
-                {r.meses.map((m, i) => {
-                  const x = barra(i);
-                  const larg = W / 12 - 14;
-                  const hChegou = base - y(m.recebido);
-                  const alturaFalta = y(m.recebido) - y(m.recebido + m.naoChegou);
-                  const total = m.recebido + m.naoChegou;
-                  return (
-                    <g key={MESES[i]}>
-                      <rect className="inf-barra" style={{ animationDelay: `${i * 70}ms` }} x={x} y={y(m.recebido)} width={larg} height={hChegou} rx="3" fill={CORES.recebido} />
-                      <rect className="inf-barra-falta" style={{ animationDelay: `${i * 70 + 150}ms` }} x={x} y={y(m.recebido + m.naoChegou)} width={larg} height={alturaFalta} rx="3" fill="#e0a526" />
-                      {total > 0 && <text className="inf-valor" style={{ animationDelay: `${i * 70 + 700}ms` }} x={x + larg / 2} y={y(total) - 4} textAnchor="middle" fontSize="11" fill="currentColor">{Math.round(total).toLocaleString('pt-BR')}</text>}
-                      <text x={x + larg / 2} y={H + 18} textAnchor="middle" fontSize="11" fill="currentColor">{MESES[i]}</text>
+            const cores = { chegou: CORES.recebido, w61: '#e8a33d', w62: '#16a34a' };
+            return r.meses.map((m, i) => {
+              const x0 = barra(i);
+              const larg = (W / 12 - 14) / 3;
+              const barras = [
+                { v: m.recebido, cor: cores.chegou, dx: 0 },
+                { v: m.w61, cor: cores.w61, dx: larg },
+                { v: m.w62, cor: cores.w62, dx: larg * 2 },
+              ];
+              return (
+                <g key={MESES[i]}>
+                  {barras.map((b, k) => b.v > 0 && (
+                    <g key={k}>
+                      <rect x={x0 + b.dx} y={y(b.v)} width={larg - 2} height={base - y(b.v)} rx="2" fill={b.cor} />
+                      <text x={x0 + b.dx + (larg - 2) / 2} y={y(b.v) - 4} textAnchor="middle" fontSize="9" fill="currentColor">{Math.round(b.v).toLocaleString('pt-BR')}</text>
                     </g>
-                  );
-                })}
-              </>
-            );
+                  ))}
+                  <text x={x0 + (W / 12 - 14) / 2} y={H + 18} textAnchor="middle" fontSize="11" fill="currentColor">{MESES[i]}</text>
+                </g>
+              );
+            });
           })()}
         </svg>
         <div className="flex flex-wrap gap-3 text-sm">
-          <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm" style={{ background: CORES.recebido }} />Chegou na usina</span>
-          <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm" style={{ background: '#e0a526' }} />Ainda não chegou</span>
-          <span className="flex items-center gap-1"><span className="inline-block h-0 w-5 border-t-2 border-dashed" />Meta</span>
+          <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm" style={{ background: CORES.recebido }} />Recebido (estaleiro de solda)</span>
+          <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm" style={{ background: '#e8a33d' }} />Recolhido W61</span>
+          <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm" style={{ background: '#16a34a' }} />Recolhido W62</span>
         </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div><p className="text-xs uppercase text-ink-muted">Meta de recolhimento</p><p className="text-lg font-semibold">{fmtMetros(r.metaM)}</p></div>
+          <div><p className="text-xs uppercase text-ink-muted">Pendente</p><p className="text-lg font-semibold text-warn">{fmtMetros(Math.max(r.metaM - r.acumAno.recebido, 0))}</p></div>
+          <div><p className="text-xs uppercase text-ink-muted">Recebido (estaleiro de solda)</p><p className="text-lg font-semibold" style={{ color: CORES.recebido }}>{fmtMetros(r.acumAno.recebido)}</p></div>
+          <div><p className="text-xs uppercase text-ink-muted">Recolhido W61</p><p className="text-lg font-semibold">{Math.round(r.acumAno.w61 / METROS_POR_BARRA).toLocaleString('pt-BR')} barras · {fmtMetros(r.acumAno.w61)}</p></div>
+          <div><p className="text-xs uppercase text-ink-muted">Recolhido W62</p><p className="text-lg font-semibold">{Math.round(r.acumAno.w62 / METROS_POR_BARRA).toLocaleString('pt-BR')} barras · {fmtMetros(r.acumAno.w62)}</p></div>
+        </div>
+        <p className="text-xs text-ink-muted">Barras convertidas a {METROS_POR_BARRA.toLocaleString('pt-BR')} m por barra.</p>
       </section>
 
       <section className="card space-y-3" aria-label="Quadro do dia">
