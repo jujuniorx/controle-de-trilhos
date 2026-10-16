@@ -86,6 +86,13 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         <p className="w-full text-sm text-ink-muted">Mostrando: {br(est.inicio)}{est.inicio !== est.fim ? ` a ${br(est.fim)}` : ''}</p>
       </form>
 
+      <nav aria-label="Imprimir" className="flex flex-wrap gap-2 text-sm">
+        <span className="self-center text-ink-muted">Imprimir:</span>
+        {[['todos', 'Tudo'], ['estaleiro', 'Estaleiro'], ['geracao', 'Geração'], ['composicoes', 'Composições'], ['caminhao', 'Caminhão de solda'], ['trilheiros', 'Trilheiros']].map(([valor, rotulo]) => (
+          <a key={valor} className="btn btn-ghost h-9" href={`/admin/usina/imprimir?periodo=${periodo}&data=${data}&setor=${valor}`}>{rotulo}</a>
+        ))}
+      </nav>
+
       {/* ── Estaleiro de solda ─────────────────────────────────────── */}
       <section className="space-y-4" aria-labelledby="estaleiro">
         <h2 id="estaleiro" className="section-title">Estaleiro de solda</h2>
