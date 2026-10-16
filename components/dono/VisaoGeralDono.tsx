@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { fmtMetros } from '@/lib/format';
 import { ContadorAnimado } from '@/components/ui/ContadorAnimado';
 
@@ -74,7 +75,7 @@ function Saudacao({ texto }: { texto: string }) {
   );
 }
 
-function Tile({ rotulo, cor, children, alerta = false, unidade }: { rotulo: string; cor: string; children: React.ReactNode; alerta?: boolean; unidade: string }) {
+function Tile({ rotulo, cor, children, alerta = false, unidade }: { rotulo: string; cor: string; children: ReactNode; alerta?: boolean; unidade: string }) {
   return (
     <div className={`card vg-tile ${alerta ? 'vg-alerta' : ''}`} style={{ ['--cor' as string]: cor }}>
       <p className="stat-label">{rotulo}</p>
