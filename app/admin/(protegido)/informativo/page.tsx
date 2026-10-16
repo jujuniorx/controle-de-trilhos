@@ -67,7 +67,8 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
     const q = new URLSearchParams({ dia, serie, unidade, ...novo });
     return `/admin/informativo?${q.toString()}`;
   };
-  const botao = (ativo: boolean) => `btn btn-sm ${ativo ? 'btn-primary' : 'btn-ghost'}`;
+  const segmento = (ativo: boolean) =>
+    `rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${ativo ? 'bg-primary text-on-primary shadow-sm' : 'text-ink-muted hover:text-ink'}`;
 
   return (
     <main className="mx-auto max-w-5xl space-y-6 p-4">
@@ -94,19 +95,27 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
           <a href={`/api/informativo/pdf?dia=${dia}&serie=${serie}&unidade=${unidade}`} className="btn btn-primary btn-sm">Baixar PDF</a>
         </div>
 
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Série">
-          {SERIES.map((s) => (
-            <Link key={s} href={link({ serie: s })} className={botao(serie === s)} aria-current={serie === s ? 'true' : undefined}>
-              {ROTULO_SERIE[s]}
-            </Link>
-          ))}
-        </div>
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Unidade">
-          {UNIDADES.map((u) => (
-            <Link key={u} href={link({ unidade: u })} className={botao(unidade === u)} aria-current={unidade === u ? 'true' : undefined}>
-              {u === 'barras' ? 'Em barras' : 'Em metros'}
-            </Link>
-          ))}
+        <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-ink-muted">Série</span>
+            <div className="inline-flex flex-wrap gap-1 rounded-lg bg-surface-2 p-1" role="group" aria-label="Série">
+              {SERIES.map((s) => (
+                <Link key={s} href={link({ serie: s })} className={segmento(serie === s)} aria-current={serie === s ? 'true' : undefined}>
+                  {ROTULO_SERIE[s]}
+                </Link>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-ink-muted">Unidade</span>
+            <div className="inline-flex gap-1 rounded-lg bg-surface-2 p-1" role="group" aria-label="Unidade">
+              {UNIDADES.map((u) => (
+                <Link key={u} href={link({ unidade: u })} className={segmento(unidade === u)} aria-current={unidade === u ? 'true' : undefined}>
+                  {u === 'barras' ? 'Em barras' : 'Em metros'}
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-3 text-sm">
