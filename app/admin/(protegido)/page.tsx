@@ -60,7 +60,7 @@ export default async function AdminHomePage() {
       </div>
 
       <div className="pend-resumo">
-        <div className="stat-tile pend-tile">
+        <div className={`stat-tile pend-tile ${movimentacoes.length > 0 ? 'pend-tile-alerta' : ''}`}>
           <p className="stat-label">Aguardando conferência</p>
           <p className={`stat-value ${movimentacoes.length > 0 ? 'accent' : ''}`}>
             <ContadorAnimado valor={movimentacoes.length} />
@@ -100,7 +100,18 @@ export default async function AdminHomePage() {
                   </td>
                   <td data-label="Data" className="font-mono">{fmtData(m.dataMovimentacao)}</td>
                   <td data-label="Hora" className="font-mono">{fmtHora(m.createdAt)}</td>
-                  <td data-label="NF" className="font-mono">{nfsEmTexto(m) || 'Em aberto'}</td>
+                  <td data-label="NF" className="font-mono" title={nfsEmTexto(m) || undefined}>
+                    {m.numeroDocumento ? (
+                      <>
+                        {m.numeroDocumento}
+                        {(m.numerosDocumentoExtras?.length ?? 0) > 0 && (
+                          <span className="badge badge-muted ml-1.5 !normal-case">+{m.numerosDocumentoExtras.length}</span>
+                        )}
+                      </>
+                    ) : (
+                      'Em aberto'
+                    )}
+                  </td>
                   <td data-label="Origem/Destino">{normalizarLocal(m.tipo === 'RECEBIMENTO' ? m.origem : m.destino)}</td>
                   <td data-label="Caminhão" className="font-mono">
                     {[m.placaCarreta, m.placaCarreta2, m.placaCavalo].filter(Boolean).join(' / ') || '—'}

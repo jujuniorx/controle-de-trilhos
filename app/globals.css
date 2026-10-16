@@ -1341,3 +1341,9 @@ a.card:hover { transform: translateY(-2px); }
   background-position: right 0.75rem center;
   background-size: 16px;
 }
+
+/* Página inicial do escritório: cartões de contagem entram em sequência; pendência em destaque. */
+.pend-resumo .stat-tile { animation: sobe-fade .55s ease-out backwards; }
+.pend-resumo .stat-tile:nth-child(2) { animation-delay: .08s; }
+.pend-tile-alerta { border-color: color-mix(in srgb, var(--warn) 45%, var(--line)); }
+@media (prefers-reduced-motion: reduce) { .pend-resumo .stat-tile { animation: none !important; } }
