@@ -39,6 +39,16 @@ async function main() {
     x.sistemaMetros += Number(gr.metrosTotal ?? 0);
     if (!gr.movimentacao.origem) x.sistemaSemOrigem++;
   }
+  const recolhidos = await prisma.recolhimentoSerra.findMany({ where: { data: { gte: ini, lt: fim } }, select: { data: true, unidades: true } });
+  const recolhidoPorMes: Record<string, { unidades: number; metros: number; dias: number }> = {};
+  for (const r of recolhidos) {
+    const k = mes(r.data);
+    recolhidoPorMes[k] ??= { unidades: 0, metros: 0, dias: 0 };
+    recolhidoPorMes[k].unidades += r.unidades;
+    recolhidoPorMes[k].metros += r.unidades * 10;
+    recolhidoPorMes[k].dias++;
+  }
+  out.recolhidoPorMes = Object.fromEntries(Object.entries(recolhidoPorMes).sort());
   out.porMes = Object.fromEntries(Object.entries(porMes).sort());
   out.totais = { serraLinhas: serra.length, nfsNoSistemaTotal: noSistema.size, movimentacoesRecebimento: movs.length, gruposRecebimento: grupos.length };
   writeFileSync('diagnostico-serra.json', JSON.stringify(out, null, 2));
