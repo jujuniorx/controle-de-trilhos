@@ -33,14 +33,27 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
 
       <section className="card space-y-2" aria-label="Gráfico mensal">
         <p className="text-sm text-ink-muted">Trilho por mês em {ano}: o que chegou na usina e o que ainda não chegou</p>
+        <style>{`
+  .inf-barra { transform-box: fill-box; transform-origin: 50% 100%; animation: inf-cresce 0.9s cubic-bezier(.2,.8,.2,1) both; }
+  .inf-barra-falta { transform-box: fill-box; transform-origin: 50% 100%; animation: inf-cresce 0.9s cubic-bezier(.2,.8,.2,1) both; }
+  .inf-valor { opacity: 0; animation: inf-surge 0.5s ease forwards; }
+  .inf-meta { stroke-dasharray: 900; stroke-dashoffset: 900; animation: inf-desenha 1.2s ease 0.9s forwards; }
+  .inf-meta-texto { opacity: 0; animation: inf-surge 0.5s ease 1.6s forwards; }
+  @keyframes inf-cresce { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  @keyframes inf-surge { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  @keyframes inf-desenha { to { stroke-dashoffset: 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    .inf-barra, .inf-barra-falta, .inf-valor, .inf-meta, .inf-meta-texto { animation: none; opacity: 1; transform: none; stroke-dashoffset: 0; }
+  }
+`}</style>
         <svg viewBox={`0 0 ${W} ${H + 30}`} className="h-auto w-full" role="img" aria-label="Chegou na usina, ainda não chegou e meta por mês">
           {(() => {
             const topo = Math.max(r.metaM, ...r.meses.map((m) => m.recebido + m.naoChegou), 1);
             const y = (v: number) => base - (v / topo) * (H - 30);
             return (
               <>
-                <line x1="0" x2={W} y1={y(r.metaM)} y2={y(r.metaM)} stroke="currentColor" strokeDasharray="6 4" strokeOpacity="0.7" />
-                <text x={W - 4} y={y(r.metaM) - 6} textAnchor="end" fontSize="12" fill="currentColor">Meta {fmtMetros(r.metaM)}</text>
+                <line className="inf-meta" pathLength={900} x1="0" x2={W} y1={y(r.metaM)} y2={y(r.metaM)} stroke="currentColor" strokeWidth="2" strokeDasharray="6 4" strokeOpacity="0.7" />
+                <text className="inf-meta-texto" x={W - 4} y={y(r.metaM) - 6} textAnchor="end" fontSize="12" fill="currentColor">Meta {fmtMetros(r.metaM)}</text>
                 {r.meses.map((m, i) => {
                   const x = barra(i);
                   const larg = W / 12 - 14;
@@ -49,9 +62,9 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
                   const total = m.recebido + m.naoChegou;
                   return (
                     <g key={MESES[i]}>
-                      <rect x={x} y={y(m.recebido)} width={larg} height={hChegou} fill={CORES.recebido} />
-                      <rect x={x} y={y(m.recebido + m.naoChegou)} width={larg} height={alturaFalta} fill="#e0a526" />
-                      {total > 0 && <text x={x + larg / 2} y={y(total) - 4} textAnchor="middle" fontSize="11" fill="currentColor">{Math.round(total).toLocaleString('pt-BR')}</text>}
+                      <rect className="inf-barra" style={{ animationDelay: `${i * 70}ms` }} x={x} y={y(m.recebido)} width={larg} height={hChegou} rx="3" fill={CORES.recebido} />
+                      <rect className="inf-barra-falta" style={{ animationDelay: `${i * 70 + 150}ms` }} x={x} y={y(m.recebido + m.naoChegou)} width={larg} height={alturaFalta} rx="3" fill="#e0a526" />
+                      {total > 0 && <text className="inf-valor" style={{ animationDelay: `${i * 70 + 700}ms` }} x={x + larg / 2} y={y(total) - 4} textAnchor="middle" fontSize="11" fill="currentColor">{Math.round(total).toLocaleString('pt-BR')}</text>}
                       <text x={x + larg / 2} y={H + 18} textAnchor="middle" fontSize="11" fill="currentColor">{MESES[i]}</text>
                     </g>
                   );
