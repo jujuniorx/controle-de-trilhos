@@ -86,7 +86,11 @@ export async function informativoDoAno(ano: number, dia: string) {
     meses[mesDe(h.data)].recebido += m;
     tocar(h.data).recebido += m;
   }
-  for (const q of [...meses, ...porDia.values()]) q.naoChegou = Math.max(q.recolhido - q.recebido, 0);
+  // Recolhido = W61 + W62 (composição diária). A planilha da serra não tem recolhimento de 2026.
+  for (const q of [...meses, ...porDia.values()]) {
+    q.recolhido = q.w61 + q.w62;
+    q.naoChegou = Math.max(q.recolhido - q.recebido, 0);
+  }
 
   const somar = (lista: Quadro[]): Quadro =>
     lista.reduce((t, q) => ({ geracao: t.geracao + q.geracao, w61: t.w61 + q.w61, w62: t.w62 + q.w62, recebido: t.recebido + q.recebido, recolhido: t.recolhido + q.recolhido, naoChegou: t.naoChegou + q.naoChegou }), vazio());

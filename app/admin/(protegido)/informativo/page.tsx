@@ -151,17 +151,17 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
       <section className="card space-y-3" aria-label="Quadro do dia">
         <div className="grid grid-cols-2 gap-2">
           <p className="text-sm">Meta recolhimento: <b>{fmtMetros(META_RECOLHIMENTO_M)}</b></p>
-          <p className="text-right text-sm">Saldo: <b className="text-warn">{fmtMetros(r.saldoM)}</b></p>
+          <p className="text-right text-sm">Saldo: <b className="text-warn">{fmtMetros(META_RECOLHIMENTO_M - r.acumAno.recolhido)} m</b></p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead><tr className="text-left text-ink-muted"><th className="py-1">Item</th><th className="py-1 text-right">Dia {dia.slice(8)}/{dia.slice(5, 7)}</th><th className="py-1 text-right">Acumulado do mês</th></tr></thead>
             <tbody>
-              <tr className="border-t border-surface-2"><td className="py-1">W61</td><td className="text-right">{fmtMetros(r.doDia.w61)}</td><td className="text-right">{fmtMetros(r.acumMes.w61)}</td></tr>
-              <tr className="border-t border-surface-2"><td className="py-1">W62</td><td className="text-right">{fmtMetros(r.doDia.w62)}</td><td className="text-right">{fmtMetros(r.acumMes.w62)}</td></tr>
+              <tr className="border-t border-surface-2"><td className="py-1">W61 (barras)</td><td className="text-right">{barras(r.doDia.w61)}<span className="block text-xs text-ink-muted">{fmtMetros(r.doDia.w61)} m</span></td><td className="text-right">{barras(r.acumMes.w61)}<span className="block text-xs text-ink-muted">{fmtMetros(r.acumMes.w61)} m</span></td></tr>
+              <tr className="border-t border-surface-2"><td className="py-1">W62 (barras)</td><td className="text-right">{barras(r.doDia.w62)}<span className="block text-xs text-ink-muted">{fmtMetros(r.doDia.w62)} m</span></td><td className="text-right">{barras(r.acumMes.w62)}<span className="block text-xs text-ink-muted">{fmtMetros(r.acumMes.w62)} m</span></td></tr>
               <tr className="border-t border-surface-2"><td className="py-1">Geração</td><td className="text-right">{fmtMetros(r.doDia.geracao)}</td><td className="text-right">{fmtMetros(r.acumMes.geracao)}</td></tr>
               <tr className="border-t border-surface-2"><td className="py-1">Recebido estaleiro</td><td className="text-right">{fmtMetros(r.doDia.recebido)}</td><td className="text-right">{fmtMetros(r.acumMes.recebido)}</td></tr>
-              <tr className="border-t border-surface-2"><td className="py-1">Recolhido</td><td className="text-right">{fmtMetros(r.doDia.recolhido)}</td><td className="text-right">{fmtMetros(r.acumMes.recolhido)}</td></tr>
+              <tr className="border-t border-surface-2"><td className="py-1">Recolhido (W61 + W62)</td><td className="text-right">{fmtMetros(r.doDia.recolhido)}</td><td className="text-right">{fmtMetros(r.acumMes.recolhido)}</td></tr>
               <tr className="border-t border-surface-2"><td className="py-1">Ainda não chegou</td><td className="text-right">{fmtMetros(r.doDia.naoChegou)}</td><td className="text-right">{fmtMetros(r.acumMes.naoChegou)}</td></tr>
             </tbody>
           </table>
