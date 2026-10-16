@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { informativoDoAno, META_RECOLHIMENTO_M, METROS_POR_BARRA } from '@/lib/services/informativo';
 import { seriesDoGrafico, ROTULO_SERIE, SERIES, UNIDADES, type Serie, type Unidade } from '@/lib/services/informativoGrafico';
 import { gerarInformativoPdf, type TemaPdf } from '@/lib/pdf/informativo';
-import { TEMA_COOKIE, temaValido } from '@/lib/tema/tema';
 import { fmtMetros } from '@/lib/format';
 
 const MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -13,14 +11,15 @@ function hojeSP(): string {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
 }
 
-/** Baixa o gráfico do informativo em PDF, com a série e a unidade escolhidas e o tema atual do site. */
+/** Baixa o gráfico do informativo em PDF (tema claro, para impressão), com a série e a unidade escolhidas. */
 export async function GET(request: NextRequest) {
   await requireAdmin();
   const params = request.nextUrl.searchParams;
   const dia = /^\d{4}-\d{2}-\d{2}$/.test(params.get('dia') ?? '') ? params.get('dia')! : hojeSP();
   const serie = (SERIES as readonly string[]).includes(params.get('serie') ?? '') ? (params.get('serie') as Serie) : 'tudo';
   const unidade = (UNIDADES as readonly string[]).includes(params.get('unidade') ?? '') ? (params.get('unidade') as Unidade) : 'barras';
-  const tema: TemaPdf = temaValido((await cookies()).get(TEMA_COOKIE)?.value) === 'escuro' ? 'escuro' : 'claro';
+  // Sempre tema claro: o PDF é para imprimir, e o fundo escuro gasta muita tinta.
+  const tema: TemaPdf = 'claro';
 
   const ano = Number(dia.slice(0, 4));
   const r = await informativoDoAno(ano, dia);

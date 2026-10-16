@@ -24,6 +24,13 @@ const ANIMACAO = `
   @keyframes inf-surge { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
   @keyframes inf-sobe { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
   @keyframes inf-desliza { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  /* Impressão pelo navegador sai sempre em tema claro (fundo escuro gasta muita tinta). */
+  @media print {
+    :root { --bg: #ffffff; --surface: #ffffff; --surface-2: #f1f3f6; --ink: #111827; --ink-muted: #4b5563; color-scheme: light; }
+    body { background: #ffffff !important; color: #111827 !important; }
+    .card { box-shadow: none !important; border: 1px solid #d1d5db; }
+    .inf-barra, .inf-valor, .inf-grade, .inf-eixo, .inf-legenda, .inf-cartao { animation: none !important; opacity: 1 !important; transform: none !important; }
+  }
   @media (prefers-reduced-motion: reduce) {
     .inf-barra, .inf-valor, .inf-grade, .inf-eixo, .inf-legenda, .inf-cartao { animation: none; opacity: 1; transform: none; }
   }
