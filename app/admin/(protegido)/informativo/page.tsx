@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { informativoDoAno, META_RECOLHIMENTO_M, METROS_POR_BARRA } from '@/lib/services/informativo';
-import { seriesDoGrafico, niceEixo, ROTULO_SERIE, SERIES, UNIDADES, type Serie, type Unidade } from '@/lib/services/informativoGrafico';
+import { montarGrafico, niceEixo, parseSeries, rotuloFiltro, CHAVES_SERIE, ROTULO_CURTO, UNIDADES, type ChaveSerie, type Unidade } from '@/lib/services/informativoGrafico';
 import { fmtMetros } from '@/lib/format';
 import { RecolhimentoDiaForm } from './RecolhimentoDiaForm';
 
@@ -40,19 +40,19 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
   const p = await searchParams;
   const primeiro = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
   const dia = /^\d{4}-\d{2}-\d{2}$/.test(primeiro(p.dia) ?? '') ? primeiro(p.dia)! : hojeSP();
-  const serie: Serie = (SERIES as readonly string[]).includes(primeiro(p.serie) ?? '') ? (primeiro(p.serie) as Serie) : 'tudo';
+  const chaves = parseSeries(primeiro(p.s));
   const unidade: Unidade = (UNIDADES as readonly string[]).includes(primeiro(p.unidade) ?? '') ? (primeiro(p.unidade) as Unidade) : 'barras';
   const ano = Number(dia.slice(0, 4));
   const r = await informativoDoAno(ano, dia);
 
-  const series = seriesDoGrafico(r.meses, serie, unidade);
+  const { indices, series } = montarGrafico(r.meses, chaves, unidade);
   const topo = Math.max(1, ...series.flatMap((s) => s.valores));
   const { max, passo } = niceEixo(topo);
   const W = 720, H = 300, yBase = 270, topoPlot = 30;
   const x0 = 56, plotW = W - x0 - 8;
   const ph = yBase - topoPlot;
   const y = (v: number) => yBase - (v / max) * ph;
-  const gw = plotW / 12;
+  const gw = plotW / Math.max(indices.length, 1);
   const n = series.length;
   const bw = Math.min(26, (gw * 0.7) / n);
   const eixoRotulo = unidade === 'barras' ? 'barras' : 'metros';
@@ -71,8 +71,8 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
     { rotulo: 'Ainda não chegou', cor: '#e5484d', destaque: true, dia: m(r.doDia.naoChegou), mes: m(r.acumMes.naoChegou) },
   ];
 
-  const link = (novo: Partial<{ serie: Serie; unidade: Unidade }>) => {
-    const q = new URLSearchParams({ dia, serie, unidade, ...novo });
+  const link = (novo: Partial<{ chaves: ChaveSerie[]; unidade: Unidade }>) => {
+    const q = new URLSearchParams({ dia, s: (novo.chaves ?? chaves).join(','), unidade: novo.unidade ?? unidade });
     return `/admin/informativo?${q.toString()}`;
   };
   const segmento = (ativo: boolean) =>
@@ -84,7 +84,7 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
       <header className="space-y-3">
         <h1 className="page-title">Informativo de trilhos</h1>
         <form className="flex flex-wrap items-end gap-3" method="get">
-          <input type="hidden" name="serie" value={serie} />
+          <input type="hidden" name="s" value={chaves.join(',')} />
           <input type="hidden" name="unidade" value={unidade} />
           <div className="flex flex-col gap-1">
             <label htmlFor="dia" className="text-xs font-medium uppercase tracking-wide text-ink-muted">Data do informativo</label>
@@ -100,18 +100,23 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
             <p className="font-condensed text-lg font-semibold uppercase tracking-wide">Trilhos {ano}</p>
             <p className="text-sm text-ink-muted">Recolhido por mês, em {eixoRotulo}</p>
           </div>
-          <a href={`/api/informativo/pdf?dia=${dia}&serie=${serie}&unidade=${unidade}`} className="btn btn-primary btn-sm">Baixar PDF</a>
+          <a href={`/api/informativo/pdf?dia=${dia}&s=${chaves.join(',')}&unidade=${unidade}`} className="btn btn-primary btn-sm">Baixar PDF</a>
         </div>
 
         <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
           <div className="flex flex-col gap-1.5">
             <span className="text-[11px] font-medium uppercase tracking-wider text-ink-muted">Indicador</span>
-            <div className="inline-flex flex-wrap gap-1 rounded-lg bg-surface-2 p-1" role="group" aria-label="Série">
-              {SERIES.map((s) => (
-                <Link key={s} href={link({ serie: s })} className={segmento(serie === s)} aria-current={serie === s ? 'true' : undefined}>
-                  {ROTULO_SERIE[s]}
-                </Link>
-              ))}
+            <div className="inline-flex flex-wrap gap-1 rounded-lg bg-surface-2 p-1" role="group" aria-label="Indicadores">
+              {CHAVES_SERIE.map((c) => {
+                const marcada = chaves.includes(c);
+                // Desmarcar a última série não esvazia o gráfico: mantém as demais.
+                const proximas = marcada ? chaves.filter((x) => x !== c) : [...chaves, c];
+                return (
+                  <Link key={c} href={link({ chaves: proximas.length ? proximas : chaves })} className={segmento(marcada)} aria-pressed={marcada}>
+                    {ROTULO_CURTO[c]}
+                  </Link>
+                );
+              })}
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
@@ -135,7 +140,7 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
           ))}
         </div>
 
-        <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={`${ROTULO_SERIE[serie]} por mês, em ${eixoRotulo}`}>
+        <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={`${rotuloFiltro(chaves)} por mês, em ${eixoRotulo}`}>
           {Array.from({ length: Math.floor(max / passo) + 1 }, (_, k) => k * passo).map((v, k) => (
             <g key={v}>
               <line className="inf-grade" style={{ animationDelay: `${k * 90}ms` }} x1={x0} x2={W - 8} y1={y(v)} y2={y(v)} stroke="currentColor" strokeOpacity={v === 0 ? 0.6 : 0.12} />
@@ -143,15 +148,16 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
             </g>
           ))}
           <text x={4} y={topoPlot - 10} fontSize="10" fill="currentColor" fillOpacity="0.7">{eixoRotulo}</text>
-          {MESES.map((mes, i) => {
-            const gx = x0 + i * gw;
+          {indices.map((mi, k) => {
+            const mes = MESES[mi];
+            const gx = x0 + k * gw;
             return (
               <g key={mes}>
                 {series.map((s, j) => {
-                  const v = s.valores[i] ?? 0;
+                  const v = s.valores[k] ?? 0;
                   if (v <= 0) return null;
                   const bx = gx + (gw - bw * n) / 2 + j * bw;
-                  const delay = i * 70 + j * 90;
+                  const delay = k * 70 + j * 90;
                   return (
                     <g key={s.chave}>
                       <rect className="inf-barra" style={{ animationDelay: `${delay}ms` }} x={bx} y={y(v)} width={bw - 2} height={yBase - y(v)} rx="2" fill={s.cor}>
@@ -161,7 +167,7 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
                     </g>
                   );
                 })}
-                <text className="inf-eixo" style={{ animationDelay: `${i * 60 + 500}ms` }} x={gx + gw / 2} y={yBase + 16} textAnchor="middle" fontSize="11" fill="currentColor">{mes}</text>
+                <text className="inf-eixo" style={{ animationDelay: `${k * 60 + 500}ms` }} x={gx + gw / 2} y={yBase + 16} textAnchor="middle" fontSize="11" fill="currentColor">{mes}</text>
               </g>
             );
           })}

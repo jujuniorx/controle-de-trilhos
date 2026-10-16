@@ -66,7 +66,7 @@ export function gerarInformativoPdf(d: DadosInformativoPdf): Buffer {
   p.texto(d.unidade === 'barras' ? 'barras' : 'metros', MARGEM, yBase + ph + 14, 8, 'normal', pal.muda);
 
   // Barras
-  const gw = plotW / 12;
+  const gw = plotW / Math.max(d.meses.length, 1);
   const n = d.series.length;
   const bw = Math.min(22, (gw * 0.7) / n);
   d.meses.forEach((mes, i) => {

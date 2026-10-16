@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { informativoDoAno, META_RECOLHIMENTO_M, METROS_POR_BARRA } from '@/lib/services/informativo';
-import { seriesDoGrafico, ROTULO_SERIE, SERIES, UNIDADES, type Serie, type Unidade } from '@/lib/services/informativoGrafico';
+import { montarGrafico, parseSeries, rotuloFiltro, UNIDADES, type Unidade } from '@/lib/services/informativoGrafico';
 import { gerarInformativoPdf, type TemaPdf } from '@/lib/pdf/informativo';
 import { fmtMetros } from '@/lib/format';
 
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
   await requireAdmin();
   const params = request.nextUrl.searchParams;
   const dia = /^\d{4}-\d{2}-\d{2}$/.test(params.get('dia') ?? '') ? params.get('dia')! : hojeSP();
-  const serie = (SERIES as readonly string[]).includes(params.get('serie') ?? '') ? (params.get('serie') as Serie) : 'tudo';
+  const chaves = parseSeries(params.get('s'));
   const unidade = (UNIDADES as readonly string[]).includes(params.get('unidade') ?? '') ? (params.get('unidade') as Unidade) : 'barras';
   // Sempre tema claro: o PDF é para imprimir, e o fundo escuro gasta muita tinta.
   const tema = 'claro' as const satisfies TemaPdf;
@@ -27,12 +27,13 @@ export async function GET(request: NextRequest) {
   const barras = (m: number) => Math.round(m / METROS_POR_BARRA).toLocaleString('pt-BR');
   const pendente = Math.max(META_RECOLHIMENTO_M - r.acumAno.w61 - r.acumAno.w62, 0);
 
+  const grafico = montarGrafico(r.meses, chaves, unidade);
   const pdf = gerarInformativoPdf({
     ano,
     unidade,
-    series: seriesDoGrafico(r.meses, serie, unidade),
-    meses: MESES,
-    filtro: ROTULO_SERIE[serie],
+    series: grafico.series,
+    meses: grafico.indices.map((i) => MESES[i]),
+    filtro: rotuloFiltro(chaves),
     tema,
     emitidoEm: new Date(),
     cartoes: [
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
   return new NextResponse(new Uint8Array(pdf), {
     headers: {
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="trilhos-${ano}-${serie}-${unidade}.pdf"`,
+      'Content-Disposition': `attachment; filename="trilhos-${ano}-${chaves.join("-")}-${unidade}.pdf"`,
       'Cache-Control': 'private, no-store',
     },
   });
