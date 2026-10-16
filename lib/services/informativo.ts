@@ -7,9 +7,8 @@ import { chaveLocal } from '@/lib/domain/local';
  * W61/W62 = barras × 10,5 m. Meta de recolhimento: 47.625 m.
  */
 
-export const METROS_POR_UNIDADE = 10;
-export const METROS_POR_BARRA = 10.5;
-export const META_RECOLHIMENTO_M = 47625;
+export { METROS_POR_UNIDADE, METROS_POR_BARRA, META_RECOLHIMENTO_M } from '@/lib/domain/informativo';
+import { METROS_POR_UNIDADE, METROS_POR_BARRA, META_RECOLHIMENTO_M } from '@/lib/domain/informativo';
 /** Cidade da serra a partir da origem gravada (aceita variações como "EVANGELISTA DE SOUZA"). */
 export function cidadeDaOrigem(origem: string | null | undefined): 'EVANGELISTA' | 'PARATINGA' | null {
   const o = chaveLocal(origem);
