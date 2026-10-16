@@ -481,3 +481,19 @@ model Feriado {
   data      DateTime @id @db.Date
   nome      String
 }
+
+// ─── Serra (origem do trilho: Evangelista e Paratinga) ───────────────────────
+// Recolhimento de trilho nas cidades da serra, lançado em unidades (1 unidade ≈ 10 m).
+// O que já chegou à usina vem sozinho dos recebimentos com origem na cidade.
+model RecolhimentoSerra {
+  id         String   @id @default(cuid())
+  data       DateTime @db.Date
+  cidade     String   // EVANGELISTA | PARATINGA
+  trecho     String?  // km, ex.: 070+600
+  unidades   Int
+  observacao String?
+  criadoEm   DateTime @default(now())
+
+  @@index([cidade, data])
+}
+
