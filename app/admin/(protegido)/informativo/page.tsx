@@ -4,7 +4,7 @@ import { fmtMetros } from '@/lib/format';
 export const dynamic = 'force-dynamic';
 
 const MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-const CORES = { geracao: '#2b2b2b', w61: '#2e8b57', w62: '#c2578f', recebido: '#4a6cd4' } as const;
+const CORES = { recebido: '#4a6cd4' } as const;
 
 function hojeSP(): string {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
@@ -13,18 +13,10 @@ function hojeSP(): string {
 export default async function InformativoPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const p = await searchParams;
   const dia = typeof p.dia === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.dia) ? p.dia : hojeSP();
-  const vista = p.vista === 'linhas' ? 'linhas' : 'barras';
   const ano = Number(dia.slice(0, 4));
   const r = await informativoDoAno(ano, dia);
-  const maximo = Math.max(...r.meses.map((m) => m.geracao + m.w61 + m.w62 + m.recebido), 1);
   const W = 640, H = 240, base = 200;
   const barra = (i: number) => (W / 12) * i + 10;
-  const linhas: Array<{ chave: keyof typeof CORES; rotulo: string; campo: 'geracao' | 'w61' | 'w62' | 'recebido' }> = [
-    { chave: 'geracao', rotulo: 'Geração', campo: 'geracao' },
-    { chave: 'w61', rotulo: 'W61', campo: 'w61' },
-    { chave: 'w62', rotulo: 'W62', campo: 'w62' },
-    { chave: 'recebido', rotulo: 'Recebido estaleiro', campo: 'recebido' },
-  ];
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 p-4">
@@ -40,60 +32,38 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
       </header>
 
       <section className="card space-y-2" aria-label="Gráfico mensal">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm text-ink-muted">{vista === 'barras' ? `Metros por mês em ${ano}` : `Metros acumulados em ${ano}`}</p>
-          <nav className="flex gap-1 text-sm" aria-label="Tipo de gráfico">
-            <a href={`?dia=${dia}&vista=barras`} className={`btn btn-ghost btn-sm ${vista === 'barras' ? 'font-bold' : ''}`} aria-current={vista === 'barras' ? 'page' : undefined}>Barras</a>
-            <a href={`?dia=${dia}&vista=linhas`} className={`btn btn-ghost btn-sm ${vista === 'linhas' ? 'font-bold' : ''}`} aria-current={vista === 'linhas' ? 'page' : undefined}>Linhas</a>
-          </nav>
-        </div>
-        {vista === 'linhas' ? (
-          <svg viewBox={`0 0 ${W} ${H + 30}`} className="h-auto w-full" role="img" aria-label="Gráfico acumulado de geração, W61, W62, recebido estaleiro e prospecção">
-            {(() => {
-              const acumulados = linhas.map((l) => {
-                let t = 0;
-                return r.meses.map((m) => (t += m[l.campo]));
-              });
-              const topo = Math.max(...acumulados.map((a) => a[11] ?? 0), r.metaM, 1);
-              const xs = (i: number) => 30 + (i * (W - 50)) / 11;
-              const ys = (v: number) => base - (v / topo) * (H - 20);
-              const caminho = (valores: number[]) => valores.map((v, i) => `${i === 0 ? 'M' : 'L'}${xs(i)},${ys(v)}`).join(' ');
-              return (
-                <>
-                  <line x1="30" x2={W - 10} y1={base} y2={base} stroke="currentColor" strokeOpacity="0.3" />
-                  <line x1="30" x2={W - 10} y1={ys(r.metaM)} y2={ys(r.metaM)} stroke="currentColor" strokeDasharray="6 4" strokeOpacity="0.6" />
-                  <text x={W - 12} y={ys(r.metaM) - 4} textAnchor="end" fontSize="11" fill="currentColor">Meta 47.625 m</text>
-                  {linhas.map((l, k) => (
-                    <path key={l.chave} d={caminho(acumulados[k])} fill="none" stroke={CORES[l.chave]} strokeWidth="2.5" />
-                  ))}
-                  {r.meses.map((_, i) => (
-                    <text key={MESES[i]} x={xs(i)} y={H + 18} textAnchor="middle" fontSize="11" fill="currentColor">{MESES[i]}</text>
-                  ))}
-                </>
-              );
-            })()}
-          </svg>
-        ) : (
-        <svg viewBox={`0 0 ${W} ${H + 30}`} className="h-auto w-full" role="img" aria-label="Gráfico mensal de geração, W61, W62 e recebido estaleiro">
-          {r.meses.map((m, i) => {
-            let y = base;
+        <p className="text-sm text-ink-muted">Trilho por mês em {ano}: o que chegou na usina e o que ainda não chegou</p>
+        <svg viewBox={`0 0 ${W} ${H + 30}`} className="h-auto w-full" role="img" aria-label="Chegou na usina, ainda não chegou e meta por mês">
+          {(() => {
+            const topo = Math.max(r.metaM, ...r.meses.map((m) => m.recebido + m.naoChegou), 1);
+            const y = (v: number) => base - (v / topo) * (H - 30);
             return (
-              <g key={MESES[i]}>
-                {linhas.map((l) => {
-                  const h = (m[l.campo] / maximo) * (H - 20);
-                  y -= h;
-                  return <rect key={l.chave} x={barra(i)} y={y} width={W / 12 - 14} height={h} fill={CORES[l.chave]} />;
+              <>
+                <line x1="0" x2={W} y1={y(r.metaM)} y2={y(r.metaM)} stroke="currentColor" strokeDasharray="6 4" strokeOpacity="0.7" />
+                <text x={W - 4} y={y(r.metaM) - 6} textAnchor="end" fontSize="12" fill="currentColor">Meta {fmtMetros(r.metaM)}</text>
+                {r.meses.map((m, i) => {
+                  const x = barra(i);
+                  const larg = W / 12 - 14;
+                  const hChegou = base - y(m.recebido);
+                  const alturaFalta = y(m.recebido) - y(m.recebido + m.naoChegou);
+                  const total = m.recebido + m.naoChegou;
+                  return (
+                    <g key={MESES[i]}>
+                      <rect x={x} y={y(m.recebido)} width={larg} height={hChegou} fill={CORES.recebido} />
+                      <rect x={x} y={y(m.recebido + m.naoChegou)} width={larg} height={alturaFalta} fill="#e0a526" />
+                      {total > 0 && <text x={x + larg / 2} y={y(total) - 4} textAnchor="middle" fontSize="11" fill="currentColor">{Math.round(total).toLocaleString('pt-BR')}</text>}
+                      <text x={x + larg / 2} y={H + 18} textAnchor="middle" fontSize="11" fill="currentColor">{MESES[i]}</text>
+                    </g>
+                  );
                 })}
-                <text x={barra(i) + (W / 12 - 14) / 2} y={H + 18} textAnchor="middle" fontSize="11" fill="currentColor">{MESES[i]}</text>
-              </g>
+              </>
             );
-          })}
+          })()}
         </svg>
-        )}
         <div className="flex flex-wrap gap-3 text-sm">
-          {linhas.map((l) => (
-            <span key={l.chave} className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm" style={{ background: CORES[l.chave] }} />{l.rotulo}</span>
-          ))}
+          <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm" style={{ background: CORES.recebido }} />Chegou na usina</span>
+          <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm" style={{ background: '#e0a526' }} />Ainda não chegou</span>
+          <span className="flex items-center gap-1"><span className="inline-block h-0 w-5 border-t-2 border-dashed" />Meta</span>
         </div>
       </section>
 
