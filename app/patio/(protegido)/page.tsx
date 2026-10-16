@@ -81,7 +81,7 @@ export default async function PatioHomePage() {
           {liberadas.map((c) => (
             <div key={c.id} className="card space-y-3 border-2 border-ok">
               <Link href={`/patio/recebimentos/novo?chegada=${c.id}`} className="block transition hover:brightness-110">
-                <p className="font-medium text-ink">{c.placaCarreta || c.placaCavalo || 'Caminhão'}{c.origem ? ` — ${c.origem}` : ''}</p>
+                <p className="font-medium text-ink">{c.ordemDia ? `Caminhão nº ${c.ordemDia} — ` : ''}{c.placaCarreta || c.placaCavalo || 'Caminhão'}{c.origem ? ` — ${c.origem}` : ''}</p>
                 <p className="text-sm text-ink-muted">
                   {[c.transportadora, c.materialPrevisto].filter(Boolean).join(' · ') || 'Toque para registrar o recebimento'}
                 </p>

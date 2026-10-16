@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "ChegadaCaminhao" ADD COLUMN IF NOT EXISTS "ordemDia" INTEGER, ADD COLUMN IF NOT EXISTS "ordemData" TEXT;

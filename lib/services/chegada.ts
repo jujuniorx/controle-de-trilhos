@@ -15,6 +15,17 @@ import type { DadosChegada } from '@/lib/validation/chegada';
 
 const num = (d: unknown) => (d == null ? null : Number(d));
 
+/** Dia de hoje (AAAA-MM-DD) no fuso de São Paulo. */
+function diaHoje(): string {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+}
+
+/** Próximo número de ordem do dia: o maior já dado + 1. */
+async function proximaOrdemDoDia(dia: string): Promise<number> {
+  const maior = await prisma.chegadaCaminhao.aggregate({ where: { ordemData: dia }, _max: { ordemDia: true } });
+  return (maior._max.ordemDia ?? 0) + 1;
+}
+
 function paraBanco(d: DadosChegada) {
   return {
     origem: d.origem ? normalizarLocal(d.origem) : null,
@@ -85,9 +96,11 @@ export async function liberarChegada(id: string, dados: DadosChegada, atorNome: 
   if (motivo) throw new ErroRegraNegocio(motivo);
 
   // Condição no WHERE: se duas pessoas liberarem juntas, só uma vence (e só ela avisa o Pátio).
+  const dia = diaHoje();
+  const ordemDia = await proximaOrdemDoDia(dia);
   const r = await prisma.chegadaCaminhao.updateMany({
     where: { id, liberadaEm: null, canceladaEm: null, movimentacaoId: null },
-    data: { ...paraBanco(dados), liberadaEm: new Date(), liberadaPor: atorNome },
+    data: { ...paraBanco(dados), liberadaEm: new Date(), liberadaPor: atorNome, ordemDia, ordemData: dia },
   });
   if (r.count === 0) throw new ErroRegraNegocio('Não foi possível liberar: a chegada mudou de situação. Atualize a tela.');
 
@@ -116,6 +129,15 @@ export async function confirmarSaidaChegada(id: string, atorNome: string): Promi
   if (r.count === 0) throw new ErroRegraNegocio('Não foi possível confirmar: a situação mudou. Atualize a tela.');
 }
 
+/** Portaria: muda o número de ordem do caminhão (o automático é o próximo do dia). */
+export async function definirOrdemChegada(id: string, ordem: number): Promise<void> {
+  if (!Number.isInteger(ordem) || ordem < 1 || ordem > 999) throw new ErroRegraNegocio('O número de ordem deve ser de 1 a 999.');
+  const c = await prisma.chegadaCaminhao.findUnique({ where: { id } });
+  if (!c) throw new ErroRegraNegocio('Chegada não encontrada.');
+  if (c.canceladaEm) throw new ErroRegraNegocio('Esta chegada foi cancelada.');
+  await prisma.chegadaCaminhao.update({ where: { id }, data: { ordemDia: ordem, ordemData: c.ordemData ?? diaHoje() } });
+}
+
 /** Cancela uma chegada que ainda não foi descarregada (cadastrada por engano, caminhão foi embora). */
 export async function cancelarChegada(id: string): Promise<void> {
   await carregarAberta(id);
@@ -126,8 +148,8 @@ export async function cancelarChegada(id: string): Promise<void> {
 export async function listarChegadasLiberadas() {
   return prisma.chegadaCaminhao.findMany({
     where: { liberadaEm: { not: null }, canceladaEm: null, movimentacaoId: null },
-    select: { id: true, origem: true, transportadora: true, placaCarreta: true, placaCavalo: true, liberadaEm: true, materialPrevisto: true, observacao: true, descarregadaEm: true, saidaEm: true },
-    orderBy: { liberadaEm: 'asc' },
+    select: { id: true, origem: true, transportadora: true, placaCarreta: true, placaCavalo: true, liberadaEm: true, materialPrevisto: true, observacao: true, descarregadaEm: true, saidaEm: true, ordemDia: true, ordemData: true },
+    orderBy: [{ ordemData: 'asc' }, { ordemDia: 'asc' }, { liberadaEm: 'asc' }],
   });
 }
 

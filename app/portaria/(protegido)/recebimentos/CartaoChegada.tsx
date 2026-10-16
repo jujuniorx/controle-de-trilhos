@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { CampoObservacao, ICONE_CAMINHAO, Secao } from '@/components/portaria/Secao';
-import { cancelarChegadaAction, confirmarSaidaChegadaAction, registrarChegadaAction, salvarChegadaAction } from './actions';
+import { cancelarChegadaAction, confirmarSaidaChegadaAction, definirOrdemChegadaAction, registrarChegadaAction, salvarChegadaAction } from './actions';
 import type { ResultadoPortaria } from '../actions';
 import { ROTULO_ESTADO_CHEGADA } from '@/lib/domain/portaria';
 import { formatarCpfDigitado } from '@/lib/validation/portaria';
@@ -96,6 +96,19 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
   );
 
   const titulo = item.placaCarreta || item.placaCavalo || item.motoristaNome || 'Caminhão sem identificação';
+  const numero = item.ordemDia ? `Caminhão nº ${item.ordemDia} — ` : '';
+  const [ordemTexto, setOrdemTexto] = useState(item.ordemDia ? String(item.ordemDia) : '');
+  const [ordemPendente, iniciarOrdem] = useTransition();
+  const [ordemErro, setOrdemErro] = useState('');
+  function trocarOrdem() {
+    const n = Number(ordemTexto);
+    setOrdemErro('');
+    iniciarOrdem(async () => {
+      const r = await definirOrdemChegadaAction(item.id, n);
+      if (!r.ok) setOrdemErro(r.erro ?? 'Não foi possível trocar o número.');
+      else router.refresh();
+    });
+  }
 
   return (
     <section className="card space-y-4">
@@ -103,7 +116,7 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
         <span className="flex min-w-0 items-start gap-3">
           <span className="grid h-10 w-10 flex-none place-items-center rounded-xl bg-primary/15 text-primary">{ICONE_CAMINHAO}</span>
           <span className="min-w-0">
-          <span className="block break-words font-semibold text-ink">{titulo}</span>
+          <span className="block break-words font-semibold text-ink">{numero}{titulo}</span>
           <span className="block text-sm text-ink-muted">
             {item.origem ? `${item.origem} · ` : ''}{item.liberadaEm ? `chegou às ${hora(item.liberadaEm)}` : `aberta às ${hora(item.criadoEm)}`}
             {item.saidaEm ? ` · saiu ${dataHora(item.saidaEm)}` : ''}
@@ -113,6 +126,18 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
         <span className={`badge ${BADGE_CHEGADA[item.estado]} shrink-0`}>{ROTULO_ESTADO_CHEGADA[item.estado]}</span>
       </button>
 
+      {aberto && !semSalvar && (
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="field">
+            <label htmlFor={`${item.id}-ordem`}>Número do caminhão (ordem)</label>
+            <input id={`${item.id}-ordem`} className="h-12 w-28" inputMode="numeric" maxLength={3} value={ordemTexto} onChange={(e) => setOrdemTexto(e.target.value.replace(/\D/g, '').slice(0, 3))} disabled={ordemPendente} />
+          </div>
+          <button type="button" className="btn btn-ghost h-12" disabled={ordemPendente || !ordemTexto} onClick={trocarOrdem}>
+            {ordemPendente ? 'Aguarde...' : 'Trocar número'}
+          </button>
+          {ordemErro && <p role="alert" className="w-full text-sm text-bad">{ordemErro}</p>}
+        </div>
+      )}
       {aberto && (
         <form
           className="space-y-3"

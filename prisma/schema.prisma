@@ -315,6 +315,9 @@ model ChegadaCaminhao {
   // Pátio descarregou e libera a saída antes da medição (medição fica para depois).
   descarregadaEm    DateTime?
   descarregadaPor   String?
+  // Número de ordem do caminhão no dia (1, 2, 3...). Automático ao registrar a chegada; a Portaria pode trocar.
+  ordemDia          Int?
+  ordemData         String?   // dia da ordem, AAAA-MM-DD (fuso de São Paulo)
   saidaEm DateTime?
   saidaPor String?
 

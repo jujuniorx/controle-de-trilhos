@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { requirePortaria } from '@/lib/services/requirePortaria';
-import { cancelarChegada, confirmarSaidaChegada, criarChegada, liberarChegada, salvarDadosChegada } from '@/lib/services/chegada';
+import { cancelarChegada, confirmarSaidaChegada, criarChegada, definirOrdemChegada, liberarChegada, salvarDadosChegada } from '@/lib/services/chegada';
 import { ErroRegraNegocio } from '@/lib/services/errors';
 import { dadosChegadaSchema } from '@/lib/validation/chegada';
 import type { ResultadoPortaria } from '../actions';
@@ -74,6 +74,18 @@ export async function confirmarSaidaChegadaAction(id: string): Promise<Resultado
     await confirmarSaidaChegada(id, ator.nome);
     atualizarTelas();
     return { ok: true, mensagem: 'Saída confirmada.' };
+  } catch (e) {
+    return erro(e);
+  }
+}
+
+/** Portaria: troca o número de ordem do caminhão (Caminhão 1, 2...). O Pátio vê a mesma ordem. */
+export async function definirOrdemChegadaAction(id: string, ordem: number): Promise<ResultadoPortaria> {
+  await requirePortaria();
+  try {
+    await definirOrdemChegada(id, ordem);
+    atualizarTelas();
+    return { ok: true, mensagem: `Caminhão nº ${ordem}.` };
   } catch (e) {
     return erro(e);
   }
