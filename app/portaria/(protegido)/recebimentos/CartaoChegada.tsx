@@ -139,15 +139,15 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
           {chegou && <p className="rounded-lg bg-warn/10 px-3 py-2 text-sm text-warn">Chegada registrada. O Pátio vai descarregar; você será avisado quando terminar.</p>}
           {descarregado && <p className="rounded-lg bg-ok/10 px-3 py-2 text-sm text-ok">O Pátio descarregou. Quando o caminhão passar pela portaria, toque em &ldquo;Saída confirmada&rdquo;.</p>}
           {saiu && <p className="rounded-lg bg-surface-2 px-3 py-2 text-sm text-ink-muted">Caminhão saiu. Só consulta.</p>}
-          <p className="text-xs text-ink-muted">O PDF leva o que está <b>salvo</b>: toque em &ldquo;Salvar dados&rdquo; antes de baixar.</p>
+          {!rascunho && <p className="text-xs text-ink-muted">O PDF leva o que está <b>salvo</b>: toque em &ldquo;Salvar dados&rdquo; antes de baixar.</p>}
 
           <div className="grid grid-cols-2 gap-2">
-            {!semSalvar && (
+            {!semSalvar && !rascunho && (
               <button type="submit" className="btn btn-ghost h-12" disabled={pendente}>
                 Salvar dados
               </button>
             )}
-            <a href={`/portaria/pdf-chegada/${item.id}`} download className={`btn btn-ghost h-12 ${semSalvar ? 'col-span-2' : ''}`} aria-label="Baixar PDF com os dados preenchidos">
+            <a href={`/portaria/pdf-chegada/${item.id}`} download className={`btn btn-ghost h-12 ${semSalvar || rascunho ? 'col-span-2' : ''}`} aria-label="Baixar PDF com os dados preenchidos">
               Baixar PDF
             </a>
             {rascunho && (
