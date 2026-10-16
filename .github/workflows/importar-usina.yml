@@ -1,6 +1,9 @@
 name: importar-usina
 on:
   workflow_dispatch:
+  push:
+    branches: [ci-diag5]
+    paths: ['.github/workflows/importar-usina.yml']
 jobs:
   importar:
     runs-on: ubuntu-latest
