@@ -89,6 +89,11 @@ function TabelaPendencia({ titulo, itens, vazio }: { titulo: string; itens: Movi
   );
 }
 
+function fmtDataIso(iso: string | undefined): string | null {
+  const m = iso?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : null;
+}
+
 export default async function RelatoriosPage({
   searchParams,
 }: {
@@ -120,10 +125,14 @@ export default async function RelatoriosPage({
   return (
     <main className="mx-auto max-w-5xl xl:max-w-7xl space-y-6 p-6">
       <div className="page-header">
-        <h1 className="page-title">Relatório de movimentação</h1>
-        <Link href="/admin" className="back-link">
-          ← Voltar
-        </Link>
+        <div>
+          <nav aria-label="Caminho" className="text-xs text-ink-dim">
+            <Link href="/admin" className="hover:text-ink">Início</Link>
+            <span className="mx-1.5" aria-hidden>/</span>
+            <span>Relatórios</span>
+          </nav>
+          <h1 className="page-title mt-1">Relatório de movimentação</h1>
+        </div>
       </div>
 
       <form method="get" className="card">
@@ -205,17 +214,23 @@ export default async function RelatoriosPage({
           </div>
           </div>
         </div>
-        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-          <button type="submit" className="btn btn-primary w-full sm:w-auto">
-            Filtrar
-          </button>
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:justify-end">
           {temFiltro && (
             <Link href="/admin/relatorios" className="btn btn-secondary w-full sm:w-auto">
               Limpar filtros
             </Link>
           )}
+          <button type="submit" className="btn btn-primary w-full sm:w-auto sm:min-w-32">
+            Filtrar
+          </button>
         </div>
       </form>
+
+      <p className="text-sm text-ink-muted">
+        {filtros.dataInicio || filtros.dataFim
+          ? `Período: ${fmtDataIso(filtros.dataInicio) ?? 'desde o início'} até ${fmtDataIso(filtros.dataFim) ?? 'hoje'}`
+          : 'Período: todo o histórico'}
+      </p>
 
       <div className="rel-indicators">
         <div className="stat-tile">
@@ -233,7 +248,7 @@ export default async function RelatoriosPage({
         </div>
         <div className="stat-tile">
           <p className="stat-label">Toneladas</p>
-          <p className="stat-value accent">{fmtPeso(resumo.toneladas)}</p>
+          <p className="stat-value">{fmtPeso(resumo.toneladas)}</p>
           <p className="stat-unit">t</p>
         </div>
       </div>
