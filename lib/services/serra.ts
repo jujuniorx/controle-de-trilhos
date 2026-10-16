@@ -28,7 +28,7 @@ export async function resumoSerra(): Promise<{ cidades: ResumoCidadeSerra[]; rec
       where: { movimentacao: { tipo: 'RECEBIMENTO', origem: { not: null } } },
       select: { metrosTotal: true, movimentacao: { select: { origem: true } } },
     }),
-    prisma.recebimentoSerraHistorico.findMany({ select: { nf: true, cidade: true, metrosTotal: true } }),
+    prisma.recebimentoSerraHistorico.findMany({ where: { data: { gte: new Date('2026-01-01T00:00:00Z') } }, select: { nf: true, cidade: true, metrosTotal: true } }),
     prisma.movimentacao.findMany({
       where: { tipo: 'RECEBIMENTO', OR: [{ numeroDocumento: { not: null } }, { numerosDocumentoExtras: { isEmpty: false } }] },
       select: { numeroDocumento: true, numerosDocumentoExtras: true },

@@ -26,6 +26,9 @@ type Linha = {
 
 async function main() {
   const linhas = JSON.parse(readFileSync(join(process.cwd(), 'scripts', 'dados', 'serra-recebidos.json'), 'utf8')) as Linha[];
+  // Só 2026 entra na serra: o que for de anos anteriores sai do banco.
+  const apagados = await prisma.recebimentoSerraHistorico.deleteMany({ where: { data: { lt: new Date('2026-01-01T00:00:00Z') } } });
+  console.log(`Anos anteriores a 2026 removidos: ${apagados.count}.`);
   const r = await prisma.recebimentoSerraHistorico.createMany({
     data: linhas.map((l) => ({
       sheet: l.sheet,
