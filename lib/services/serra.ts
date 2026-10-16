@@ -11,7 +11,7 @@ import { chaveLocal } from '@/lib/domain/local';
 export const CIDADES_SERRA = ['EVANGELISTA', 'PARATINGA'] as const;
 export const ROTULO_CIDADE: Record<(typeof CIDADES_SERRA)[number], string> = { EVANGELISTA: 'Evangelista', PARATINGA: 'Paratinga' };
 export const METROS_POR_UNIDADE = 10;
-export const META_SERRA_M = 45000;
+export const META_SERRA_M = 47625;
 
 export interface ResumoCidadeSerra {
   cidade: (typeof CIDADES_SERRA)[number];
