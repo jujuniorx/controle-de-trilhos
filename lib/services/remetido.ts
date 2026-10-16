@@ -228,7 +228,8 @@ export async function informarNumeroDocumentoRemetido(
   usuario: UsuarioAdmin,
 ): Promise<void> {
   const mov = await prisma.movimentacao.findUnique({ where: { id: movimentacaoId } });
-  if (!mov || mov.tipo !== 'REMETIDO') throw new ErroRegraNegocio('Remetido não encontrado.');
+  // Vale para Remetido e Recebimento: a NF principal pode ser corrigida; se já estava conferido, reabre.
+  if (!mov || (mov.tipo !== 'REMETIDO' && mov.tipo !== 'RECEBIMENTO')) throw new ErroRegraNegocio('Movimentação não encontrada.');
 
   const valorAnterior = mov.numeroDocumento;
   const reabrindo = mov.status === 'CONFERIDO';

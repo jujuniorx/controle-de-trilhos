@@ -8,6 +8,7 @@ import { pecasDoGrupo } from '@/lib/domain/regras';
 import { ConferenciaPainel } from '@/app/admin/(protegido)/recebimentos/[id]/ConferenciaPainel';
 import { NfPainel } from './NfPainel';
 import { NfsPainel } from '@/app/admin/(protegido)/NfsPainel';
+import { informarNumeroDocumentoAction } from './actions';
 import { rotuloNfs } from '@/lib/nf';
 import { PesoGrupoPainel } from './PesoGrupoPainel';
 import { TipoRemetidoPainel } from './TipoRemetidoPainel';
@@ -120,7 +121,7 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
 
         {mov.status !== 'AGUARDANDO_CHEGADA' && mov.numeroDocumento == null && <NfPainel movimentacaoId={mov.id} />}
         {mov.numeroDocumento != null && (
-          <NfsPainel movimentacaoId={mov.id} principal={mov.numeroDocumento} extras={mov.numerosDocumentoExtras} />
+          <NfsPainel movimentacaoId={mov.id} principal={mov.numeroDocumento} extras={mov.numerosDocumentoExtras} acaoCorrigirPrincipal={informarNumeroDocumentoAction} />
         )}
         {mov.status !== 'AGUARDANDO_CHEGADA' && mov.remetidoDetalhe?.tipoRemetido == null && (
           <TipoRemetidoPainel movimentacaoId={mov.id} />

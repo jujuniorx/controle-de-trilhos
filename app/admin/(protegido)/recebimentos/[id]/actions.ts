@@ -5,6 +5,9 @@ import { requireAdmin } from '@/lib/services/requireAdmin';
 import { pesoSucataRealSchema } from '@/lib/validation/conferencia';
 import { informarPesoSucataReal, conferirRecebimento, ConferenciaError } from '@/lib/services/conferencia';
 import { enviarDocumentoPesagem, obterUrlTemporariaDocumento, DocumentoPesagemError } from '@/lib/services/documentoPesagem';
+import { informarNumeroDocumentoRemetido } from '@/lib/services/remetido';
+import { ErroRegraNegocio } from '@/lib/services/errors';
+import { NF_REGEX, MSG_NF_INVALIDA } from '@/lib/validation/recebimento';
 
 export interface AcaoResultado {
   ok: boolean;
@@ -40,6 +43,19 @@ export async function informarPesoSucataAction(movimentacaoId: string, peso: num
     return { ok: true };
   } catch (erro) {
     return { ok: false, erro: mensagemErro(erro) };
+  }
+}
+
+/** Corrige a NF principal do recebimento. Se já estava conferido, a conferência é reaberta (mesma regra do resto). */
+export async function informarNumeroDocumentoRecebimentoAction(movimentacaoId: string, numeroDocumento: string): Promise<AcaoResultado> {
+  if (!NF_REGEX.test(numeroDocumento)) return { ok: false, erro: MSG_NF_INVALIDA };
+  const { userId } = await requireAdmin();
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  try {
+    await informarNumeroDocumentoRemetido(movimentacaoId, numeroDocumento, { userId, nome: user.nome });
+    return { ok: true };
+  } catch (erro) {
+    return { ok: false, erro: erro instanceof ErroRegraNegocio ? erro.message : 'Não foi possível salvar a nota fiscal.' };
   }
 }
 

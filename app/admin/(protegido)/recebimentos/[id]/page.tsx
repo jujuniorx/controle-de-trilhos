@@ -11,6 +11,7 @@ import { NfsPainel } from '@/app/admin/(protegido)/NfsPainel';
 import { rotuloNfs, nfsEmTexto } from '@/lib/nf';
 import { EditarMedicoesPainel } from './EditarMedicoesPainel';
 import { HistoricoMovimentacao } from '@/components/admin/HistoricoMovimentacao';
+import { informarNumeroDocumentoRecebimentoAction } from './actions';
 
 function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
@@ -84,7 +85,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
             <div className="kv-item"><div className="kv-label">Observação do Pátio</div><div className="kv-val whitespace-pre-wrap">{mov.observacao}</div></div>
           )}
         </dl>
-        <NfsPainel movimentacaoId={mov.id} principal={mov.numeroDocumento} extras={mov.numerosDocumentoExtras} />
+        <NfsPainel movimentacaoId={mov.id} principal={mov.numeroDocumento} extras={mov.numerosDocumentoExtras} acaoCorrigirPrincipal={informarNumeroDocumentoRecebimentoAction} />
       </section>
 
       {/* 2. Materiais recebidos */}

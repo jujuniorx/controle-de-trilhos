@@ -4,18 +4,24 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { adicionarNfAction, removerNfExtraAction } from './nfs-actions';
 
+type AcaoCorrigir = (movimentacaoId: string, numero: string) => Promise<{ ok: boolean; erro?: string }>;
+
 /** Lista as NFs do carregamento e deixa o Escritório adicionar outra (ou tirar uma extra). */
 export function NfsPainel({
   movimentacaoId,
   principal,
   extras,
+  acaoCorrigirPrincipal,
 }: {
   movimentacaoId: string;
   principal: string | null;
   extras: string[];
+  /** Corrige a NF principal (também depois de conferido: a conferência é reaberta). */
+  acaoCorrigirPrincipal?: AcaoCorrigir;
 }) {
   const router = useRouter();
   const [numero, setNumero] = useState('');
+  const [principalEditada, setPrincipalEditada] = useState(principal ?? '');
   const [erro, setErro] = useState('');
   const [ocupado, setOcupado] = useState(false);
 
@@ -39,6 +45,19 @@ export function NfsPainel({
     setOcupado(false);
     if (!r.ok) {
       setErro(r.erro ?? 'Não foi possível remover.');
+      return;
+    }
+    router.refresh();
+  }
+
+  async function corrigirPrincipal() {
+    if (!acaoCorrigirPrincipal) return;
+    setErro('');
+    setOcupado(true);
+    const r = await acaoCorrigirPrincipal(movimentacaoId, principalEditada.trim());
+    setOcupado(false);
+    if (!r.ok) {
+      setErro(r.erro ?? 'Não foi possível salvar.');
       return;
     }
     router.refresh();
@@ -69,6 +88,23 @@ export function NfsPainel({
         ))}
         {!principal && extras.length === 0 && <li className="text-sm text-ink-muted">Nenhuma NF ainda.</li>}
       </ul>
+      {principal && acaoCorrigirPrincipal && (
+        <div className="mt-2 flex gap-2">
+          <input
+            className="h-11 flex-1"
+            inputMode="numeric"
+            aria-label="Corrigir a NF principal"
+            value={principalEditada}
+            onChange={(e) => {
+              setPrincipalEditada(e.target.value);
+              setErro('');
+            }}
+          />
+          <button className="btn btn-ghost h-11" disabled={ocupado || principalEditada.trim() === '' || principalEditada.trim() === principal} onClick={corrigirPrincipal}>
+            {ocupado ? 'Salvando...' : 'Corrigir NF principal'}
+          </button>
+        </div>
+      )}
       <div className="mt-2 flex gap-2">
         <input
           className="h-11 flex-1"
