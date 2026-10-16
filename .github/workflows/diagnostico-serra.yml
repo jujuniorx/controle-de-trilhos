@@ -1,6 +1,7 @@
 name: diagnostico-serra
 on:
-  workflow_dispatch:
+  push:
+    branches: [diag-serra]
 jobs:
   diag:
     runs-on: ubuntu-latest
