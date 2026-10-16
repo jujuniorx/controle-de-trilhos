@@ -51,6 +51,18 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
   const pendente = Math.max(META_RECOLHIMENTO_M - r.acumAno.w61 - r.acumAno.w62, 0);
   const barras = (m: number) => Math.round(m / METROS_POR_BARRA).toLocaleString('pt-BR');
 
+  const saldoMeta = Math.max(META_RECOLHIMENTO_M - r.acumAno.recolhido, 0);
+  const pctMeta = Math.min(100, (r.acumAno.recolhido / META_RECOLHIMENTO_M) * 100);
+  const m = (v: number) => ({ principal: `${fmtMetros(v)} m`, secundario: null as string | null });
+  const linhasQuadro = [
+    { rotulo: 'W61', cor: '#e8a33d', destaque: false, dia: { principal: `${barras(r.doDia.w61)} barras`, secundario: `${fmtMetros(r.doDia.w61)} m` }, mes: { principal: `${barras(r.acumMes.w61)} barras`, secundario: `${fmtMetros(r.acumMes.w61)} m` } },
+    { rotulo: 'W62', cor: '#16a34a', destaque: false, dia: { principal: `${barras(r.doDia.w62)} barras`, secundario: `${fmtMetros(r.doDia.w62)} m` }, mes: { principal: `${barras(r.acumMes.w62)} barras`, secundario: `${fmtMetros(r.acumMes.w62)} m` } },
+    { rotulo: 'Geração', cor: '#8b93a7', destaque: false, dia: m(r.doDia.geracao), mes: m(r.acumMes.geracao) },
+    { rotulo: 'Recebido estaleiro', cor: '#4a6cd4', destaque: false, dia: m(r.doDia.recebido), mes: m(r.acumMes.recebido) },
+    { rotulo: 'Recolhido (W61 + W62)', cor: '#16a34a', destaque: true, dia: m(r.doDia.recolhido), mes: m(r.acumMes.recolhido) },
+    { rotulo: 'Ainda não chegou', cor: '#e5484d', destaque: true, dia: m(r.doDia.naoChegou), mes: m(r.acumMes.naoChegou) },
+  ];
+
   const link = (novo: Partial<{ serie: Serie; unidade: Unidade }>) => {
     const q = new URLSearchParams({ dia, serie, unidade, ...novo });
     return `/admin/informativo?${q.toString()}`;
@@ -148,24 +160,59 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
         <p className="text-xs text-ink-muted">W61 e W62: barras × {METROS_POR_BARRA.toLocaleString('pt-BR')} m. Chegou na usina: medidas reais, em metros. Pendente = meta - recolhido.</p>
       </section>
 
-      <section className="card space-y-3" aria-label="Quadro do dia">
-        <div className="grid grid-cols-2 gap-2">
-          <p className="text-sm">Meta recolhimento: <b>{fmtMetros(META_RECOLHIMENTO_M)}</b></p>
-          <p className="text-right text-sm">Saldo: <b className="text-warn">{fmtMetros(META_RECOLHIMENTO_M - r.acumAno.recolhido)} m</b></p>
+      <section className="card" aria-label="Quadro do dia">
+        <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="rounded-lg bg-surface-2 p-3">
+            <p className="text-xs uppercase text-ink-muted">Meta de recolhimento</p>
+            <p className="text-lg font-semibold">{fmtMetros(META_RECOLHIMENTO_M)} m</p>
+          </div>
+          <div className="rounded-lg bg-surface-2 p-3">
+            <p className="text-xs uppercase text-ink-muted">Recolhido no ano</p>
+            <p className="text-lg font-semibold" style={{ color: '#16a34a' }}>{fmtMetros(r.acumAno.recolhido)} m</p>
+          </div>
+          <div className="rounded-lg bg-surface-2 p-3">
+            <p className="text-xs uppercase text-ink-muted">Saldo para a meta</p>
+            <p className="text-lg font-semibold text-warn">{fmtMetros(saldoMeta)} m</p>
+          </div>
         </div>
+
+        <div className="mb-5">
+          <div className="h-2.5 w-full overflow-hidden rounded-full bg-surface-2" role="progressbar" aria-valuenow={Math.round(pctMeta)} aria-valuemin={0} aria-valuemax={100}>
+            <div className="h-full rounded-full" style={{ width: `${pctMeta}%`, background: 'linear-gradient(90deg,#16a34a,#4ade80)' }} />
+          </div>
+          <p className="mt-1 text-right text-xs text-ink-muted">{pctMeta.toFixed(1).replace('.', ',')}% da meta</p>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead><tr className="text-left text-ink-muted"><th className="py-1">Item</th><th className="py-1 text-right">Dia {dia.slice(8)}/{dia.slice(5, 7)}</th><th className="py-1 text-right">Acumulado do mês</th></tr></thead>
+            <thead>
+              <tr className="border-b border-surface-2 text-left text-xs uppercase text-ink-muted">
+                <th className="py-2 font-medium">Item</th>
+                <th className="py-2 text-right font-medium">Dia {dia.slice(8)}/{dia.slice(5, 7)}</th>
+                <th className="py-2 text-right font-medium">Acumulado do mês</th>
+              </tr>
+            </thead>
             <tbody>
-              <tr className="border-t border-surface-2"><td className="py-1">W61 (barras)</td><td className="text-right">{barras(r.doDia.w61)}<span className="block text-xs text-ink-muted">{fmtMetros(r.doDia.w61)} m</span></td><td className="text-right">{barras(r.acumMes.w61)}<span className="block text-xs text-ink-muted">{fmtMetros(r.acumMes.w61)} m</span></td></tr>
-              <tr className="border-t border-surface-2"><td className="py-1">W62 (barras)</td><td className="text-right">{barras(r.doDia.w62)}<span className="block text-xs text-ink-muted">{fmtMetros(r.doDia.w62)} m</span></td><td className="text-right">{barras(r.acumMes.w62)}<span className="block text-xs text-ink-muted">{fmtMetros(r.acumMes.w62)} m</span></td></tr>
-              <tr className="border-t border-surface-2"><td className="py-1">Geração</td><td className="text-right">{fmtMetros(r.doDia.geracao)}</td><td className="text-right">{fmtMetros(r.acumMes.geracao)}</td></tr>
-              <tr className="border-t border-surface-2"><td className="py-1">Recebido estaleiro</td><td className="text-right">{fmtMetros(r.doDia.recebido)}</td><td className="text-right">{fmtMetros(r.acumMes.recebido)}</td></tr>
-              <tr className="border-t border-surface-2"><td className="py-1">Recolhido (W61 + W62)</td><td className="text-right">{fmtMetros(r.doDia.recolhido)}</td><td className="text-right">{fmtMetros(r.acumMes.recolhido)}</td></tr>
-              <tr className="border-t border-surface-2"><td className="py-1">Ainda não chegou</td><td className="text-right">{fmtMetros(r.doDia.naoChegou)}</td><td className="text-right">{fmtMetros(r.acumMes.naoChegou)}</td></tr>
+              {linhasQuadro.map((l) => (
+                <tr key={l.rotulo} className="border-b border-surface-2/60 last:border-0">
+                  <td className="py-2.5">
+                    <span className="inline-block h-2.5 w-2.5 rounded-sm align-middle" style={{ background: l.cor }} aria-hidden="true" />{' '}
+                    <span className="align-middle">{l.rotulo}</span>
+                  </td>
+                  <td className="py-2.5 text-right tabular-nums">
+                    <span className={l.destaque ? 'font-semibold' : ''}>{l.dia.principal}</span>
+                    {l.dia.secundario && <span className="block text-xs text-ink-muted">{l.dia.secundario}</span>}
+                  </td>
+                  <td className="py-2.5 text-right tabular-nums">
+                    <span className={l.destaque ? 'font-semibold' : ''}>{l.mes.principal}</span>
+                    {l.mes.secundario && <span className="block text-xs text-ink-muted">{l.mes.secundario}</span>}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
+        <p className="mt-3 text-xs text-ink-muted">Saldo para a meta usa o recolhido do ano (W61 + W62). W61 e W62 em barras; demais valores em metros.</p>
       </section>
     </main>
   );

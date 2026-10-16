@@ -48,11 +48,13 @@ export async function informarPesoSucataAction(movimentacaoId: string, peso: num
 
 /** Corrige a NF principal do recebimento. Se já estava conferido, a conferência é reaberta (mesma regra do resto). */
 export async function informarNumeroDocumentoRecebimentoAction(movimentacaoId: string, numeroDocumento: string): Promise<AcaoResultado> {
-  if (!NF_REGEX.test(numeroDocumento)) return { ok: false, erro: MSG_NF_INVALIDA };
+  // Em branco = deixar sem NF (sem apagar o recebimento). Admin-only, como o resto da tela.
+  const nf = numeroDocumento.trim();
+  if (nf !== '' && !NF_REGEX.test(nf)) return { ok: false, erro: MSG_NF_INVALIDA };
   const { userId } = await requireAdmin();
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
   try {
-    await informarNumeroDocumentoRemetido(movimentacaoId, numeroDocumento, { userId, nome: user.nome });
+    await informarNumeroDocumentoRemetido(movimentacaoId, nf === '' ? null : nf, { userId, nome: user.nome });
     return { ok: true };
   } catch (erro) {
     return { ok: false, erro: erro instanceof ErroRegraNegocio ? erro.message : 'Não foi possível salvar a nota fiscal.' };
