@@ -7,6 +7,7 @@ import { requireAdmin } from '@/lib/services/requireAdmin';
 import { saudacao } from '@/lib/saudacao';
 import { ContadorAnimado } from '@/components/ui/ContadorAnimado';
 import { EstadoVazio } from '@/components/ui/EstadoVazio';
+import { FundoTrilhos } from '@/components/ui/FundoTrilhos';
 
 function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
@@ -37,11 +38,22 @@ export default async function AdminHomePage() {
 
   return (
     <main className="mx-auto max-w-4xl xl:max-w-6xl space-y-6 p-6">
-      <div className="boas-vindas">
-        <div>
-          <p className="boas-vindas-saudacao">{saudacao()}, {primeiroNome}</p>
-          <h1 className="page-title">Movimentações pendentes de conferência</h1>
+      <section className="saudacao-hero">
+        <FundoTrilhos />
+        <div className="saudacao-hero-texto">
+          <p className="saudacao-hero-saudacao">
+            {saudacao()}, {primeiroNome}
+          </p>
+          <p className="saudacao-hero-sub">
+            {movimentacoes.length === 0
+              ? 'Nada pendente para conferir agora.'
+              : `${movimentacoes.length === 1 ? '1 movimentação para conferir' : `${movimentacoes.length} movimentações para conferir`}${aguardandoChegada.length > 0 ? `, e ${aguardandoChegada.length === 1 ? '1 remetido esperando chegar' : `${aguardandoChegada.length} remetidos esperando chegar`}` : ''}.`}
+          </p>
         </div>
+      </section>
+
+      <div className="boas-vindas">
+        <h1 className="page-title">Movimentações pendentes de conferência</h1>
         <Link href="/admin/relatorios" className="btn btn-ghost btn-sm">
           Relatórios
         </Link>

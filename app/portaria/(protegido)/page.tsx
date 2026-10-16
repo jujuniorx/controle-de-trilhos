@@ -1,4 +1,6 @@
 import { requirePortaria } from '@/lib/services/requirePortaria';
+import { saudacao } from '@/lib/saudacao';
+import { FundoTrilhos } from '@/components/ui/FundoTrilhos';
 import { listarPortaria } from '@/lib/services/portaria';
 import { AtualizarAuto } from '@/components/AtualizarAuto';
 import { EstadoVazio } from '@/components/ui/EstadoVazio';
@@ -9,11 +11,6 @@ import { CartaoPortaria } from './CartaoPortaria';
 import { NovoEnvioPortaria } from './NovoEnvioPortaria';
 
 export const dynamic = 'force-dynamic';
-
-function saudacao(): string {
-  const h = Number(new Date().toLocaleString('pt-BR', { hour: '2-digit', hour12: false, timeZone: 'America/Sao_Paulo' }));
-  return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
-}
 
 export default async function PortariaPage() {
   const { nome } = await requirePortaria();
@@ -28,13 +25,27 @@ export default async function PortariaPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-5 p-4 sm:p-6">
       <AtualizarAuto segundos={15} />
-      <div className="boas-vindas">
-        <div>
-          <p className="boas-vindas-saudacao">
+      <section className="saudacao-hero">
+        <FundoTrilhos />
+        <div className="saudacao-hero-texto">
+          <p className="saudacao-hero-saudacao">
             {saudacao()}, {primeiroNome}
           </p>
-          <h1 className="page-title">Remetidos (carretas)</h1>
+          <p className="saudacao-hero-sub">
+            {podemSair === 0 && aguardandoPatio === 0
+              ? 'Nenhuma carreta pedindo ação agora.'
+              : [
+                  podemSair > 0 ? `${podemSair} ${podemSair === 1 ? 'pode sair' : 'podem sair'}` : null,
+                  aguardandoPatio > 0 ? `${aguardandoPatio} aguardando o Pátio` : null,
+                ]
+                  .filter(Boolean)
+                  .join(' e ') + '.'}
+          </p>
         </div>
+      </section>
+
+      <div className="boas-vindas">
+        <h1 className="page-title">Remetidos (carretas)</h1>
       </div>
 
       <div className="pend-resumo">
