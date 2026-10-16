@@ -19,11 +19,11 @@ export async function GET(request: NextRequest) {
   const serie = (SERIES as readonly string[]).includes(params.get('serie') ?? '') ? (params.get('serie') as Serie) : 'tudo';
   const unidade = (UNIDADES as readonly string[]).includes(params.get('unidade') ?? '') ? (params.get('unidade') as Unidade) : 'barras';
   // Sempre tema claro: o PDF é para imprimir, e o fundo escuro gasta muita tinta.
-  const tema: TemaPdf = 'claro';
+  const tema = 'claro' as const satisfies TemaPdf;
 
+  const cor = '#111827'; // texto escuro, para o papel
   const ano = Number(dia.slice(0, 4));
   const r = await informativoDoAno(ano, dia);
-  const cor = tema === 'escuro' ? '#e8edf2' : '#111827';
   const barras = (m: number) => Math.round(m / METROS_POR_BARRA).toLocaleString('pt-BR');
   const pendente = Math.max(META_RECOLHIMENTO_M - r.acumAno.w61 - r.acumAno.w62, 0);
 
