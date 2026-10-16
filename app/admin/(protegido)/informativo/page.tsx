@@ -73,7 +73,7 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
     <main className="mx-auto max-w-5xl space-y-6 p-4">
       <style>{ANIMACAO}</style>
       <header className="space-y-3">
-        <h1 className="page-title">Informativo do trilho</h1>
+        <h1 className="page-title">Informativo de trilhos</h1>
         <form className="flex flex-wrap items-end gap-3" method="get">
           <input type="hidden" name="serie" value={serie} />
           <input type="hidden" name="unidade" value={unidade} />
