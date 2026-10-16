@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db';
-import { verificarSegredo, criarSessao } from '@/lib/services/auth';
+import { verificarSegredo, criarSessao, gastarTempoDeVerificacao } from '@/lib/services/auth';
 
 const MAX_TENTATIVAS = 5;
 const BLOQUEIO_MINUTOS = 15;
@@ -29,7 +29,7 @@ export async function autenticar(identificador: string, senha: string): Promise<
   const user = await prisma.user.findFirst({
     where: { OR: [{ email: { equals: chave, mode: 'insensitive' } }, { username: { equals: chave, mode: 'insensitive' } }] },
   });
-  const senhaValida = user ? await verificarSegredo(senha, user.senhaHash) : false;
+  const senhaValida = user ? await verificarSegredo(senha, user.senhaHash) : (await gastarTempoDeVerificacao(senha), false);
 
   // Conta desativada é tratada como credencial inválida (não revela que a conta existe).
   if (!user || !user.ativo || !senhaValida) {

@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 const CONTATO = process.env.NEXT_PUBLIC_CONTATO_PRIVACIDADE;
 
 const COOKIES = [
-  { nome: 'sessao_admin', para: 'Mantém o Administrativo conectado depois do login.', prazo: '7 dias, ou até você sair' },
+  { nome: 'sessao_admin', para: 'Mantém o Administrativo conectado depois do login.', prazo: '12 horas, ou até você sair' },
   { nome: 'acesso_patio', para: 'Mantém o aparelho do Pátio autorizado depois de digitar o código de acesso.', prazo: '90 dias, ou até o acesso ser revogado' },
   { nome: 'ct_tema', para: 'Lembra se você escolheu o tema claro ou escuro.', prazo: '1 ano' },
 ];
