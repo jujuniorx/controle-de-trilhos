@@ -62,7 +62,7 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
                 <>
                   <line x1="30" x2={W - 10} y1={base} y2={base} stroke="currentColor" strokeOpacity="0.3" />
                   <line x1="30" x2={W - 10} y1={ys(r.metaM)} y2={ys(r.metaM)} stroke="currentColor" strokeDasharray="6 4" strokeOpacity="0.6" />
-                  <text x={W - 12} y={ys(r.metaM) - 4} textAnchor="end" fontSize="11" fill="currentColor">Prospecção 45.000 m</text>
+                  <text x={W - 12} y={ys(r.metaM) - 4} textAnchor="end" fontSize="11" fill="currentColor">Meta 47.625 m</text>
                   {linhas.map((l, k) => (
                     <path key={l.chave} d={caminho(acumulados[k])} fill="none" stroke={CORES[l.chave]} strokeWidth="2.5" />
                   ))}
