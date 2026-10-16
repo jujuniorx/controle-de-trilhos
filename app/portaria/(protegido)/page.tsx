@@ -1,5 +1,5 @@
 import { requirePortaria } from '@/lib/services/requirePortaria';
-import { saudacao } from '@/lib/saudacao';
+import { saudacaoCompleta } from '@/lib/saudacao';
 import { FundoTrilhos } from '@/components/ui/FundoTrilhos';
 import { listarPortaria } from '@/lib/services/portaria';
 import { AtualizarAuto } from '@/components/AtualizarAuto';
@@ -29,7 +29,7 @@ export default async function PortariaPage() {
         <FundoTrilhos />
         <div className="saudacao-hero-texto">
           <p className="saudacao-hero-saudacao">
-            {saudacao()}, {primeiroNome}
+            {saudacaoCompleta()}, {primeiroNome}
           </p>
           <p className="saudacao-hero-sub">
             {podemSair === 0 && aguardandoPatio === 0
