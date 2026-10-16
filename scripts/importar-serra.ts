@@ -29,8 +29,23 @@ async function main() {
   // Só 2026 entra na serra: o que for de anos anteriores sai do banco.
   const apagados = await prisma.recebimentoSerraHistorico.deleteMany({ where: { data: { lt: new Date('2026-01-01T00:00:00Z') } } });
   console.log(`Anos anteriores a 2026 removidos: ${apagados.count}.`);
+  // NFs que já estão no sistema não entram na planilha da serra (evita duplicar).
+  const movs = await prisma.movimentacao.findMany({
+    where: { tipo: 'RECEBIMENTO', OR: [{ numeroDocumento: { not: null } }, { numerosDocumentoExtras: { isEmpty: false } }] },
+    select: { numeroDocumento: true, numerosDocumentoExtras: true },
+  });
+  const noSistema = new Set<string>();
+  for (const m of movs) {
+    if (m.numeroDocumento) noSistema.add(m.numeroDocumento.trim());
+    for (const e of m.numerosDocumentoExtras) noSistema.add(e.trim());
+  }
+  const removidas = await prisma.recebimentoSerraHistorico.deleteMany({ where: { nf: { in: [...noSistema] } } });
+  console.log(`Linhas removidas por NF já no sistema: ${removidas.count}.`);
+  const novas = linhas.filter((l) => !noSistema.has(l.nf.trim()));
+  console.log(`Linhas da planilha que não estão no sistema: ${novas.length} de ${linhas.length}.`);
+
   const r = await prisma.recebimentoSerraHistorico.createMany({
-    data: linhas.map((l) => ({
+    data: novas.map((l) => ({
       sheet: l.sheet,
       linha: l.linha,
       nf: l.nf,
@@ -44,7 +59,7 @@ async function main() {
     })),
     skipDuplicates: true,
   });
-  console.log(`Linhas no arquivo: ${linhas.length}. Gravadas agora: ${r.count}. (As que já existiam foram ignoradas.)`);
+  console.log(`Gravadas agora: ${r.count}.`);
 }
 
 main()
