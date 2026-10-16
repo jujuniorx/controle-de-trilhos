@@ -24,6 +24,14 @@ const ICONES_NAV = {
       <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
     </svg>
   ),
+  visao: (
+    <svg width="24" height="24" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
+      <rect x="3" y="3" width="7.5" height="7.5" rx="1.5" />
+      <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5" />
+      <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5" />
+      <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5" />
+    </svg>
+  ),
   usuarios: (
     <svg width="24" height="24" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
       <circle cx="9" cy="8" r="3.5" />
@@ -37,7 +45,10 @@ function abasDoAdmin(dono: boolean): Aba[] {
     { href: '/admin', rotulo: 'Pendências', icone: ICONES_NAV.inicio },
     { href: '/admin/relatorios', rotulo: 'Relatórios', icone: ICONES_NAV.relatorios },
   ];
-  if (dono) abas.push({ href: '/admin/usuarios', rotulo: 'Usuários', icone: ICONES_NAV.usuarios });
+  if (dono) {
+    abas.push({ href: '/admin/dono', rotulo: 'Visão geral', icone: ICONES_NAV.visao });
+    abas.push({ href: '/admin/usuarios', rotulo: 'Usuários', icone: ICONES_NAV.usuarios });
+  }
   abas.push({
     rotulo: 'Mais',
     icone: (
