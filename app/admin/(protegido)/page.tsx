@@ -4,7 +4,7 @@ import { listarPendentesConferencia } from '@/lib/services/movimentacao';
 import { listarAguardandoChegada } from '@/lib/services/remetido';
 import { normalizarLocal } from '@/lib/domain/local';
 import { requireAdmin } from '@/lib/services/requireAdmin';
-import { saudacaoCompleta } from '@/lib/saudacao';
+import { saudacaoRotativa } from '@/lib/saudacao';
 import { ContadorAnimado } from '@/components/ui/ContadorAnimado';
 import { EstadoVazio } from '@/components/ui/EstadoVazio';
 import { FundoTrilhos } from '@/components/ui/FundoTrilhos';
@@ -42,7 +42,7 @@ export default async function AdminHomePage() {
         <FundoTrilhos />
         <div className="saudacao-hero-texto">
           <p className="saudacao-hero-saudacao">
-            {saudacaoCompleta()}, {primeiroNome}
+            {saudacaoRotativa()}, {primeiroNome}
           </p>
           <p className="saudacao-hero-sub">
             {movimentacoes.length === 0
