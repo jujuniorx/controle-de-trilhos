@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [ci-diag5]
-    paths: ['.github/workflows/importar-usina.yml']
+    paths: ['.github/workflows/importar-usina.yml', 'scripts/importar-serra.ts', 'scripts/dados/serra-recebidos.json']
 jobs:
   importar:
     runs-on: ubuntu-latest
@@ -22,3 +22,5 @@ jobs:
         run: npx tsx scripts/importar-usina-outubro.ts
 # Rodada de 2026-10-16: aplica migrações pendentes (descarregada) e reexecuta a importação (idempotente).
 # Rodada de 2026-10-16-1135: aplica a migração de ordem dos caminhões (ADD COLUMN IF NOT EXISTS) e reexecuta a importação.
+      - name: importar recebidos da serra (sem repetir NF)
+        run: npx tsx scripts/importar-serra.ts

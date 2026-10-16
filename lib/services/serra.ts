@@ -22,20 +22,36 @@ export interface ResumoCidadeSerra {
 }
 
 export async function resumoSerra(): Promise<{ cidades: ResumoCidadeSerra[]; recolhidoM: number; naUsinaM: number; aChegarM: number; metaM: number }> {
-  const [recolhidos, recebidos] = await Promise.all([
+  const [recolhidos, recebidos, historico, movs] = await Promise.all([
     prisma.recolhimentoSerra.groupBy({ by: ['cidade'], _sum: { unidades: true } }),
     prisma.grupo.findMany({
       where: { movimentacao: { tipo: 'RECEBIMENTO', origem: { not: null } } },
       select: { metrosTotal: true, movimentacao: { select: { origem: true } } },
     }),
+    prisma.recebimentoSerraHistorico.findMany({ select: { nf: true, cidade: true, metrosTotal: true } }),
+    prisma.movimentacao.findMany({
+      where: { tipo: 'RECEBIMENTO', OR: [{ numeroDocumento: { not: null } }, { numerosDocumentoExtras: { isEmpty: false } }] },
+      select: { numeroDocumento: true, numerosDocumentoExtras: true },
+    }),
   ]);
+  // NFs que já estão no sistema: a soma delas vem dos recebimentos, então não entram de novo pela planilha.
+  const nfsNoSistema = new Set<string>();
+  for (const m of movs) {
+    if (m.numeroDocumento) nfsNoSistema.add(m.numeroDocumento.trim());
+    for (const extra of m.numerosDocumentoExtras) nfsNoSistema.add(extra.trim());
+  }
+  const historicoNovo = historico.filter((h) => !nfsNoSistema.has(h.nf.trim()));
 
   const cidades = CIDADES_SERRA.map((cidade) => {
     const unidades = recolhidos.find((r) => r.cidade === cidade)?._sum.unidades ?? 0;
     const recolhidoM = unidades * METROS_POR_UNIDADE;
-    const naUsinaM = recebidos
+    const doSistema = recebidos
       .filter((g) => chaveLocal(g.movimentacao.origem) === cidade)
       .reduce((soma, g) => soma + Number(g.metrosTotal), 0);
+    const daPlanilha = historicoNovo
+      .filter((h) => h.cidade === cidade)
+      .reduce((soma, h) => soma + Number(h.metrosTotal ?? 0), 0);
+    const naUsinaM = doSistema + daPlanilha;
     return { cidade, rotulo: ROTULO_CIDADE[cidade], recolhidoM, naUsinaM, aChegarM: Math.max(recolhidoM - naUsinaM, 0) };
   });
 

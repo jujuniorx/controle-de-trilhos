@@ -497,3 +497,24 @@ model RecolhimentoSerra {
   @@index([cidade, data])
 }
 
+// Recebidos da serra vindos da planilha de triagem (2019–2026). Só para Evangelista e Paratinga.
+// Uma linha por linha da planilha; a NF repete quando o caminhão traz mais de um tipo de trilho.
+model RecebimentoSerraHistorico {
+  id        String   @id @default(cuid())
+  sheet     String
+  linha     Int
+  nf        String
+  data      DateTime @db.Date
+  cidade    String   // EVANGELISTA | PARATINGA
+  placa     String?
+  descricao String?
+  pecas     Int?
+  pesoT     Decimal?
+  metrosTotal Decimal?
+  criadoEm  DateTime @default(now())
+
+  @@unique([sheet, linha])
+  @@index([nf])
+  @@index([cidade])
+}
+
