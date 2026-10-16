@@ -1,0 +1,280 @@
+{
+ "geracao": [
+  {
+   "data": "2026-10-05",
+   "lider": "ALECIO",
+   "local": "Gaspar",
+   "corteM": 205.5,
+   "carregamentoM": null,
+   "perfil": null,
+   "quantidade": null,
+   "deixadaViaM": null,
+   "observacao": "Inicia deslocamento retorno de folga (realizou cortes)"
+  },
+  {
+   "data": "2026-10-06",
+   "lider": "ALECIO",
+   "local": "Gaspar",
+   "corteM": null,
+   "carregamentoM": null,
+   "perfil": null,
+   "quantidade": null,
+   "deixadaViaM": null,
+   "observacao": "Trem parado no local"
+  },
+  {
+   "data": "2026-10-07",
+   "lider": "ALECIO",
+   "local": "Gaspar",
+   "corteM": 203.1,
+   "carregamentoM": null,
+   "perfil": null,
+   "quantidade": null,
+   "deixadaViaM": null,
+   "observacao": "Corte e remonte"
+  },
+  {
+   "data": "2026-10-08",
+   "lider": "ALECIO",
+   "local": "Gaspar",
+   "corteM": 180,
+   "carregamentoM": null,
+   "perfil": "TR60",
+   "quantidade": null,
+   "deixadaViaM": null,
+   "observacao": "Corte e remonte, alto fluxo de trens"
+  },
+  {
+   "data": "2026-10-14",
+   "lider": "ALECIO",
+   "local": "Gaspar",
+   "corteM": 236.12,
+   "carregamentoM": 656.25,
+   "perfil": "TR60",
+   "quantidade": 79,
+   "deixadaViaM": null,
+   "observacao": "2 carretas; Carregado pelo Biro em Itu"
+  },
+  {
+   "data": "2026-10-15",
+   "lider": "ALECIO",
+   "local": "Gaspar",
+   "corteM": 100,
+   "carregamentoM": null,
+   "perfil": "TR60",
+   "quantidade": null,
+   "deixadaViaM": null,
+   "observacao": "Não houve recolhimento de barras de trilho"
+  },
+  {
+   "data": "2026-10-05",
+   "lider": "BRUNO",
+   "local": "ZEV",
+   "corteM": null,
+   "carregamentoM": 480.11,
+   "perfil": "TR60",
+   "quantidade": 49,
+   "deixadaViaM": null,
+   "observacao": "Inicia deslocamento retorno da folga (carregou carreta)"
+  },
+  {
+   "data": "2026-10-06",
+   "lider": "BRUNO",
+   "local": "ZEV",
+   "corteM": null,
+   "carregamentoM": 412.75,
+   "perfil": "TR60",
+   "quantidade": 37,
+   "deixadaViaM": null,
+   "observacao": "Realizou cortes com 12 metros"
+  },
+  {
+   "data": "2026-10-07",
+   "lider": "BRUNO",
+   "local": "ZEV",
+   "corteM": null,
+   "carregamentoM": 427.24,
+   "perfil": "TR60",
+   "quantidade": 46,
+   "deixadaViaM": null,
+   "observacao": "Auxiliando carretas atoladas"
+  },
+  {
+   "data": "2026-10-08",
+   "lider": "BRUNO",
+   "local": "ZEV",
+   "corteM": 167,
+   "carregamentoM": 833.15,
+   "perfil": "TR60",
+   "quantidade": 79,
+   "deixadaViaM": null,
+   "observacao": "Carregadas 2 carretas"
+  },
+  {
+   "data": "2026-10-14",
+   "lider": "BRUNO",
+   "local": "ZEV",
+   "corteM": 152,
+   "carregamentoM": 835,
+   "perfil": "TR60",
+   "quantidade": 97,
+   "deixadaViaM": null,
+   "observacao": "2 carretas"
+  },
+  {
+   "data": "2026-10-15",
+   "lider": "BRUNO",
+   "local": "ZEV",
+   "corteM": 432,
+   "carregamentoM": 423,
+   "perfil": "TR60",
+   "quantidade": 49,
+   "deixadaViaM": null,
+   "observacao": "Corte, remonte e carregamento"
+  },
+  {
+   "data": "2026-10-07",
+   "lider": "REGINALDO",
+   "local": "TON",
+   "corteM": 280,
+   "carregamentoM": 467.65,
+   "perfil": "TR45",
+   "quantidade": 46,
+   "deixadaViaM": null,
+   "observacao": "Corte e carregamento"
+  },
+  {
+   "data": "2026-10-08",
+   "lider": "REGINALDO",
+   "local": "TON",
+   "corteM": 679,
+   "carregamentoM": null,
+   "perfil": "TR45",
+   "quantidade": null,
+   "deixadaViaM": null,
+   "observacao": "Corte e remonte"
+  },
+  {
+   "data": "2026-10-14",
+   "lider": "REGINALDO",
+   "local": "Cassilândia",
+   "corteM": null,
+   "carregamentoM": 1046.65,
+   "perfil": "TR45",
+   "quantidade": 108,
+   "deixadaViaM": null,
+   "observacao": "2 carretas; Deslocamento de Cassilândia para Alto Taquari"
+  },
+  {
+   "data": "2026-10-15",
+   "lider": "REGINALDO",
+   "local": "TON",
+   "corteM": 660.7,
+   "carregamentoM": 660.7,
+   "perfil": "TR45",
+   "quantidade": 67,
+   "deixadaViaM": null,
+   "observacao": "Corte e carregamento"
+  }
+ ],
+ "composicoes": [
+  {
+   "data": "2026-10-02",
+   "ativo": "W61",
+   "barras": 75,
+   "jacares": null,
+   "observacao": null
+  },
+  {
+   "data": "2026-10-06",
+   "ativo": "W61",
+   "barras": 95,
+   "jacares": 3,
+   "observacao": null
+  },
+  {
+   "data": "2026-10-07",
+   "ativo": "W61",
+   "barras": 44,
+   "jacares": null,
+   "observacao": null
+  },
+  {
+   "data": "2026-10-08",
+   "ativo": "W61",
+   "barras": 65,
+   "jacares": null,
+   "observacao": "Edson - Modernização"
+  },
+  {
+   "data": "2026-10-09",
+   "ativo": "W61",
+   "barras": 55,
+   "jacares": null,
+   "observacao": "Edson - Modernização"
+  },
+  {
+   "data": "2026-10-13",
+   "ativo": "W61",
+   "barras": 23,
+   "jacares": null,
+   "observacao": "Edson - Modernização"
+  },
+  {
+   "data": "2026-10-14",
+   "ativo": "W61",
+   "barras": 0,
+   "jacares": null,
+   "observacao": "Não houve recolha de trilho, composição vandalizada e avariada durante retorno"
+  },
+  {
+   "data": "2026-10-15",
+   "ativo": "W61",
+   "barras": 105,
+   "jacares": null,
+   "observacao": "Edson - Modernização"
+  },
+  {
+   "data": "2026-10-06",
+   "ativo": "W62",
+   "barras": 20,
+   "jacares": null,
+   "observacao": null
+  },
+  {
+   "data": "2026-10-08",
+   "ativo": "W62",
+   "barras": null,
+   "jacares": null,
+   "observacao": "Reprogramado para D+1 devido atraso na partida de ZPT"
+  },
+  {
+   "data": "2026-10-09",
+   "ativo": "W62",
+   "barras": null,
+   "jacares": null,
+   "observacao": "Faixa cancelada, tentativa de recolhimento em D+4"
+  },
+  {
+   "data": "2026-10-13",
+   "ativo": "W62",
+   "barras": null,
+   "jacares": null,
+   "observacao": "Faixa cancelada, programado para D+1"
+  },
+  {
+   "data": "2026-10-14",
+   "ativo": "W62",
+   "barras": null,
+   "jacares": null,
+   "observacao": "Não houve recolha de trilho, composição auxiliou trem emergenciado"
+  },
+  {
+   "data": "2026-10-15",
+   "ativo": "W62",
+   "barras": null,
+   "jacares": null,
+   "observacao": "Não circulou devido ao alto fluxo de trens na região"
+  }
+ ]
+}
