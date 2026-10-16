@@ -312,6 +312,9 @@ model ChegadaCaminhao {
   // Preenchidos quando o Pátio conclui o recebimento a partir desta chegada.
   movimentacaoId    String?   @unique
   recebidaEm        DateTime?
+  // Pátio descarregou e libera a saída antes da medição (medição fica para depois).
+  descarregadaEm    DateTime?
+  descarregadaPor   String?
   saidaEm DateTime?
   saidaPor String?
 

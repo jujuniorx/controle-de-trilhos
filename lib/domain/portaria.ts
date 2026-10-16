@@ -75,6 +75,7 @@ export interface ChegadaBasica {
   liberadaEm: Date | null;
   canceladaEm: Date | null;
   movimentacaoId: string | null;
+  descarregadaEm?: Date | null;
   saidaEm: Date | null;
 }
 
@@ -86,7 +87,7 @@ export interface ChegadaBasica {
 export function estadoChegada(c: ChegadaBasica): EstadoChegada {
   if (c.canceladaEm) return 'CANCELADA';
   if (c.saidaEm) return 'SAIU';
-  if (c.movimentacaoId) return 'RECEBIDA';
+  if (c.movimentacaoId || c.descarregadaEm) return 'RECEBIDA';
   if (c.liberadaEm) return 'LIBERADA';
   return 'AGUARDANDO_LIBERACAO';
 }

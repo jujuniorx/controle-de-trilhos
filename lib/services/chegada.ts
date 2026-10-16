@@ -42,6 +42,23 @@ async function carregarAberta(id: string) {
   return c;
 }
 
+/**
+ * Pátio: os trilhos já foram descarregados e o caminhão precisa sair, mas a medição fica para depois.
+ * Libera a saída (a Portaria confirma) sem exigir o recebimento. A medição continua pelo "Novo recebimento".
+ */
+export async function marcarChegadaDescarregada(id: string, atorNome: string): Promise<void> {
+  const c = await prisma.chegadaCaminhao.findUnique({ where: { id } });
+  if (!c) throw new ErroRegraNegocio('Chegada não encontrada.');
+  if (c.canceladaEm) throw new ErroRegraNegocio('Esta chegada foi cancelada.');
+  if (!c.liberadaEm) throw new ErroRegraNegocio('A Portaria ainda não registrou a chegada deste caminhão.');
+  if (c.descarregadaEm || c.movimentacaoId) return;
+  const r = await prisma.chegadaCaminhao.updateMany({
+    where: { id, liberadaEm: { not: null }, canceladaEm: null, movimentacaoId: null, descarregadaEm: null },
+    data: { descarregadaEm: new Date(), descarregadaPor: atorNome },
+  });
+  if (r.count === 0) throw new ErroRegraNegocio('Não foi possível concluir: a situação mudou. Atualize a tela.');
+}
+
 export async function criarChegada(atorNome: string): Promise<{ id: string }> {
   const c = await prisma.chegadaCaminhao.create({ data: { criadoPor: atorNome } });
   return { id: c.id };
@@ -93,7 +110,7 @@ export async function confirmarSaidaChegada(id: string, atorNome: string): Promi
   const motivo = motivoNaoPodeConfirmarSaidaChegada(c);
   if (motivo) throw new ErroRegraNegocio(motivo);
   const r = await prisma.chegadaCaminhao.updateMany({
-    where: { id, saidaEm: null, canceladaEm: null, movimentacaoId: { not: null } },
+    where: { id, saidaEm: null, canceladaEm: null, OR: [{ movimentacaoId: { not: null } }, { descarregadaEm: { not: null } }] },
     data: { saidaEm: new Date(), saidaPor: atorNome },
   });
   if (r.count === 0) throw new ErroRegraNegocio('Não foi possível confirmar: a situação mudou. Atualize a tela.');
@@ -109,7 +126,7 @@ export async function cancelarChegada(id: string): Promise<void> {
 export async function listarChegadasLiberadas() {
   return prisma.chegadaCaminhao.findMany({
     where: { liberadaEm: { not: null }, canceladaEm: null, movimentacaoId: null },
-    select: { id: true, origem: true, transportadora: true, placaCarreta: true, placaCavalo: true, liberadaEm: true, materialPrevisto: true, observacao: true },
+    select: { id: true, origem: true, transportadora: true, placaCarreta: true, placaCavalo: true, liberadaEm: true, materialPrevisto: true, observacao: true, descarregadaEm: true, saidaEm: true },
     orderBy: { liberadaEm: 'asc' },
   });
 }
@@ -117,7 +134,8 @@ export async function listarChegadasLiberadas() {
 /** Pátio: dados para pré-preencher o recebimento. Só devolve se estiver liberada e aberta. */
 export async function buscarChegadaLiberada(id: string) {
   const c = await prisma.chegadaCaminhao.findUnique({ where: { id } });
-  if (!c || estadoChegada(c) !== 'LIBERADA') return null;
+  // Liberada pela Portaria e ainda sem recebimento (inclusive se o Pátio já descarregou e o caminhão saiu).
+  if (!c || !c.liberadaEm || c.canceladaEm || c.movimentacaoId) return null;
   return {
     id: c.id,
     origem: c.origem ?? '',

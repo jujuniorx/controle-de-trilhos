@@ -19,7 +19,7 @@ export default async function PortariaRecebimentosPage() {
     <div className="mx-auto max-w-3xl space-y-5 p-4 sm:p-6">
       <AtualizarAuto segundos={20} />
       <div className="page-header !mb-0 flex-col items-stretch gap-4 sm:flex-row sm:items-center">
-        <h1 className="page-title">Caminhões chegando (recebimento)</h1>
+        <h1 className="page-title">Caminhões chegando (descarga)</h1>
         <BotaoNovaChegada />
       </div>
 

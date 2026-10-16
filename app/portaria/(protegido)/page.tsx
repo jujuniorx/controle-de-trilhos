@@ -45,7 +45,7 @@ export default async function PortariaPage() {
       </section>
 
       <div className="boas-vindas">
-        <h1 className="page-title">Remetidos (carretas)</h1>
+        <h1 className="page-title">Carga (carretas)</h1>
       </div>
 
       <div className="pend-resumo">
@@ -75,7 +75,7 @@ export default async function PortariaPage() {
       <NovoEnvioPortaria />
 
       {itens.length === 0 ? (
-        <EstadoVazio titulo="Nenhum remetido em andamento" texto="Quando o Pátio cadastrar um, ele aparece aqui." />
+        <EstadoVazio titulo="Nenhuma carga em andamento" texto="Quando o Pátio cadastrar uma carga, ela aparece aqui." />
       ) : (
         <div className="space-y-3">
           {itens.map((item) => (

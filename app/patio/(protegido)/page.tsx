@@ -8,6 +8,7 @@ import { AtivarAvisos } from '@/components/patio/AtivarAvisos';
 import { listarChegadasLiberadas } from '@/lib/services/chegada';
 import { listarCarretasNaPortaria } from '@/lib/services/portaria';
 import { CarretaNaPortaria } from '@/components/patio/CarretaNaPortaria';
+import { DescarregadoBotao } from '@/components/patio/DescarregadoBotao';
 import { normalizarLocal } from '@/lib/domain/local';
 import { chavePublicaPush } from '@/lib/services/push';
 
@@ -78,14 +79,19 @@ export default async function PatioHomePage() {
         <section aria-label="Caminhões na Portaria para descarregar" className="space-y-2">
           <h2 className="font-condensed text-base font-bold uppercase tracking-wide text-ok">Caminhões na Portaria (descarregar)</h2>
           {liberadas.map((c) => (
-            <Link key={c.id} href={`/patio/recebimentos/novo?chegada=${c.id}`} className="card block border-2 border-ok transition hover:brightness-110">
-              <p className="font-medium text-ink">{c.placaCarreta || c.placaCavalo || 'Caminhão'}{c.origem ? ` — ${c.origem}` : ''}</p>
-              <p className="text-sm text-ink-muted">
-                {[c.transportadora, c.materialPrevisto].filter(Boolean).join(' · ') || 'Toque para registrar o recebimento'}
-              </p>
-              {c.observacao && <p className="mt-1 text-sm text-warn">Portaria: {c.observacao}</p>}
-              <span className="badge badge-ok mt-1">Chegou — toque para descarregar</span>
-            </Link>
+            <div key={c.id} className="card space-y-3 border-2 border-ok">
+              <Link href={`/patio/recebimentos/novo?chegada=${c.id}`} className="block transition hover:brightness-110">
+                <p className="font-medium text-ink">{c.placaCarreta || c.placaCavalo || 'Caminhão'}{c.origem ? ` — ${c.origem}` : ''}</p>
+                <p className="text-sm text-ink-muted">
+                  {[c.transportadora, c.materialPrevisto].filter(Boolean).join(' · ') || 'Toque para registrar o recebimento'}
+                </p>
+                {c.observacao && <p className="mt-1 text-sm text-warn">Portaria: {c.observacao}</p>}
+                <span className="badge badge-ok mt-1">
+                  {c.descarregadaEm ? (c.saidaEm ? 'Já saiu — falta medir' : 'Descarregado — falta medir') : 'Chegou — toque para descarregar'}
+                </span>
+              </Link>
+              {!c.descarregadaEm && <DescarregadoBotao id={c.id} />}
+            </div>
           ))}
         </section>
       )}

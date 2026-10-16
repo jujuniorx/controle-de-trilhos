@@ -83,7 +83,7 @@ export function CartaoPortaria({ item }: { item: ItemPortaria }) {
         <span className="flex min-w-0 items-start gap-3">
           <span className="grid h-10 w-10 flex-none place-items-center rounded-xl bg-primary/15 text-primary">{ICONE_CAMINHAO}</span>
           <span className="min-w-0">
-          <span className="block break-words font-semibold text-ink">{item.destino || 'Remetido'}</span>
+          <span className="block break-words font-semibold text-ink">{item.destino || 'Carga'}</span>
           <span className="block text-sm text-ink-muted">
             {TIPO_REMETIDO[item.remetidoDetalhe?.tipoRemetido ?? ''] ?? '—'}
             {item.reservaPedido ? ` · Reserva ${item.reservaPedido}` : ''}

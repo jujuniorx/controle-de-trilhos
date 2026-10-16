@@ -14,11 +14,11 @@ export function NavPortaria({ className }: { className?: string }) {
       <span className="nav-section">Menu</span>
       <Link href="/portaria" data-active={remetidosAtivo}>
         <span className="nav-icone">{ICONE_REMETIDOS(18)}</span>
-        Remetidos
+        Carga
       </Link>
       <Link href="/portaria/recebimentos" data-active={recebimentosAtivo}>
         <span className="nav-icone">{ICONE_RECEBIMENTOS(18)}</span>
-        Recebimentos
+        Descarga
       </Link>
     </nav>
   );

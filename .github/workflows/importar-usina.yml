@@ -20,3 +20,4 @@ jobs:
         run: npx prisma migrate deploy
       - name: importar outubro/2026
         run: npx tsx scripts/importar-usina-outubro.ts
+# Rodada de 2026-10-16: aplica migrações pendentes (descarregada) e reexecuta a importação (idempotente).

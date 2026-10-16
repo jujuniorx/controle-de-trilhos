@@ -10,8 +10,8 @@ import { NavPortaria } from './NavPortaria';
 import { ICONE_RECEBIMENTOS, ICONE_REMETIDOS, ICONE_TROCAR } from './icones';
 
 const ABAS: Aba[] = [
-  { href: '/portaria', rotulo: 'Remetidos', icone: ICONE_REMETIDOS(24) },
-  { href: '/portaria/recebimentos', rotulo: 'Recebimentos', icone: ICONE_RECEBIMENTOS(24), prefixo: '/portaria/recebimentos' },
+  { href: '/portaria', rotulo: 'Carga', icone: ICONE_REMETIDOS(24) },
+  { href: '/portaria/recebimentos', rotulo: 'Descarga', icone: ICONE_RECEBIMENTOS(24), prefixo: '/portaria/recebimentos' },
   { href: '/', rotulo: 'Trocar área', icone: ICONE_TROCAR(24) },
 ];
 
