@@ -5,7 +5,7 @@ const DIA_MS = 24 * 60 * 60 * 1000;
 
 // Feriados que a equipe folga em Bauru-SP: nacionais, estaduais de São Paulo e municipais
 // de Bauru. O admin pode editar a lista na tela (tabela Feriado); esta é a base inicial de 2026.
-// PENDENTE: o feriado municipal de Bauru ainda não foi confirmado (ver FERIADOS_A_CONFIRMAR).
+// Municipal de Bauru confirmado no site da prefeitura (www2.bauru.sp.gov.br/feriados.aspx).
 export const FERIADOS_2026: { data: string; nome: string }[] = [
   { data: '2026-01-01', nome: 'Confraternização Universal' },
   { data: '2026-02-16', nome: 'Carnaval (ponto facultativo)' },
@@ -15,6 +15,7 @@ export const FERIADOS_2026: { data: string; nome: string }[] = [
   { data: '2026-05-01', nome: 'Dia do Trabalho' },
   { data: '2026-06-04', nome: 'Corpus Christi' },
   { data: '2026-07-09', nome: 'Revolução Constitucionalista (SP)' },
+  { data: '2026-08-01', nome: 'Aniversário da Cidade de Bauru (municipal)' },
   { data: '2026-09-07', nome: 'Independência do Brasil' },
   { data: '2026-10-12', nome: 'Nossa Senhora Aparecida' },
   { data: '2026-11-02', nome: 'Finados' },
@@ -22,8 +23,6 @@ export const FERIADOS_2026: { data: string; nome: string }[] = [
   { data: '2026-11-20', nome: 'Consciência Negra' },
   { data: '2026-12-25', nome: 'Natal' },
 ];
-
-export const FERIADOS_A_CONFIRMAR = ['Aniversário de Bauru (municipal, data a confirmar)'];
 
 export function ehFimDeSemana(iso: string): boolean {
   const dia = new Date(`${iso}T12:00:00Z`).getUTCDay();
