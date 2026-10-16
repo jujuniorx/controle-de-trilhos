@@ -55,10 +55,11 @@ const comprimento = opcional(
     .pipe(z.number().positive('O comprimento precisa ser maior que zero.').max(60, 'Comprimento muito alto (máx. 60 m).')),
 );
 
-/** CPF digitado com o traço automático: 9 números, traço, 2 números. Só a formatação, não valida dígitos. */
+/** CPF digitado com os pontos e o traço automáticos (000.000.000-00). Só a formatação, não valida dígitos. */
 export function formatarCpfDigitado(valor: string): string {
-  const digitos = valor.replace(/\D/g, '').slice(0, 11);
-  return digitos.length > 9 ? `${digitos.slice(0, 9)}-${digitos.slice(9)}` : digitos;
+  const d = valor.replace(/\D/g, '').slice(0, 11);
+  const grupos = [d.slice(0, 3), d.slice(3, 6), d.slice(6, 9)].filter(Boolean).join('.');
+  return d.length > 9 ? `${grupos}-${d.slice(9)}` : grupos;
 }
 
 const texto = (max: number) => opcional(z.string().trim().max(max, `Máximo de ${max} caracteres.`));

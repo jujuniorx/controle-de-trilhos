@@ -5,12 +5,14 @@ import { motivoNaoPodeRegistrarChegada } from '@/lib/domain/portaria';
 
 describe('CPF com traço automático', () => {
   it('põe o traço logo depois do 9º número', () => {
-    expect(formatarCpfDigitado('45603560843')).toBe('456035608-43');
-    expect(formatarCpfDigitado('456035608')).toBe('456035608');
-    expect(formatarCpfDigitado('4560356084')).toBe('456035608-4');
+    expect(formatarCpfDigitado('45603560843')).toBe('456.035.608-43');
+    expect(formatarCpfDigitado('456035608')).toBe('456.035.608');
+    expect(formatarCpfDigitado('4560356084')).toBe('456.035.608-4');
+    expect(formatarCpfDigitado('456')).toBe('456');
+    expect(formatarCpfDigitado('4560')).toBe('456.0');
   });
   it('ignora letras e limita a 11 números', () => {
-    expect(formatarCpfDigitado('45a60.35608-4399')).toBe('456035608-43');
+    expect(formatarCpfDigitado('45a60.35608-4399')).toBe('456.035.608-43');
   });
 });
 
