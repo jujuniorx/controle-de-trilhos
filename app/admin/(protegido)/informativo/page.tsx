@@ -98,7 +98,7 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
 
         <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
           <div className="flex flex-col gap-1.5">
-            <span className="text-[11px] font-medium "uppercase tracking-wider text-ink-muted">Série</span>
+            <span className="text-[11px] font-medium "uppercase tracking-wider text-ink-muted">Indicador</span>
             <div className="inline-flex flex-wrap gap-1 rounded-lg bg-surface-2 p-1" role="group" aria-label="Série">
               {SERIES.map((s) => (
                 <Link key={s} href={link({ serie: s })} className={segmento(serie === s)} aria-current={serie === s ? 'true' : undefined}>
@@ -108,7 +108,7 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
-            <span className="text-[11px] font-medium uppercase tracking-wider text-ink-muted">Unidade</span>
+            <span className="text-[11px] font-medium uppercase tracking-wider text-ink-muted">Medida</span>
             <div className="inline-flex gap-1 rounded-lg bg-surface-2 p-1" role="group" aria-label="Unidade">
               {UNIDADES.map((u) => (
                 <Link key={u} href={link({ unidade: u })} className={segmento(unidade === u)} aria-current={unidade === u ? 'true' : undefined}>
