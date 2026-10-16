@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { CSSProperties } from 'react';
 import { listarAguardandoChegada } from '@/lib/services/remetido';
-import { saudacao } from '@/lib/saudacao';
+import { saudacaoCompleta } from '@/lib/saudacao';
 import { FundoTrilhos } from '@/components/ui/FundoTrilhos';
 import { AtualizarAuto } from '@/components/AtualizarAuto';
 import { AtivarAvisos } from '@/components/patio/AtivarAvisos';
@@ -49,7 +49,7 @@ export default async function PatioHomePage() {
       <section className="patio-hero">
         <FundoTrilhos />
         <div className="patio-hero-texto">
-          <p className="patio-hero-saudacao">{saudacao()}!</p>
+          <p className="patio-hero-saudacao">{saudacaoCompleta()}!</p>
           <h1 className="patio-hero-titulo">O que vamos registrar?</h1>
           <p className="patio-hero-sub">Escolha uma opção. Sem internet, o registro fica guardado e é enviado depois.</p>
         </div>
