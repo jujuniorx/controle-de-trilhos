@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { validarReemprego } from '@/lib/domain/regras';
-import { PERFIS, MARCAS, PLACA_REGEX, CLASSIFICACOES_SC, NF_REGEX, MSG_NF_INVALIDA } from '@/lib/validation/recebimento';
+import { PERFIS, MARCAS, PLACA_REGEX, CLASSIFICACOES_SC, nfOpcional } from '@/lib/validation/recebimento';
 
 const MSG_PLACA_INVALIDA = 'Placa inválida. Ex.: ABC1D23 (Mercosul) ou CMG1234 (padrão antigo).';
 const MSG_PELO_MENOS_UMA_PLACA =
@@ -25,7 +25,7 @@ export const preCadastroRemetidoSchema = z.object({
   // Opcional: o Pátio não precisa informar (igual ao lançamento direto); fica nulo.
   reservaPedido: z.string().trim().min(1).optional(),
   destino: z.string().trim().min(1, 'Informe o destino.'),
-  numeroDocumento: z.string().regex(NF_REGEX, MSG_NF_INVALIDA).optional(),
+  numeroDocumento: nfOpcional,
 });
 
 export type PreCadastroRemetidoInput = z.infer<typeof preCadastroRemetidoSchema>;
@@ -42,7 +42,7 @@ export type PreCadastroSyncInput = z.infer<typeof preCadastroSyncSchema>;
 // a placa vem da Portaria (ela é quem sabe quando a carreta chega), então não é exigida aqui.
 const dadosConfirmacaoBaseSchema = z.object({
     data: z.string().min(1, 'Informe a data.'),
-    numeroDocumento: z.string().regex(NF_REGEX, MSG_NF_INVALIDA).optional(),
+    numeroDocumento: nfOpcional,
     placaCavalo: z.string().regex(PLACA_REGEX, MSG_PLACA_INVALIDA).optional(),
     placaCarreta: z.string().regex(PLACA_REGEX, MSG_PLACA_INVALIDA).optional(),
     placaCarreta2: z.string().regex(PLACA_REGEX, MSG_PLACA_INVALIDA).optional(),

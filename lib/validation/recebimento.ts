@@ -8,6 +8,12 @@ export const PLACA_REGEX = /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/;
 export const NF_REGEX = /^\d{1,9}(-\d{1,4})?$/;
 export const MSG_NF_INVALIDA = 'Informe a nota fiscal (números, pode ter traço — ex.: 087781-1).';
 
+// NF é sempre opcional: campo em branco (inclusive texto vazio) vira "sem NF".
+export const nfOpcional = z.preprocess(
+  (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+  z.string().regex(NF_REGEX, MSG_NF_INVALIDA).optional(),
+);
+
 export const PERFIS = [
   'TR22', 'TR32', 'TR37', 'TR40', 'TR45', 'TR50', 'TR54', 'TR55', 'TR57', 'TR60', 'TR68',
 ] as const;
@@ -35,7 +41,7 @@ const MSG_PELO_MENOS_UMA_PLACA =
 export const dadosCarregamentoSchema = z
   .object({
     data: z.string().min(1, 'Informe a data do recebimento.'),
-    numeroDocumento: z.string().regex(NF_REGEX, MSG_NF_INVALIDA).optional(),
+    numeroDocumento: nfOpcional,
     origem: z.string().trim().min(1, 'Informe a origem do material.'),
     // Nenhuma placa é individualmente obrigatória — a regra é "pelo menos uma
     // das três" (refine abaixo). Um cavalo pode puxar até 2 carretas; a 2ª é opcional.

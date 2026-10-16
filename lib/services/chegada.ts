@@ -25,8 +25,10 @@ function paraBanco(d: DadosChegada) {
     motoristaCpf: d.motoristaCpf ?? null,
     motoristaTelefone: d.motoristaTelefone ?? null,
     placaCarreta: d.placaCarreta ?? null,
+    placaCarreta2: d.placaCarreta2 ?? null,
     placaCavalo: d.placaCavalo ?? null,
     capacidadeCarga: d.capacidadeCarga ?? null,
+    comprimentoCarreta: d.comprimentoCarreta ?? null,
   };
 }
 
@@ -151,8 +153,10 @@ export async function buscarFichaChegada(id: string) {
     motoristaCpf: c.motoristaCpf,
     motoristaTelefone: c.motoristaTelefone,
     placaCarreta: c.placaCarreta,
+    placaCarreta2: c.placaCarreta2,
     placaCavalo: c.placaCavalo,
     capacidadeCarga: num(c.capacidadeCarga),
+    comprimentoCarreta: num(c.comprimentoCarreta),
     chegadaEm: c.liberadaEm,
     carretaLiberadaEm: null,
     carretaLiberadaPor: null,

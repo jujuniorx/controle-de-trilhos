@@ -160,6 +160,7 @@ model Movimentacao {
   motoristaCpf       String?
   motoristaTelefone  String?
   capacidadeCarga    Decimal? // toneladas
+  comprimentoCarreta Decimal? // metros
   materialPrevisto   String?
   // O Pátio marca que terminou de medir (só falta a carreta chegar).
   medicaoConcluidaEm DateTime?
@@ -298,8 +299,10 @@ model ChegadaCaminhao {
   motoristaCpf      String?
   motoristaTelefone String?
   placaCarreta      String?
+  placaCarreta2     String?
   placaCavalo       String?
   capacidadeCarga   Decimal? // toneladas
+  comprimentoCarreta Decimal? // metros
   observacao        String? // da Portaria, para o Pátio
   criadoPor         String
   criadoEm          DateTime  @default(now())

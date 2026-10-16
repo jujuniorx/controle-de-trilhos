@@ -29,6 +29,8 @@ const SELECT_PORTARIA = {
   transportadora: true,
   placaCavalo: true,
   placaCarreta: true,
+  placaCarreta2: true,
+  comprimentoCarreta: true,
   motoristaNome: true,
   motoristaCpf: true,
   motoristaTelefone: true,
@@ -65,6 +67,7 @@ export async function listarPortaria() {
   return lista.map((m) => ({
     ...m,
     capacidadeCarga: m.capacidadeCarga ? Number(m.capacidadeCarga) : null,
+    comprimentoCarreta: m.comprimentoCarreta ? Number(m.comprimentoCarreta) : null,
     estado: estadoPortaria(m),
   }));
 }
@@ -89,8 +92,10 @@ function paraBanco(d: DadosPortaria) {
     motoristaCpf: d.motoristaCpf ?? null,
     motoristaTelefone: d.motoristaTelefone ?? null,
     placaCarreta: d.placaCarreta ?? null,
+    placaCarreta2: d.placaCarreta2 ?? null,
     placaCavalo: d.placaCavalo ?? null,
     capacidadeCarga: d.capacidadeCarga ?? null,
+    comprimentoCarreta: d.comprimentoCarreta ?? null,
   };
 }
 
@@ -235,8 +240,10 @@ export async function buscarFichaPortaria(id: string) {
     motoristaCpf: m.motoristaCpf,
     motoristaTelefone: m.motoristaTelefone,
     placaCarreta: m.placaCarreta,
+    placaCarreta2: m.placaCarreta2,
     placaCavalo: m.placaCavalo,
     capacidadeCarga: m.capacidadeCarga ? Number(m.capacidadeCarga) : null,
+    comprimentoCarreta: m.comprimentoCarreta ? Number(m.comprimentoCarreta) : null,
     chegadaEm: m.chegadaPortariaEm,
     carretaLiberadaEm: m.carretaLiberadaEm,
     carretaLiberadaPor: m.carretaLiberadaPor,
@@ -256,8 +263,8 @@ export async function criarEnvioPelaPortaria(
   atorNome: string,
   atorId?: string,
 ): Promise<string> {
-  const placa = dados.placaCarreta ?? dados.placaCavalo;
-  if (!dados.placaCavalo && !dados.placaCarreta) {
+  const placa = dados.placaCarreta ?? dados.placaCarreta2 ?? dados.placaCavalo;
+  if (!dados.placaCavalo && !dados.placaCarreta && !dados.placaCarreta2) {
     throw new ErroRegraNegocio('Informe ao menos uma placa (cavalo ou carreta) para registrar a chegada.');
   }
   const agora = new Date();

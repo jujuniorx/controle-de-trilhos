@@ -468,7 +468,7 @@ export function RecebimentoWizard({
             {errosDados.data && <p className="text-sm text-bad">{errosDados.data}</p>}
           </div>
           <div className="field">
-            <label htmlFor="f-nf">Nota fiscal *</label>
+            <label htmlFor="f-nf">Nota fiscal (se já souber)</label>
             <input
               id="f-nf"
               inputMode="numeric"

@@ -48,6 +48,19 @@ const capacidade = opcional(
     .pipe(z.number().positive('A capacidade precisa ser maior que zero.').max(200, 'Capacidade muito alta (máx. 200 t).')),
 );
 
+const comprimento = opcional(
+  z
+    .union([z.string(), z.number()])
+    .transform((v) => (typeof v === 'number' ? v : Number(v.replace(',', '.'))))
+    .pipe(z.number().positive('O comprimento precisa ser maior que zero.').max(60, 'Comprimento muito alto (máx. 60 m).')),
+);
+
+/** CPF digitado com o traço automático: 9 números, traço, 2 números. Só a formatação, não valida dígitos. */
+export function formatarCpfDigitado(valor: string): string {
+  const digitos = valor.replace(/\D/g, '').slice(0, 11);
+  return digitos.length > 9 ? `${digitos.slice(0, 9)}-${digitos.slice(9)}` : digitos;
+}
+
 const texto = (max: number) => opcional(z.string().trim().max(max, `Máximo de ${max} caracteres.`));
 
 export const dadosPortariaSchema = z.object({
@@ -61,8 +74,10 @@ export const dadosPortariaSchema = z.object({
   motoristaCpf: cpf,
   motoristaTelefone: telefone,
   placaCarreta: placa,
+  placaCarreta2: placa,
   placaCavalo: placa,
   capacidadeCarga: capacidade,
+  comprimentoCarreta: comprimento,
 });
 
 export type DadosPortaria = z.infer<typeof dadosPortariaSchema>;
@@ -72,7 +87,7 @@ export const MSG_PRECISA_DE_PLACA = 'Informe ao menos uma placa (cavalo ou carre
 /** Envio criado pela própria Portaria (carreta que chegou sem o Pátio ter cadastrado): destino obrigatório. */
 export const novoEnvioPortariaSchema = dadosPortariaSchema
   .extend({ destino: z.string().trim().min(1, 'Informe o destino.').max(120, 'Máximo de 120 caracteres.') })
-  .refine((d) => Boolean(d.placaCavalo || d.placaCarreta), {
+  .refine((d) => Boolean(d.placaCavalo || d.placaCarreta || d.placaCarreta2), {
     message: 'Informe ao menos uma placa (cavalo ou carreta).',
     path: ['placaCarreta'],
   });
