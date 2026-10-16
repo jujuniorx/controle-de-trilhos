@@ -133,6 +133,7 @@ export default async function RelatoriosPage({
           </nav>
           <h1 className="page-title mt-1">Relatório de movimentação</h1>
         </div>
+        <Link href="/admin/usina" className="btn btn-ghost h-11">Relatório da usina →</Link>
       </div>
 
       <form method="get" className="card">
