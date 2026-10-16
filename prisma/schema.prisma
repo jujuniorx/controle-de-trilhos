@@ -358,7 +358,6 @@ model EstaleiroDia {
   data      DateTime @unique @db.Date
   soldas    Int?
   cortes    Int?
-  observacao String?
   atualizadoEm DateTime @updatedAt
 }
 
@@ -463,7 +462,6 @@ model CaminhaoSoldaDia {
   inicioMacro1    String?
   terminoMacro9   String?
   perdaDiaria     Int?
-  observacao      String?
   atualizadoEm    DateTime      @updatedAt
 
   @@unique([data, caminhao])

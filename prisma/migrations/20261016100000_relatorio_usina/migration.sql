@@ -19,7 +19,6 @@ CREATE TABLE "EstaleiroDia" (
     "data" DATE NOT NULL,
     "soldas" INTEGER,
     "cortes" INTEGER,
-    "observacao" TEXT,
     "atualizadoEm" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "EstaleiroDia_pkey" PRIMARY KEY ("id")
@@ -128,7 +127,6 @@ CREATE TABLE "CaminhaoSoldaDia" (
     "inicioMacro1" TEXT,
     "terminoMacro9" TEXT,
     "perdaDiaria" INTEGER,
-    "observacao" TEXT,
     "atualizadoEm" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "CaminhaoSoldaDia_pkey" PRIMARY KEY ("id")
