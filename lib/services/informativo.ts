@@ -25,7 +25,7 @@ export async function informativoDoAno(ano: number, dia: string) {
     prisma.recolhimentoSerra.findMany({ where: { data: { gte: inicio, lt: fim } }, select: { data: true, unidades: true } }),
     prisma.grupo.findMany({
       where: { movimentacao: { tipo: 'RECEBIMENTO', origem: { not: null } } },
-      select: { metrosTotal: true, movimentacao: { select: { origem: true, dataMovimentacao: true, criadoEm: true } } },
+      select: { metrosTotal: true, movimentacao: { select: { origem: true, dataMovimentacao: true } } },
     }),
     prisma.recebimentoSerraHistorico.findMany({ where: { data: { gte: inicio, lt: fim } }, select: { nf: true, cidade: true, data: true, metrosTotal: true } }),
     prisma.movimentacao.findMany({
@@ -69,8 +69,8 @@ export async function informativoDoAno(ano: number, dia: string) {
   for (const g of recebidosSistema) {
     const origem = chaveLocal(g.movimentacao.origem);
     if (!CIDADES.includes(origem)) continue;
-    const data = g.movimentacao.dataMovimentacao ?? g.movimentacao.criadoEm;
-    if (data.getUTCFullYear() !== ano) continue;
+    const data = g.movimentacao.dataMovimentacao;
+    if (!data || data.getUTCFullYear() !== ano) continue;
     const m = Number(g.metrosTotal);
     meses[mesDe(data)].recebido += m;
     tocar(data).recebido += m;
