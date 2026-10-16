@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   await requireAdmin();
 
   const params = request.nextUrl.searchParams;
-  const filtros = filtrosRelatorioSchema.parse({
+  const entrada = filtrosRelatorioSchema.safeParse({
     dataInicio: params.get('dataInicio') ?? undefined,
     dataFim: params.get('dataFim') ?? undefined,
     tipo: params.get('tipo') ?? undefined,
@@ -19,6 +19,10 @@ export async function GET(request: NextRequest) {
     numeroDocumento: params.get('numeroDocumento') ?? undefined,
     status: params.get('status') ?? undefined,
   });
+  if (!entrada.success) {
+    return NextResponse.json({ erro: 'Filtros inválidos' }, { status: 400 });
+  }
+  const filtros = entrada.data;
 
   const movimentacoes = await buscarMovimentacoesRelatorio(filtros);
   const buffer = await gerarRelatorioExcel(movimentacoes);

@@ -2,24 +2,32 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Decimal } from '@prisma/client/runtime/library';
 import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/services/requireAdmin';
+import { z } from 'zod';
+
+const corpoMedicao = z.object({
+  grupoId: z.string().min(1).max(64),
+  // Quantidade: barras inteiras por medição (1 a 10.000).
+  quantidade: z.coerce.number().int().min(1).max(10000),
+  // Comprimento em metros por barra: maior que zero e até 50 m.
+  comprimento: z.coerce.number().positive().max(50),
+});
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Autorização fica fora do try: se a sessão expirar, o redirecionamento do Next passa direto
+  // (antes era engolido pelo catch e virava erro 500).
+  const user = await requireAdmin();
+
   try {
-    // Verificar autenticação (apenas Junior/admin)
-    const user = await requireAdmin();
-
     const { id } = await params;
-    const { grupoId, quantidade, comprimento } = await req.json();
-
-    if (!grupoId || !quantidade || !comprimento) {
-      return NextResponse.json(
-        { erro: 'Campos obrigatórios faltando' },
-        { status: 400 }
-      );
+    const corpo = await req.json().catch(() => null);
+    const entrada = corpoMedicao.safeParse(corpo);
+    if (!entrada.success) {
+      return NextResponse.json({ erro: 'Dados inválidos para a medição' }, { status: 400 });
     }
+    const { grupoId, quantidade, comprimento } = entrada.data;
 
     // Verificar se o grupo existe e pertence a este recebimento
     const grupo = await prisma.grupo.findUnique({
@@ -35,7 +43,7 @@ export async function POST(
     }
 
     // Calcular metros
-    const metros = Math.round(Number(quantidade) * Number(comprimento) * 100) / 100;
+    const metros = Math.round(quantidade * comprimento * 100) / 100;
 
     // Adicionar medição
     const medicao = await prisma.medicao.create({
@@ -43,7 +51,7 @@ export async function POST(
         clientId: crypto.randomUUID(),
         grupoId,
         modo: 'INDIVIDUAL',
-        quantidade: Number(quantidade),
+        quantidade,
         comprimento: new Decimal(comprimento),
         metros: new Decimal(metros),
       },
