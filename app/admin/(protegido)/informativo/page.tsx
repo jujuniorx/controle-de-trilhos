@@ -13,6 +13,7 @@ function hojeSP(): string {
 export default async function InformativoPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const p = await searchParams;
   const dia = typeof p.dia === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.dia) ? p.dia : hojeSP();
+  const vista = p.vista === 'linhas' ? 'linhas' : 'barras';
   const ano = Number(dia.slice(0, 4));
   const r = await informativoDoAno(ano, dia);
   const maximo = Math.max(...r.meses.map((m) => m.geracao + m.w61 + m.w62 + m.recebido), 1);
@@ -39,7 +40,40 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
       </header>
 
       <section className="card space-y-2" aria-label="Gráfico mensal">
-        <p className="text-sm text-ink-muted">Metros por mês em {ano}</p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-ink-muted">{vista === 'barras' ? `Metros por mês em ${ano}` : `Metros acumulados em ${ano}`}</p>
+          <nav className="flex gap-1 text-sm" aria-label="Tipo de gráfico">
+            <a href={`?dia=${dia}&vista=barras`} className={`btn btn-ghost btn-sm ${vista === 'barras' ? 'font-bold' : ''}`} aria-current={vista === 'barras' ? 'page' : undefined}>Barras</a>
+            <a href={`?dia=${dia}&vista=linhas`} className={`btn btn-ghost btn-sm ${vista === 'linhas' ? 'font-bold' : ''}`} aria-current={vista === 'linhas' ? 'page' : undefined}>Linhas</a>
+          </nav>
+        </div>
+        {vista === 'linhas' ? (
+          <svg viewBox={`0 0 ${W} ${H + 30}`} className="h-auto w-full" role="img" aria-label="Gráfico acumulado de geração, W61, W62, recebido estaleiro e prospecção">
+            {(() => {
+              const acumulados = linhas.map((l) => {
+                let t = 0;
+                return r.meses.map((m) => (t += m[l.campo]));
+              });
+              const topo = Math.max(...acumulados.map((a) => a[11] ?? 0), r.metaM, 1);
+              const xs = (i: number) => 30 + (i * (W - 50)) / 11;
+              const ys = (v: number) => base - (v / topo) * (H - 20);
+              const caminho = (valores: number[]) => valores.map((v, i) => `${i === 0 ? 'M' : 'L'}${xs(i)},${ys(v)}`).join(' ');
+              return (
+                <>
+                  <line x1="30" x2={W - 10} y1={base} y2={base} stroke="currentColor" strokeOpacity="0.3" />
+                  <line x1="30" x2={W - 10} y1={ys(r.metaM)} y2={ys(r.metaM)} stroke="currentColor" strokeDasharray="6 4" strokeOpacity="0.6" />
+                  <text x={W - 12} y={ys(r.metaM) - 4} textAnchor="end" fontSize="11" fill="currentColor">Prospecção 45.000 m</text>
+                  {linhas.map((l, k) => (
+                    <path key={l.chave} d={caminho(acumulados[k])} fill="none" stroke={CORES[l.chave]} strokeWidth="2.5" />
+                  ))}
+                  {r.meses.map((_, i) => (
+                    <text key={MESES[i]} x={xs(i)} y={H + 18} textAnchor="middle" fontSize="11" fill="currentColor">{MESES[i]}</text>
+                  ))}
+                </>
+              );
+            })()}
+          </svg>
+        ) : (
         <svg viewBox={`0 0 ${W} ${H + 30}`} className="h-auto w-full" role="img" aria-label="Gráfico mensal de geração, W61, W62 e recebido estaleiro">
           {r.meses.map((m, i) => {
             let y = base;
@@ -55,6 +89,7 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
             );
           })}
         </svg>
+        )}
         <div className="flex flex-wrap gap-3 text-sm">
           {linhas.map((l) => (
             <span key={l.chave} className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm" style={{ background: CORES[l.chave] }} />{l.rotulo}</span>
