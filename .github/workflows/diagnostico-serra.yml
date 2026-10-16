@@ -1,0 +1,20 @@
+name: diagnostico-serra
+on:
+  workflow_dispatch:
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm install --no-audit --no-fund
+      - run: npx prisma generate
+      - run: npx tsx scripts/diagnostico-serra.ts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: diagnostico-serra
+          path: diagnostico-serra.json
