@@ -32,10 +32,11 @@ export function motivoNaoPodeRegistrarChegada(
   m: MovimentacaoPortariaBasica,
   placaCavalo: string | null | undefined,
   placaCarreta: string | null | undefined,
+  placaCarreta2?: string | null,
 ): string | null {
   if (m.saidaPortariaEm) return 'Esta carreta já saiu.';
   if (m.chegadaPortariaEm || m.carretaLiberadaEm) return 'A chegada desta carreta já foi registrada.';
-  if (!placaCavalo && !placaCarreta) return 'Informe ao menos uma placa (cavalo ou carreta) para registrar a chegada.';
+  if (!placaCavalo && !placaCarreta && !placaCarreta2) return 'Informe ao menos uma placa (cavalo ou carreta) para registrar a chegada.';
   return null;
 }
 
@@ -103,13 +104,14 @@ export function motivoNaoPodeLiberarChegada(
   c: ChegadaBasica,
   placaCavalo: string | null | undefined,
   placaCarreta: string | null | undefined,
+  placaCarreta2?: string | null,
 ): string | null {
   const estado = estadoChegada(c);
   if (estado === 'CANCELADA') return 'Esta chegada foi cancelada.';
   if (estado === 'SAIU') return 'Este caminhão já saiu.';
   if (estado === 'RECEBIDA') return 'O Pátio já descarregou este caminhão.';
   if (estado === 'LIBERADA') return 'A chegada já foi registrada.';
-  if (!placaCavalo && !placaCarreta) return 'Informe ao menos uma placa (cavalo ou carreta) para registrar a chegada.';
+  if (!placaCavalo && !placaCarreta && !placaCarreta2) return 'Informe ao menos uma placa (cavalo ou carreta) para registrar a chegada.';
   return null;
 }
 

@@ -64,7 +64,7 @@ export async function salvarDadosChegada(id: string, dados: DadosChegada): Promi
 
 export async function liberarChegada(id: string, dados: DadosChegada, atorNome: string): Promise<void> {
   const c = await carregarAberta(id);
-  const motivo = motivoNaoPodeLiberarChegada(c, dados.placaCavalo, dados.placaCarreta);
+  const motivo = motivoNaoPodeLiberarChegada(c, dados.placaCavalo, dados.placaCarreta, dados.placaCarreta2);
   if (motivo) throw new ErroRegraNegocio(motivo);
 
   // Condição no WHERE: se duas pessoas liberarem juntas, só uma vence (e só ela avisa o Pátio).

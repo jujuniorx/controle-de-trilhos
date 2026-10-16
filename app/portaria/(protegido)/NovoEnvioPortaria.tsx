@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { novoEnvioPortariaAction } from './actions';
+import { formatarCpfDigitado } from '@/lib/validation/portaria';
 
 /** Carreta que chegou sem o Pátio ter cadastrado o envio: a Portaria cria aqui e o Pátio é avisado. */
 export function NovoEnvioPortaria() {
@@ -10,7 +11,7 @@ export function NovoEnvioPortaria() {
   const [aberto, setAberto] = useState(false);
   const [pendente, iniciar] = useTransition();
   const [erro, setErro] = useState('');
-  const vazio = { destino: '', origem: '', materialPrevisto: '', transportadora: '', motoristaNome: '', motoristaCpf: '', motoristaTelefone: '', placaCavalo: '', placaCarreta: '', capacidadeCarga: '', observacao: '' };
+  const vazio = { destino: '', origem: '', materialPrevisto: '', transportadora: '', motoristaNome: '', motoristaCpf: '', motoristaTelefone: '', placaCavalo: '', placaCarreta: '', placaCarreta2: '', capacidadeCarga: '', comprimentoCarreta: '', observacao: '' };
   const [valores, setValores] = useState(vazio);
 
   function campo(nome: keyof typeof valores, rotulo: string, opcoes?: { maiusculo?: boolean; obrigatorio?: boolean; numerico?: boolean }) {
@@ -22,10 +23,10 @@ export function NovoEnvioPortaria() {
         </span>
         <input
           className="h-11 w-full"
-          inputMode={opcoes?.numerico ? 'decimal' : undefined}
+          inputMode={opcoes?.numerico ? 'decimal' : nome === 'motoristaCpf' ? 'numeric' : undefined}
           value={valores[nome]}
           style={opcoes?.maiusculo ? { textTransform: 'uppercase' } : undefined}
-          onChange={(e) => setValores({ ...valores, [nome]: e.target.value })}
+          onChange={(e) => setValores({ ...valores, [nome]: nome === 'motoristaCpf' ? formatarCpfDigitado(e.target.value) : e.target.value })}
         />
       </label>
     );
@@ -71,11 +72,15 @@ export function NovoEnvioPortaria() {
       </div>
       <div className="grid grid-cols-2 gap-2">
         {campo('motoristaTelefone', 'Telefone')}
-        {campo('capacidadeCarga', 'Capacidade (t)', { numerico: true })}
       </div>
       <div className="grid grid-cols-2 gap-2">
         {campo('placaCavalo', 'Placa do cavalo', { maiusculo: true })}
         {campo('placaCarreta', 'Placa da carreta', { maiusculo: true })}
+      </div>
+      {campo('placaCarreta2', 'Placa da 2ª carreta (opcional)', { maiusculo: true })}
+      <div className="grid grid-cols-2 gap-2">
+        {campo('capacidadeCarga', 'Limite de carga (t)', { numerico: true })}
+        {campo('comprimentoCarreta', 'Comprimento da carreta (m)', { numerico: true })}
       </div>
       {campo('observacao', 'Observação')}
       {erro && <p role="alert" className="text-sm text-bad">{erro}</p>}

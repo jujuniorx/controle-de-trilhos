@@ -109,7 +109,7 @@ export async function salvarDadosPortaria(id: string, dados: DadosPortaria, ator
 /** Portaria: salva os dados e registra a chegada da carreta (hora automática). Exige ao menos uma placa. Avisa o Pátio. */
 export async function registrarChegadaCarreta(id: string, dados: DadosPortaria, atorNome: string, atorId?: string): Promise<void> {
   const mov = await carregarRemetido(id);
-  const motivo = motivoNaoPodeRegistrarChegada(mov, dados.placaCavalo, dados.placaCarreta);
+  const motivo = motivoNaoPodeRegistrarChegada(mov, dados.placaCavalo, dados.placaCarreta, dados.placaCarreta2);
   if (motivo) throw new ErroRegraNegocio(motivo);
 
   // Condição no WHERE: se duas pessoas registrarem juntas, só uma vence (e só ela avisa o Pátio).
