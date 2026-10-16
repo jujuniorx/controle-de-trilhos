@@ -14,12 +14,17 @@ function hojeSP(): string {
 const ANIMACAO = `
   .inf-barra { transform-box: fill-box; transform-origin: 50% 100%; animation: inf-cresce 0.9s cubic-bezier(.2,.8,.2,1) both; }
   .inf-valor { opacity: 0; animation: inf-surge 0.5s ease forwards; }
-  .inf-meta { stroke-dasharray: 900; stroke-dashoffset: 900; animation: inf-desenha 1.2s ease 0.9s forwards; }
+  .inf-grade { transform-box: fill-box; transform-origin: 0% 50%; animation: inf-desliza 0.8s ease both; }
+  .inf-eixo { opacity: 0; animation: inf-surge 0.5s ease forwards; }
+  .inf-legenda { opacity: 0; animation: inf-sobe 0.5s ease forwards; }
+  .inf-cartao { opacity: 0; animation: inf-sobe 0.6s cubic-bezier(.2,.8,.2,1) forwards; }
+  .inf-barra:hover { filter: brightness(1.15); }
   @keyframes inf-cresce { from { transform: scaleY(0); } to { transform: scaleY(1); } }
   @keyframes inf-surge { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-  @keyframes inf-desenha { to { stroke-dashoffset: 0; } }
+  @keyframes inf-sobe { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  @keyframes inf-desliza { from { transform: scaleX(0); } to { transform: scaleX(1); } }
   @media (prefers-reduced-motion: reduce) {
-    .inf-barra, .inf-valor, .inf-meta { animation: none; opacity: 1; transform: none; stroke-dashoffset: 0; }
+    .inf-barra, .inf-valor, .inf-grade, .inf-eixo, .inf-legenda, .inf-cartao { animation: none; opacity: 1; transform: none; }
   }
 `;
 
@@ -93,8 +98,8 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
         </div>
 
         <div className="flex flex-wrap gap-3 text-sm">
-          {series.map((s) => (
-            <span key={s.chave} className="flex items-center gap-1">
+          {series.map((s, k) => (
+            <span key={s.chave} className="inf-legenda flex items-center gap-1" style={{ animationDelay: `${k * 120}ms` }}>
               <span className="inline-block h-3 w-3 rounded-sm" style={{ background: s.cor }} />
               {s.rotulo}
             </span>
@@ -102,10 +107,10 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
         </div>
 
         <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={`${ROTULO_SERIE[serie]} por mês, em ${eixoRotulo}`}>
-          {Array.from({ length: Math.floor(max / passo) + 1 }, (_, k) => k * passo).map((v) => (
+          {Array.from({ length: Math.floor(max / passo) + 1 }, (_, k) => k * passo).map((v, k) => (
             <g key={v}>
-              <line x1={x0} x2={W - 8} y1={y(v)} y2={y(v)} stroke="currentColor" strokeOpacity={v === 0 ? 0.6 : 0.12} />
-              <text x={x0 - 6} y={y(v) + 4} textAnchor="end" fontSize="10" fill="currentColor" fillOpacity="0.7">{v.toLocaleString('pt-BR')}</text>
+              <line className="inf-grade" style={{ animationDelay: `${k * 90}ms` }} x1={x0} x2={W - 8} y1={y(v)} y2={y(v)} stroke="currentColor" strokeOpacity={v === 0 ? 0.6 : 0.12} />
+              <text className="inf-eixo" style={{ animationDelay: `${k * 90 + 300}ms` }} x={x0 - 6} y={y(v) + 4} textAnchor="end" fontSize="10" fill="currentColor" fillOpacity="0.7">{v.toLocaleString('pt-BR')}</text>
             </g>
           ))}
           <text x={4} y={topoPlot - 10} fontSize="10" fill="currentColor" fillOpacity="0.7">{eixoRotulo}</text>
@@ -120,23 +125,25 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
                   const delay = i * 70 + j * 90;
                   return (
                     <g key={s.chave}>
-                      <rect className="inf-barra" style={{ animationDelay: `${delay}ms` }} x={bx} y={y(v)} width={bw - 2} height={yBase - y(v)} rx="2" fill={s.cor} />
+                      <rect className="inf-barra" style={{ animationDelay: `${delay}ms` }} x={bx} y={y(v)} width={bw - 2} height={yBase - y(v)} rx="2" fill={s.cor}>
+                        <title>{`${s.rotulo} · ${mes}: ${Math.round(v).toLocaleString('pt-BR')} ${eixoRotulo}`}</title>
+                      </rect>
                       <text className="inf-valor" style={{ animationDelay: `${delay + 600}ms` }} x={bx + (bw - 2) / 2} y={y(v) - 4} textAnchor="middle" fontSize="10" fill="currentColor">{Math.round(v).toLocaleString('pt-BR')}</text>
                     </g>
                   );
                 })}
-                <text x={gx + gw / 2} y={yBase + 16} textAnchor="middle" fontSize="11" fill="currentColor">{mes}</text>
+                <text className="inf-eixo" style={{ animationDelay: `${i * 60 + 500}ms` }} x={gx + gw / 2} y={yBase + 16} textAnchor="middle" fontSize="11" fill="currentColor">{mes}</text>
               </g>
             );
           })}
         </svg>
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          <div><p className="text-xs uppercase text-ink-muted">Meta de recolhimento</p><p className="text-lg font-semibold">{fmtMetros(META_RECOLHIMENTO_M)} m</p></div>
-          <div><p className="text-xs uppercase text-ink-muted">Chegou na usina</p><p className="text-lg font-semibold" style={{ color: '#4a6cd4' }}>{fmtMetros(r.acumAno.recebido)} m</p></div>
-          <div><p className="text-xs uppercase text-ink-muted">Pendente (sobra)</p><p className="text-lg font-semibold text-warn">{fmtMetros(pendente)} m</p></div>
-          <div><p className="text-xs uppercase text-ink-muted">Recolhido W61</p><p className="text-lg font-semibold" style={{ color: '#e8a33d' }}>{barras(r.acumAno.w61)} barras</p><p className="text-xs text-ink-muted">{fmtMetros(r.acumAno.w61)} m</p></div>
-          <div><p className="text-xs uppercase text-ink-muted">Recolhido W62</p><p className="text-lg font-semibold" style={{ color: '#16a34a' }}>{barras(r.acumAno.w62)} barras</p><p className="text-xs text-ink-muted">{fmtMetros(r.acumAno.w62)} m</p></div>
+          <div className="inf-cartao" style={{ animationDelay: '0ms' }}><p className="text-xs uppercase text-ink-muted">Meta de recolhimento</p><p className="text-lg font-semibold">{fmtMetros(META_RECOLHIMENTO_M)} m</p></div>
+          <div className="inf-cartao" style={{ animationDelay: '120ms' }}><p className="text-xs uppercase text-ink-muted">Chegou na usina</p><p className="text-lg font-semibold" style={{ color: '#4a6cd4' }}>{fmtMetros(r.acumAno.recebido)} m</p></div>
+          <div className="inf-cartao" style={{ animationDelay: '240ms' }}><p className="text-xs uppercase text-ink-muted">Pendente (sobra)</p><p className="text-lg font-semibold text-warn">{fmtMetros(pendente)} m</p></div>
+          <div className="inf-cartao" style={{ animationDelay: '360ms' }}><p className="text-xs uppercase text-ink-muted">Recolhido W61</p><p className="text-lg font-semibold" style={{ color: '#e8a33d' }}>{barras(r.acumAno.w61)} barras</p><p className="text-xs text-ink-muted">{fmtMetros(r.acumAno.w61)} m</p></div>
+          <div className="inf-cartao" style={{ animationDelay: '480ms' }}><p className="text-xs uppercase text-ink-muted">Recolhido W62</p><p className="text-lg font-semibold" style={{ color: '#16a34a' }}>{barras(r.acumAno.w62)} barras</p><p className="text-xs text-ink-muted">{fmtMetros(r.acumAno.w62)} m</p></div>
         </div>
         <p className="text-xs text-ink-muted">W61 e W62: barras × {METROS_POR_BARRA.toLocaleString('pt-BR')} m. Chegou na usina: medidas reais, em metros. Pendente = meta - recolhido.</p>
       </section>

@@ -39,8 +39,8 @@ export async function GET(request: NextRequest) {
     cartoes: [
       { rotulo: 'Meta de recolhimento', valor: `${fmtMetros(META_RECOLHIMENTO_M)} m`, cor },
       { rotulo: 'Chegou na usina', valor: `${fmtMetros(r.acumAno.recebido)} m`, cor: '#4a6cd4' },
-      { rotulo: 'Recolhido W61', valor: `${barras(r.acumAno.w61)} barras · ${fmtMetros(r.acumAno.w61)} m`, cor: '#e8a33d' },
-      { rotulo: 'Recolhido W62', valor: `${barras(r.acumAno.w62)} barras · ${fmtMetros(r.acumAno.w62)} m`, cor: '#16a34a' },
+      { rotulo: 'Recolhido W61', valor: `${barras(r.acumAno.w61)} barras`, detalhe: `${fmtMetros(r.acumAno.w61)} m`, cor: '#e8a33d' },
+      { rotulo: 'Recolhido W62', valor: `${barras(r.acumAno.w62)} barras`, detalhe: `${fmtMetros(r.acumAno.w62)} m`, cor: '#16a34a' },
       { rotulo: 'Pendente (sobra)', valor: `${fmtMetros(pendente)} m`, cor: '#f59e0b' },
     ],
   });

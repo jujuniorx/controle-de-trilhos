@@ -10,7 +10,7 @@ const PALETAS: Record<TemaPdf, Paleta> = {
   escuro: { fundo: [0.07, 0.08, 0.1], tinta: [0.91, 0.93, 0.95], muda: [0.61, 0.67, 0.72], grade: [0.18, 0.23, 0.28], eixo: [0.5, 0.56, 0.62] },
 };
 
-export interface CartaoPdf { rotulo: string; valor: string; cor: string }
+export interface CartaoPdf { rotulo: string; valor: string; detalhe?: string; cor: string }
 
 export interface DadosInformativoPdf {
   ano: number;
@@ -83,15 +83,14 @@ export function gerarInformativoPdf(d: DadosInformativoPdf): Buffer {
   });
 
   // Cartões da lateral (sempre em metros)
-  const cx = 640;
-  const cw = L - MARGEM - cx;
+  const cx = 610;
   let cy = H - 120;
   for (const c of d.cartoes) {
     p.texto(c.rotulo.toUpperCase(), cx, cy, 8, 'negrito', pal.muda);
-    p.texto(c.valor, cx, cy - 24, 17, 'negrito', hexParaCor(c.cor));
-    cy -= 72;
+    p.texto(c.valor, cx, cy - 22, 15, 'negrito', hexParaCor(c.cor));
+    if (c.detalhe) p.texto(c.detalhe, cx, cy - 36, 9, 'normal', pal.muda);
+    cy -= 80;
   }
-  void cw;
 
   p.texto('W61 e W62: barras × 10,5 m. Chegou na usina: medidas reais, em metros. Pendente = meta - recolhido.', MARGEM, 36, 8, 'normal', pal.muda);
   const emitido = `Emitido em ${d.emitidoEm.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' })}`;
