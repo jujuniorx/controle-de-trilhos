@@ -18,7 +18,7 @@ export default async function PortariaRecebimentosPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-5 p-4 sm:p-6">
       <AtualizarAuto segundos={20} />
-      <div className="page-header !mb-0">
+      <div className="page-header !mb-0 flex-col items-stretch gap-4 sm:flex-row sm:items-center">
         <h1 className="page-title">Caminhões chegando (recebimento)</h1>
         <BotaoNovaChegada />
       </div>
@@ -40,10 +40,11 @@ export default async function PortariaRecebimentosPage() {
         </div>
       </div>
 
-      <p className="text-sm text-ink-muted">
-        1) Quando o caminhão chegar, toque em &ldquo;Nova chegada&rdquo;, preencha os dados e toque em &ldquo;Registrar chegada&rdquo; (basta uma
-        placa). 2) O Pátio descarrega. 3) Quando ele passar pela portaria, toque em &ldquo;Saída confirmada&rdquo;.
-      </p>
+      <ol className="list-decimal space-y-1.5 rounded-xl bg-surface-2 py-3 pl-9 pr-4 text-sm text-ink-muted">
+        <li>Chegou o caminhão? Toque em “Nova chegada”, preencha e toque em “Registrar chegada” (basta uma placa).</li>
+        <li>O Pátio descarrega.</li>
+        <li>Quando ele passar pela portaria, toque em “Saída confirmada”.</li>
+      </ol>
 
       {itens.length === 0 ? (
         <EstadoVazio titulo="Nenhum caminhão aguardando" texto="Toque em “Nova chegada” quando um caminhão chegar." />

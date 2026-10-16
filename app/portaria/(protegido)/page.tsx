@@ -65,11 +65,12 @@ export default async function PortariaPage() {
         </div>
       </div>
 
-      <p className="text-sm text-ink-muted">
-        1) Quando a carreta chegar, procure o envio na lista e toque em &ldquo;Registrar chegada&rdquo; (basta uma placa). Se ela não
-        estiver na lista, toque em &ldquo;Carreta sem aviso do Pátio&rdquo;. 2) O Pátio carrega e libera. 3) Quando ela passar pela
-        portaria, toque em &ldquo;Saída confirmada&rdquo;.
-      </p>
+      <ol className="list-decimal space-y-1.5 rounded-xl bg-surface-2 py-3 pl-9 pr-4 text-sm text-ink-muted">
+        <li>Chegou a carreta? Procure o envio na lista e toque em “Registrar chegada” (basta uma placa).</li>
+        <li>Se ela não estiver na lista, toque em “Carreta sem aviso do Pátio”.</li>
+        <li>O Pátio carrega e libera.</li>
+        <li>Quando ela passar pela portaria, toque em “Saída confirmada”.</li>
+      </ol>
 
       <NovoEnvioPortaria />
 

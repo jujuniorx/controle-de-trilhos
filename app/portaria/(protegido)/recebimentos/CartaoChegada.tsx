@@ -47,6 +47,7 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
   const chegou = item.estado === 'LIBERADA';
   const descarregado = item.estado === 'RECEBIDA';
   const saiu = item.estado === 'SAIU';
+  const semSalvar = saiu || descarregado;
 
   function enviar(acao: (id: string, dados: unknown) => Promise<ResultadoPortaria>) {
     setResultado(null);
@@ -74,7 +75,7 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
     });
   }
 
-  const campo = (id: keyof typeof v, rotulo: string, extra: { inputMode?: 'numeric' | 'tel' | 'decimal'; maxLength?: number } = {}) => (
+  const campo = (id: keyof typeof v, rotulo: string, extra: { inputMode?: 'numeric' | 'tel' | 'decimal'; maxLength?: number; placeholder?: string } = {}) => (
     <div className="field">
       <label htmlFor={`${item.id}-${id}`}>{rotulo}</label>
       <input
@@ -84,6 +85,7 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
         className="h-12"
         inputMode={extra.inputMode}
         maxLength={extra.maxLength}
+        placeholder={extra.placeholder}
         autoComplete="off"
         disabled={pendente || saiu || descarregado}
       />
@@ -94,11 +96,11 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
 
   return (
     <section className="card space-y-4">
-      <button type="button" className="flex w-full items-start justify-between gap-3 text-left" onClick={() => setAberto((a) => !a)} aria-expanded={aberto}>
+      <button type="button" className="flex w-full flex-col items-start gap-2 text-left" onClick={() => setAberto((a) => !a)} aria-expanded={aberto}>
         <span className="flex min-w-0 items-start gap-3">
           <span className="grid h-10 w-10 flex-none place-items-center rounded-xl bg-primary/15 text-primary">{ICONE_CAMINHAO}</span>
           <span className="min-w-0">
-          <span className="block truncate font-semibold text-ink">{titulo}</span>
+          <span className="block break-words font-semibold text-ink">{titulo}</span>
           <span className="block text-sm text-ink-muted">
             {item.origem ? `${item.origem} · ` : ''}{item.liberadaEm ? `chegou às ${hora(item.liberadaEm)}` : `aberta às ${hora(item.criadoEm)}`}
             {item.saidaEm ? ` · saiu ${dataHora(item.saidaEm)}` : ''}
@@ -119,13 +121,13 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
           <Secao titulo="Motorista">
             {campo('transportadora', 'Empresa (transportadora)')}
             {campo('motoristaNome', 'Motorista')}
-            {campo('motoristaCpf', 'CPF do motorista', { inputMode: 'numeric', maxLength: 14 })}
-            {campo('motoristaTelefone', 'Telefone do motorista', { inputMode: 'tel', maxLength: 16 })}
+            {campo('motoristaCpf', 'CPF do motorista', { inputMode: 'numeric', maxLength: 14, placeholder: '000.000.000-00' })}
+            {campo('motoristaTelefone', 'Telefone do motorista', { inputMode: 'tel', maxLength: 16, placeholder: '(00) 00000-0000' })}
           </Secao>
           <Secao titulo="Caminhão">
-            {campo('placaCarreta', 'Placa da carreta', { maxLength: 7 })}
-            {campo('placaCavalo', 'Placa do cavalo', { maxLength: 7 })}
-            {campo('capacidadeCarga', 'Capacidade de carga (t)', { inputMode: 'decimal', maxLength: 6 })}
+            {campo('placaCarreta', 'Placa da carreta', { maxLength: 7, placeholder: 'ABC1D23' })}
+            {campo('placaCavalo', 'Placa do cavalo', { maxLength: 7, placeholder: 'ABC1D23' })}
+            {campo('capacidadeCarga', 'Capacidade de carga (t)', { inputMode: 'decimal', maxLength: 6, placeholder: 'ex.: 30' })}
           </Secao>
           <Secao titulo="Carga">
             {campo('materialPrevisto', 'Material')}
@@ -139,24 +141,24 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
           {saiu && <p className="rounded-lg bg-surface-2 px-3 py-2 text-sm text-ink-muted">Caminhão saiu. Só consulta.</p>}
           <p className="text-xs text-ink-muted">O PDF leva o que está <b>salvo</b>: toque em &ldquo;Salvar dados&rdquo; antes de baixar.</p>
 
-          <div className="flex flex-wrap gap-2">
-            {!saiu && !descarregado && (
-              <button type="submit" className="btn btn-ghost h-12 flex-1 sm:flex-none" disabled={pendente}>
+          <div className="grid grid-cols-2 gap-2">
+            {!semSalvar && (
+              <button type="submit" className="btn btn-ghost h-12" disabled={pendente}>
                 Salvar dados
               </button>
             )}
-            <a href={`/portaria/pdf-chegada/${item.id}`} download className="btn btn-ghost h-12 flex-1 sm:flex-none" aria-label="Baixar PDF com os dados preenchidos">
+            <a href={`/portaria/pdf-chegada/${item.id}`} download className={`btn btn-ghost h-12 ${semSalvar ? 'col-span-2' : ''}`} aria-label="Baixar PDF com os dados preenchidos">
               Baixar PDF
             </a>
             {rascunho && (
-              <button type="button" className="btn btn-primary h-12 flex-1 sm:flex-none" disabled={pendente} onClick={() => enviar(registrarChegadaAction)}>
+              <button type="button" className="btn btn-primary h-12 col-span-2 order-first" disabled={pendente} onClick={() => enviar(registrarChegadaAction)}>
                 {pendente ? 'Aguarde...' : 'Registrar chegada'}
               </button>
             )}
             {descarregado && (
               <button
                 type="button"
-                className="btn btn-primary h-12 flex-1 sm:flex-none"
+                className="btn btn-primary h-12 col-span-2 order-first"
                 disabled={pendente}
                 onClick={() => {
                   setResultado(null);

@@ -90,8 +90,7 @@ export function AtivarAvisos({
       <p className="text-sm font-semibold text-ink">{titulo}</p>
       {situacao === 'indisponivel' && (
         <p className="text-sm text-ink-muted">
-          Os avisos no aparelho não estão disponíveis aqui (no iPhone/iPad, instale o app na tela inicial). A tela
-          se atualiza sozinha.
+          Para receber avisos neste celular, adicione o app à tela inicial. A tela se atualiza sozinha.
         </p>
       )}
       {situacao === 'bloqueado' && (

@@ -43,6 +43,7 @@ export function CartaoPortaria({ item }: { item: ItemPortaria }) {
   const chegou = item.estado === 'CHEGOU';
   const liberada = item.estado === 'LIBERADA';
   const saiu = item.estado === 'SAIU';
+  const semSalvar = saiu;
 
   function enviar(acao: (id: string, dados: unknown) => Promise<ResultadoPortaria>) {
     setResultado(null);
@@ -75,11 +76,11 @@ export function CartaoPortaria({ item }: { item: ItemPortaria }) {
 
   return (
     <section className="card space-y-4">
-      <button type="button" className="flex w-full items-start justify-between gap-3 text-left" onClick={() => setAberto((a) => !a)} aria-expanded={aberto}>
+      <button type="button" className="flex w-full flex-col items-start gap-2 text-left" onClick={() => setAberto((a) => !a)} aria-expanded={aberto}>
         <span className="flex min-w-0 items-start gap-3">
           <span className="grid h-10 w-10 flex-none place-items-center rounded-xl bg-primary/15 text-primary">{ICONE_CAMINHAO}</span>
           <span className="min-w-0">
-          <span className="block truncate font-semibold text-ink">{item.destino || 'Remetido'}</span>
+          <span className="block break-words font-semibold text-ink">{item.destino || 'Remetido'}</span>
           <span className="block text-sm text-ink-muted">
             {TIPO_REMETIDO[item.remetidoDetalhe?.tipoRemetido ?? ''] ?? '—'}
             {item.reservaPedido ? ` · Reserva ${item.reservaPedido}` : ''}
@@ -128,24 +129,24 @@ export function CartaoPortaria({ item }: { item: ItemPortaria }) {
           {saiu && <p className="rounded-lg bg-surface-2 px-3 py-2 text-sm text-ink-muted">Carreta saiu. Só consulta.</p>}
 
           <p className="text-xs text-ink-muted">O PDF leva o que está <b>salvo</b>: toque em &ldquo;Salvar dados&rdquo; antes de baixar.</p>
-          <div className="flex flex-wrap gap-2">
-            {!saiu && (
-              <button type="submit" className="btn btn-ghost h-12 flex-1 sm:flex-none" disabled={pendente}>
+          <div className="grid grid-cols-2 gap-2">
+            {!semSalvar && (
+              <button type="submit" className="btn btn-ghost h-12" disabled={pendente}>
                 Salvar dados
               </button>
             )}
-            <a href={`/portaria/pdf/${item.id}`} download className="btn btn-ghost h-12 flex-1 sm:flex-none" aria-label="Baixar PDF com os dados preenchidos">
+            <a href={`/portaria/pdf/${item.id}`} download className={`btn btn-ghost h-12 ${semSalvar ? 'col-span-2' : ''}`} aria-label="Baixar PDF com os dados preenchidos">
               Baixar PDF
             </a>
             {aguardando && (
-              <button type="button" className="btn btn-primary h-12 flex-1 sm:flex-none" disabled={pendente} onClick={() => enviar(registrarChegadaAction)}>
+              <button type="button" className="btn btn-primary h-12 col-span-2 order-first" disabled={pendente} onClick={() => enviar(registrarChegadaAction)}>
                 {pendente ? 'Aguarde...' : 'Registrar chegada'}
               </button>
             )}
             {liberada && (
               <button
                 type="button"
-                className="btn btn-primary h-12 flex-1 sm:flex-none"
+                className="btn btn-primary h-12 col-span-2 order-first"
                 disabled={pendente}
                 onClick={() => {
                   setResultado(null);

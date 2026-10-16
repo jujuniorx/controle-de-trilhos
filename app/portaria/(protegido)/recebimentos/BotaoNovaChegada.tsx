@@ -9,10 +9,10 @@ export function BotaoNovaChegada() {
   const [pendente, iniciar] = useTransition();
   const [erro, setErro] = useState('');
   return (
-    <div className="flex flex-col items-end">
+    <div className="flex flex-col items-stretch sm:items-end">
       <button
         type="button"
-        className="btn btn-primary h-12"
+        className="btn btn-primary h-12 w-full sm:w-auto"
         disabled={pendente}
         onClick={() =>
           iniciar(async () => {
