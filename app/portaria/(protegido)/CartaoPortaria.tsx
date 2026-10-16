@@ -6,6 +6,7 @@ import { CampoObservacao, ICONE_CAMINHAO, Secao } from '@/components/portaria/Se
 import { confirmarSaidaAction, registrarChegadaAction, salvarDadosAction, type ResultadoPortaria } from './actions';
 import { ROTULO_ESTADO } from '@/lib/domain/portaria';
 import type { ItemPortaria } from '@/lib/services/portaria';
+import { formatarCpfDigitado } from '@/lib/validation/portaria';
 
 const TIPO_REMETIDO: Record<string, string> = { VENDA: 'Venda', TRANS: 'Transferência', INDUS: 'Industrialização' };
 const BADGE = { AGUARDANDO_CARRETA: 'badge-muted', CHEGOU: 'badge-warn', LIBERADA: 'badge-ok', SAIU: 'badge-info' } as const;
@@ -29,15 +30,17 @@ export function CartaoPortaria({ item }: { item: ItemPortaria }) {
     motoristaCpf: item.motoristaCpf ?? '',
     motoristaTelefone: item.motoristaTelefone ?? '',
     placaCarreta: item.placaCarreta ?? '',
+    placaCarreta2: item.placaCarreta2 ?? '',
     placaCavalo: item.placaCavalo ?? '',
     capacidadeCarga: item.capacidadeCarga != null ? String(item.capacidadeCarga).replace('.', ',') : '',
+    comprimentoCarreta: item.comprimentoCarreta != null ? String(item.comprimentoCarreta).replace('.', ',') : '',
     origem: item.origem ?? '',
     destino: item.destino ?? '',
     materialPrevisto: item.materialPrevisto ?? '',
     observacao: item.observacaoPortaria ?? '',
   });
   const set = (campo: keyof typeof v) => (e: { target: { value: string } }) =>
-    setV((atual) => ({ ...atual, [campo]: String(campo).startsWith('placa') ? limparPlaca(e.target.value) : e.target.value }));
+    setV((atual) => ({ ...atual, [campo]: campo === 'motoristaCpf' ? formatarCpfDigitado(e.target.value) : String(campo).startsWith('placa') ? limparPlaca(e.target.value) : e.target.value }));
 
   const aguardando = item.estado === 'AGUARDANDO_CARRETA';
   const chegou = item.estado === 'CHEGOU';
@@ -113,14 +116,18 @@ export function CartaoPortaria({ item }: { item: ItemPortaria }) {
           </Secao>
           <Secao titulo="Caminhão">
             {campo('placaCarreta', 'Placa da carreta', { maxLength: 7 })}
+            {campo('placaCarreta2', 'Placa da 2ª carreta (opcional)', { maxLength: 7 })}
             {campo('placaCavalo', 'Placa do cavalo', { maxLength: 7 })}
-            {campo('capacidadeCarga', 'Capacidade de carga (t)', { inputMode: 'decimal', maxLength: 6 })}
           </Secao>
           <Secao titulo="Carga">
             {campo('materialPrevisto', 'Material')}
             {campo('origem', 'Origem')}
             {campo('destino', 'Destino')}
           </Secao>
+          <div className="grid grid-cols-2 gap-2">
+            {campo('capacidadeCarga', 'Limite de carga (t)', { inputMode: 'decimal', maxLength: 6 })}
+            {campo('comprimentoCarreta', 'Comprimento da carreta (m)', { inputMode: 'decimal', maxLength: 6 })}
+          </div>
           <CampoObservacao id={`${item.id}-observacao`} valor={v.observacao} aoMudar={(x) => setV((a) => ({ ...a, observacao: x }))} desabilitado={pendente || saiu} />
 
           {aguardando && <p className="text-sm text-ink-muted">Quando a carreta chegar, preencha ao menos uma placa e toque em &ldquo;Registrar chegada&rdquo;. O Pátio será avisado.</p>}
