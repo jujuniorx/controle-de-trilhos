@@ -261,9 +261,14 @@ export default async function RelatoriosPage({
           <h2 className="font-condensed text-base font-semibold uppercase tracking-wide text-ink">
             Movimentações <span className="font-sans font-normal normal-case tracking-normal text-ink-dim">({movimentacoes.length})</span>
           </h2>
-          <a href={`/api/relatorios/exportar${queryString ? `?${queryString}` : ''}`} className="btn btn-ghost btn-sm">
-            Exportar Excel
-          </a>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <a href={`/api/relatorios/pdf${queryString ? `?${queryString}` : ''}`} className="btn btn-ghost btn-sm">
+              Baixar PDF
+            </a>
+            <a href={`/api/relatorios/exportar${queryString ? `?${queryString}` : ''}`} className="btn btn-ghost btn-sm">
+              Exportar Excel
+            </a>
+          </div>
         </div>
         <div className="card">
           <div className="tbl-wrap tbl-cards">
