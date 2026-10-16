@@ -72,7 +72,7 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
           <div><p className="text-xs uppercase text-ink-muted">Recolhido W61</p><p className="text-lg font-semibold">{Math.round(r.acumAno.w61 / METROS_POR_BARRA).toLocaleString('pt-BR')} barras · {fmtMetros(r.acumAno.w61)}</p></div>
           <div><p className="text-xs uppercase text-ink-muted">Recolhido W62</p><p className="text-lg font-semibold">{Math.round(r.acumAno.w62 / METROS_POR_BARRA).toLocaleString('pt-BR')} barras · {fmtMetros(r.acumAno.w62)}</p></div>
         </div>
-        <p className="text-xs text-ink-muted">Barras convertidas a {METROS_POR_BARRA.toLocaleString('pt-BR')} m por barra.</p>
+        <p className="text-xs text-ink-muted">Chegou na usina: medidas reais, em metros. W61 e W62: barras × {METROS_POR_BARRA.toLocaleString('pt-BR')} m.</p>
       </section>
 
       <section className="card space-y-3" aria-label="Quadro do dia">
