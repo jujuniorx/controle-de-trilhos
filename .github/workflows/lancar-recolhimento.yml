@@ -16,5 +16,9 @@ jobs:
         with: { node-version: 22 }
       - run: npm install --no-audit --no-fund
       - run: npx prisma generate
+      - name: migrar
+        run: npx prisma migrate deploy
+      - name: importar recebidos da serra (sem repetir NF)
+        run: npx tsx scripts/importar-serra.ts
       - name: lançar recolhimento W61/W62 de 2026
         run: npx tsx scripts/lancar-recolhimento-w61-w62.ts
