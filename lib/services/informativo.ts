@@ -10,7 +10,14 @@ import { chaveLocal } from '@/lib/domain/local';
 export const METROS_POR_UNIDADE = 10;
 export const METROS_POR_BARRA = 10.5;
 export const META_RECOLHIMENTO_M = 47625;
-const CIDADES = ['EVANGELISTA', 'PARATINGA'];
+/** Cidade da serra a partir da origem gravada (aceita variações como "EVANGELISTA DE SOUZA"). */
+export function cidadeDaOrigem(origem: string | null | undefined): 'EVANGELISTA' | 'PARATINGA' | null {
+  const o = chaveLocal(origem);
+  if (o.startsWith('EVANGELISTA')) return 'EVANGELISTA';
+  if (o.startsWith('PARATINGA')) return 'PARATINGA';
+  return null;
+}
+
 
 export interface Quadro { geracao: number; w61: number; w62: number; recebido: number; recolhido: number; naoChegou: number }
 
@@ -67,8 +74,7 @@ export async function informativoDoAno(ano: number, dia: string) {
     tocar(r.data).recolhido += m;
   }
   for (const g of recebidosSistema) {
-    const origem = chaveLocal(g.movimentacao.origem);
-    if (!CIDADES.includes(origem)) continue;
+    if (!cidadeDaOrigem(g.movimentacao.origem)) continue;
     const data = g.movimentacao.dataMovimentacao;
     if (!data || data.getUTCFullYear() !== ano) continue;
     const m = Number(g.metrosTotal);
