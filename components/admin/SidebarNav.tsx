@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 export const NAV_ITEMS = [
   { href: '/admin', label: 'Pendências' },
   { href: '/admin/relatorios', label: 'Relatórios' },
+  { href: '/admin/informativo', label: 'Informativo' },
   { href: '/admin/portaria', label: 'Portaria' },
 ] as const;
 
@@ -28,6 +29,11 @@ const ICONES_NAV: Record<string, ReactNode> = {
   '/admin/relatorios': (
     <svg width="18" height="18" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
       <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+    </svg>
+  ),
+  '/admin/informativo': (
+    <svg width="18" height="18" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
+      <path d="M3 3v18h18M7 15l4-4 3 3 5-6" />
     </svg>
   ),
   '/admin/portaria': (

@@ -14,6 +14,7 @@ describe('AdminShell', () => {
     render(<AdminShell nome="Fulano de Tal">conteúdo</AdminShell>);
     expect(screen.getAllByRole('link', { name: 'Pendências' })[0]).toHaveAttribute('href', '/admin');
     expect(screen.getAllByRole('link', { name: 'Relatórios' })[0]).toHaveAttribute('href', '/admin/relatorios');
+    expect(screen.getAllByRole('link', { name: 'Informativo' })[0]).toHaveAttribute('href', '/admin/informativo');
     // Itens do protótipo sem página real — nunca devem aparecer como link.
     expect(screen.queryByRole('link', { name: 'Conferência' })).toBeNull();
     expect(screen.queryByRole('link', { name: 'Histórico' })).toBeNull();
