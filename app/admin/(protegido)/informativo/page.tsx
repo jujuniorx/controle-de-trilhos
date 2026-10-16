@@ -4,7 +4,6 @@ import { fmtMetros } from '@/lib/format';
 export const dynamic = 'force-dynamic';
 
 const MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-const CORES = { recebido: '#4a6cd4' } as const;
 
 function hojeSP(): string {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
@@ -32,19 +31,18 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
       </header>
 
       <section className="card space-y-4" aria-label="Gráfico mensal">
-        <p className="text-sm text-ink-muted">Trilhos por mês em {ano}: chegou na usina e recolhido</p>
-        <svg viewBox={`0 0 ${W} ${H + 30}`} className="h-auto w-full" role="img" aria-label="Chegou na usina e recolhido por mês">
+        <p className="text-sm text-ink-muted">Trilhos recolhidos por mês em {ano}</p>
+        <svg viewBox={`0 0 ${W} ${H + 30}`} className="h-auto w-full" role="img" aria-label="Recolhido por mês">
           {(() => {
-            const topo = Math.max(1, ...r.meses.map((m) => Math.max(m.recebido, m.w61, m.w62)));
+            const topo = Math.max(1, ...r.meses.map((m) => Math.max(m.w61, m.w62)));
             const y = (v: number) => base - (v / topo) * (H - 30);
-            const cores = { chegou: CORES.recebido, w61: '#e8a33d', w62: '#16a34a' };
+            const cores = { w61: '#e8a33d', w62: '#16a34a' };
             return r.meses.map((m, i) => {
               const x0 = barra(i);
-              const larg = (W / 12 - 14) / 3;
+              const larg = (W / 12 - 14) / 2;
               const barras = [
-                { v: m.recebido, cor: cores.chegou, dx: 0 },
-                { v: m.w61, cor: cores.w61, dx: larg },
-                { v: m.w62, cor: cores.w62, dx: larg * 2 },
+                { v: m.w61, cor: cores.w61, dx: 0 },
+                { v: m.w62, cor: cores.w62, dx: larg },
               ];
               return (
                 <g key={MESES[i]}>
@@ -61,18 +59,16 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
           })()}
         </svg>
         <div className="flex flex-wrap gap-3 text-sm">
-          <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm" style={{ background: CORES.recebido }} />Recebido (estaleiro de solda)</span>
           <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm" style={{ background: '#e8a33d' }} />Recolhido W61</span>
           <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm" style={{ background: '#16a34a' }} />Recolhido W62</span>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <div><p className="text-xs uppercase text-ink-muted">Meta de recolhimento</p><p className="text-lg font-semibold">{fmtMetros(r.metaM)}</p></div>
-          <div><p className="text-xs uppercase text-ink-muted">Pendente</p><p className="text-lg font-semibold text-warn">{fmtMetros(Math.max(r.metaM - r.acumAno.recebido, 0))}</p></div>
-          <div><p className="text-xs uppercase text-ink-muted">Recebido (estaleiro de solda)</p><p className="text-lg font-semibold" style={{ color: CORES.recebido }}>{fmtMetros(r.acumAno.recebido)}</p></div>
+          <div><p className="text-xs uppercase text-ink-muted">Pendente (sobra)</p><p className="text-lg font-semibold text-warn">{fmtMetros(Math.max(r.metaM - r.acumAno.w61 - r.acumAno.w62, 0))}</p></div>
           <div><p className="text-xs uppercase text-ink-muted">Recolhido W61</p><p className="text-lg font-semibold">{Math.round(r.acumAno.w61 / METROS_POR_BARRA).toLocaleString('pt-BR')} barras · {fmtMetros(r.acumAno.w61)}</p></div>
           <div><p className="text-xs uppercase text-ink-muted">Recolhido W62</p><p className="text-lg font-semibold">{Math.round(r.acumAno.w62 / METROS_POR_BARRA).toLocaleString('pt-BR')} barras · {fmtMetros(r.acumAno.w62)}</p></div>
         </div>
-        <p className="text-xs text-ink-muted">Chegou na usina: medidas reais, em metros. W61 e W62: barras × {METROS_POR_BARRA.toLocaleString('pt-BR')} m.</p>
+        <p className="text-xs text-ink-muted">W61 e W62: barras × {METROS_POR_BARRA.toLocaleString('pt-BR')} m. Pendente = meta − recolhido.</p>
       </section>
 
       <section className="card space-y-3" aria-label="Quadro do dia">
