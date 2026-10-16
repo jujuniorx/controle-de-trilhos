@@ -1,0 +1,82 @@
+{
+  "porMes": {
+    "2026-02": {
+      "serraLinhas": 4,
+      "serraMetros": 462.4699999999999,
+      "serraNoSistema": 0,
+      "sistemaGrupos": 0,
+      "sistemaMetros": 0,
+      "sistemaSemOrigem": 0
+    },
+    "2026-03": {
+      "serraLinhas": 10,
+      "serraMetros": 818.5400000000001,
+      "serraNoSistema": 0,
+      "sistemaGrupos": 0,
+      "sistemaMetros": 0,
+      "sistemaSemOrigem": 0
+    },
+    "2026-04": {
+      "serraLinhas": 16,
+      "serraMetros": 2542.26,
+      "serraNoSistema": 0,
+      "sistemaGrupos": 0,
+      "sistemaMetros": 0,
+      "sistemaSemOrigem": 0
+    },
+    "2026-05": {
+      "serraLinhas": 6,
+      "serraMetros": 751.8,
+      "serraNoSistema": 0,
+      "sistemaGrupos": 0,
+      "sistemaMetros": 0,
+      "sistemaSemOrigem": 0
+    },
+    "2026-06": {
+      "serraLinhas": 9,
+      "serraMetros": 1403.66,
+      "serraNoSistema": 0,
+      "sistemaGrupos": 0,
+      "sistemaMetros": 0,
+      "sistemaSemOrigem": 0
+    },
+    "2026-07": {
+      "serraLinhas": 4,
+      "serraMetros": 711.12,
+      "serraNoSistema": 0,
+      "sistemaGrupos": 0,
+      "sistemaMetros": 0,
+      "sistemaSemOrigem": 0
+    },
+    "2026-08": {
+      "serraLinhas": 13,
+      "serraMetros": 2393.8500000000004,
+      "serraNoSistema": 0,
+      "sistemaGrupos": 0,
+      "sistemaMetros": 0,
+      "sistemaSemOrigem": 0
+    },
+    "2026-09": {
+      "serraLinhas": 11,
+      "serraMetros": 1831.8200000000002,
+      "serraNoSistema": 0,
+      "sistemaGrupos": 0,
+      "sistemaMetros": 0,
+      "sistemaSemOrigem": 0
+    },
+    "2026-10": {
+      "serraLinhas": 17,
+      "serraMetros": 2459.15,
+      "serraNoSistema": 0,
+      "sistemaGrupos": 7,
+      "sistemaMetros": 499.28999999999996,
+      "sistemaSemOrigem": 0
+    }
+  },
+  "totais": {
+    "serraLinhas": 90,
+    "nfsNoSistemaTotal": 1,
+    "movimentacoesRecebimento": 1,
+    "gruposRecebimento": 7
+  }
+}
