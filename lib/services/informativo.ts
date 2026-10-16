@@ -8,7 +8,7 @@ import { chaveLocal } from '@/lib/domain/local';
  */
 
 export { METROS_POR_UNIDADE, METROS_POR_BARRA, META_RECOLHIMENTO_M } from '@/lib/domain/informativo';
-import { METROS_POR_UNIDADE, METROS_POR_BARRA, META_RECOLHIMENTO_M, INICIO_REGISTRO_SISTEMA } from '@/lib/domain/informativo';
+import { METROS_POR_UNIDADE, METROS_POR_BARRA, META_RECOLHIMENTO_M } from '@/lib/domain/informativo';
 /** Cidade da serra a partir da origem gravada (aceita variações como "EVANGELISTA DE SOUZA"). */
 export function cidadeDaOrigem(origem: string | null | undefined): 'EVANGELISTA' | 'PARATINGA' | null {
   const o = chaveLocal(origem);
@@ -80,10 +80,7 @@ export async function informativoDoAno(ano: number, dia: string) {
     meses[mesDe(data)].recebido += m;
     tocar(data).recebido += m;
   }
-  // Planilha da serra só até o início do registro no sistema; depois disso, vale só o que está no sistema.
-  const corteSistema = new Date(`${INICIO_REGISTRO_SISTEMA}T00:00:00Z`);
   for (const h of historico) {
-    if (h.data >= corteSistema) continue;
     if (nfsNoSistema.has(h.nf.trim())) continue;
     const m = Number(h.metrosTotal ?? 0);
     meses[mesDe(h.data)].recebido += m;
