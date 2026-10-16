@@ -16,7 +16,8 @@ async function setorDoPedido(): Promise<SetorPush | null> {
   const pin = jar.get('acesso_patio')?.value;
   if (pin && (await validarAcessoPatio(pin))) return 'PATIO';
   const sessao = jar.get('sessao_admin')?.value;
-  if (sessao && (await validarSessao(sessao))) return 'PORTARIA';
+  const usuario = sessao ? await validarSessao(sessao) : null;
+  if (usuario && usuario.role !== 'ADMIN') return 'PORTARIA';
   return null;
 }
 
