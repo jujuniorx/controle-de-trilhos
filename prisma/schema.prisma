@@ -314,3 +314,163 @@ model ChegadaCaminhao {
 
   @@index([criadoEm])
 }
+
+// ─── Relatório da Usina (aba do Administrativo) ───────────────────────────────
+// Lançamentos preenchidos pelo Administrativo. Os setores são: Estaleiro de solda,
+// Geração de trilho, Trilheiro e Caminhão de solda. Carregamento da carreta NÃO tem
+// tabela: vem dos remetidos já lançados no sistema.
+
+enum LiderGeracao {
+  ALECIO
+  BRUNO
+  REGINALDO
+}
+
+enum ComposicaoAtiva {
+  W61
+  W62
+}
+
+enum TrilheiroCod {
+  E40
+  E42
+  E46
+}
+
+enum CaminhaoSolda {
+  CW01
+  CW02
+  CW03
+}
+
+// Tipos de TLS controlados no estaleiro de solda.
+enum TipoTls {
+  UIC60_REEMPREGO
+  UIC60_NOVO
+  GB60_REEMPREGO
+  TR68_REEMPREGO
+  TR68_NOVO
+}
+
+// Estaleiro de solda: produção do dia (soldas e cortes).
+model EstaleiroDia {
+  id        String   @id @default(cuid())
+  data      DateTime @unique @db.Date
+  soldas    Int?
+  cortes    Int?
+  observacao String?
+  atualizadoEm DateTime @updatedAt
+}
+
+// Estaleiro de solda: dia da manutenção de cada semana (padrão sexta, mas pode trocar).
+// A chave é a segunda-feira da semana.
+model ManutencaoSemana {
+  id              String   @id @default(cuid())
+  semanaInicio    DateTime @unique @db.Date
+  diaManutencao   DateTime @db.Date
+  atualizadoEm    DateTime @updatedAt
+}
+
+// Estaleiro de solda: estoque de TLS por tipo, por dia.
+model EstoqueTlsDia {
+  id         String   @id @default(cuid())
+  data       DateTime @db.Date
+  tipo       TipoTls
+  quantidade Int
+  atualizadoEm DateTime @updatedAt
+
+  @@unique([data, tipo])
+}
+
+// Segunda-feira: escala da semana (formato a definir).
+model EscalaSemana {
+  id           String   @id @default(cuid())
+  semanaInicio DateTime @unique @db.Date
+  conteudo     String?
+  atualizadoEm DateTime @updatedAt
+}
+
+// Geração de trilho: lançamento diário por líder.
+model GeracaoDia {
+  id            String        @id @default(cuid())
+  data          DateTime      @db.Date
+  lider         LiderGeracao
+  local         String?
+  corteM        Decimal?
+  carregamentoM Decimal?
+  perfil        String?
+  quantidade    Int?
+  deixadaViaM   Decimal?
+  observacao    String?
+  atualizadoEm  DateTime      @updatedAt
+
+  @@unique([data, lider])
+}
+
+// Composições ativas (W61 e W62): barras e jacarés por dia.
+model ComposicaoDia {
+  id           String          @id @default(cuid())
+  data         DateTime        @db.Date
+  ativo        ComposicaoAtiva
+  barras       Int?
+  jacares      Int?
+  observacao   String?
+  atualizadoEm DateTime        @updatedAt
+
+  @@unique([data, ativo])
+}
+
+// Trilheiro: um giro completo (do B.O. até o retorno). O tempo na usina é
+// chegadaUsinaEm -> partidaEm, em dias úteis.
+model TrilheiroGiro {
+  id            String        @id @default(cuid())
+  trilheiro     TrilheiroCod
+  boEm          DateTime?     @db.Date
+  chegadaUsinaEm DateTime?    @db.Date
+  partidaEm     DateTime?     @db.Date
+  retornoEm     DateTime?     @db.Date
+  perfil        TipoTls?
+  carregados    Int           @default(0)
+  descarregados Int           @default(0)
+  local         String?
+  observacao    String?
+  criadoEm      DateTime      @default(now())
+  atualizadoEm  DateTime      @updatedAt
+
+  @@index([trilheiro, boEm])
+}
+
+// Trilheiro: manutenções registradas (data, tipo e detalhamento).
+model TrilheiroManutencao {
+  id           String       @id @default(cuid())
+  data         DateTime     @db.Date
+  trilheiro    TrilheiroCod
+  local        String?
+  tipo         String?
+  detalhamento String?
+  atualizadoEm DateTime     @updatedAt
+
+  @@index([trilheiro, data])
+}
+
+// Caminhão de solda: produção diária por caminhão (CW03 entra depois).
+model CaminhaoSoldaDia {
+  id              String        @id @default(cuid())
+  data            DateTime      @db.Date
+  caminhao        CaminhaoSolda
+  local           String?
+  producaoDiaria  Int?
+  inicioMacro1    String?
+  terminoMacro9   String?
+  perdaDiaria     Int?
+  observacao      String?
+  atualizadoEm    DateTime      @updatedAt
+
+  @@unique([data, caminhao])
+}
+
+// Feriados considerados nos dias úteis (nacionais, estaduais de SP e municipais de Bauru).
+model Feriado {
+  data      DateTime @id @db.Date
+  nome      String
+}
