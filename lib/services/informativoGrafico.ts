@@ -60,3 +60,15 @@ export function niceEixo(topo: number): { max: number; passo: number } {
   }
   return { max: Math.ceil(alvo / 10000) * 10000, passo: 10000 };
 }
+
+/** Quais cartões aparecem para o filtro escolhido: só o que o filtro mostra. */
+export function cartoesDoFiltro(chaves: ChaveSerie[]): { meta: boolean; usina: boolean; w61: boolean; w62: boolean; pendente: boolean } {
+  const tem = (c: ChaveSerie) => chaves.includes(c);
+  return {
+    meta: tem('w61') || tem('w62'),
+    usina: tem('usina'),
+    w61: tem('w61'),
+    w62: tem('w62'),
+    pendente: tem('w61') && tem('w62'), // a sobra precisa das duas séries de recolhimento
+  };
+}

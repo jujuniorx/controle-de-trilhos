@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { informativoDoAno, META_RECOLHIMENTO_M, METROS_POR_BARRA } from '@/lib/services/informativo';
-import { montarGrafico, niceEixo, parseSeries, rotuloFiltro, CHAVES_SERIE, ROTULO_CURTO, UNIDADES, type ChaveSerie, type Unidade } from '@/lib/services/informativoGrafico';
+import { cartoesDoFiltro, montarGrafico, niceEixo, parseSeries, rotuloFiltro, CHAVES_SERIE, ROTULO_CURTO, UNIDADES, type ChaveSerie, type Unidade } from '@/lib/services/informativoGrafico';
 import { fmtMetros } from '@/lib/format';
 import { RecolhimentoDiaForm } from './RecolhimentoDiaForm';
 
@@ -57,6 +57,7 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
   const bw = Math.min(26, (gw * 0.7) / n);
   const eixoRotulo = unidade === 'barras' ? 'barras' : 'metros';
   const pendente = Math.max(META_RECOLHIMENTO_M - r.acumAno.w61 - r.acumAno.w62, 0);
+  const visiveis = cartoesDoFiltro(chaves);
   const barras = (m: number) => Math.round(m / METROS_POR_BARRA).toLocaleString('pt-BR');
 
   const saldoMeta = Math.max(META_RECOLHIMENTO_M - r.acumAno.recolhido, 0);
@@ -174,11 +175,11 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
         </svg>
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          <div className="inf-cartao" style={{ animationDelay: '0ms' }}><p className="text-xs uppercase text-ink-muted">Meta de recolhimento</p><p className="text-lg font-semibold">{fmtMetros(META_RECOLHIMENTO_M)} m</p></div>
-          <div className="inf-cartao" style={{ animationDelay: '120ms' }}><p className="text-xs uppercase text-ink-muted">Chegou na usina</p><p className="text-lg font-semibold" style={{ color: '#4a6cd4' }}>{fmtMetros(r.acumAno.recebido)} m</p></div>
-          <div className="inf-cartao" style={{ animationDelay: '240ms' }}><p className="text-xs uppercase text-ink-muted">Pendente (sobra)</p><p className="text-lg font-semibold text-warn">{fmtMetros(pendente)} m</p></div>
-          <div className="inf-cartao" style={{ animationDelay: '360ms' }}><p className="text-xs uppercase text-ink-muted">Recolhido W61</p><p className="text-lg font-semibold" style={{ color: '#e8a33d' }}>{barras(r.acumAno.w61)} barras</p><p className="text-xs text-ink-muted">{fmtMetros(r.acumAno.w61)} m</p></div>
-          <div className="inf-cartao" style={{ animationDelay: '480ms' }}><p className="text-xs uppercase text-ink-muted">Recolhido W62</p><p className="text-lg font-semibold" style={{ color: '#16a34a' }}>{barras(r.acumAno.w62)} barras</p><p className="text-xs text-ink-muted">{fmtMetros(r.acumAno.w62)} m</p></div>
+          {visiveis.meta && (<div className="inf-cartao" style={{ animationDelay: '0ms' }}><p className="text-xs uppercase text-ink-muted">Meta de recolhimento</p><p className="text-lg font-semibold">{fmtMetros(META_RECOLHIMENTO_M)} m</p></div>)}
+          {visiveis.usina && (<div className="inf-cartao" style={{ animationDelay: '120ms' }}><p className="text-xs uppercase text-ink-muted">Chegou na usina</p><p className="text-lg font-semibold" style={{ color: '#4a6cd4' }}>{fmtMetros(r.acumAno.recebido)} m</p></div>)}
+          {visiveis.pendente && (<div className="inf-cartao" style={{ animationDelay: '240ms' }}><p className="text-xs uppercase text-ink-muted">Pendente (sobra)</p><p className="text-lg font-semibold text-warn">{fmtMetros(pendente)} m</p></div>)}
+          {visiveis.w61 && (<div className="inf-cartao" style={{ animationDelay: '360ms' }}><p className="text-xs uppercase text-ink-muted">Recolhido W61</p><p className="text-lg font-semibold" style={{ color: '#e8a33d' }}>{barras(r.acumAno.w61)} barras</p><p className="text-xs text-ink-muted">{fmtMetros(r.acumAno.w61)} m</p></div>)}
+          {visiveis.w62 && (<div className="inf-cartao" style={{ animationDelay: '480ms' }}><p className="text-xs uppercase text-ink-muted">Recolhido W62</p><p className="text-lg font-semibold" style={{ color: '#16a34a' }}>{barras(r.acumAno.w62)} barras</p><p className="text-xs text-ink-muted">{fmtMetros(r.acumAno.w62)} m</p></div>)}
         </div>
         <p className="text-xs text-ink-muted">W61 e W62: barras × {METROS_POR_BARRA.toLocaleString('pt-BR')} m. Chegou na usina: medidas reais, em metros. Pendente = meta - recolhido.</p>
       </section>

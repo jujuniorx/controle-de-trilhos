@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { informativoDoAno, META_RECOLHIMENTO_M, METROS_POR_BARRA } from '@/lib/services/informativo';
-import { montarGrafico, parseSeries, rotuloFiltro, UNIDADES, type Unidade } from '@/lib/services/informativoGrafico';
+import { cartoesDoFiltro, montarGrafico, parseSeries, rotuloFiltro, UNIDADES, type Unidade } from '@/lib/services/informativoGrafico';
 import { gerarInformativoPdf, type TemaPdf } from '@/lib/pdf/informativo';
 import { fmtMetros } from '@/lib/format';
 
@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
   const pendente = Math.max(META_RECOLHIMENTO_M - r.acumAno.w61 - r.acumAno.w62, 0);
 
   const grafico = montarGrafico(r.meses, chaves, unidade);
+  const visiveis = cartoesDoFiltro(chaves);
   const pdf = gerarInformativoPdf({
     ano,
     unidade,
@@ -37,11 +38,11 @@ export async function GET(request: NextRequest) {
     tema,
     emitidoEm: new Date(),
     cartoes: [
-      { rotulo: 'Meta de recolhimento', valor: `${fmtMetros(META_RECOLHIMENTO_M)} m`, cor },
-      { rotulo: 'Chegou na usina', valor: `${fmtMetros(r.acumAno.recebido)} m`, cor: '#4a6cd4' },
-      { rotulo: 'Recolhido W61', valor: `${barras(r.acumAno.w61)} barras`, detalhe: `${fmtMetros(r.acumAno.w61)} m`, cor: '#e8a33d' },
-      { rotulo: 'Recolhido W62', valor: `${barras(r.acumAno.w62)} barras`, detalhe: `${fmtMetros(r.acumAno.w62)} m`, cor: '#16a34a' },
-      { rotulo: 'Pendente (sobra)', valor: `${fmtMetros(pendente)} m`, cor: '#f59e0b' },
+      ...(visiveis.meta ? [{ rotulo: 'Meta de recolhimento', valor: `${fmtMetros(META_RECOLHIMENTO_M)} m`, cor }] : []),
+      ...(visiveis.usina ? [{ rotulo: 'Chegou na usina', valor: `${fmtMetros(r.acumAno.recebido)} m`, cor: '#4a6cd4' }] : []),
+      ...(visiveis.w61 ? [{ rotulo: 'Recolhido W61', valor: `${barras(r.acumAno.w61)} barras`, detalhe: `${fmtMetros(r.acumAno.w61)} m`, cor: '#e8a33d' }] : []),
+      ...(visiveis.w62 ? [{ rotulo: 'Recolhido W62', valor: `${barras(r.acumAno.w62)} barras`, detalhe: `${fmtMetros(r.acumAno.w62)} m`, cor: '#16a34a' }] : []),
+      ...(visiveis.pendente ? [{ rotulo: 'Pendente (sobra)', valor: `${fmtMetros(pendente)} m`, cor: '#f59e0b' }] : []),
     ],
   });
 
