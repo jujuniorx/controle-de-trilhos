@@ -99,15 +99,6 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
       <style>{ANIMACAO}</style>
       <header className="space-y-3">
         <h1 className="page-title">Informativo de trilhos</h1>
-        <form className="flex flex-wrap items-end gap-3" method="get">
-          <input type="hidden" name="s" value={chaves.join(',')} />
-          <input type="hidden" name="unidade" value={unidade} />
-          <div className="flex flex-col gap-1">
-            <label htmlFor="dia" className="text-xs font-medium uppercase tracking-wide text-ink-muted">Data do informativo</label>
-            <input id="dia" name="dia" type="date" defaultValue={dia} className="h-11 min-w-[11rem] rounded-lg px-3" />
-          </div>
-          <button type="submit" className="btn btn-primary h-11 px-5">Ver informativo</button>
-        </form>
       </header>
 
       <section className="card space-y-4 inf-entrada" aria-label="Gráfico mensal">
