@@ -31,6 +31,17 @@ const ANIMACAO = `
     .card { box-shadow: none !important; border: 1px solid #d1d5db; }
     .inf-barra, .inf-valor, .inf-grade, .inf-eixo, .inf-legenda, .inf-cartao { animation: none !important; opacity: 1 !important; transform: none !important; }
   }
+  /* Celular: gráfico com rolagem lateral (texto legível), cartões e entrada animados. PC não muda. */
+  @media (max-width: 767px) {
+    .inf-entrada { animation: inf-sobe 0.7s cubic-bezier(.2,.8,.2,1) both; }
+    .inf-rolagem { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -4px; padding: 0 4px 6px; scroll-snap-type: x proximity; }
+    .inf-rolagem svg { min-width: 640px; display: block; }
+    .inf-cartao { animation-duration: 0.7s; }
+    .inf-cartao:active, .inf-segmento:active { transform: scale(.97); }
+    .inf-segmento { min-height: 44px; display: inline-flex; align-items: center; }
+    .inf-pulso { animation: inf-pulso 2.6s ease-in-out 1.2s infinite; }
+  }
+  @keyframes inf-pulso { 0%, 100% { box-shadow: 0 0 0 0 rgba(96,165,250,0); } 50% { box-shadow: 0 0 0 6px rgba(96,165,250,.18); } }
   @media (prefers-reduced-motion: reduce) {
     .inf-barra, .inf-valor, .inf-grade, .inf-eixo, .inf-legenda, .inf-cartao { animation: none; opacity: 1; transform: none; }
   }
@@ -77,7 +88,7 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
     return `/admin/informativo?${q.toString()}`;
   };
   const segmento = (ativo: boolean) =>
-    `rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${ativo ? 'bg-primary text-on-primary shadow-sm' : 'text-ink-muted hover:text-ink'}`;
+    `inf-segmento rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${ativo ? 'bg-primary text-on-primary shadow-sm' : 'text-ink-muted hover:text-ink'}`;
 
   return (
     <main className="mx-auto max-w-5xl space-y-6 p-4">
@@ -95,7 +106,7 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
         </form>
       </header>
 
-      <section className="card space-y-4" aria-label="Gráfico mensal">
+      <section className="card space-y-4 inf-entrada" aria-label="Gráfico mensal">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="font-condensed text-lg font-semibold uppercase tracking-wide">Trilhos {ano}</p>
@@ -141,6 +152,7 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
           ))}
         </div>
 
+        <div className="inf-rolagem">
         <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={`${rotuloFiltro(chaves)} por mês, em ${eixoRotulo}`}>
           {Array.from({ length: Math.floor(max / passo) + 1 }, (_, k) => k * passo).map((v, k) => (
             <g key={v}>
@@ -173,6 +185,7 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
             );
           })}
         </svg>
+        </div>
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           {visiveis.meta && (<div className="inf-cartao" style={{ animationDelay: '0ms' }}><p className="text-xs uppercase text-ink-muted">Meta de recolhimento</p><p className="text-lg font-semibold">{fmtMetros(META_RECOLHIMENTO_M)} m</p></div>)}
