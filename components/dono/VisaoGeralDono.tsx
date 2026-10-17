@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { fmtMetros } from '@/lib/format';
 import { ContadorAnimado } from '@/components/ui/ContadorAnimado';
+import { ValorAnimado } from '@/components/ui/ValorAnimado';
 
 export interface DadosVisaoGeral {
   primeiroNome: string;
@@ -42,6 +43,10 @@ const CSS = `
   animation: vg-cascata .55s cubic-bezier(.2,.7,.2,1) backwards; }
 .vg-tile:nth-child(1) { animation-delay: .05s } .vg-tile:nth-child(2) { animation-delay: .12s }
 .vg-tile:nth-child(3) { animation-delay: .19s } .vg-tile:nth-child(4) { animation-delay: .26s }
+.vg-tile { padding: 20px 20px 18px; position: relative; overflow: hidden; }
+.vg-tile .stat-value { font-size: clamp(26px, 5.2vw, 34px); line-height: 1.05; margin-top: 8px; font-weight: 700; }
+.vg-tile::after { content: ''; position: absolute; right: -30px; top: -30px; width: 90px; height: 90px; border-radius: 50%; background: var(--cor); opacity: .07; pointer-events: none; }
+.vg-zero { opacity: .7; }
 .vg-tile:hover { transform: translateY(-4px); box-shadow: 0 12px 26px -14px var(--cor); border-color: var(--cor); }
 .vg-alerta { animation: vg-cascata .55s cubic-bezier(.2,.7,.2,1) .19s backwards, vg-pulso 2.4s ease-in-out 1s infinite; }
 .vg-feed li { animation: vg-letra .45s ease-out backwards; }
@@ -75,9 +80,9 @@ function Saudacao({ texto }: { texto: string }) {
   );
 }
 
-function Tile({ rotulo, cor, children, alerta = false, unidade }: { rotulo: string; cor: string; children: ReactNode; alerta?: boolean; unidade: string }) {
+function Tile({ rotulo, cor, children, alerta = false, unidade, vazio = false }: { rotulo: string; cor: string; children: ReactNode; alerta?: boolean; unidade: string; vazio?: boolean }) {
   return (
-    <div className={`card vg-tile ${alerta ? 'vg-alerta' : ''}`} style={{ ['--cor' as string]: cor }}>
+    <div className={`card vg-tile ${alerta ? 'vg-alerta' : ''} ${vazio ? 'vg-zero' : ''}`} style={{ ['--cor' as string]: cor }}>
       <p className="stat-label">{rotulo}</p>
       <p className="stat-value" style={{ color: cor }}>{children}</p>
       <p className="stat-unit">{unidade}</p>
@@ -124,9 +129,9 @@ export function VisaoGeralDono(d: DadosVisaoGeral) {
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <Tile rotulo="Recolhido no ano" cor="#60a5fa" unidade="barras"><ContadorAnimado valor={barras(d.recolhidoAno)} /></Tile>
-          <Tile rotulo="Chegou na usina" cor="#4a6cd4" unidade="no ano">{fmtMetros(d.chegouAno)} m</Tile>
-          <Tile rotulo="Recolhido no mês" cor="#e8a33d" unidade="até hoje">{fmtMetros(d.recolhidoMes)} m</Tile>
-          <Tile rotulo="Recolhido hoje" cor="#16a34a" unidade={`chegou ${fmtMetros(d.chegouHoje)} m`}>{fmtMetros(d.recolhidoHoje)} m</Tile>
+          <Tile rotulo="Chegou na usina" cor="#4a6cd4" unidade="no ano"><ValorAnimado valor={d.chegouAno} casas={2} sufixo=" m" /></Tile>
+          <Tile rotulo="Recolhido no mês" cor="#e8a33d" unidade="até hoje"><ValorAnimado valor={d.recolhidoMes} casas={2} sufixo=" m" /></Tile>
+          <Tile rotulo="Recolhido hoje" cor="#16a34a" unidade={d.recolhidoHoje > 0 ? `chegou ${fmtMetros(d.chegouHoje)} m` : 'nada recolhido ainda hoje'} vazio={d.recolhidoHoje <= 0}><ValorAnimado valor={d.recolhidoHoje} casas={2} sufixo=" m" /></Tile>
         </div>
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
