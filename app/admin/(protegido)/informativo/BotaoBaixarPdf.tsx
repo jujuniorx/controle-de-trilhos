@@ -3,9 +3,11 @@
 import { useState } from 'react';
 
 /**
- * Baixa o PDF sem abrir o leitor do navegador. No iPhone, o link comum abria o PDF em tela cheia
- * sem botão de voltar; aqui o arquivo é buscado e entregue pela folha de compartilhamento (Salvar em Arquivos),
- * ou baixado direto quando o aparelho não compartilha arquivos.
+ * No PC, o botão é o link de sempre: abre o PDF numa aba nova.
+ * No celular, o arquivo é buscado e entregue pela folha de compartilhamento (Salvar em Arquivos),
+ * porque no iPhone o link abria o PDF em tela cheia sem botão de voltar. Quando o aparelho
+ * não compartilha arquivos, baixa direto.
+ * A troca entre os dois é feita por CSS (.inf-so-pc / .inf-so-celular), sem detectar o aparelho em JS.
  */
 export function BotaoBaixarPdf({ href, nomeArquivo }: { href: string; nomeArquivo: string }) {
   const [ocupado, setOcupado] = useState(false);
@@ -42,11 +44,14 @@ export function BotaoBaixarPdf({ href, nomeArquivo }: { href: string; nomeArquiv
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
-      <button type="button" onClick={baixar} disabled={ocupado} className="btn btn-primary btn-sm">
-        {ocupado ? 'Preparando…' : 'Baixar PDF'}
-      </button>
-      {erro && <p role="alert" className="text-xs text-danger">{erro}</p>}
-    </div>
+    <>
+      <a href={href} className="inf-so-pc btn btn-primary btn-sm">Baixar PDF</a>
+      <div className="inf-so-celular flex flex-col items-end gap-1">
+        <button type="button" onClick={baixar} disabled={ocupado} className="btn btn-primary btn-sm">
+          {ocupado ? 'Preparando…' : 'Baixar PDF'}
+        </button>
+        {erro && <p role="alert" className="text-xs text-danger">{erro}</p>}
+      </div>
+    </>
   );
 }
