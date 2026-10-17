@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { fmtMetros } from '@/lib/format';
 import { ContadorAnimado } from '@/components/ui/ContadorAnimado';
 import { ValorAnimado } from '@/components/ui/ValorAnimado';
+import { FundoTrilhos } from '@/components/ui/FundoTrilhos';
 
 export interface DadosVisaoGeral {
   primeiroNome: string;
@@ -25,7 +26,9 @@ const barras = (m: number) => Math.round(m / 10.5);
 
 const CSS = `
 .vg { display: grid; gap: 20px; animation: vg-abre .4s ease-out backwards; }
-.vg-saud { font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-muted, #7d8899); margin: 0; }
+.vg-saud { font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: #8ea3c7; margin: 0 0 8px; font-weight: 600; }
+.vg .saudacao-hero { padding: 30px 26px; }
+.vg .saudacao-hero-saudacao { font-size: clamp(30px, 6vw, 44px); letter-spacing: .005em; text-shadow: 0 2px 18px rgba(96,165,250,.35); }
 .vg-letras span { display: inline-block; opacity: 0; transform: translateY(8px); animation: vg-letra .5s cubic-bezier(.2,.7,.2,1) forwards; }
 .vg-meta .vg-barra { position: relative; height: 12px; border-radius: 999px; overflow: hidden; background: rgba(125,136,153,.18); }
 .vg-meta .vg-barra-fill { position: absolute; inset: 0 auto 0 0; width: var(--pct); border-radius: 999px;
@@ -90,13 +93,19 @@ export function VisaoGeralDono(d: DadosVisaoGeral) {
     <main className="mx-auto max-w-5xl space-y-6 p-6">
       <style>{CSS}</style>
       <div className="vg">
-        <header>
-          <p className="vg-saud">
-            <Saudacao texto={d.saudacao} />
-          </p>
-          <h1 className="page-title mt-2">Visão geral, {d.primeiroNome}</h1>
-          <p className="text-sm text-ink-muted">{d.hojeLabel}</p>
-        </header>
+        <section className="saudacao-hero">
+          <FundoTrilhos />
+          <div className="saudacao-hero-texto">
+            <p className="vg-saud">Visão geral · {d.hojeLabel}</p>
+            <h1 className="saudacao-hero-saudacao">
+              <Saudacao texto={`${d.saudacao}, ${d.primeiroNome}`} />
+            </h1>
+            <p className="saudacao-hero-sub">
+              {d.pendentes === 0 ? 'Nada pendente de conferência.' : `${d.pendentes} ${d.pendentes === 1 ? 'movimentação' : 'movimentações'} para conferir`}
+              {d.carretas > 0 ? ` · ${d.carretas} ${d.carretas === 1 ? 'carreta' : 'carretas'} na portaria` : ''}.
+            </p>
+          </div>
+        </section>
 
         <section className="card vg-meta space-y-4">
           <div className="flex flex-wrap items-end justify-between gap-2">
