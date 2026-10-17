@@ -3,6 +3,7 @@ import { informativoDoAno, META_RECOLHIMENTO_M, METROS_POR_BARRA } from '@/lib/s
 import { cartoesDoFiltro, montarGrafico, niceEixo, parseSeries, rotuloFiltro, CHAVES_SERIE, ROTULO_CURTO, UNIDADES, type ChaveSerie, type Unidade } from '@/lib/services/informativoGrafico';
 import { fmtMetros } from '@/lib/format';
 import { RecolhimentoDiaForm } from './RecolhimentoDiaForm';
+import { BotaoBaixarPdf } from './BotaoBaixarPdf';
 
 export const dynamic = 'force-dynamic';
 
@@ -112,7 +113,7 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
             <p className="font-condensed text-lg font-semibold uppercase tracking-wide">Trilhos {ano}</p>
             <p className="text-sm text-ink-muted">Recolhido por mês, em {eixoRotulo}</p>
           </div>
-          <a href={`/api/informativo/pdf?dia=${dia}&s=${chaves.join(',')}&unidade=${unidade}`} className="btn btn-primary btn-sm">Baixar PDF</a>
+          <BotaoBaixarPdf href={`/api/informativo/pdf?dia=${dia}&s=${chaves.join(',')}&unidade=${unidade}`} nomeArquivo={`trilhos-${ano}-${chaves.join('-')}-${unidade}.pdf`} />
         </div>
 
         <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
