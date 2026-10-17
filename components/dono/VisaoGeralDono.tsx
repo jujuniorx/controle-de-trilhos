@@ -25,11 +25,6 @@ const barras = (m: number) => Math.round(m / 10.5);
 
 const CSS = `
 .vg { display: grid; gap: 20px; animation: vg-abre .4s ease-out backwards; }
-.vg-sinal-linha { display: flex; align-items: center; gap: 10px; }
-.vg-sinal { position: relative; width: 12px; height: 12px; border-radius: 50%; background: #ef4444; flex: none;
-  animation: vg-sinal 1.6s ease-in-out .3s 1 forwards; }
-.vg-sinal::after { content: ''; position: absolute; inset: -6px; border-radius: 50%; background: inherit; opacity: 0; filter: blur(6px);
-  animation: vg-halo 1.6s ease-in-out .3s 1 forwards; }
 .vg-saud { font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-muted, #7d8899); margin: 0; }
 .vg-letras span { display: inline-block; opacity: 0; transform: translateY(8px); animation: vg-letra .5s cubic-bezier(.2,.7,.2,1) forwards; }
 .vg-meta .vg-barra { position: relative; height: 12px; border-radius: 999px; overflow: hidden; background: rgba(125,136,153,.18); }
@@ -54,8 +49,6 @@ const CSS = `
 .vg-feed li:nth-child(4){animation-delay:.28s} .vg-feed li:nth-child(5){animation-delay:.34s} .vg-feed li:nth-child(6){animation-delay:.4s}
 .vg-feed li:nth-child(7){animation-delay:.46s} .vg-feed li:nth-child(8){animation-delay:.52s}
 @keyframes vg-abre { from { opacity: 0 } to { opacity: 1 } }
-@keyframes vg-sinal { 0% { background: #ef4444 } 60% { background: #ef4444 } 100% { background: #22c55e } }
-@keyframes vg-halo { 0% { opacity: 0 } 60% { opacity: 0 } 100% { opacity: .8; background: #22c55e } }
 @keyframes vg-letra { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
 @keyframes vg-enche { from { transform: scaleX(0) } to { transform: scaleX(1) } }
 @keyframes vg-brilho { from { left: -40% } to { left: 120% } }
@@ -64,7 +57,6 @@ const CSS = `
 @media (prefers-reduced-motion: reduce) {
   .vg, .vg *, .vg *::after { animation: none !important; transition: none !important; }
   .vg-letras span { opacity: 1; transform: none; }
-  .vg-sinal { background: #22c55e; }
 }
 `;
 
@@ -99,12 +91,9 @@ export function VisaoGeralDono(d: DadosVisaoGeral) {
       <style>{CSS}</style>
       <div className="vg">
         <header>
-          <div className="vg-sinal-linha">
-            <span className="vg-sinal" aria-hidden="true" />
-            <p className="vg-saud">
-              <Saudacao texto={d.saudacao} />
-            </p>
-          </div>
+          <p className="vg-saud">
+            <Saudacao texto={d.saudacao} />
+          </p>
           <h1 className="page-title mt-2">Visão geral, {d.primeiroNome}</h1>
           <p className="text-sm text-ink-muted">{d.hojeLabel}</p>
         </header>
