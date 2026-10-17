@@ -10,7 +10,7 @@ export type ChaveSerie = (typeof CHAVES_SERIE)[number];
 export const ROTULO_CURTO: Record<ChaveSerie, string> = { usina: 'Usina', w61: 'W61', w62: 'W62' };
 
 export const CORES = { usina: '#4a6cd4', w61: '#e8a33d', w62: '#16a34a' } as const;
-export const ROTULOS = { usina: 'Chegou na usina', w61: 'Recolhido W61', w62: 'Recolhido W62' } as const;
+export const ROTULOS = { usina: 'Recebidos estaleiro de solda', w61: 'Recolhido W61', w62: 'Recolhido W62' } as const;
 
 
 export interface SerieGrafico {

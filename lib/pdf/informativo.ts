@@ -92,7 +92,7 @@ export function gerarInformativoPdf(d: DadosInformativoPdf): Buffer {
     cy -= 80;
   }
 
-  p.texto('W61 e W62: barras × 10,5 m. Chegou na usina: medidas reais, em metros. Pendente = meta - recolhido.', MARGEM, 36, 8, 'normal', pal.muda);
+  p.texto('W61 e W62: barras × 10,5 m. Recebidos estaleiro de solda: medidas reais, em metros. Pendente = meta - recolhido.', MARGEM, 36, 8, 'normal', pal.muda);
   const emitido = `Emitido em ${d.emitidoEm.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' })}`;
   p.texto(emitido, L - MARGEM - emitido.length * 4.2, 36, 8, 'normal', pal.muda);
 

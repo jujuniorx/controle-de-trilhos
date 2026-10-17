@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     emitidoEm: new Date(),
     cartoes: [
       ...(visiveis.meta ? [{ rotulo: 'Meta de recolhimento', valor: `${fmtMetros(META_RECOLHIMENTO_M)} m`, cor }] : []),
-      ...(visiveis.usina ? [{ rotulo: 'Chegou na usina', valor: `${fmtMetros(r.acumAno.recebido)} m`, cor: '#4a6cd4' }] : []),
+      ...(visiveis.usina ? [{ rotulo: 'Recebidos estaleiro de solda', valor: `${fmtMetros(r.acumAno.recebido)} m`, cor: '#4a6cd4' }] : []),
       ...(visiveis.w61 ? [{ rotulo: 'Recolhido W61', valor: `${barras(r.acumAno.w61)} barras`, detalhe: `${fmtMetros(r.acumAno.w61)} m`, cor: '#e8a33d' }] : []),
       ...(visiveis.w62 ? [{ rotulo: 'Recolhido W62', valor: `${barras(r.acumAno.w62)} barras`, detalhe: `${fmtMetros(r.acumAno.w62)} m`, cor: '#16a34a' }] : []),
       ...(visiveis.pendente ? [{ rotulo: 'Pendente (sobra)', valor: `${fmtMetros(pendente)} m`, cor: '#f59e0b' }] : []),
