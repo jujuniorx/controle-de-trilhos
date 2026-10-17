@@ -25,7 +25,6 @@ const ANIMACAO = `
   @keyframes inf-surge { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
   @keyframes inf-sobe { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
   @keyframes inf-desliza { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-  @keyframes inf-desliza-h { from { transform: scaleX(0); } to { transform: scaleX(1); } }
   .inf-so-celular { display: none; }
   /* Impressão pelo navegador sai sempre em tema claro (fundo escuro gasta muita tinta). */
   @media print {
@@ -38,15 +37,7 @@ const ANIMACAO = `
   /* Celular: gráfico com rolagem lateral (texto legível), cartões e entrada animados. PC não muda. */
   @media (max-width: 767px) {
     .inf-entrada { animation: inf-sobe 0.7s cubic-bezier(.2,.8,.2,1) both; }
-    .inf-celular-lista { display: flex; flex-direction: column; gap: 14px; padding: 16px; border-radius: 16px; background: var(--surface-2); }
-    .inf-mes { display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: center; gap: 12px; animation: inf-sobe 0.5s cubic-bezier(.2,.8,.2,1) both; }
-    .inf-mes-rotulo { font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-muted); }
-    .inf-mes-barras { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
-    .inf-h-linha { display: flex; align-items: center; gap: 10px; min-width: 0; }
-    .inf-h-trilho { flex: 1; min-width: 0; height: 14px; border-radius: 7px; background: color-mix(in srgb, var(--ink-muted) 14%, transparent); overflow: hidden; }
-    .inf-h-barra { display: block; height: 100%; border-radius: 7px; transform-origin: left center; animation: inf-desliza-h 0.9s cubic-bezier(.2,.8,.2,1) both; }
-    .inf-h-valor { min-width: 52px; text-align: right; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink); }
-    .inf-sem { font-size: 12px; color: var(--ink-muted); }
+    .inf-celular-painel { padding: 14px 6px 6px; border-radius: 16px; background: var(--surface-2); }
     .inf-so-pc { display: none; }
     .inf-so-celular { display: block; }
     .inf-cartao { animation-duration: 0.7s; }
@@ -57,7 +48,6 @@ const ANIMACAO = `
   @keyframes inf-pulso { 0%, 100% { box-shadow: 0 0 0 0 rgba(96,165,250,0); } 50% { box-shadow: 0 0 0 6px rgba(96,165,250,.18); } }
   @media (prefers-reduced-motion: reduce) {
     .inf-barra, .inf-valor, .inf-grade, .inf-eixo, .inf-legenda, .inf-cartao { animation: none; opacity: 1; transform: none; }
-    .inf-mes, .inf-h-barra { animation: none; }
   }
 `;
 
@@ -170,7 +160,9 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
           <GraficoBarras W={720} H={300} mobile={false} indices={indices} series={series} max={max} passo={passo} eixoRotulo={eixoRotulo} rotulo={rotuloFiltro(chaves)} />
         </div>
         <div className="inf-so-celular">
-          <GraficoMensalCelular indices={indices} series={series} max={max} rotulo={rotuloFiltro(chaves)} eixoRotulo={eixoRotulo} />
+          <div className="inf-celular-painel">
+            <GraficoBarras W={380} H={320} mobile indices={indices} series={series} max={max} passo={passo} eixoRotulo={eixoRotulo} rotulo={rotuloFiltro(chaves)} />
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
@@ -301,38 +293,5 @@ function GraficoBarras({ W, H, mobile, indices, series, max, passo, eixoRotulo, 
         );
       })}
     </svg>
-  );
-}
-
-function GraficoMensalCelular({ indices, series, max, rotulo, eixoRotulo }: {
-  indices: number[]; series: SerieGrafico[]; max: number; rotulo: string; eixoRotulo: string;
-}) {
-  return (
-    <div className="inf-celular-lista" role="img" aria-label={`${rotulo} por mês, em ${eixoRotulo}`}>
-      {indices.map((mi, k) => {
-        const mes = MESES[mi];
-        const algum = series.some((s) => (s.valores[k] ?? 0) > 0);
-        return (
-          <div key={mes} className="inf-mes" style={{ animationDelay: `${k * 70}ms` }}>
-            <span className="inf-mes-rotulo">{mes}</span>
-            <div className="inf-mes-barras">
-              {series.map((s, j) => {
-                const v = s.valores[k] ?? 0;
-                if (v <= 0) return null;
-                return (
-                  <div key={s.chave} className="inf-h-linha">
-                    <div className="inf-h-trilho">
-                      <span className="inf-h-barra" style={{ width: `${Math.max(2, (v / max) * 100)}%`, background: s.cor, animationDelay: `${k * 70 + j * 110 + 150}ms` }} />
-                    </div>
-                    <span className="inf-h-valor">{Math.round(v).toLocaleString('pt-BR')}</span>
-                  </div>
-                );
-              })}
-              {!algum && <span className="inf-sem">sem dados</span>}
-            </div>
-          </div>
-        );
-      })}
-    </div>
   );
 }
