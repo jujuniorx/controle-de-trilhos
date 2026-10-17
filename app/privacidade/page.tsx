@@ -33,7 +33,7 @@ export default function PrivacidadePage() {
         <ul className="list-disc space-y-1 pl-5 text-sm text-ink">
           <li><b>Registros da operação:</b> data, nota fiscal, origem ou destino, placas, perfis, medições, pesos e fotos ou documentos anexados.</li>
           <li><b>Nome de quem lançou:</b> o responsável informado pelo Pátio e o nome do administrador que conferiu, para saber quem fez cada lançamento.</li>
-          <li><b>Contas do Administrativo:</b> nome, usuário ou e-mail e a senha, guardada de forma protegida (nunca em texto aberto).</li>
+          <li><b>Contas do Administrativo:</b> nome, usuário e a senha, guardada de forma protegida (nunca em texto aberto).</li>
           <li><b>Histórico de alterações:</b> o que mudou, quando e por quem.</li>
         </ul>
         <p className="text-sm text-ink-muted">Os dados são usados só para operar e conferir o controle de trilhos. Não são vendidos nem usados para publicidade.</p>
