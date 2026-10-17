@@ -25,8 +25,10 @@ const ANIMACAO = `
   @keyframes inf-surge { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
   @keyframes inf-sobe { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
   @keyframes inf-desliza { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .inf-so-celular { display: none; }
   /* Impressão pelo navegador sai sempre em tema claro (fundo escuro gasta muita tinta). */
   @media print {
+    .inf-so-celular { display: none !important; }
     :root { --bg: #ffffff; --surface: #ffffff; --surface-2: #f1f3f6; --ink: #111827; --ink-muted: #4b5563; color-scheme: light; }
     body { background: #ffffff !important; color: #111827 !important; }
     .card { box-shadow: none !important; border: 1px solid #d1d5db; }
@@ -35,8 +37,8 @@ const ANIMACAO = `
   /* Celular: gráfico com rolagem lateral (texto legível), cartões e entrada animados. PC não muda. */
   @media (max-width: 767px) {
     .inf-entrada { animation: inf-sobe 0.7s cubic-bezier(.2,.8,.2,1) both; }
-    .inf-rolagem { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -4px; padding: 0 4px 6px; scroll-snap-type: x proximity; }
-    .inf-rolagem svg { min-width: 640px; display: block; }
+    .inf-so-pc { display: none; }
+    .inf-so-celular { display: block; }
     .inf-cartao { animation-duration: 0.7s; }
     .inf-cartao:active, .inf-segmento:active { transform: scale(.97); }
     .inf-segmento { min-height: 44px; display: inline-flex; align-items: center; }
@@ -153,39 +155,11 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
           ))}
         </div>
 
-        <div className="inf-rolagem">
-        <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={`${rotuloFiltro(chaves)} por mês, em ${eixoRotulo}`}>
-          {Array.from({ length: Math.floor(max / passo) + 1 }, (_, k) => k * passo).map((v, k) => (
-            <g key={v}>
-              <line className="inf-grade" style={{ animationDelay: `${k * 90}ms` }} x1={x0} x2={W - 8} y1={y(v)} y2={y(v)} stroke="currentColor" strokeOpacity={v === 0 ? 0.6 : 0.12} />
-              <text className="inf-eixo" style={{ animationDelay: `${k * 90 + 300}ms` }} x={x0 - 6} y={y(v) + 4} textAnchor="end" fontSize="10" fill="currentColor" fillOpacity="0.7">{v.toLocaleString('pt-BR')}</text>
-            </g>
-          ))}
-          <text x={4} y={topoPlot - 10} fontSize="10" fill="currentColor" fillOpacity="0.7">{eixoRotulo}</text>
-          {indices.map((mi, k) => {
-            const mes = MESES[mi];
-            const gx = x0 + k * gw;
-            return (
-              <g key={mes}>
-                {series.map((s, j) => {
-                  const v = s.valores[k] ?? 0;
-                  if (v <= 0) return null;
-                  const bx = gx + (gw - bw * n) / 2 + j * bw;
-                  const delay = k * 70 + j * 90;
-                  return (
-                    <g key={s.chave}>
-                      <rect className="inf-barra" style={{ animationDelay: `${delay}ms` }} x={bx} y={y(v)} width={bw - 2} height={yBase - y(v)} rx="2" fill={s.cor}>
-                        <title>{`${s.rotulo} · ${mes}: ${Math.round(v).toLocaleString('pt-BR')} ${eixoRotulo}`}</title>
-                      </rect>
-                      <text className="inf-valor" style={{ animationDelay: `${delay + 600}ms` }} x={bx + (bw - 2) / 2} y={y(v) - 4} textAnchor="middle" fontSize="10" fill="currentColor">{Math.round(v).toLocaleString('pt-BR')}</text>
-                    </g>
-                  );
-                })}
-                <text className="inf-eixo" style={{ animationDelay: `${k * 60 + 500}ms` }} x={gx + gw / 2} y={yBase + 16} textAnchor="middle" fontSize="11" fill="currentColor">{mes}</text>
-              </g>
-            );
-          })}
-        </svg>
+        <div className="inf-so-pc">
+          <GraficoBarras W={720} H={300} mobile={false} indices={indices} series={series} max={max} passo={passo} eixoRotulo={eixoRotulo} rotulo={rotuloFiltro(chaves)} />
+        </div>
+        <div className="inf-so-celular">
+          <GraficoBarras W={380} H={300} mobile indices={indices} series={series} max={max} passo={passo} eixoRotulo={eixoRotulo} rotulo={rotuloFiltro(chaves)} />
         </div>
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
@@ -260,5 +234,61 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
         <RecolhimentoDiaForm data={dia} w61={Math.round(r.doDia.w61 / METROS_POR_BARRA)} w62={Math.round(r.doDia.w62 / METROS_POR_BARRA)} />
       </section>
     </main>
+  );
+}
+
+type SerieGrafico = ReturnType<typeof montarGrafico>['series'][number];
+
+function GraficoBarras({ W, H, mobile, indices, series, max, passo, eixoRotulo, rotulo }: {
+  W: number; H: number; mobile: boolean; indices: number[]; series: SerieGrafico[]; max: number; passo: number; eixoRotulo: string; rotulo: string;
+}) {
+  const yBase = H - 30;
+  const topoPlot = mobile ? 26 : 30;
+  const x0 = mobile ? 36 : 56;
+  const plotW = W - x0 - 8;
+  const ph = yBase - topoPlot;
+  const y = (v: number) => yBase - (v / max) * ph;
+  const gw = plotW / Math.max(indices.length, 1);
+  const n = series.length;
+  const bw = Math.min(mobile ? 12 : 26, (gw * 0.72) / n);
+  // No celular, com três séries, os valores de cada barra se sobrepõem: mostra só quando há uma série.
+  const mostrarValores = !mobile || n === 1;
+  const fonteEixo = mobile ? 12 : 10;
+  const fonteMes = mobile ? 12 : 11;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={`${rotulo} por mês, em ${eixoRotulo}`}>
+      {Array.from({ length: Math.floor(max / passo) + 1 }, (_, k) => k * passo).map((v, k) => (
+        <g key={v}>
+          <line className="inf-grade" style={{ animationDelay: `${k * 90}ms` }} x1={x0} x2={W - 8} y1={y(v)} y2={y(v)} stroke="currentColor" strokeOpacity={v === 0 ? 0.6 : 0.12} />
+          <text className="inf-eixo" style={{ animationDelay: `${k * 90 + 300}ms` }} x={x0 - 6} y={y(v) + 4} textAnchor="end" fontSize={fonteEixo} fill="currentColor" fillOpacity="0.7">{v.toLocaleString('pt-BR')}</text>
+        </g>
+      ))}
+      <text x={4} y={topoPlot - 10} fontSize={fonteEixo} fill="currentColor" fillOpacity="0.7">{eixoRotulo}</text>
+      {indices.map((mi, k) => {
+        const mes = MESES[mi];
+        const gx = x0 + k * gw;
+        return (
+          <g key={mes}>
+            {series.map((s, j) => {
+              const v = s.valores[k] ?? 0;
+              if (v <= 0) return null;
+              const bx = gx + (gw - bw * n) / 2 + j * bw;
+              const delay = k * 70 + j * 90;
+              return (
+                <g key={s.chave}>
+                  <rect className="inf-barra" style={{ animationDelay: `${delay}ms` }} x={bx} y={y(v)} width={bw - 2} height={yBase - y(v)} rx="2" fill={s.cor}>
+                    <title>{`${s.rotulo} · ${mes}: ${Math.round(v).toLocaleString('pt-BR')} ${eixoRotulo}`}</title>
+                  </rect>
+                  {mostrarValores && (
+                    <text className="inf-valor" style={{ animationDelay: `${delay + 600}ms` }} x={bx + (bw - 2) / 2} y={y(v) - 4} textAnchor="middle" fontSize={fonteEixo} fill="currentColor">{Math.round(v).toLocaleString('pt-BR')}</text>
+                  )}
+                </g>
+              );
+            })}
+            <text className="inf-eixo" style={{ animationDelay: `${k * 60 + 500}ms` }} x={gx + gw / 2} y={yBase + 16} textAnchor="middle" fontSize={fonteMes} fill="currentColor">{mes}</text>
+          </g>
+        );
+      })}
+    </svg>
   );
 }
