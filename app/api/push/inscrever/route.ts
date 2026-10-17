@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { validarAcessoPatio } from '@/lib/services/patioAcesso';
 import { validarSessao } from '@/lib/services/auth';
 import { removerInscricaoPush, salvarInscricaoPush, type SetorPush } from '@/lib/services/push';
+import { dentroDoLimite } from '@/lib/services/limiteTaxa';
+import { ipDoCliente } from '@/lib/services/clienteIp';
 
 const inscricaoSchema = z.object({
   endpoint: z.url().max(1000),
@@ -23,6 +25,9 @@ async function setorDoPedido(): Promise<SetorPush | null> {
 
 /** O aparelho se inscreve para receber avisos: o tablet do Pátio ou o computador/celular da Portaria. */
 export async function POST(request: NextRequest) {
+  if (!(await dentroDoLimite('push', 20, 60_000, await ipDoCliente()))) {
+    return new Response(JSON.stringify({ erro: 'Muitas requisições. Aguarde um minuto.' }), { status: 429, headers: { 'Content-Type': 'application/json' } });
+  }
   const setor = await setorDoPedido();
   if (!setor) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 });
   const parsed = inscricaoSchema.safeParse(await request.json().catch(() => null));

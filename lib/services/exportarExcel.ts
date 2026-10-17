@@ -91,6 +91,16 @@ function formatarColunasDeData(sheet: ExcelJS.Worksheet) {
   });
 }
 
+/**
+ * Proteção contra injeção de fórmula: texto que começa com = + @ ou - (ou tab/CR) vira fórmula no Excel.
+ * Um apóstrofo na frente faz a célula ficar como texto. O traço isolado ("-") é marcador da planilha e fica como está.
+ */
+function sanear<T>(valores: T[]): T[] {
+  return valores.map((v) =>
+    typeof v === 'string' && v !== '-' && /^[=+@\t\r-]/.test(v) ? (`'${v}` as unknown as T) : v,
+  );
+}
+
 function aplicarCabecalho(sheet: ExcelJS.Worksheet, colunas: string[]) {
   sheet.addRow(colunas);
   const headerRow = sheet.getRow(1);
@@ -165,7 +175,7 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
 
       const fabricantes = unicos(novos.map((g) => upper(g.fabricante)));
 
-      sheet.addRow([
+      sheet.addRow(sanear([
         ...base,
         descricaoPerfil(grupos[0].perfil),
         fabricantes.length > 0 ? fabricantes.join(' / ') : '-',
@@ -187,7 +197,7 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         somaOuNull(sucatas.map(metros), arredondar2),
         somaOuNull(novos.map(metros), arredondar2),
         arredondar2(grupos.reduce((acc, g) => acc + metros(g), 0)),
-      ]);
+      ]));
     }
   }
 
@@ -295,7 +305,7 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
 
     if (mov.grupos.length === 0) {
       // Pré-cadastro ainda aguardando o Pátio confirmar a chegada — sem grupos ainda.
-      sheet.addRow([...base, '', '', '', tipoRemetido, null, null, null, ...manuais]);
+      sheet.addRow(sanear([...base, '', '', '', tipoRemetido, null, null, null, ...manuais]));
       continue;
     }
 
@@ -310,7 +320,7 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         arredondar3,
       );
 
-      sheet.addRow([
+      sheet.addRow(sanear([
         ...base,
         descricaoPerfil(grupos[0].perfil),
         rotuloMaterial(grupos[0]),
@@ -320,7 +330,7 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         diversos ? '-' : arredondar2(grupos.reduce((acc, g) => acc + Number(g.metrosTotal), 0)),
         diversos ? (toneladas ?? '-') : toneladas,
         ...manuais,
-      ]);
+      ]));
     }
   }
 

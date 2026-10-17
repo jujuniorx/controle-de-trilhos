@@ -4,6 +4,8 @@ import { informativoDoAno, META_RECOLHIMENTO_M, METROS_POR_BARRA } from '@/lib/s
 import { cartoesDoFiltro, montarGrafico, parseSeries, rotuloFiltro, UNIDADES, type Unidade } from '@/lib/services/informativoGrafico';
 import { gerarInformativoPdf, type TemaPdf } from '@/lib/pdf/informativo';
 import { fmtMetros } from '@/lib/format';
+import { dentroDoLimite } from '@/lib/services/limiteTaxa';
+import { ipDoCliente } from '@/lib/services/clienteIp';
 
 const MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
@@ -13,6 +15,9 @@ function hojeSP(): string {
 
 /** Baixa o gráfico do informativo em PDF (tema claro, para impressão), com a série e a unidade escolhidas. */
 export async function GET(request: NextRequest) {
+  if (!(await dentroDoLimite('pdfinformativo', 15, 60_000, await ipDoCliente()))) {
+    return new Response(JSON.stringify({ erro: 'Muitas requisições. Aguarde um minuto.' }), { status: 429, headers: { 'Content-Type': 'application/json' } });
+  }
   await requireAdmin();
   const params = request.nextUrl.searchParams;
   const dia = /^\d{4}-\d{2}-\d{2}$/.test(params.get('dia') ?? '') ? params.get('dia')! : hojeSP();

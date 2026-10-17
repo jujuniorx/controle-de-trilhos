@@ -3,6 +3,8 @@ import { Decimal } from '@prisma/client/runtime/library';
 import { prisma } from '@/lib/db';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { z } from 'zod';
+import { dentroDoLimite } from '@/lib/services/limiteTaxa';
+import { ipDoCliente } from '@/lib/services/clienteIp';
 
 const corpoMedicao = z.object({
   grupoId: z.string().min(1).max(64),
@@ -16,6 +18,9 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!(await dentroDoLimite('medicao', 120, 60_000, await ipDoCliente()))) {
+    return new Response(JSON.stringify({ erro: 'Muitas requisições. Aguarde um minuto.' }), { status: 429, headers: { 'Content-Type': 'application/json' } });
+  }
   // Autorização fica fora do try: se a sessão expirar, o redirecionamento do Next passa direto
   // (antes era engolido pelo catch e virava erro 500).
   const user = await requireAdmin();
