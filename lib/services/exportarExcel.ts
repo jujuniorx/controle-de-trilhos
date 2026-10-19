@@ -107,7 +107,7 @@ function aplicarCabecalho(sheet: ExcelJS.Worksheet, colunas: string[]) {
   headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, name: 'Calibri', size: 11 }; // branco, negrito
   headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2D5AA6' } }; // azul escuro
   headerRow.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-  headerRow.height = 18; // altura padronizada
+  headerRow.height = 32; // duas linhas: cabeçalhos longos (ex.: "Tipo do documento") quebram e não ficam cortados
   sheet.views = [{ state: 'frozen', ySplit: 1 }];
   sheet.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: colunas.length } };
   sheet.columns.forEach((c) => (c.width = 16));
