@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { editarDadosRecebimentoAction } from './actions';
+import { IconeEditar } from '@/components/icones/Icones';
 
 export interface DadosEditaveis {
   dataMovimentacao: string; // YYYY-MM-DD ou ''
@@ -52,7 +53,7 @@ export function EditarDadosRecebimentoPainel({ movimentacaoId, inicial }: { movi
     return (
       <div className="mt-3 flex items-center gap-3">
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setSucesso(false); setAberto(true); }}>
-          ✏️ Editar dados
+          <IconeEditar size={15} /> Editar dados
         </button>
         {sucesso && <span className="text-sm text-ok">Dados salvos.</span>}
       </div>

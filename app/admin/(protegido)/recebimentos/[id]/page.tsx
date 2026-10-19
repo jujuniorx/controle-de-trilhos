@@ -13,6 +13,7 @@ import { EditarMedicoesPainel } from './EditarMedicoesPainel';
 import { HistoricoMovimentacao } from '@/components/admin/HistoricoMovimentacao';
 import { informarNumeroDocumentoRecebimentoAction } from './actions';
 import { EditarDadosRecebimentoPainel } from './EditarDadosRecebimentoPainel';
+import { IconeImprimir } from '@/components/icones/Icones';
 
 function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
@@ -49,7 +50,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
             )}
             {/* <a> e não <Link>: o romaneio é um documento HTML puro (route handler), sem prefetch/RSC. */}
             <a href={`/admin/recebimentos/${mov.id}/romaneio`} className="btn btn-ghost btn-sm">
-              🖨️ Imprimir romaneio
+              <IconeImprimir size={15} /> Imprimir romaneio
             </a>
           </div>
         </div>

@@ -13,6 +13,7 @@ import { rotuloNfs } from '@/lib/nf';
 import { PesoGrupoPainel } from './PesoGrupoPainel';
 import { TipoRemetidoPainel } from './TipoRemetidoPainel';
 import { HistoricoMovimentacao } from '@/components/admin/HistoricoMovimentacao';
+import { IconeImprimir } from '@/components/icones/Icones';
 
 function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
@@ -76,7 +77,7 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
             )}
             {/* <a> e não <Link>: o romaneio é um documento HTML puro (route handler), sem prefetch/RSC. */}
             <a href={`/admin/remetidos/${mov.id}/romaneio`} className="btn btn-ghost btn-sm">
-              🖨️ Imprimir romaneio
+              <IconeImprimir size={15} /> Imprimir romaneio
             </a>
           </div>
         </div>

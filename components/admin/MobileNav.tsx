@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { SidebarNav } from './SidebarNav';
 import { BotaoSair } from './BotaoSair';
 import { EVENTO_MENU } from '@/components/ui/GestosApp';
+import { IconeFechar, IconeMenu } from '@/components/icones/Icones';
 
 /** Botão ☰ do cabeçalho e a folha "Mais" (abre de baixo; também é aberta pela aba "Mais"). */
 export function MobileNav({ dono }: { dono?: boolean }) {
@@ -42,9 +43,7 @@ export function MobileNav({ dono }: { dono?: boolean }) {
         className="grid h-10 w-10 place-items-center rounded text-ink hover:bg-surface-2"
         onClick={() => setAberto((v) => !v)}
       >
-        <span aria-hidden className="text-2xl leading-none">
-          {aberto ? '✕' : '☰'}
-        </span>
+        {aberto ? <IconeFechar size={20} /> : <IconeMenu size={20} />}
       </button>
       {aberto && (
         <>
