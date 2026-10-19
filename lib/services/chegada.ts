@@ -40,6 +40,7 @@ function paraBanco(d: DadosChegada) {
     placaCavalo: d.placaCavalo ?? null,
     capacidadeCarga: d.capacidadeCarga ?? null,
     comprimentoCarreta: d.comprimentoCarreta ?? null,
+    cargaDescarga: d.cargaDescarga ?? false,
   };
 }
 

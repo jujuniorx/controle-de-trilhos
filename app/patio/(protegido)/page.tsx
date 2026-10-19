@@ -86,8 +86,11 @@ export default async function PatioHomePage() {
                   {[c.transportadora, c.materialPrevisto].filter(Boolean).join(' · ') || 'Toque para registrar o recebimento'}
                 </p>
                 {c.observacao && <p className="mt-1 text-sm text-warn">Portaria: {c.observacao}</p>}
-                <span className="badge badge-ok mt-1">
-                  {c.descarregadaEm ? (c.saidaEm ? 'Já saiu — falta medir' : 'Descarregado — falta medir') : 'Chegou — toque para descarregar'}
+                <span className="mt-1 flex flex-wrap gap-2">
+                  <span className="badge badge-ok">
+                    {c.descarregadaEm ? (c.saidaEm ? 'Já saiu — falta medir' : 'Descarregado — falta medir') : 'Chegou — toque para descarregar'}
+                  </span>
+                  {c.cargaDescarga && <span className="badge badge-warn">Carga e descarga</span>}
                 </span>
               </Link>
               {!c.descarregadaEm && <DescarregadoBotao id={c.id} />}

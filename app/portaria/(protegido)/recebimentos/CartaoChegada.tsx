@@ -43,6 +43,7 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
     observacao: item.observacao ?? '',
     origem: item.origem ?? '',
   });
+  const [cargaDescarga, setCargaDescarga] = useState(item.cargaDescarga ?? false);
   const set = (campo: keyof typeof v) => (e: { target: { value: string } }) =>
     setV((atual) => ({ ...atual, [campo]: campo === 'motoristaCpf' ? formatarCpfDigitado(e.target.value) : String(campo).startsWith('placa') ? limparPlaca(e.target.value) : e.target.value }));
 
@@ -56,7 +57,7 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
     setResultado(null);
     iniciar(async () => {
       try {
-        const r = await acao(item.id, v);
+        const r = await acao(item.id, { ...v, cargaDescarga });
         setResultado(r);
         if (r.ok) router.refresh();
       } catch {
@@ -165,6 +166,10 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
             {campo('capacidadeCarga', 'Limite de carga (t)', { inputMode: 'decimal', maxLength: 6, placeholder: 'ex.: 48' })}
             {campo('comprimentoCarreta', 'Comprimento da carreta (m)', { inputMode: 'decimal', maxLength: 6, placeholder: 'ex.: 15,5' })}
           </div>
+          <label className="flex min-h-12 items-center gap-3 rounded-xl border border-line px-4 text-sm">
+            <input type="checkbox" className="h-5 w-5" checked={cargaDescarga} onChange={(e) => setCargaDescarga(e.target.checked)} disabled={pendente || saiu || descarregado} />
+            <span><b>Carga e descarga</b> — este caminhão também vai carregar depois de descarregar</span>
+          </label>
           <CampoObservacao id={`${item.id}-observacao`} valor={v.observacao} aoMudar={(x) => setV((a) => ({ ...a, observacao: x }))} desabilitado={pendente || saiu || descarregado} />
 
           {rascunho && <p className="text-sm text-ink-muted">Preencha ao menos uma placa e toque em &ldquo;Registrar chegada&rdquo;. O Pátio será avisado.</p>}

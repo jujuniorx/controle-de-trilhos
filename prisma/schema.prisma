@@ -304,6 +304,8 @@ model ChegadaCaminhao {
   capacidadeCarga   Decimal? // toneladas
   comprimentoCarreta Decimal? // metros
   observacao        String? // da Portaria, para o Pátio
+  // Caminhão que descarrega e também carrega na mesma viagem (o Pátio vê o aviso).
+  cargaDescarga     Boolean   @default(false)
   criadoPor         String
   criadoEm          DateTime  @default(now())
   liberadaEm        DateTime?
