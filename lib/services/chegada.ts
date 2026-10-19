@@ -72,15 +72,15 @@ export async function marcarChegadaDescarregada(id: string, atorNome: string): P
   if (r.count === 0) throw new ErroRegraNegocio('Não foi possível concluir: a situação mudou. Atualize a tela.');
 }
 
-/** Pátio, carga e descarga: o caminhão foi carregado e a medição da carga é registrada. Libera a saída para a Portaria. */
-export async function marcarChegadaCarregada(id: string, medidaM: number | null, atorNome: string): Promise<void> {
+/** Pátio, carga e descarga: a carreta foi carregada. Libera a saída para a Portaria. */
+export async function marcarChegadaCarregada(id: string, atorNome: string): Promise<void> {
   const c = await prisma.chegadaCaminhao.findUnique({ where: { id } });
   if (!c) throw new ErroRegraNegocio('Chegada não encontrada.');
-  const motivo = motivoNaoPodeMarcarCarregada(c, medidaM);
-  if (motivo || medidaM === null) throw new ErroRegraNegocio(motivo ?? 'Informe a medição da carga.');
+  const motivo = motivoNaoPodeMarcarCarregada(c);
+  if (motivo) throw new ErroRegraNegocio(motivo);
   const r = await prisma.chegadaCaminhao.updateMany({
     where: { id, cargaDescarga: true, cargaCarregadaEm: null, saidaEm: null, canceladaEm: null, descarregadaEm: { not: null } },
-    data: { cargaCarregadaEm: new Date(), cargaCarregadaPor: atorNome, cargaMedidaM: medidaM },
+    data: { cargaCarregadaEm: new Date(), cargaCarregadaPor: atorNome },
   });
   if (r.count === 0) throw new ErroRegraNegocio('Não foi possível concluir: a situação mudou. Atualize a tela.');
 }

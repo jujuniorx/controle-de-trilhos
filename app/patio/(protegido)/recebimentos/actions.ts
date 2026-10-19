@@ -24,11 +24,11 @@ export async function marcarDescarregadoAction(id: string): Promise<ResultadoRec
   }
 }
 
-/** Pátio, carga e descarga: o caminhão foi carregado e a medição da carga é registrada (libera a saída). */
-export async function marcarCarregadoAction(id: string, medidaM: number | null): Promise<ResultadoRecebimentoPatio> {
+/** Pátio, carga e descarga: a carreta foi carregada (libera a saída). */
+export async function marcarCarregadoAction(id: string): Promise<ResultadoRecebimentoPatio> {
   await requirePatioAcesso();
   try {
-    await marcarChegadaCarregada(id, medidaM, 'Pátio');
+    await marcarChegadaCarregada(id, 'Pátio');
     revalidatePath('/patio');
     revalidatePath('/portaria');
     revalidatePath('/portaria/recebimentos');

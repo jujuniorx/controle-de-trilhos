@@ -21,25 +21,19 @@ describe('carga e descarga: saída', () => {
 describe('carga e descarga: carregamento', () => {
   const descarregado = { ...base, descarregadaEm: agora, cargaDescarga: true, cargaCarregadaEm: null };
 
-  it('exige a medição da carga', () => {
-    expect(motivoNaoPodeMarcarCarregada(descarregado, null)).toMatch(/medição/);
-    expect(motivoNaoPodeMarcarCarregada(descarregado, 0)).toMatch(/medição/);
-    expect(motivoNaoPodeMarcarCarregada(descarregado, -3)).toMatch(/medição/);
-  });
-
-  it('com medição válida, libera', () => {
-    expect(motivoNaoPodeMarcarCarregada(descarregado, 120.5)).toBeNull();
+  it('com caminhão descarregado de carga e descarga, pode carregar', () => {
+    expect(motivoNaoPodeMarcarCarregada(descarregado)).toBeNull();
   });
 
   it('não confirma antes de descarregar', () => {
-    expect(motivoNaoPodeMarcarCarregada({ ...base, descarregadaEm: null, cargaDescarga: true, cargaCarregadaEm: null }, 10)).toMatch(/descarregado/);
+    expect(motivoNaoPodeMarcarCarregada({ ...base, descarregadaEm: null, cargaDescarga: true, cargaCarregadaEm: null })).toMatch(/descarregado/);
   });
 
   it('não marca carregamento de caminhão comum', () => {
-    expect(motivoNaoPodeMarcarCarregada({ ...descarregado, cargaDescarga: false }, 10)).toMatch(/não é de carga/);
+    expect(motivoNaoPodeMarcarCarregada({ ...descarregado, cargaDescarga: false })).toMatch(/não é de carga/);
   });
 
   it('não confirma duas vezes', () => {
-    expect(motivoNaoPodeMarcarCarregada({ ...descarregado, cargaCarregadaEm: agora }, 10)).toMatch(/já foi confirmado/);
+    expect(motivoNaoPodeMarcarCarregada({ ...descarregado, cargaCarregadaEm: agora })).toMatch(/já foi confirmado/);
   });
 });

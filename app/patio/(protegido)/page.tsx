@@ -56,7 +56,10 @@ function hora(d: Date | null): string {
 }
 
 export default async function PatioHomePage() {
-  const [aguardando, liberadas, carretas] = await Promise.all([contarAguardando(), carregarLiberadas(), carregarCarretas()]);
+  const [aguardando, liberadasTodas, carretas] = await Promise.all([contarAguardando(), carregarLiberadas(), carregarCarretas()]);
+  // Carga e descarga já descarregada espera o carregamento: fica numa seção própria, com um toque para carregar.
+  const aguardandoCarga = liberadasTodas.filter((c) => c.cargaDescarga && c.descarregadaEm && !c.cargaCarregadaEm && !c.saidaEm);
+  const liberadas = liberadasTodas.filter((c) => !aguardandoCarga.includes(c));
 
   return (
     <main className="mx-auto max-w-md space-y-5 p-6 sm:max-w-2xl lg:max-w-3xl">
@@ -88,6 +91,21 @@ export default async function PatioHomePage() {
         </section>
       )}
 
+      {aguardandoCarga.length > 0 && (
+        <section aria-label="Aguardando carregamento" className="space-y-2">
+          <h2 className="font-condensed text-base font-bold uppercase tracking-wide text-warn">Aguardando carregamento</h2>
+          {aguardandoCarga.map((c) => (
+            <div key={c.id} className="card space-y-3 border-2 border-warn">
+              <Link href={`/patio/recebimentos/novo?chegada=${c.id}`} className="block transition hover:brightness-110">
+                <p className="font-medium text-ink">{c.ordemDia ? `Caminhão nº ${c.ordemDia} — ` : ''}{c.placaCarreta || c.placaCavalo || 'Caminhão'}{c.origem ? ` — ${c.origem}` : ''}</p>
+                <p className="text-sm text-ink-muted">Descarregado. Esta carreta vai carregar{c.destinoCarga ? ` para ${c.destinoCarga}` : ''}.</p>
+              </Link>
+              <CarregadoBotao id={c.id} />
+            </div>
+          ))}
+        </section>
+      )}
+
       {liberadas.length > 0 && (
         <section aria-label="Caminhões na Portaria para descarregar" className="space-y-2">
           <h2 className="font-condensed text-base font-bold uppercase tracking-wide text-ok">Caminhões na Portaria (descarregar)</h2>
@@ -107,7 +125,6 @@ export default async function PatioHomePage() {
                 </span>
               </Link>
               {!c.descarregadaEm && <DescarregadoBotao id={c.id} cargaDescarga={c.cargaDescarga} />}
-              {c.cargaDescarga && c.descarregadaEm && !c.cargaCarregadaEm && !c.saidaEm && <CarregadoBotao id={c.id} />}
             </div>
           ))}
         </section>

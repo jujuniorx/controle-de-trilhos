@@ -128,14 +128,13 @@ export function motivoNaoPodeConfirmarSaidaChegada(c: ChegadaBasica): string | n
   return null;
 }
 
-/** Pátio, carga e descarga: por que NÃO dá para confirmar o carregamento (null = pode). Medição da carga é obrigatória. */
-export function motivoNaoPodeMarcarCarregada(c: ChegadaBasica, medidaM: number | null): string | null {
+/** Pátio, carga e descarga: por que NÃO dá para confirmar o carregamento (null = pode). */
+export function motivoNaoPodeMarcarCarregada(c: ChegadaBasica): string | null {
   const estado = estadoChegada(c);
   if (estado === 'CANCELADA') return 'Esta chegada foi cancelada.';
   if (estado === 'SAIU') return 'Este caminhão já saiu.';
   if (!c.cargaDescarga) return 'Este caminhão não é de carga e descarga.';
   if (!c.descarregadaEm) return 'Confirme primeiro que o caminhão foi descarregado.';
   if (c.cargaCarregadaEm) return 'O carregamento deste caminhão já foi confirmado.';
-  if (medidaM === null || !Number.isFinite(medidaM) || medidaM <= 0) return 'Informe a medição da carga antes de liberar a saída.';
   return null;
 }
