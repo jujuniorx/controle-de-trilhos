@@ -41,20 +41,20 @@ function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yBase: nu
   p.linha(x, yBase, x + w, yBase, LINHA, 0.6);
 }
 
-function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number) {
+function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false) {
   const base = topo - h;
   p.retangulo(x, base, w, h, FUNDO_CARTAO);
   p.retangulo(x, topo - 20, w, 20, hex(s.cor));
   p.texto(s.titulo.toUpperCase(), x + 8, topo - 14, 8, 'negrito', BRANCO);
 
-  // Cabeçalho da tabela: Dia e Mês em colunas separadas
-  const xDia = x + w - 92;
-  const xMes = x + w - 10;
+  // Tabela Dia | Mês. No cartão largo ela fica à esquerda e o gráfico à direita.
+  const xDia = largo ? x + 250 : x + w - 92;
+  const xMes = largo ? x + 320 : x + w - 10;
   let y = topo - 32;
   textoDireita(p, 'DIA', xDia, y, 6.5, 'negrito', CINZA);
   textoDireita(p, 'MÊS', xMes, y, 6.5, 'negrito', CINZA);
   y -= 6;
-  p.linha(x + 8, y, x + w - 8, y, LINHA, 0.6);
+  p.linha(x + 8, y, xMes + 2, y, LINHA, 0.6);
   for (const linha of s.linhas) {
     y -= 12;
     p.texto(linha.rotulo, x + 8, y, 8, 'normal', TINTA);
@@ -63,6 +63,21 @@ function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number,
   }
 
   if (!s.grafico) return;
+  if (largo) {
+    // Gráfico à direita, na mesma altura da tabela
+    const xg = x + 360;
+    const wg = w - 372;
+    let lx = xg;
+    const yLegenda = topo - 46;
+    for (const serie of s.grafico.series) {
+      p.retangulo(lx, yLegenda, 6, 6, hex(serie.cor));
+      p.texto(serie.nome, lx + 9, yLegenda, 6.5, 'normal', CINZA);
+      lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
+    }
+    p.texto(s.grafico.titulo, xg, topo - 32, 6.5, 'negrito', CINZA);
+    desenharGrafico(p, s.grafico, xg, base + 14, wg, 40);
+    return;
+  }
   // Gráfico do mês, na parte de baixo do cartão
   const yLegenda = base + 12;
   let lx = x + 8;
@@ -107,14 +122,18 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
   const colunas = 3;
   const gapC = 12;
   const wSet = (L - 2 * M - (colunas - 1) * gapC) / colunas;
-  const altSet = 200;
+  const altSet = 170;
   const topoGrade = topoRes - altRes - 16;
-  d.setores.forEach((s, i) => {
-    const col = i % colunas;
-    const linha = Math.floor(i / colunas);
-    const x = M + col * (wSet + gapC);
-    const topo = topoGrade - linha * (altSet + 12);
-    desenharSetor(p, s, x, topo, wSet, altSet);
+  // Os três primeiros setores ficam em grade; Caminhão e Trilheiros vêm embaixo, um sobre o outro, na largura toda.
+  d.setores.slice(0, colunas).forEach((s, i) => {
+    const x = M + i * (wSet + gapC);
+    desenharSetor(p, s, x, topoGrade, wSet, altSet);
+  });
+  const altLargo = 112;
+  const topoLargo = topoGrade - altSet - 12;
+  d.setores.slice(colunas).forEach((s, i) => {
+    const topo = topoLargo - i * (altLargo + 12);
+    desenharSetor(p, s, M, topo, L - 2 * M, altLargo, true);
   });
 
   const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
