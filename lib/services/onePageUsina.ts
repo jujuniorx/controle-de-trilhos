@@ -1,67 +1,87 @@
 import {
   estaleiroDoPeriodo,
   geracaoDoPeriodo,
-  composicoesDoPeriodo,
   caminhoesDoPeriodo,
   trilheirosDoPeriodo,
-  rotuloComposicao,
 } from '@/lib/services/usina';
 import { seriesDoMes } from '@/lib/services/usinaGraficos';
+import { prisma } from '@/lib/db';
+import { intervaloDoPeriodo } from '@/lib/usina/periodo';
+import { METROS_POR_UNIDADE, ROTULO_CIDADE, CIDADES_SERRA } from '@/lib/services/serra';
 import { fmtMetros, fmtPeso } from '@/lib/format';
 
 const soma = <T,>(lista: T[], f: (x: T) => number) => lista.reduce((a, x) => a + f(x), 0);
 const metros = (v: number) => `${fmtMetros(v)} m`;
+const iso = (d: Date) => d.toISOString().slice(0, 10);
 
-export interface LinhaOnePage { rotulo: string; dia: string; mes: string }
-export interface GraficoOnePage { titulo: string; series: { nome: string; cor: string; valores: number[] }[] }
-export interface SetorOnePage { titulo: string; cor: string; linhas: LinhaOnePage[]; grafico: GraficoOnePage | null }
+export interface LinhaRelatorio { rotulo: string; dia: string; mes: string }
+export interface GraficoRelatorio { titulo: string; series: { nome: string; cor: string; valores: number[] }[] }
+export interface SetorRelatorio { titulo: string; cor: string; linhas: LinhaRelatorio[]; grafico: GraficoRelatorio | null }
 
-export interface DadosOnePage {
+export interface DadosRelatorio {
   data: string;
+  rotulosDias: string[];
   resumo: { rotulo: string; cor: string; dia: string; mes: string }[];
-  setores: SetorOnePage[];
+  setores: SetorRelatorio[];
 }
 
-const CORES = { estaleiro: '#2563eb', geracao: '#059669', composicoes: '#7c3aed', caminhao: '#ea580c', trilheiros: '#0891b2' };
+/** Cores fixas por setor (cabeçalho) e uma cor distinta para cada série dentro do setor. */
+export const CORES_SETOR = { estaleiro: '#2563eb', geracao: '#059669', serra: '#be123c', caminhao: '#ea580c', trilheiros: '#0891b2' };
 
-/** Mesmos números da tela one page da usina, em forma simples para o PDF. */
-export async function montarDadosOnePage(data: string): Promise<DadosOnePage> {
+/** Mesmos números do relatório gerencial da usina, em forma simples para a tela e para o PDF. */
+export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio> {
   const serie = await seriesDoMes(data);
-  const [estD, estM, gerD, gerM, compD, compM, camD, camM, trilD, trilM] = await Promise.all([
+  const { inicio, fim } = intervaloDoPeriodo('mes', data);
+  const dias = serie.rotulos.length;
+
+  const [estD, estM, gerD, gerM, camD, camM, trilD, trilM, serraMes] = await Promise.all([
     estaleiroDoPeriodo('dia', data),
     estaleiroDoPeriodo('mes', data),
     geracaoDoPeriodo('dia', data),
     geracaoDoPeriodo('mes', data),
-    composicoesDoPeriodo('dia', data),
-    composicoesDoPeriodo('mes', data),
     caminhoesDoPeriodo('dia', data),
     caminhoesDoPeriodo('mes', data),
     trilheirosDoPeriodo('dia', data),
     trilheirosDoPeriodo('mes', data),
+    prisma.recolhimentoSerra.findMany({
+      where: { data: { gte: new Date(`${inicio}T00:00:00Z`), lte: new Date(`${fim}T00:00:00Z`) } },
+      select: { data: true, cidade: true, unidades: true },
+    }),
   ]);
+
+  // Serra: unidades × 10 m, por cidade, no dia e no mês; e uma série diária por cidade para o gráfico.
+  const serraDia = (cidade: string) =>
+    serraMes.filter((r) => r.cidade === cidade && iso(r.data) === data).reduce((t, r) => t + r.unidades * METROS_POR_UNIDADE, 0);
+  const serraMesM = (cidade: string) => serraMes.filter((r) => r.cidade === cidade).reduce((t, r) => t + r.unidades * METROS_POR_UNIDADE, 0);
+  const serraDiaSerie = (cidade: string) => {
+    const valores = new Array<number>(dias).fill(0);
+    for (const r of serraMes) if (r.cidade === cidade) valores[Number(iso(r.data).slice(8, 10)) - 1] += r.unidades * METROS_POR_UNIDADE;
+    return valores;
+  };
+  const serraTotalDia = CIDADES_SERRA.reduce((t, c) => t + serraDia(c), 0);
+  const serraTotalMes = CIDADES_SERRA.reduce((t, c) => t + serraMesM(c), 0);
 
   const geraDia = (f: (l: (typeof gerD.porLider)[number]) => number) => soma(gerD.porLider, f);
   const geraMes = (f: (l: (typeof gerM.porLider)[number]) => number) => soma(gerM.porLider, f);
-  const barrasMesComp = soma(compM, (c) => c.barras);
-  const producaoMesCam = soma(camM, (c) => c.mes.producao);
 
   return {
     data,
+    rotulosDias: serie.rotulos,
     resumo: [
-      { rotulo: 'Estaleiro de solda', cor: CORES.estaleiro, dia: String(estD.totais.soldas), mes: String(estM.totais.soldas) },
+      { rotulo: 'Estaleiro de solda', cor: CORES_SETOR.estaleiro, dia: String(estD.totais.soldas), mes: String(estM.totais.soldas) },
       {
         rotulo: 'Geração de trilho',
-        cor: CORES.geracao,
+        cor: CORES_SETOR.geracao,
         dia: metros(geraDia((l) => l.periodo.carregamentoM + l.periodo.deixadaViaM)),
         mes: metros(geraMes((l) => l.mes.carregamentoM + l.mes.deixadaViaM)),
       },
-      { rotulo: 'Composições', cor: CORES.composicoes, dia: String(soma(compD, (c) => c.barras)), mes: String(barrasMesComp) },
-      { rotulo: 'Caminhão de solda', cor: CORES.caminhao, dia: String(soma(camD, (c) => c.periodo.producao)), mes: String(producaoMesCam) },
+      { rotulo: 'Recolhimento serra', cor: CORES_SETOR.serra, dia: metros(serraTotalDia), mes: metros(serraTotalMes) },
+      { rotulo: 'Caminhão de solda', cor: CORES_SETOR.caminhao, dia: String(soma(camD, (c) => c.periodo.producao)), mes: String(soma(camM, (c) => c.mes.producao)) },
     ],
     setores: [
       {
         titulo: 'Estaleiro de solda',
-        cor: CORES.estaleiro,
+        cor: CORES_SETOR.estaleiro,
         linhas: [
           { rotulo: 'Soldas', dia: String(estD.totais.soldas), mes: String(estM.totais.soldas) },
           { rotulo: 'Cortes', dia: String(estD.totais.cortes), mes: String(estM.totais.cortes) },
@@ -79,7 +99,7 @@ export async function montarDadosOnePage(data: string): Promise<DadosOnePage> {
       },
       {
         titulo: 'Geração de trilho',
-        cor: CORES.geracao,
+        cor: CORES_SETOR.geracao,
         linhas: [
           { rotulo: 'Corte', dia: metros(geraDia((l) => l.periodo.corteM)), mes: metros(geraMes((l) => l.mes.corteM)) },
           { rotulo: 'Carregado', dia: metros(geraDia((l) => l.periodo.carregamentoM)), mes: metros(geraMes((l) => l.mes.carregamentoM)) },
@@ -96,26 +116,24 @@ export async function montarDadosOnePage(data: string): Promise<DadosOnePage> {
         },
       },
       {
-        titulo: 'Composições ativas',
-        cor: CORES.composicoes,
-        linhas: compM.flatMap((c) => {
-          const d = compD.find((x) => x.ativo === c.ativo);
-          return [
-            { rotulo: `${rotuloComposicao(c.ativo)} · barras`, dia: String(d?.barras ?? 0), mes: String(c.barras) },
-            { rotulo: `${rotuloComposicao(c.ativo)} · jacarés`, dia: String(d?.jacares ?? 0), mes: String(c.jacares) },
-          ];
-        }),
+        titulo: 'Recolhimento serra',
+        cor: CORES_SETOR.serra,
+        linhas: [
+          ...CIDADES_SERRA.map((c) => ({ rotulo: `${ROTULO_CIDADE[c]} · recolhido`, dia: metros(serraDia(c)), mes: metros(serraMesM(c)) })),
+          { rotulo: 'Total recolhido', dia: metros(serraTotalDia), mes: metros(serraTotalMes) },
+        ],
         grafico: {
-          titulo: 'Barras por dia',
-          series: [
-            { nome: rotuloComposicao('W61'), cor: '#7c3aed', valores: serie.composicoes.W61 ?? [] },
-            { nome: rotuloComposicao('W62'), cor: '#0891b2', valores: serie.composicoes.W62 ?? [] },
-          ],
+          titulo: 'Metros recolhidos por dia',
+          series: CIDADES_SERRA.map((c, i) => ({
+            nome: ROTULO_CIDADE[c],
+            cor: i === 0 ? '#7c3aed' : '#f59e0b',
+            valores: serraDiaSerie(c),
+          })),
         },
       },
       {
         titulo: 'Caminhão de solda',
-        cor: CORES.caminhao,
+        cor: CORES_SETOR.caminhao,
         linhas: camM.flatMap((c) => {
           const d = camD.find((x) => x.caminhao === c.caminhao);
           return [
@@ -133,7 +151,7 @@ export async function montarDadosOnePage(data: string): Promise<DadosOnePage> {
       },
       {
         titulo: 'Trilheiros',
-        cor: CORES.trilheiros,
+        cor: CORES_SETOR.trilheiros,
         linhas: [
           { rotulo: 'Giros', dia: String(trilD.giros.length), mes: String(trilM.giros.length) },
           { rotulo: 'Média de dias úteis na usina', dia: '—', mes: trilM.mediaDiasUteisNaUsina == null ? '—' : String(trilM.mediaDiasUteisNaUsina) },

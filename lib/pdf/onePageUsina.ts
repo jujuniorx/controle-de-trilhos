@@ -1,5 +1,5 @@
 import { PaginaPdf, A4_PAISAGEM, montarPdfVarias, larguraTexto } from '@/lib/pdf/simples';
-import type { DadosOnePage, GraficoOnePage, SetorOnePage } from '@/lib/services/onePageUsina';
+import type { DadosRelatorio, GraficoRelatorio, SetorRelatorio } from '@/lib/services/onePageUsina';
 
 type Cor = [number, number, number];
 
@@ -25,7 +25,7 @@ function textoDireita(p: PaginaPdf, texto: string, xDireita: number, y: number, 
 }
 
 /** Gráfico de barras por dia: uma barra por série e por dia, na área (x, yBase) até (x+w, yBase+altura). */
-function desenharGrafico(p: PaginaPdf, g: GraficoOnePage, x: number, yBase: number, w: number, altura: number) {
+function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yBase: number, w: number, altura: number) {
   const n = Math.max(1, ...g.series.map((s) => s.valores.length));
   const topo = Math.max(1, ...g.series.flatMap((s) => s.valores));
   const gw = w / n;
@@ -41,7 +41,7 @@ function desenharGrafico(p: PaginaPdf, g: GraficoOnePage, x: number, yBase: numb
   p.linha(x, yBase, x + w, yBase, LINHA, 0.6);
 }
 
-function desenharSetor(p: PaginaPdf, s: SetorOnePage, x: number, topo: number, w: number, h: number) {
+function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number) {
   const base = topo - h;
   p.retangulo(x, base, w, h, FUNDO_CARTAO);
   p.retangulo(x, topo - 20, w, 20, hex(s.cor));
@@ -75,13 +75,13 @@ function desenharSetor(p: PaginaPdf, s: SetorOnePage, x: number, topo: number, w
   desenharGrafico(p, s.grafico, x + 8, base + 24, w - 16, 56);
 }
 
-export function gerarOnePageUsinaPdf(d: DadosOnePage): Buffer {
+export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
   const p = new PaginaPdf();
   p.retangulo(0, 0, L, H, BRANCO);
 
   // Cabeçalho
   p.texto('CONTROLE DE TRILHOS', M, H - 26, 7.5, 'negrito', CINZA);
-  p.texto('One page — Usina', M, H - 50, 20, 'negrito', TINTA);
+  p.texto('Relatório gerencial — Usina', M, H - 50, 20, 'negrito', TINTA);
   textoDireita(p, 'DIA DE REFERÊNCIA', L - M, H - 26, 7, 'negrito', CINZA);
   textoDireita(p, dataBr(d.data), L - M, H - 48, 15, 'negrito', TINTA);
   p.linha(M, H - 60, L - M, H - 60, [0.1, 0.12, 0.16], 1.2);
@@ -120,5 +120,5 @@ export function gerarOnePageUsinaPdf(d: DadosOnePage): Buffer {
   const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
   p.texto(`Emitido em ${emitido}`, M, 18, 6.5, 'normal', CINZA);
 
-  return montarPdfVarias([p], `One page usina ${d.data}`, A4_PAISAGEM);
+  return montarPdfVarias([p], `Relatório gerencial usina ${d.data}`, A4_PAISAGEM);
 }

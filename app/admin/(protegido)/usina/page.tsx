@@ -108,7 +108,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
             {SETORES.map(([valor, rotulo]) => (
               <a key={valor} className="rounded px-3 py-2 hover:bg-surface-2" href={`/admin/usina/imprimir?periodo=${periodo}&data=${data}&setor=${valor}`}>{rotulo}</a>
             ))}
-            <a className="rounded px-3 py-2 font-semibold hover:bg-surface-2" href={`/admin/usina/one-page?data=${data}`}>One page (todos)</a>
+            <a className="rounded px-3 py-2 font-semibold hover:bg-surface-2" href={`/admin/usina/relatorio-gerencial?data=${data}`}>Relatório gerencial</a>
           </div>
         </details>
       </nav>
