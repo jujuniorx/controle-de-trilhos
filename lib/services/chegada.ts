@@ -41,6 +41,7 @@ function paraBanco(d: DadosChegada) {
     capacidadeCarga: d.capacidadeCarga ?? null,
     comprimentoCarreta: d.comprimentoCarreta ?? null,
     cargaDescarga: d.cargaDescarga ?? false,
+    destinoCarga: d.cargaDescarga && d.destinoCarga ? normalizarLocal(d.destinoCarga) || null : null,
   };
 }
 

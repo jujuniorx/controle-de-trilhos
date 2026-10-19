@@ -306,6 +306,8 @@ model ChegadaCaminhao {
   observacao        String? // da Portaria, para o Pátio
   // Caminhão que descarrega e também carrega na mesma viagem (o Pátio vê o aviso).
   cargaDescarga     Boolean   @default(false)
+  // Para onde o caminhão vai levar a carga depois de descarregar.
+  destinoCarga      String?
   criadoPor         String
   criadoEm          DateTime  @default(now())
   liberadaEm        DateTime?

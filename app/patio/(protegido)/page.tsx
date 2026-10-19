@@ -90,7 +90,7 @@ export default async function PatioHomePage() {
                   <span className="badge badge-ok">
                     {c.descarregadaEm ? (c.saidaEm ? 'Já saiu — falta medir' : 'Descarregado — falta medir') : 'Chegou — toque para descarregar'}
                   </span>
-                  {c.cargaDescarga && <span className="badge badge-warn">Carga e descarga</span>}
+                  {c.cargaDescarga && <span className="badge badge-warn">Carga e descarga{c.destinoCarga ? ` → ${c.destinoCarga}` : ''}</span>}
                 </span>
               </Link>
               {!c.descarregadaEm && <DescarregadoBotao id={c.id} />}

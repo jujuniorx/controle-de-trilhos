@@ -44,6 +44,7 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
     origem: item.origem ?? '',
   });
   const [cargaDescarga, setCargaDescarga] = useState(item.cargaDescarga ?? false);
+  const [destinoCarga, setDestinoCarga] = useState(item.destinoCarga ?? '');
   const set = (campo: keyof typeof v) => (e: { target: { value: string } }) =>
     setV((atual) => ({ ...atual, [campo]: campo === 'motoristaCpf' ? formatarCpfDigitado(e.target.value) : String(campo).startsWith('placa') ? limparPlaca(e.target.value) : e.target.value }));
 
@@ -57,7 +58,7 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
     setResultado(null);
     iniciar(async () => {
       try {
-        const r = await acao(item.id, { ...v, cargaDescarga });
+        const r = await acao(item.id, { ...v, cargaDescarga, destinoCarga });
         setResultado(r);
         if (r.ok) router.refresh();
       } catch {
@@ -170,6 +171,12 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
             <input type="checkbox" className="h-5 w-5" checked={cargaDescarga} onChange={(e) => setCargaDescarga(e.target.checked)} disabled={pendente || saiu || descarregado} />
             <span><b>Carga e descarga</b> — este caminhão também vai carregar depois de descarregar</span>
           </label>
+          {cargaDescarga && (
+            <div className="field">
+              <label htmlFor={`${item.id}-destino-carga`}>Carregar para (destino)</label>
+              <input id={`${item.id}-destino-carga`} value={destinoCarga} onChange={(e) => setDestinoCarga(e.target.value)} className="h-12" maxLength={120} autoComplete="off" disabled={pendente || saiu || descarregado} />
+            </div>
+          )}
           <CampoObservacao id={`${item.id}-observacao`} valor={v.observacao} aoMudar={(x) => setV((a) => ({ ...a, observacao: x }))} desabilitado={pendente || saiu || descarregado} />
 
           {rascunho && <p className="text-sm text-ink-muted">Preencha ao menos uma placa e toque em &ldquo;Registrar chegada&rdquo;. O Pátio será avisado.</p>}
