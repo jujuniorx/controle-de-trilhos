@@ -149,7 +149,12 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
     'Total',
   ]);
 
-  for (const mov of movimentacoes) {
+  // Recebidos em ordem crescente de data (dia 1 em cima, último dia embaixo), como a planilha da empresa.
+  const cronologico = [...movimentacoes].sort(
+    (a, b) => a.dataMovimentacao.getTime() - b.dataMovimentacao.getTime() || a.createdAt.getTime() - b.createdAt.getTime(),
+  );
+
+  for (const mov of cronologico) {
     const [dia, mes, ano] = diaMesAno(mov.dataMovimentacao);
     const base = [
       dia,
