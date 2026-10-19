@@ -51,14 +51,14 @@ const capacidade = opcional(
   z
     .union([z.string(), z.number()])
     .transform((v) => (typeof v === 'number' ? v : numeroDigitado(v)))
-    .pipe(z.number({ invalid_type_error: 'Informe um número, ex.: 28 ou 12,3.' }).positive('A capacidade precisa ser maior que zero.').max(200, 'Capacidade muito alta (máx. 200 t).')),
+    .pipe(z.number({ error: 'Informe um número, ex.: 28 ou 12,3.' }).positive('A capacidade precisa ser maior que zero.').max(200, 'Capacidade muito alta (máx. 200 t).')),
 );
 
 const comprimento = opcional(
   z
     .union([z.string(), z.number()])
     .transform((v) => (typeof v === 'number' ? v : numeroDigitado(v)))
-    .pipe(z.number({ invalid_type_error: 'Informe um número, ex.: 12,3.' }).positive('O comprimento precisa ser maior que zero.').max(60, 'Comprimento muito alto (máx. 60 m).')),
+    .pipe(z.number({ error: 'Informe um número, ex.: 12,3.' }).positive('O comprimento precisa ser maior que zero.').max(60, 'Comprimento muito alto (máx. 60 m).')),
 );
 
 /** CPF digitado com os pontos e o traço automáticos (000.000.000-00). Só a formatação, não valida dígitos. */
