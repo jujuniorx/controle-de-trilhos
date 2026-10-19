@@ -6,6 +6,7 @@ import {
   trilheirosDoPeriodo,
   ROTULO_TLS,
   TIPOS_TLS,
+  META_GERACAO_MENSAL_M,
 } from '@/lib/services/usina';
 import { fmtMetros, fmtPeso } from '@/lib/format';
 import { ehIsoValido, type Periodo } from '@/lib/usina/periodo';
@@ -17,6 +18,16 @@ const SETORES = ['todos', 'estaleiro', 'geracao', 'composicoes', 'caminhao', 'tr
 type Setor = (typeof SETORES)[number];
 
 const br = (iso: string) => iso.split('-').reverse().join('/');
+
+/** Acumulado do dia e do mês, mostrado logo abaixo do título de cada setor. */
+function Acumulado({ dia, mes }: { dia: string; mes: string }) {
+  return (
+    <div className="rounded border border-black/30 px-3 py-2 text-sm">
+      <p><b>Acumulado do dia:</b> {dia}</p>
+      <p><b>Acumulado do mês:</b> {mes}</p>
+    </div>
+  );
+}
 
 function Tabela({ cab, linhas }: { cab: string[]; linhas: (string | number)[][] }) {
   return (
@@ -44,13 +55,34 @@ export default async function ImprimirUsina({
   const setor: Setor = (SETORES as readonly string[]).includes(params.setor ?? '') ? (params.setor as Setor) : 'todos';
   const mostra = (s: Exclude<Setor, 'todos'>) => setor === 'todos' || setor === s;
 
-  const [est, ger, comp, cam, tril] = await Promise.all([
+  const [est, ger, comp, cam, tril, estDia, estMes, gerDia, gerMes, compDia, compMes, camDia, camMes, trilDia, trilMes] = await Promise.all([
     estaleiroDoPeriodo(periodo, data),
     geracaoDoPeriodo(periodo, data),
     composicoesDoPeriodo(periodo, data),
     caminhoesDoPeriodo(periodo, data),
     trilheirosDoPeriodo(periodo, data),
+    estaleiroDoPeriodo('dia', data),
+    estaleiroDoPeriodo('mes', data),
+    geracaoDoPeriodo('dia', data),
+    geracaoDoPeriodo('mes', data),
+    composicoesDoPeriodo('dia', data),
+    composicoesDoPeriodo('mes', data),
+    caminhoesDoPeriodo('dia', data),
+    caminhoesDoPeriodo('mes', data),
+    trilheirosDoPeriodo('dia', data),
+    trilheirosDoPeriodo('mes', data),
   ]);
+
+  // Acumulados (dia e mês) de cada setor.
+  const estTxt = (x: typeof estDia) =>
+    `Soldas ${x.totais.soldas} · Cortes ${x.totais.cortes} · Tampões ${x.carreta.tampoes} · Trilho novo ${fmtMetros(x.carreta.trilhoNovoM)} m · Sucata ${fmtPeso(x.carreta.sucataT)} t`;
+  const soma = <T,>(lista: T[], f: (x: T) => number) => lista.reduce((a, x) => a + f(x), 0);
+  const gerDiaTxt = `Corte ${fmtMetros(soma(gerDia.porLider, (l) => l.periodo.corteM))} m · Carregado ${fmtMetros(soma(gerDia.porLider, (l) => l.periodo.carregamentoM))} m · Deixado na via ${fmtMetros(soma(gerDia.porLider, (l) => l.periodo.deixadaViaM))} m · Barras ${soma(gerDia.porLider, (l) => l.periodo.quantidade)}`;
+  const gerMesTotal = soma(gerMes.porLider, (l) => l.mes.totalM);
+  const gerMesTxt = `Carregado + deixado ${fmtMetros(gerMesTotal)} m (meta ${fmtMetros(META_GERACAO_MENSAL_M)} m${gerMesTotal >= META_GERACAO_MENSAL_M ? ', alcançada' : ''})`;
+  const compTxt = (lista: typeof compDia) => lista.map((c) => `${c.ativo}: ${c.barras} barras · ${c.jacares} jacarés`).join(' · ');
+  const camTxt = (lista: typeof camDia) => `Produção ${soma(lista, (c) => c.periodo.producao)} · Perda ${soma(lista, (c) => c.periodo.perda)}`;
+  const camMesTxt = (lista: typeof camMes) => `Produção ${soma(lista, (c) => c.mes.producao)} · Perda ${soma(lista, (c) => c.mes.perda)}`;
 
   const titulo = setor === 'todos' ? 'Relatório da usina — todos os setores' : 'Relatório da usina';
   const periodoTxt = est.inicio === est.fim ? br(est.inicio) : `${br(est.inicio)} a ${br(est.fim)}`;
@@ -83,6 +115,7 @@ export default async function ImprimirUsina({
         {mostra('estaleiro') && (
           <section className="space-y-2">
             <h2 className="text-lg font-semibold">Estaleiro de solda</h2>
+            <Acumulado dia={estTxt(estDia)} mes={estTxt(estMes)} />
             <p className="text-sm">Soldas: {est.totais.soldas} · Cortes: {est.totais.cortes} · Tampões carregados: {est.carreta.tampoes} · Trilho novo: {fmtMetros(est.carreta.trilhoNovoM)} m · Sucata saída: {fmtPeso(est.carreta.sucataT)} t</p>
             <p className="text-sm">Manutenção da semana: {br(est.manutencaoDia)}</p>
             <Tabela
@@ -96,6 +129,7 @@ export default async function ImprimirUsina({
         {mostra('geracao') && (
           <section className="space-y-2">
             <h2 className="text-lg font-semibold">Geração de trilho</h2>
+            <Acumulado dia={gerDiaTxt} mes={gerMesTxt} />
             <Tabela
               cab={['Líder', 'Corte (m)', 'Carregamento (m)', 'Barras', 'Deixada na via (m)', 'Mês: carregado + deixado (m)', 'Meta 5.000 m']}
               linhas={ger.porLider.map((l) => [
@@ -114,6 +148,7 @@ export default async function ImprimirUsina({
         {mostra('composicoes') && (
           <section className="space-y-2">
             <h2 className="text-lg font-semibold">Composições ativas</h2>
+            <Acumulado dia={compTxt(compDia)} mes={compTxt(compMes)} />
             <Tabela cab={['Composição', 'Barras', 'Jacarés']} linhas={comp.map((c) => [c.ativo, c.barras, c.jacares])} />
           </section>
         )}
@@ -121,6 +156,7 @@ export default async function ImprimirUsina({
         {mostra('caminhao') && (
           <section className="space-y-2">
             <h2 className="text-lg font-semibold">Caminhão de solda</h2>
+            <Acumulado dia={camTxt(camDia)} mes={camMesTxt(camMes)} />
             <Tabela
               cab={['Caminhão', 'Produção (período)', 'Perda (período)', 'Produção (mês)', 'Perda (mês)', 'Produção (ano)', 'Perda (ano)']}
               linhas={cam.map((c) => [c.caminhao, c.periodo.producao, c.periodo.perda, c.mes.producao, c.mes.perda, c.ano.producao, c.ano.perda])}
@@ -132,6 +168,7 @@ export default async function ImprimirUsina({
         {mostra('trilheiros') && (
           <section className="space-y-2">
             <h2 className="text-lg font-semibold">Trilheiros</h2>
+            <Acumulado dia={`Giros: ${trilDia.giros.length}`} mes={`Giros: ${trilMes.giros.length}`} />
             <p className="text-sm">Média de dias úteis na usina: {tril.mediaDiasUteisNaUsina ?? '—'} (em {tril.girosComTempo} giro(s) com datas completas)</p>
             <Tabela
               cab={['Trilheiro', 'B.O.', 'Chegada', 'Partida', 'Retorno', 'Perfil', 'Carregados', 'Descarregados', 'Local']}
