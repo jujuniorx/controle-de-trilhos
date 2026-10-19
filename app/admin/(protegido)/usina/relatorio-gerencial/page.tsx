@@ -88,7 +88,7 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
         <header className="flex flex-wrap items-end justify-between gap-3 border-b-2 border-slate-900 pb-3">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Controle de Trilhos</p>
-            <h1 className="text-2xl font-extrabold tracking-tight">Relatório gerencial — Usina</h1>
+            <h1 className="text-2xl font-extrabold tracking-tight">Relatório gerencial</h1>
           </div>
           <div className="text-right">
             <p className="text-[11px] uppercase tracking-wide text-slate-500">Dia de referência</p>
