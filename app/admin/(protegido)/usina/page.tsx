@@ -91,6 +91,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         {[['todos', 'Tudo'], ['estaleiro', 'Estaleiro'], ['geracao', 'Geração'], ['composicoes', 'Composições'], ['caminhao', 'Caminhão de solda'], ['trilheiros', 'Trilheiros']].map(([valor, rotulo]) => (
           <a key={valor} className="btn btn-ghost h-9" href={`/admin/usina/imprimir?periodo=${periodo}&data=${data}&setor=${valor}`}>{rotulo}</a>
         ))}
+        <a className="btn btn-primary h-9" href={`/admin/usina/one-page?data=${data}`}>One page (todos os setores)</a>
       </nav>
 
       {/* ── Estaleiro de solda ─────────────────────────────────────── */}
