@@ -11,6 +11,7 @@ import {
   CAMINHOES_ATIVOS,
   TRILHEIROS,
   listarCiclosAbertos,
+  rotuloComposicao,
 } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
 import { CarretasGeracao } from '@/components/usina/CarretasGeracao';
@@ -227,7 +228,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         <div className="grid gap-3 sm:grid-cols-2">
           {comp.map((c) => (
             <div className="card space-y-3" key={c.ativo}>
-              <p className="font-semibold">{c.ativo}</p>
+              <p className="font-semibold">{rotuloComposicao(c.ativo)}</p>
               <p className="text-sm">No período: {c.barras} barras · {c.jacares} jacarés</p>
               <FormularioUsina acao={salvarComposicaoAction}>
                 <input type="hidden" name="data" value={data} />

@@ -196,6 +196,12 @@ export async function salvarGeracao(
 
 // ─── Composições ativas (W61 e W62) ───────────────────────────────────────────
 export const COMPOSICOES = ['W61', 'W62'] as const;
+// Cada composição tem rota fixa: W61 sempre Evangelista, W62 sempre Paratinga.
+export const ROTA_COMPOSICAO: Record<(typeof COMPOSICOES)[number], string> = { W61: 'Evangelista', W62: 'Paratinga' };
+export function rotuloComposicao(ativo: string): string {
+  const rota = ROTA_COMPOSICAO[ativo as (typeof COMPOSICOES)[number]];
+  return rota ? `${ativo} · ${rota}` : ativo;
+}
 
 export async function composicoesDoPeriodo(periodo: Periodo, data: string) {
   const { inicio, fim } = intervaloDoPeriodo(periodo, data);

@@ -6,6 +6,7 @@ import {
   caminhoesDoPeriodo,
   trilheirosDoPeriodo,
   META_GERACAO_MENSAL_M,
+  rotuloComposicao,
 } from '@/lib/services/usina';
 import { seriesDoMes } from '@/lib/services/usinaGraficos';
 import { GraficoBarras } from '@/components/usina/GraficoBarras';
@@ -203,8 +204,8 @@ export default async function OnePageUsina({ searchParams }: { searchParams: Pro
             linhas={compM.flatMap((c) => {
               const d = compD.find((x) => x.ativo === c.ativo);
               return [
-                { rotulo: `${c.ativo} · barras`, dia: d?.barras ?? 0, mes: c.barras },
-                { rotulo: `${c.ativo} · jacarés`, dia: d?.jacares ?? 0, mes: c.jacares },
+                { rotulo: `${rotuloComposicao(c.ativo)} · barras`, dia: d?.barras ?? 0, mes: c.barras },
+                { rotulo: `${rotuloComposicao(c.ativo)} · jacarés`, dia: d?.jacares ?? 0, mes: c.jacares },
               ];
             })}
             grafico={
@@ -212,8 +213,8 @@ export default async function OnePageUsina({ searchParams }: { searchParams: Pro
                 titulo="Barras por dia"
                 rotulos={serie.rotulos}
                 series={[
-                  { nome: 'W61', cor: CORES.composicoes, valores: serie.composicoes.W61 ?? [] },
-                  { nome: 'W62', cor: '#a78bfa', valores: serie.composicoes.W62 ?? [] },
+                  { nome: rotuloComposicao('W61'), cor: CORES.composicoes, valores: serie.composicoes.W61 ?? [] },
+                  { nome: rotuloComposicao('W62'), cor: '#a78bfa', valores: serie.composicoes.W62 ?? [] },
                 ]}
               />
             }

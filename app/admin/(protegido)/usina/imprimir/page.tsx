@@ -7,6 +7,7 @@ import {
   ROTULO_TLS,
   TIPOS_TLS,
   META_GERACAO_MENSAL_M,
+  rotuloComposicao,
 } from '@/lib/services/usina';
 import { fmtMetros, fmtPeso } from '@/lib/format';
 import { ehIsoValido, type Periodo } from '@/lib/usina/periodo';
@@ -80,7 +81,7 @@ export default async function ImprimirUsina({
   const gerDiaTxt = `Corte ${fmtMetros(soma(gerDia.porLider, (l) => l.periodo.corteM))} m · Carregado ${fmtMetros(soma(gerDia.porLider, (l) => l.periodo.carregamentoM))} m · Deixado na via ${fmtMetros(soma(gerDia.porLider, (l) => l.periodo.deixadaViaM))} m · Barras ${soma(gerDia.porLider, (l) => l.periodo.quantidade)}`;
   const gerMesTotal = soma(gerMes.porLider, (l) => l.mes.totalM);
   const gerMesTxt = `Carregado + deixado ${fmtMetros(gerMesTotal)} m (meta ${fmtMetros(META_GERACAO_MENSAL_M)} m${gerMesTotal >= META_GERACAO_MENSAL_M ? ', alcançada' : ''})`;
-  const compTxt = (lista: typeof compDia) => lista.map((c) => `${c.ativo}: ${c.barras} barras · ${c.jacares} jacarés`).join(' · ');
+  const compTxt = (lista: typeof compDia) => lista.map((c) => `${rotuloComposicao(c.ativo)}: ${c.barras} barras · ${c.jacares} jacarés`).join(' · ');
   const camTxt = (lista: typeof camDia) => `Produção ${soma(lista, (c) => c.periodo.producao)} · Perda ${soma(lista, (c) => c.periodo.perda)}`;
   const camMesTxt = (lista: typeof camMes) => `Produção ${soma(lista, (c) => c.mes.producao)} · Perda ${soma(lista, (c) => c.mes.perda)}`;
 
@@ -149,7 +150,7 @@ export default async function ImprimirUsina({
           <section className="space-y-2">
             <h2 className="text-lg font-semibold">Composições ativas</h2>
             <Acumulado dia={compTxt(compDia)} mes={compTxt(compMes)} />
-            <Tabela cab={['Composição', 'Barras', 'Jacarés']} linhas={comp.map((c) => [c.ativo, c.barras, c.jacares])} />
+            <Tabela cab={['Composição', 'Barras', 'Jacarés']} linhas={comp.map((c) => [rotuloComposicao(c.ativo), c.barras, c.jacares])} />
           </section>
         )}
 
