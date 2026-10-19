@@ -319,6 +319,11 @@ model ChegadaCaminhao {
   // Pátio descarregou e libera a saída antes da medição (medição fica para depois).
   descarregadaEm    DateTime?
   descarregadaPor   String?
+  // Carga e descarga: depois de descarregar, o caminhão carrega. A medição da carga é obrigatória
+  // antes de liberar a saída; a medição da descarga pode ficar pendente.
+  cargaCarregadaEm  DateTime?
+  cargaCarregadaPor String?
+  cargaMedidaM      Decimal?  // metros, medição da carga
   // Número de ordem do caminhão no dia (1, 2, 3...). Automático ao registrar a chegada; a Portaria pode trocar.
   ordemDia          Int?
   ordemData         String?   // dia da ordem, AAAA-MM-DD (fuso de São Paulo)

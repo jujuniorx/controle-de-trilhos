@@ -9,6 +9,7 @@ import { listarChegadasLiberadas } from '@/lib/services/chegada';
 import { listarCarretasNaPortaria } from '@/lib/services/portaria';
 import { CarretaNaPortaria } from '@/components/patio/CarretaNaPortaria';
 import { DescarregadoBotao } from '@/components/patio/DescarregadoBotao';
+import { CarregadoBotao } from '@/components/patio/CarregadoBotao';
 import { normalizarLocal } from '@/lib/domain/local';
 import { chavePublicaPush } from '@/lib/services/push';
 
@@ -36,6 +37,18 @@ async function carregarCarretas() {
   } catch {
     return []; // idem
   }
+}
+
+type LinhaPatio = { descarregadaEm: Date | null; saidaEm: Date | null; cargaDescarga: boolean; cargaCarregadaEm: Date | null };
+
+/** Rótulo do caminhão na lista do Pátio. Carga e descarga só fica "pode sair" depois do carregamento. */
+function rotuloPatio(c: LinhaPatio): string {
+  if (!c.descarregadaEm) return 'Chegou — toque para descarregar';
+  if (c.cargaDescarga) {
+    if (!c.cargaCarregadaEm) return 'Descarregado — aguardando carregamento';
+    return c.saidaEm ? 'Carregado — já saiu' : 'Carregado — pode sair';
+  }
+  return c.saidaEm ? 'Já saiu — falta medir' : 'Descarregado — falta medir';
 }
 
 function hora(d: Date | null): string {
@@ -88,12 +101,13 @@ export default async function PatioHomePage() {
                 {c.observacao && <p className="mt-1 text-sm text-warn">Portaria: {c.observacao}</p>}
                 <span className="mt-1 flex flex-wrap gap-2">
                   <span className="badge badge-ok">
-                    {c.descarregadaEm ? (c.saidaEm ? 'Já saiu — falta medir' : 'Descarregado — falta medir') : 'Chegou — toque para descarregar'}
+                    {rotuloPatio(c)}
                   </span>
                   {c.cargaDescarga && <span className="badge badge-warn">Carga e descarga{c.destinoCarga ? ` → ${c.destinoCarga}` : ''}</span>}
                 </span>
               </Link>
-              {!c.descarregadaEm && <DescarregadoBotao id={c.id} />}
+              {!c.descarregadaEm && <DescarregadoBotao id={c.id} cargaDescarga={c.cargaDescarga} />}
+              {c.cargaDescarga && c.descarregadaEm && !c.cargaCarregadaEm && !c.saidaEm && <CarregadoBotao id={c.id} />}
             </div>
           ))}
         </section>

@@ -3,7 +3,7 @@ import { ErroRegraNegocio } from '@/lib/services/errors';
 import { enviarAvisoPush } from '@/lib/services/push';
 import { motivoNaoPodeConfirmarSaidaChegada } from '@/lib/domain/portaria';
 import { normalizarLocal } from '@/lib/domain/local';
-import { estadoChegada, motivoNaoPodeLiberarChegada, ROTULO_ESTADO_CHEGADA } from '@/lib/domain/portaria';
+import { estadoChegada, motivoNaoPodeLiberarChegada, motivoNaoPodeMarcarCarregada, ROTULO_ESTADO_CHEGADA } from '@/lib/domain/portaria';
 import type { DadosChegada } from '@/lib/validation/chegada';
 
 /**
@@ -68,6 +68,19 @@ export async function marcarChegadaDescarregada(id: string, atorNome: string): P
   const r = await prisma.chegadaCaminhao.updateMany({
     where: { id, liberadaEm: { not: null }, canceladaEm: null, movimentacaoId: null, descarregadaEm: null },
     data: { descarregadaEm: new Date(), descarregadaPor: atorNome },
+  });
+  if (r.count === 0) throw new ErroRegraNegocio('Não foi possível concluir: a situação mudou. Atualize a tela.');
+}
+
+/** Pátio, carga e descarga: o caminhão foi carregado e a medição da carga é registrada. Libera a saída para a Portaria. */
+export async function marcarChegadaCarregada(id: string, medidaM: number | null, atorNome: string): Promise<void> {
+  const c = await prisma.chegadaCaminhao.findUnique({ where: { id } });
+  if (!c) throw new ErroRegraNegocio('Chegada não encontrada.');
+  const motivo = motivoNaoPodeMarcarCarregada(c, medidaM);
+  if (motivo || medidaM === null) throw new ErroRegraNegocio(motivo ?? 'Informe a medição da carga.');
+  const r = await prisma.chegadaCaminhao.updateMany({
+    where: { id, cargaDescarga: true, cargaCarregadaEm: null, saidaEm: null, canceladaEm: null, descarregadaEm: { not: null } },
+    data: { cargaCarregadaEm: new Date(), cargaCarregadaPor: atorNome, cargaMedidaM: medidaM },
   });
   if (r.count === 0) throw new ErroRegraNegocio('Não foi possível concluir: a situação mudou. Atualize a tela.');
 }
@@ -150,7 +163,7 @@ export async function cancelarChegada(id: string): Promise<void> {
 export async function listarChegadasLiberadas() {
   return prisma.chegadaCaminhao.findMany({
     where: { liberadaEm: { not: null }, canceladaEm: null, movimentacaoId: null },
-    select: { id: true, origem: true, transportadora: true, placaCarreta: true, placaCavalo: true, liberadaEm: true, materialPrevisto: true, observacao: true, descarregadaEm: true, saidaEm: true, ordemDia: true, ordemData: true, cargaDescarga: true, destinoCarga: true },
+    select: { id: true, origem: true, transportadora: true, placaCarreta: true, placaCavalo: true, liberadaEm: true, materialPrevisto: true, observacao: true, descarregadaEm: true, saidaEm: true, ordemDia: true, ordemData: true, cargaDescarga: true, destinoCarga: true, cargaCarregadaEm: true },
     orderBy: [{ ordemData: 'asc' }, { ordemDia: 'asc' }, { liberadaEm: 'asc' }],
   });
 }

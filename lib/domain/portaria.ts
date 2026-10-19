@@ -77,6 +77,8 @@ export interface ChegadaBasica {
   movimentacaoId: string | null;
   descarregadaEm?: Date | null;
   saidaEm: Date | null;
+  cargaDescarga?: boolean;
+  cargaCarregadaEm?: Date | null;
 }
 
 /**
@@ -122,5 +124,18 @@ export function motivoNaoPodeConfirmarSaidaChegada(c: ChegadaBasica): string | n
   if (estado === 'SAIU') return 'A saída deste caminhão já foi confirmada.';
   if (estado === 'CANCELADA') return 'Esta chegada foi cancelada.';
   if (estado !== 'RECEBIDA') return 'O Pátio ainda não terminou de descarregar este caminhão.';
+  if (c.cargaDescarga && !c.cargaCarregadaEm) return 'Este caminhão ainda não foi carregado. A saída só sai depois do carregamento.';
+  return null;
+}
+
+/** Pátio, carga e descarga: por que NÃO dá para confirmar o carregamento (null = pode). Medição da carga é obrigatória. */
+export function motivoNaoPodeMarcarCarregada(c: ChegadaBasica, medidaM: number | null): string | null {
+  const estado = estadoChegada(c);
+  if (estado === 'CANCELADA') return 'Esta chegada foi cancelada.';
+  if (estado === 'SAIU') return 'Este caminhão já saiu.';
+  if (!c.cargaDescarga) return 'Este caminhão não é de carga e descarga.';
+  if (!c.descarregadaEm) return 'Confirme primeiro que o caminhão foi descarregado.';
+  if (c.cargaCarregadaEm) return 'O carregamento deste caminhão já foi confirmado.';
+  if (medidaM === null || !Number.isFinite(medidaM) || medidaM <= 0) return 'Informe a medição da carga antes de liberar a saída.';
   return null;
 }

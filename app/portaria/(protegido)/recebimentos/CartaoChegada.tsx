@@ -51,6 +51,8 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
   const rascunho = item.estado === 'AGUARDANDO_LIBERACAO';
   const chegou = item.estado === 'LIBERADA';
   const descarregado = item.estado === 'RECEBIDA';
+  // Carga e descarga: a saída só libera depois que o Pátio confirma o carregamento.
+  const aguardaCarga = descarregado && item.cargaDescarga && !item.cargaCarregadaEm;
   const saiu = item.estado === 'SAIU';
   const semSalvar = saiu || descarregado;
 
@@ -181,7 +183,8 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
 
           {rascunho && <p className="text-sm text-ink-muted">Preencha ao menos uma placa e toque em &ldquo;Registrar chegada&rdquo;. O Pátio será avisado.</p>}
           {chegou && <p className="rounded-lg bg-warn/10 px-3 py-2 text-sm text-warn">Chegada registrada. O Pátio vai descarregar; você será avisado quando terminar.</p>}
-          {descarregado && <p className="rounded-lg bg-ok/10 px-3 py-2 text-sm text-ok">O Pátio descarregou. Quando o caminhão passar pela portaria, toque em &ldquo;Saída confirmada&rdquo;.</p>}
+          {aguardaCarga && <p className="rounded-lg bg-warn/10 px-3 py-2 text-sm text-warn">O Pátio descarregou. Aguardando o carregamento: a saída libera depois que o Pátio confirmar a carga.</p>}
+          {descarregado && !aguardaCarga && <p className="rounded-lg bg-ok/10 px-3 py-2 text-sm text-ok">O Pátio descarregou. Quando o caminhão passar pela portaria, toque em &ldquo;Saída confirmada&rdquo;.</p>}
           {saiu && <p className="rounded-lg bg-surface-2 px-3 py-2 text-sm text-ink-muted">Caminhão saiu. Só consulta.</p>}
           {!rascunho && <p className="text-xs text-ink-muted">O PDF leva o que está <b>salvo</b>: toque em &ldquo;Salvar dados&rdquo; antes de baixar.</p>}
 
@@ -199,7 +202,7 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
                 {pendente ? 'Aguarde...' : 'Registrar chegada'}
               </button>
             )}
-            {descarregado && (
+            {descarregado && !aguardaCarga && (
               <button
                 type="button"
                 className="btn btn-primary h-12 col-span-2 order-first"
