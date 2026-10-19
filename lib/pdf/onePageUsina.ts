@@ -89,7 +89,7 @@ function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number,
   }
   p.texto(s.grafico.titulo, x + 8, base + 90, 6.5, 'negrito', CINZA);
   desenharGrafico(p, s.grafico, x + 8, base + 24, w - 16, 56);
-  textoDireita(p, `Dias do mês: 1 a ${s.grafico.series[0]?.valores.length ?? 0} (embaixo)`, x + w - 8, base + 12, 6, 'negrito', CINZA);
+  textoDireita(p, `Dias do mês (1 a ${s.grafico.series[0]?.valores.length ?? 0})`, x + w - 8, base + 12, 6, 'negrito', CINZA);
 }
 
 export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
