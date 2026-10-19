@@ -167,6 +167,20 @@ export interface ChegadaPrefill {
   observacao?: string;
 }
 
+/** Traduz o primeiro erro do Zod em frase para o Pátio, dizendo qual grupo corrigir. */
+function descreverErroValidacao(
+  issue: { message: string; path: PropertyKey[] } | undefined,
+  totalGrupos: number,
+): string {
+  if (!issue) return 'Dados inválidos. Revise os campos e tente novamente.';
+  const [raiz, indiceGrupo] = issue.path;
+  if (raiz === 'grupos' && typeof indiceGrupo === 'number') {
+    const sufixo = totalGrupos > 1 ? ` (grupo ${indiceGrupo + 1})` : '';
+    return `${issue.message}${sufixo}`;
+  }
+  return issue.message;
+}
+
 export function RecebimentoWizard({
   fatoresCadastrados,
   chegada = null,
@@ -404,7 +418,7 @@ export function RecebimentoWizard({
     const parsed = recebimentoCaminhaoSchema.safeParse(payload);
     if (!parsed.success) {
       setEnviando(false);
-      setErroFinal('Dados inválidos. Revise os campos e tente novamente.');
+      setErroFinal(descreverErroValidacao(parsed.error.issues[0], payload.grupos.length));
       return;
     }
 
