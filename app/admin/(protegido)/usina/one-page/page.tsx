@@ -7,6 +7,8 @@ import {
   trilheirosDoPeriodo,
   META_GERACAO_MENSAL_M,
 } from '@/lib/services/usina';
+import { seriesDoMes } from '@/lib/services/usinaGraficos';
+import { GraficoBarras } from '@/components/usina/GraficoBarras';
 import { fmtMetros, fmtPeso } from '@/lib/format';
 import { ehIsoValido } from '@/lib/usina/periodo';
 import { ImprimirBotao } from '@/components/usina/ImprimirBotao';
@@ -16,8 +18,8 @@ export const dynamic = 'force-dynamic';
 const br = (iso: string) => iso.split('-').reverse().join('/');
 const soma = <T,>(lista: T[], f: (x: T) => number) => lista.reduce((a, x) => a + f(x), 0);
 
-/** Um setor: mesmo tamanho para todos. Dia à esquerda, mês à direita. */
-function Setor({ titulo, dia, mes }: { titulo: string; dia: ReactNode; mes: ReactNode }) {
+/** Um setor: mesmo tamanho para todos. Dia à esquerda, mês à direita, gráfico embaixo. */
+function Setor({ titulo, dia, mes, grafico }: { titulo: string; dia: ReactNode; mes: ReactNode; grafico?: ReactNode }) {
   return (
     <section className="flex flex-col gap-3 rounded-lg border-2 border-black/70 p-3 break-inside-avoid">
       <h2 className="border-b border-black/30 pb-1 text-base font-bold">{titulo}</h2>
@@ -31,6 +33,7 @@ function Setor({ titulo, dia, mes }: { titulo: string; dia: ReactNode; mes: Reac
           {mes}
         </div>
       </div>
+      {grafico}
     </section>
   );
 }
@@ -52,6 +55,7 @@ export default async function OnePageUsina({ searchParams }: { searchParams: Pro
   const params = await searchParams;
   const data = ehIsoValido(params.data) ? params.data : new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
 
+  const serie = await seriesDoMes(data);
   const [estD, estM, gerD, gerM, compD, compM, camD, camM, trilD, trilM] = await Promise.all([
     estaleiroDoPeriodo('dia', data),
     estaleiroDoPeriodo('mes', data),
@@ -120,6 +124,16 @@ export default async function OnePageUsina({ searchParams }: { searchParams: Pro
             titulo="Estaleiro de solda"
             dia={<Itens itens={estItens(estD)} />}
             mes={<Itens itens={estItens(estM)} />}
+            grafico={
+              <GraficoBarras
+                titulo="Soldas e cortes por dia (mês)"
+                rotulos={serie.rotulos}
+                series={[
+                  { nome: 'Soldas', cor: '#2563eb', valores: serie.estaleiro.soldas },
+                  { nome: 'Cortes', cor: '#059669', valores: serie.estaleiro.cortes },
+                ]}
+              />
+            }
           />
           <Setor
             titulo="Geração de trilho"
@@ -142,16 +156,48 @@ export default async function OnePageUsina({ searchParams }: { searchParams: Pro
                 ]}
               />
             }
+            grafico={
+              <GraficoBarras
+                titulo="Metros por dia (mês)"
+                unidade=" m"
+                rotulos={serie.rotulos}
+                series={[
+                  { nome: 'Corte', cor: '#64748b', valores: serie.geracao.corte },
+                  { nome: 'Carregado', cor: '#2563eb', valores: serie.geracao.carregado },
+                  { nome: 'Deixado na via', cor: '#f59e0b', valores: serie.geracao.deixado },
+                ]}
+              />
+            }
           />
           <Setor
             titulo="Composições ativas"
             dia={<Itens itens={compItens(compD)} />}
             mes={<Itens itens={compItens(compM)} />}
+            grafico={
+              <GraficoBarras
+                titulo="Barras por dia (mês)"
+                rotulos={serie.rotulos}
+                series={[
+                  { nome: 'W61', cor: '#2563eb', valores: serie.composicoes.W61 ?? [] },
+                  { nome: 'W62', cor: '#059669', valores: serie.composicoes.W62 ?? [] },
+                ]}
+              />
+            }
           />
           <Setor
             titulo="Caminhão de solda"
             dia={<Itens itens={camItens(camD, false)} />}
             mes={<Itens itens={camItens(camM, true)} />}
+            grafico={
+              <GraficoBarras
+                titulo="Produção por dia (mês)"
+                rotulos={serie.rotulos}
+                series={[
+                  { nome: 'CW01', cor: '#2563eb', valores: serie.caminhao.CW01 ?? [] },
+                  { nome: 'CW02', cor: '#059669', valores: serie.caminhao.CW02 ?? [] },
+                ]}
+              />
+            }
           />
           <Setor
             titulo="Trilheiros"
