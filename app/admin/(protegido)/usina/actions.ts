@@ -142,6 +142,7 @@ export async function salvarComposicaoAction(_: ResultadoUsina | undefined, form
   const jacares = inteiro(formData.get('jacares'));
   if (barras === 'invalido' || jacares === 'invalido') return { ok: false, erro: 'Use só números inteiros.' };
   await salvarComposicao(data, ativo, barras, jacares, texto(formData.get('observacao')));
+  revalidatePath('/admin/informativo');
   atualizar();
   return { ok: true };
 }

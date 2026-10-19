@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { informativoDoAno, META_RECOLHIMENTO_M, METROS_POR_BARRA } from '@/lib/services/informativo';
 import { cartoesDoFiltro, montarGrafico, niceEixo, parseSeries, rotuloFiltro, CHAVES_SERIE, ROTULO_CURTO, UNIDADES, type ChaveSerie, type Unidade } from '@/lib/services/informativoGrafico';
 import { fmtMetros } from '@/lib/format';
-import { RecolhimentoDiaForm } from './RecolhimentoDiaForm';
 import { BotaoBaixarPdf } from './BotaoBaixarPdf';
 
 export const dynamic = 'force-dynamic';
@@ -217,13 +216,6 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
           </table>
         </div>
         <p className="mt-3 text-xs text-ink-muted">Saldo para a meta usa o recolhido do ano (W61 + W62). W61 e W62 em barras; demais valores em metros.</p>
-      </section>
-      <section className="card space-y-3" aria-label="Lançar recolhido do dia">
-        <div>
-          <h2 className="font-condensed text-lg font-semibold uppercase tracking-wide">Recolhido do dia {dia.slice(8)}/{dia.slice(5, 7)}</h2>
-          <p className="text-sm text-ink-muted">Quanto foi recolhido de W61 e W62 neste dia, em barras.</p>
-        </div>
-        <RecolhimentoDiaForm data={dia} w61={Math.round(r.doDia.w61 / METROS_POR_BARRA)} w62={Math.round(r.doDia.w62 / METROS_POR_BARRA)} />
       </section>
     </main>
   );
