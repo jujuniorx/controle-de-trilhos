@@ -41,18 +41,24 @@ const telefone = opcional(
     .pipe(z.string().regex(/^\d{10,11}$/, 'Telefone inválido. Informe DDD + número.')),
 );
 
+/** Aceita "12,3", "12.3", "12, 3" ou "12 3": tira espaços e troca a vírgula decimal. Texto sem número vira NaN e é recusado depois. */
+function numeroDigitado(v: string): number {
+  const limpo = v.replace(/\s/g, '').replace(',', '.');
+  return /^\d+(\.\d+)?$/.test(limpo) ? Number(limpo) : Number.NaN;
+}
+
 const capacidade = opcional(
   z
     .union([z.string(), z.number()])
-    .transform((v) => (typeof v === 'number' ? v : Number(v.replace(',', '.'))))
-    .pipe(z.number().positive('A capacidade precisa ser maior que zero.').max(200, 'Capacidade muito alta (máx. 200 t).')),
+    .transform((v) => (typeof v === 'number' ? v : numeroDigitado(v)))
+    .pipe(z.number({ invalid_type_error: 'Informe um número, ex.: 28 ou 12,3.' }).positive('A capacidade precisa ser maior que zero.').max(200, 'Capacidade muito alta (máx. 200 t).')),
 );
 
 const comprimento = opcional(
   z
     .union([z.string(), z.number()])
-    .transform((v) => (typeof v === 'number' ? v : Number(v.replace(',', '.'))))
-    .pipe(z.number().positive('O comprimento precisa ser maior que zero.').max(60, 'Comprimento muito alto (máx. 60 m).')),
+    .transform((v) => (typeof v === 'number' ? v : numeroDigitado(v)))
+    .pipe(z.number({ invalid_type_error: 'Informe um número, ex.: 12,3.' }).positive('O comprimento precisa ser maior que zero.').max(60, 'Comprimento muito alto (máx. 60 m).')),
 );
 
 /** CPF digitado com os pontos e o traço automáticos (000.000.000-00). Só a formatação, não valida dígitos. */
