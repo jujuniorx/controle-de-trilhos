@@ -55,7 +55,7 @@ export function CamposGiro({ ciclo, opcoesPerfis }: { ciclo: CicloAberto | null;
         </div>
       </fieldset>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 items-end gap-3 sm:grid-cols-4">
         <div className="field">
           <label>TLS carregados</label>
           <input name="carregados" inputMode="numeric" value={carregados} onChange={(e) => setCarregados(e.target.value)} className="h-11" />
@@ -65,8 +65,8 @@ export function CamposGiro({ ciclo, opcoesPerfis }: { ciclo: CicloAberto | null;
           <input name="descarregados" inputMode="numeric" value={descarregados} onChange={(e) => setDescarregados(e.target.value)} className="h-11" />
         </div>
         <div className="field">
-          <label>Saldo (a descarregar)</label>
-          <p className={`flex h-11 items-center font-mono font-semibold ${saldo < 0 ? 'text-bad' : 'text-ink'}`}>{saldo}</p>
+          <label>Saldo a descarregar</label>
+          <p className={`flex h-11 items-center font-mono text-lg font-semibold ${saldo < 0 ? 'text-bad' : 'text-ink'}`}>{saldo}</p>
         </div>
         <div className="field">
           <label>Local</label>

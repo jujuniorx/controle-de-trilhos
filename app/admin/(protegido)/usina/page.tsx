@@ -186,7 +186,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
               <p className="text-sm">Corte: {fmtMetros(l.periodo.corteM)} m · Carregamento: {fmtMetros(l.periodo.carregamentoM)} m</p>
               <p className="text-sm">Barras: {l.periodo.quantidade} · Deixadas na via: {fmtMetros(l.periodo.deixadaViaM)} m</p>
               <p className="text-xs text-ink-muted">
-                Mês: {fmtMetros(l.mes.totalM)} m (carregado + deixado) · {l.mes.metaAlcancada ? 'meta de 5.000 m alcançada' : 'abaixo da meta de 5.000 m'}
+                Mês: {fmtMetros(l.mes.totalM)} m (carregado + deixado)
               </p>
             </div>
           ))}
@@ -332,8 +332,16 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
               : null;
             return (
               <details className="card" key={t} open={Boolean(ciclo)}>
-                <summary className="cursor-pointer font-semibold">
-                  {t} — {ciclo ? 'ciclo em aberto' : 'lançar giro'}
+                <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2 font-semibold">
+                  <span>{t}</span>
+                  {ciclo ? (
+                    <span className="text-sm font-normal text-ink-muted">
+                      Saldo a descarregar: <strong className="font-mono text-ink">{ciclo.carregados - ciclo.descarregados}</strong> TLS
+                      <span className="ml-2">({ciclo.carregados} carregados, {ciclo.descarregados} descarregados)</span>
+                    </span>
+                  ) : (
+                    <span className="text-sm font-normal text-ink-muted">lançar giro</span>
+                  )}
                 </summary>
                 <div className="mt-3">
                   <FormularioUsina acao={salvarGiroAction} rotuloBotao={ciclo ? 'Salvar ciclo' : 'Iniciar ciclo'}>

@@ -1,17 +1,16 @@
 import { METROS_POR_BARRA } from '@/lib/domain/informativo';
 import type { Quadro } from '@/lib/services/informativo';
 
-/** Unidade do eixo: barras (W61/W62 nativos; usina convertida) ou metros (W61/W62 × 10,5; usina real). */
+/** Unidade do eixo: barras (W61/W62 nativos) ou metros (W61/W62 × 10,5). */
 export type Unidade = 'barras' | 'metros';
 export const UNIDADES: readonly Unidade[] = ['barras', 'metros'];
 
-export const CHAVES_SERIE = ['usina', 'w61', 'w62'] as const;
+export const CHAVES_SERIE = ['w61', 'w62'] as const;
 export type ChaveSerie = (typeof CHAVES_SERIE)[number];
-export const ROTULO_CURTO: Record<ChaveSerie, string> = { usina: 'Usina', w61: 'W61', w62: 'W62' };
+export const ROTULO_CURTO: Record<ChaveSerie, string> = { w61: 'W61', w62: 'W62' };
 
-export const CORES = { usina: '#4a6cd4', w61: '#e8a33d', w62: '#16a34a' } as const;
-export const ROTULOS = { usina: 'Recebidos estaleiro de solda', w61: 'Recolhido W61', w62: 'Recolhido W62' } as const;
-
+export const CORES = { w61: '#e8a33d', w62: '#16a34a' } as const;
+export const ROTULOS = { w61: 'Recolhido W61', w62: 'Recolhido W62' } as const;
 
 export interface SerieGrafico {
   chave: ChaveSerie;
@@ -39,7 +38,7 @@ export function rotuloFiltro(chaves: ChaveSerie[]): string {
  */
 export function montarGrafico(meses: Quadro[], chaves: ChaveSerie[], unidade: Unidade): { indices: number[]; series: SerieGrafico[] } {
   const fator = unidade === 'barras' ? 1 / METROS_POR_BARRA : 1;
-  const valorDe = (m: Quadro, c: ChaveSerie) => (c === 'usina' ? m.recebido : c === 'w61' ? m.w61 : m.w62);
+  const valorDe = (m: Quadro, c: ChaveSerie) => (c === 'w61' ? m.w61 : m.w62);
   const indices = meses.map((_, i) => i).filter((i) => chaves.some((c) => valorDe(meses[i], c) > 0));
   const series: SerieGrafico[] = chaves.map((chave) => ({
     chave,
@@ -62,11 +61,10 @@ export function niceEixo(topo: number): { max: number; passo: number } {
 }
 
 /** Quais cartões aparecem para o filtro escolhido: só o que o filtro mostra. */
-export function cartoesDoFiltro(chaves: ChaveSerie[]): { meta: boolean; usina: boolean; w61: boolean; w62: boolean; pendente: boolean } {
+export function cartoesDoFiltro(chaves: ChaveSerie[]): { meta: boolean; w61: boolean; w62: boolean; pendente: boolean } {
   const tem = (c: ChaveSerie) => chaves.includes(c);
   return {
     meta: tem('w61') || tem('w62'),
-    usina: tem('usina'),
     w61: tem('w61'),
     w62: tem('w62'),
     pendente: tem('w61') && tem('w62'), // a sobra precisa das duas séries de recolhimento

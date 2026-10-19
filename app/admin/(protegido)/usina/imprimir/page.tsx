@@ -6,7 +6,6 @@ import {
   trilheirosDoPeriodo,
   ROTULO_TLS,
   TIPOS_TLS,
-  META_GERACAO_MENSAL_M,
   rotuloComposicao,
 } from '@/lib/services/usina';
 import { fmtMetros, fmtPeso } from '@/lib/format';
@@ -80,7 +79,7 @@ export default async function ImprimirUsina({
   const soma = <T,>(lista: T[], f: (x: T) => number) => lista.reduce((a, x) => a + f(x), 0);
   const gerDiaTxt = `Corte ${fmtMetros(soma(gerDia.porLider, (l) => l.periodo.corteM))} m · Carregado ${fmtMetros(soma(gerDia.porLider, (l) => l.periodo.carregamentoM))} m · Deixado na via ${fmtMetros(soma(gerDia.porLider, (l) => l.periodo.deixadaViaM))} m · Barras ${soma(gerDia.porLider, (l) => l.periodo.quantidade)}`;
   const gerMesTotal = soma(gerMes.porLider, (l) => l.mes.totalM);
-  const gerMesTxt = `Carregado + deixado ${fmtMetros(gerMesTotal)} m (meta ${fmtMetros(META_GERACAO_MENSAL_M)} m${gerMesTotal >= META_GERACAO_MENSAL_M ? ', alcançada' : ''})`;
+  const gerMesTxt = `Carregado + deixado ${fmtMetros(gerMesTotal)} m`;
   const compTxt = (lista: typeof compDia) => lista.map((c) => `${rotuloComposicao(c.ativo)}: ${c.barras} barras · ${c.jacares} jacarés`).join(' · ');
   const camTxt = (lista: typeof camDia) => `Produção ${soma(lista, (c) => c.periodo.producao)} · Perda ${soma(lista, (c) => c.periodo.perda)}`;
   const camMesTxt = (lista: typeof camMes) => `Produção ${soma(lista, (c) => c.mes.producao)} · Perda ${soma(lista, (c) => c.mes.perda)}`;
@@ -132,7 +131,7 @@ export default async function ImprimirUsina({
             <h2 className="text-lg font-semibold">Geração de trilho</h2>
             <Acumulado dia={gerDiaTxt} mes={gerMesTxt} />
             <Tabela
-              cab={['Líder', 'Corte (m)', 'Carregamento (m)', 'Barras', 'Deixada na via (m)', 'Mês: carregado + deixado (m)', 'Meta 5.000 m']}
+              cab={['Líder', 'Corte (m)', 'Carregamento (m)', 'Barras', 'Deixada na via (m)', 'Mês: carregado + deixado (m)']}
               linhas={ger.porLider.map((l) => [
                 l.rotulo,
                 fmtMetros(l.periodo.corteM),
@@ -140,7 +139,6 @@ export default async function ImprimirUsina({
                 l.periodo.quantidade,
                 fmtMetros(l.periodo.deixadaViaM),
                 fmtMetros(l.mes.totalM),
-                l.mes.metaAlcancada ? 'Alcançada' : 'Não alcançada',
               ])}
             />
           </section>

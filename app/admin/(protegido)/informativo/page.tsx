@@ -82,7 +82,6 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
     { rotulo: 'W61', cor: '#e8a33d', destaque: false, dia: { principal: `${barras(r.doDia.w61)} barras`, secundario: `${fmtMetros(r.doDia.w61)} m` }, mes: { principal: `${barras(r.acumMes.w61)} barras`, secundario: `${fmtMetros(r.acumMes.w61)} m` } },
     { rotulo: 'W62', cor: '#16a34a', destaque: false, dia: { principal: `${barras(r.doDia.w62)} barras`, secundario: `${fmtMetros(r.doDia.w62)} m` }, mes: { principal: `${barras(r.acumMes.w62)} barras`, secundario: `${fmtMetros(r.acumMes.w62)} m` } },
     { rotulo: 'Geração', cor: '#8b93a7', destaque: false, dia: m(r.doDia.geracao), mes: m(r.acumMes.geracao) },
-    { rotulo: 'Recebido estaleiro', cor: '#4a6cd4', destaque: false, dia: m(r.doDia.recebido), mes: m(r.acumMes.recebido) },
     { rotulo: 'Recolhido (W61 + W62)', cor: '#16a34a', destaque: true, dia: m(r.doDia.recolhido), mes: m(r.acumMes.recolhido) },
     { rotulo: 'Ainda não chegou', cor: '#e5484d', destaque: true, dia: m(r.doDia.naoChegou), mes: m(r.acumMes.naoChegou) },
   ];
@@ -158,12 +157,11 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           {visiveis.meta && (<div className="inf-cartao" style={{ animationDelay: '0ms' }}><p className="text-xs uppercase text-ink-muted">Meta de recolhimento</p><p className="text-lg font-semibold">{fmtMetros(META_RECOLHIMENTO_M)} m</p></div>)}
-          {visiveis.usina && (<div className="inf-cartao" style={{ animationDelay: '120ms' }}><p className="text-xs uppercase text-ink-muted">Recebidos estaleiro de solda</p><p className="text-lg font-semibold" style={{ color: '#4a6cd4' }}>{fmtMetros(r.acumAno.recebido)} m</p></div>)}
           {visiveis.pendente && (<div className="inf-cartao" style={{ animationDelay: '240ms' }}><p className="text-xs uppercase text-ink-muted">Pendente (sobra)</p><p className="text-lg font-semibold text-warn">{fmtMetros(pendente)} m</p></div>)}
           {visiveis.w61 && (<div className="inf-cartao" style={{ animationDelay: '360ms' }}><p className="text-xs uppercase text-ink-muted">Recolhido W61</p><p className="text-lg font-semibold" style={{ color: '#e8a33d' }}>{barras(r.acumAno.w61)} barras</p><p className="text-xs text-ink-muted">{fmtMetros(r.acumAno.w61)} m</p></div>)}
           {visiveis.w62 && (<div className="inf-cartao" style={{ animationDelay: '480ms' }}><p className="text-xs uppercase text-ink-muted">Recolhido W62</p><p className="text-lg font-semibold" style={{ color: '#16a34a' }}>{barras(r.acumAno.w62)} barras</p><p className="text-xs text-ink-muted">{fmtMetros(r.acumAno.w62)} m</p></div>)}
         </div>
-        <p className="text-xs text-ink-muted">W61 e W62: barras × {METROS_POR_BARRA.toLocaleString('pt-BR')} m. Recebidos estaleiro de solda: medidas reais, em metros. Pendente = meta - recolhido.</p>
+        <p className="text-xs text-ink-muted">W61 e W62: barras × {METROS_POR_BARRA.toLocaleString('pt-BR')} m. Pendente = meta - recolhido.</p>
       </section>
 
       <section className="card" aria-label="Quadro do dia">

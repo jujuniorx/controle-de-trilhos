@@ -5,7 +5,6 @@ import {
   composicoesDoPeriodo,
   caminhoesDoPeriodo,
   trilheirosDoPeriodo,
-  META_GERACAO_MENSAL_M,
   rotuloComposicao,
 } from '@/lib/services/usina';
 import { seriesDoMes } from '@/lib/services/usinaGraficos';
@@ -93,8 +92,6 @@ export default async function OnePageUsina({ searchParams }: { searchParams: Pro
   ]);
 
   const metrosMesGerados = soma(gerM.porLider, (l) => l.mes.totalM);
-  const pctMeta = Math.min(100, Math.round((metrosMesGerados / META_GERACAO_MENSAL_M) * 100));
-  const metaOk = metrosMesGerados >= META_GERACAO_MENSAL_M;
   const barrasMesComposicoes = soma(compM, (c) => c.barras);
   const producaoMesCaminhoes = soma(camM, (c) => c.mes.producao);
 
@@ -135,19 +132,6 @@ export default async function OnePageUsina({ searchParams }: { searchParams: Pro
 
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <Kpi rotulo="Soldas no mês" valor={String(estM.totais.soldas)} cor={CORES.estaleiro} sub={`${estD.totais.soldas} no dia`} />
-          <Kpi
-            rotulo="Metros no mês"
-            valor={metros(metrosMesGerados)}
-            cor={CORES.geracao}
-            sub={
-              <span className="block">
-                <span className="mb-1 block h-1.5 w-full overflow-hidden rounded bg-slate-200">
-                  <span className="block h-full rounded" style={{ width: `${pctMeta}%`, background: metaOk ? '#059669' : '#f59e0b' }} />
-                </span>
-                {pctMeta}% da meta de {fmtMetros(META_GERACAO_MENSAL_M)} m
-              </span>
-            }
-          />
           <Kpi rotulo="Barras de composição" valor={String(barrasMesComposicoes)} cor={CORES.composicoes} sub="no mês, W61 + W62" />
           <Kpi rotulo="Produção caminhão" valor={String(producaoMesCaminhoes)} cor={CORES.caminhao} sub="no mês, CW01 + CW02" />
         </div>
