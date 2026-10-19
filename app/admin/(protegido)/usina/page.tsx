@@ -16,6 +16,9 @@ import {
 import { PERFIS } from '@/lib/validation/recebimento';
 import { CarretasGeracao } from '@/components/usina/CarretasGeracao';
 import { CamposGiro, type CicloAberto } from '@/components/usina/CamposGiro';
+import { IconeImprimir } from '@/components/icones/Icones';
+
+const SETORES: [string, string][] = [['estaleiro', 'Estaleiro'], ['geracao', 'Geração'], ['composicoes', 'Composições'], ['caminhao', 'Caminhão de solda'], ['trilheiros', 'Trilheiros']];
 import { fmtMetros, fmtPeso } from '@/lib/format';
 import { PERIODOS, ehIsoValido, type Periodo } from '@/lib/usina/periodo';
 import { FormularioUsina } from '@/components/usina/FormularioUsina';
@@ -93,19 +96,21 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         <p className="w-full text-sm text-ink-muted">Mostrando: {br(est.inicio)}{est.inicio !== est.fim ? ` a ${br(est.fim)}` : ''}</p>
       </form>
 
-      <nav aria-label="Ir para o setor" className="flex flex-wrap items-center gap-2 text-sm">
-        <span className="text-ink-muted">Ir para:</span>
-        {[['estaleiro', 'Estaleiro'], ['geracao', 'Geração'], ['composicoes', 'Composições'], ['caminhao', 'Caminhão de solda'], ['trilheiros', 'Trilheiros']].map(([valor, rotulo]) => (
-          <a key={valor} className="btn btn-ghost h-9" href={`#${valor}`}>{rotulo}</a>
+      <nav aria-label="Setores" className="flex flex-wrap items-center gap-2 border-b border-line pb-3 text-sm">
+        {SETORES.map(([valor, rotulo]) => (
+          <a key={valor} className="btn btn-ghost btn-sm" href={`#${valor}`}>{rotulo}</a>
         ))}
-      </nav>
-
-      <nav aria-label="Imprimir" className="flex flex-wrap gap-2 text-sm">
-        <span className="self-center text-ink-muted">Imprimir:</span>
-        {[['estaleiro', 'Estaleiro'], ['geracao', 'Geração'], ['composicoes', 'Composições'], ['caminhao', 'Caminhão de solda'], ['trilheiros', 'Trilheiros']].map(([valor, rotulo]) => (
-          <a key={valor} className="btn btn-ghost h-9" href={`/admin/usina/imprimir?periodo=${periodo}&data=${data}&setor=${valor}`}>{rotulo}</a>
-        ))}
-        <a className="btn btn-primary h-9" href={`/admin/usina/one-page?data=${data}`}>One page (todos os setores)</a>
+        <details className="relative ml-auto">
+          <summary className="btn btn-secondary btn-sm cursor-pointer list-none">
+            <IconeImprimir size={14} /> Imprimir
+          </summary>
+          <div className="absolute right-0 z-10 mt-2 flex min-w-48 flex-col gap-1 rounded-lg border border-line bg-surface p-2 shadow-lg">
+            {SETORES.map(([valor, rotulo]) => (
+              <a key={valor} className="rounded px-3 py-2 hover:bg-surface-2" href={`/admin/usina/imprimir?periodo=${periodo}&data=${data}&setor=${valor}`}>{rotulo}</a>
+            ))}
+            <a className="rounded px-3 py-2 font-semibold hover:bg-surface-2" href={`/admin/usina/one-page?data=${data}`}>One page (todos)</a>
+          </div>
+        </details>
       </nav>
 
       {/* ── Estaleiro de solda ─────────────────────────────────────── */}
