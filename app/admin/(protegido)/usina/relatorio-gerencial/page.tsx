@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react';
 import { montarDadosRelatorio, type SetorRelatorio } from '@/lib/services/onePageUsina';
 import { GraficoBarras } from '@/components/usina/GraficoBarras';
 import { ehIsoValido } from '@/lib/usina/periodo';
