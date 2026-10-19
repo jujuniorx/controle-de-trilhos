@@ -55,12 +55,21 @@ function Setor({ titulo, cor, linhas, grafico }: { titulo: string; cor: string; 
   );
 }
 
-function Kpi({ rotulo, valor, sub, cor }: { rotulo: string; valor: string; sub?: ReactNode; cor: string }) {
+/** Indicador de setor: o valor do dia e o do mês lado a lado, em blocos separados. */
+function Resumo({ rotulo, cor, dia, mes }: { rotulo: string; cor: string; dia: string; mes: string }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white px-4 py-3" style={{ borderTop: `3px solid ${cor}` }}>
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{rotulo}</p>
-      <p className="mt-0.5 text-xl font-bold tabular-nums text-slate-900">{valor}</p>
-      {sub && <div className="mt-1 text-xs text-slate-500">{sub}</div>}
+    <div className="rounded-lg border border-slate-200 bg-white p-3" style={{ borderTop: `3px solid ${cor}` }}>
+      <p className="text-[11px] font-bold uppercase tracking-wide text-slate-600">{rotulo}</p>
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        <div className="rounded-md bg-slate-50 p-2">
+          <p className="text-[10px] uppercase tracking-wide text-slate-500">Do dia</p>
+          <p className="text-base font-bold tabular-nums text-slate-900">{dia}</p>
+        </div>
+        <div className="rounded-md p-2" style={{ background: `${cor}14` }}>
+          <p className="text-[10px] uppercase tracking-wide text-slate-500">Do mês</p>
+          <p className="text-base font-bold tabular-nums" style={{ color: cor }}>{mes}</p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -102,15 +111,16 @@ export default async function OnePageUsina({ searchParams }: { searchParams: Pro
         @media print {
           body * { visibility: hidden; }
           #one-page-usina, #one-page-usina * { visibility: visible; }
-          #one-page-usina { position: absolute; left: 0; top: 0; width: 100%; padding: 0; }
+          #one-page-usina { position: absolute; left: 0; top: 0; width: 100%; padding: 0; background: #fff; }
           .sem-impressao { display: none !important; }
           #one-page-usina { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
       `}</style>
 
       <div className="sem-impressao flex flex-wrap items-center gap-3">
-        <ImprimirBotao />
+        <ImprimirBotao rotulo="Salvar como PDF" />
         <a className="btn btn-ghost h-11" href={`/admin/usina?data=${data}`}>Voltar</a>
+        <p className="w-full text-xs text-ink-muted">No PC: na janela de impressão, em Destino, escolha "Salvar como PDF". No iPhone: toque em Compartilhar e depois em "Salvar em Arquivos" ou "Imprimir" e abra o PDF pela visualização.</p>
         <form action="" className="flex items-center gap-2 text-sm">
           <label htmlFor="data">Dia</label>
           <input id="data" name="data" type="date" defaultValue={data} className="h-11" />
@@ -130,12 +140,14 @@ export default async function OnePageUsina({ searchParams }: { searchParams: Pro
           </div>
         </header>
 
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <Kpi rotulo="Soldas no mês" valor={String(estM.totais.soldas)} cor={CORES.estaleiro} sub={`${estD.totais.soldas} no dia`} />
-          <Kpi rotulo="Barras de composição" valor={String(barrasMesComposicoes)} cor={CORES.composicoes} sub="no mês, W61 + W62" />
-          <Kpi rotulo="Produção caminhão" valor={String(producaoMesCaminhoes)} cor={CORES.caminhao} sub="no mês, CW01 + CW02" />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <Resumo rotulo="Estaleiro de solda" cor={CORES.estaleiro} dia={String(estD.totais.soldas)} mes={String(estM.totais.soldas)} />
+          <Resumo rotulo="Geração de trilho" cor={CORES.geracao} dia={metros(soma(gerD.porLider, (l) => l.periodo.carregamentoM + l.periodo.deixadaViaM))} mes={metros(soma(gerM.porLider, (l) => l.mes.carregamentoM + l.mes.deixadaViaM))} />
+          <Resumo rotulo="Composições" cor={CORES.composicoes} dia={String(soma(compD, (c) => c.barras))} mes={String(barrasMesComposicoes)} />
+          <Resumo rotulo="Caminhão de solda" cor={CORES.caminhao} dia={String(soma(camD, (c) => c.periodo.producao))} mes={String(producaoMesCaminhoes)} />
         </div>
 
+        <p className="text-xs text-slate-500">Cada setor abaixo mostra o valor do dia e o acumulado do mês, com o gráfico dos dias do mês.</p>
         <div className="grid gap-4 md:grid-cols-2">
           <Setor
             titulo="Estaleiro de solda"
