@@ -83,11 +83,11 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         titulo: 'Estaleiro de solda',
         cor: CORES_SETOR.estaleiro,
         linhas: [
-          { rotulo: 'Soldas', dia: String(estD.totais.soldas), mes: String(estM.totais.soldas) },
-          { rotulo: 'Cortes', dia: String(estD.totais.cortes), mes: String(estM.totais.cortes) },
-          { rotulo: 'Tampões carregados', dia: String(estD.carreta.tampoes), mes: String(estM.carreta.tampoes) },
-          { rotulo: 'Trilho novo carregado', dia: metros(estD.carreta.trilhoNovoM), mes: metros(estM.carreta.trilhoNovoM) },
-          { rotulo: 'Sucata saída', dia: `${fmtPeso(estD.carreta.sucataT)} t`, mes: `${fmtPeso(estM.carreta.sucataT)} t` },
+          { rotulo: 'Soldas (unidades)', dia: String(estD.totais.soldas), mes: String(estM.totais.soldas) },
+          { rotulo: 'Cortes (unidades)', dia: String(estD.totais.cortes), mes: String(estM.totais.cortes) },
+          { rotulo: 'Tampões carregados (unidades)', dia: String(estD.carreta.tampoes), mes: String(estM.carreta.tampoes) },
+          { rotulo: 'Trilho novo carregado (m)', dia: metros(estD.carreta.trilhoNovoM), mes: metros(estM.carreta.trilhoNovoM) },
+          { rotulo: 'Sucata saída (t)', dia: `${fmtPeso(estD.carreta.sucataT)} t`, mes: `${fmtPeso(estM.carreta.sucataT)} t` },
         ],
         grafico: {
           titulo: 'Soldas e cortes por dia',
@@ -101,10 +101,10 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         titulo: 'Geração de trilho',
         cor: CORES_SETOR.geracao,
         linhas: [
-          { rotulo: 'Corte', dia: metros(geraDia((l) => l.periodo.corteM)), mes: metros(geraMes((l) => l.mes.corteM)) },
-          { rotulo: 'Carregado', dia: metros(geraDia((l) => l.periodo.carregamentoM)), mes: metros(geraMes((l) => l.mes.carregamentoM)) },
-          { rotulo: 'Deixado na via', dia: metros(geraDia((l) => l.periodo.deixadaViaM)), mes: metros(geraMes((l) => l.mes.deixadaViaM)) },
-          { rotulo: 'Barras', dia: String(geraDia((l) => l.periodo.quantidade)), mes: String(geraMes((l) => l.mes.quantidade)) },
+          { rotulo: 'Corte (m)', dia: metros(geraDia((l) => l.periodo.corteM)), mes: metros(geraMes((l) => l.mes.corteM)) },
+          { rotulo: 'Carregado (m)', dia: metros(geraDia((l) => l.periodo.carregamentoM)), mes: metros(geraMes((l) => l.mes.carregamentoM)) },
+          { rotulo: 'Deixado na via (m)', dia: metros(geraDia((l) => l.periodo.deixadaViaM)), mes: metros(geraMes((l) => l.mes.deixadaViaM)) },
+          { rotulo: 'Barras (unidades)', dia: String(geraDia((l) => l.periodo.quantidade)), mes: String(geraMes((l) => l.mes.quantidade)) },
         ],
         grafico: {
           titulo: 'Metros por dia',
@@ -119,8 +119,8 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         titulo: 'Recolhimento serra',
         cor: CORES_SETOR.serra,
         linhas: [
-          ...CIDADES_SERRA.map((c) => ({ rotulo: `${ROTULO_CIDADE[c]} · recolhido`, dia: metros(serraDia(c)), mes: metros(serraMesM(c)) })),
-          { rotulo: 'Total recolhido', dia: metros(serraTotalDia), mes: metros(serraTotalMes) },
+          ...CIDADES_SERRA.map((c) => ({ rotulo: `${ROTULO_CIDADE[c]} · recolhido (m)`, dia: metros(serraDia(c)), mes: metros(serraMesM(c)) })),
+          { rotulo: 'Total recolhido (m)', dia: metros(serraTotalDia), mes: metros(serraTotalMes) },
         ],
         grafico: {
           titulo: 'Metros recolhidos por dia',
