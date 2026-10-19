@@ -413,14 +413,31 @@ model GeracaoDia {
   lider         LiderGeracao
   local         String?
   corteM        Decimal?
+  // Colunas de carregamento/perfil/barras/deixada ficaram como legado: o dado agora está em GeracaoCarreta.
   carregamentoM Decimal?
   perfil        String?
   quantidade    Int?
   deixadaViaM   Decimal?
   observacao    String?
   atualizadoEm  DateTime      @updatedAt
+  carretas      GeracaoCarreta[]
 
   @@unique([data, lider])
+}
+
+/// Uma carreta carregada/deixada no dia por um líder. Um dia pode ter várias.
+model GeracaoCarreta {
+  id            String     @id @default(cuid())
+  geracaoDiaId  String
+  geracaoDia    GeracaoDia @relation(fields: [geracaoDiaId], references: [id], onDelete: Cascade)
+  perfis        String[]   @default([])
+  quantidade    Int?
+  carregamentoM Decimal?
+  deixadaViaM   Decimal?
+  ordem         Int        @default(0)
+  criadoEm      DateTime   @default(now())
+
+  @@index([geracaoDiaId])
 }
 
 // Composições ativas (W61 e W62): barras e jacarés por dia.
@@ -446,6 +463,8 @@ model TrilheiroGiro {
   partidaEm     DateTime?     @db.Date
   retornoEm     DateTime?     @db.Date
   perfil        TipoTls?
+  // Um giro pode levar vários perfis. `perfil` ficou como legado (dado antigo preservado).
+  perfis        TipoTls[]     @default([])
   carregados    Int           @default(0)
   descarregados Int           @default(0)
   local         String?

@@ -10,7 +10,11 @@ import {
   COMPOSICOES,
   CAMINHOES_ATIVOS,
   TRILHEIROS,
+  listarCiclosAbertos,
 } from '@/lib/services/usina';
+import { PERFIS } from '@/lib/validation/recebimento';
+import { CarretasGeracao } from '@/components/usina/CarretasGeracao';
+import { CamposGiro, type CicloAberto } from '@/components/usina/CamposGiro';
 import { fmtMetros, fmtPeso } from '@/lib/format';
 import { PERIODOS, ehIsoValido, type Periodo } from '@/lib/usina/periodo';
 import { FormularioUsina } from '@/components/usina/FormularioUsina';
@@ -51,6 +55,8 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
   const params = await searchParams;
   const periodo = periodoValido(params.periodo);
   const data = ehIsoValido(params.data) ? params.data : hojeIso();
+
+  const ciclosAbertos = await listarCiclosAbertos();
 
   const [est, ger, comp, cam, tril] = await Promise.all([
     estaleiroDoPeriodo(periodo, data),
@@ -188,12 +194,19 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                   <input type="hidden" name="lider" value={l.valor} />
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                     <div className="field"><label>Local</label><input name="local" defaultValue={dia?.local ?? ''} className="h-11" /></div>
-                    <div className="field"><label>Perfil</label><input name="perfil" defaultValue={dia?.perfil ?? ''} className="h-11" placeholder="TR60" /></div>
-                    <div className="field"><label>Quantidade (barras)</label><input name="quantidade" inputMode="numeric" defaultValue={dia?.quantidade ?? ''} className="h-11" /></div>
-                    <div className="field"><label>Corte (m)</label><input name="corteM" inputMode="decimal" defaultValue={dia?.corteM != null ? String(dia.corteM) : ''} className="h-11" /></div>
-                    <div className="field"><label>Carregamento (m)</label><input name="carregamentoM" inputMode="decimal" defaultValue={dia?.carregamentoM != null ? String(dia.carregamentoM) : ''} className="h-11" /></div>
-                    <div className="field"><label>Deixada na via (m)</label><input name="deixadaViaM" inputMode="decimal" defaultValue={dia?.deixadaViaM != null ? String(dia.deixadaViaM) : ''} className="h-11" /></div>
+                    <div className="field"><label>Corte do dia (m)</label><input name="corteM" inputMode="decimal" defaultValue={dia?.corteM != null ? String(dia.corteM) : ''} className="h-11" /></div>
                   </div>
+                  <p className="text-sm font-semibold">Carretas do dia</p>
+                  <CarretasGeracao
+                    opcoesPerfis={PERFIS}
+                    iniciais={(dia?.carretas ?? []).map((c) => ({
+                      perfis: c.perfis,
+                      quantidade: c.quantidade != null ? String(c.quantidade) : '',
+                      carregamentoM: c.carregamentoM != null ? String(c.carregamentoM) : '',
+                      deixadaViaM: c.deixadaViaM != null ? String(c.deixadaViaM) : '',
+                    }))}
+                  />
+                  <div className="field"><label>Observação</label><textarea name="observacao" rows={2} defaultValue={dia?.observacao ?? ''} className="w-full" /></div>
                 </FormularioUsina>
               </div>
             </details>
@@ -268,7 +281,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-ink-muted">
-                <th>Trilheiro</th><th>B.O.</th><th>Chegada</th><th>Partida</th><th>Retorno</th><th>Perfil</th><th>Carregados</th><th>Descarregados</th><th>Local</th>
+                <th>Trilheiro</th><th>B.O.</th><th>Chegada</th><th>Partida</th><th>Retorno</th><th>Perfis</th><th>Carregados</th><th>Descarregados</th><th>Saldo</th><th>Local</th>
               </tr>
             </thead>
             <tbody>
@@ -279,45 +292,51 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                   <td>{g.chegadaUsinaEm ? br(g.chegadaUsinaEm.toISOString().slice(0, 10)) : '—'}</td>
                   <td>{g.partidaEm ? br(g.partidaEm.toISOString().slice(0, 10)) : '—'}</td>
                   <td>{g.retornoEm ? br(g.retornoEm.toISOString().slice(0, 10)) : '—'}</td>
-                  <td>{g.perfil ? ROTULO_TLS[g.perfil] : '—'}</td>
+                  <td>{g.perfis.length > 0 ? g.perfis.map((p) => ROTULO_TLS[p]).join(', ') : g.perfil ? ROTULO_TLS[g.perfil] : '—'}</td>
                   <td>{g.carregados}</td>
                   <td>{g.descarregados}</td>
+                  <td className="font-mono">{g.carregados - g.descarregados}</td>
                   <td>{g.local ?? '—'}</td>
                 </tr>
               ))}
               {tril.giros.length === 0 && (
-                <tr><td colSpan={9} className="py-3 text-ink-muted">Nenhum giro neste período.</td></tr>
+                <tr><td colSpan={10} className="py-3 text-ink-muted">Nenhum giro neste período.</td></tr>
               )}
             </tbody>
           </table>
         </div>
 
-        <details className="card">
-          <summary className="cursor-pointer font-semibold">Lançar giro de trilheiro</summary>
-          <div className="mt-3">
-            <FormularioUsina acao={salvarGiroAction} rotuloBotao="Salvar giro">
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <div className="field"><label>Trilheiro</label>
-                  <select name="trilheiro" className="h-11">{TRILHEIROS.map((t) => <option key={t} value={t}>{t}</option>)}</select>
+        <div className="grid gap-3 md:grid-cols-3">
+          {TRILHEIROS.map((t, i) => {
+            const ciclo = ciclosAbertos[i];
+            const iso = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : null);
+            const valorCiclo: CicloAberto | null = ciclo
+              ? {
+                  boEm: iso(ciclo.boEm),
+                  chegadaUsinaEm: iso(ciclo.chegadaUsinaEm),
+                  partidaEm: iso(ciclo.partidaEm),
+                  perfis: ciclo.perfis,
+                  carregados: ciclo.carregados,
+                  descarregados: ciclo.descarregados,
+                  local: ciclo.local,
+                  observacao: ciclo.observacao,
+                }
+              : null;
+            return (
+              <details className="card" key={t} open={Boolean(ciclo)}>
+                <summary className="cursor-pointer font-semibold">
+                  {t} — {ciclo ? 'ciclo em aberto' : 'lançar giro'}
+                </summary>
+                <div className="mt-3">
+                  <FormularioUsina acao={salvarGiroAction} rotuloBotao={ciclo ? 'Salvar ciclo' : 'Iniciar ciclo'}>
+                    <input type="hidden" name="trilheiro" value={t} />
+                    <CamposGiro ciclo={valorCiclo} opcoesPerfis={TIPOS_TLS.map((p) => ({ valor: p, rotulo: ROTULO_TLS[p] }))} />
+                  </FormularioUsina>
                 </div>
-                <div className="field"><label>Dia do B.O.</label><input name="boEm" type="date" className="h-11" /></div>
-                <div className="field"><label>Chegada na usina</label><input name="chegadaUsinaEm" type="date" className="h-11" /></div>
-                <div className="field"><label>Dia da partida</label><input name="partidaEm" type="date" className="h-11" /></div>
-                <div className="field"><label>Retorno</label><input name="retornoEm" type="date" className="h-11" /></div>
-                <div className="field"><label>Perfil</label>
-                  <select name="perfil" className="h-11" defaultValue="">
-                    <option value="">—</option>
-                    {TIPOS_TLS.map((t) => <option key={t} value={t}>{ROTULO_TLS[t]}</option>)}
-                  </select>
-                </div>
-                <div className="field"><label>TLS carregados</label><input name="carregados" inputMode="numeric" className="h-11" /></div>
-                <div className="field"><label>TLS descarregados</label><input name="descarregados" inputMode="numeric" className="h-11" /></div>
-                <div className="field"><label>Local</label><input name="local" className="h-11" /></div>
-              </div>
-              <div className="field"><label>Observação</label><input name="observacao" className="h-11" /></div>
-            </FormularioUsina>
-          </div>
-        </details>
+              </details>
+            );
+          })}
+        </div>
 
         <details className="card">
           <summary className="cursor-pointer font-semibold">Registrar manutenção do trilheiro</summary>

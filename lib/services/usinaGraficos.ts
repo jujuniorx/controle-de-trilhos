@@ -14,7 +14,7 @@ export async function seriesDoMes(data: string) {
   const zeros = () => new Array<number>(dias).fill(0);
 
   const [geracao, estaleiro, caminhao, composicao] = await Promise.all([
-    prisma.geracaoDia.findMany({ where: { data: { gte: dataBanco(inicio), lte: dataBanco(fim) } } }),
+    prisma.geracaoDia.findMany({ where: { data: { gte: dataBanco(inicio), lte: dataBanco(fim) } }, include: { carretas: true } }),
     prisma.estaleiroDia.findMany({ where: { data: { gte: dataBanco(inicio), lte: dataBanco(fim) } } }),
     prisma.caminhaoSoldaDia.findMany({ where: { data: { gte: dataBanco(inicio), lte: dataBanco(fim) } } }),
     prisma.composicaoDia.findMany({ where: { data: { gte: dataBanco(inicio), lte: dataBanco(fim) } } }),
@@ -26,8 +26,10 @@ export async function seriesDoMes(data: string) {
   for (const g of geracao) {
     const i = indice(g.data);
     geraCorte[i] += num(g.corteM);
-    geraCarregado[i] += num(g.carregamentoM);
-    geraDeixado[i] += num(g.deixadaViaM);
+    for (const c of g.carretas) {
+      geraCarregado[i] += num(c.carregamentoM);
+      geraDeixado[i] += num(c.deixadaViaM);
+    }
   }
 
   const estSoldas = zeros();

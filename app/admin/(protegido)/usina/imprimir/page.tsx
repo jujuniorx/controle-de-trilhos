@@ -178,7 +178,7 @@ export default async function ImprimirUsina({
                 g.chegadaUsinaEm ? br(g.chegadaUsinaEm.toISOString().slice(0, 10)) : '—',
                 g.partidaEm ? br(g.partidaEm.toISOString().slice(0, 10)) : '—',
                 g.retornoEm ? br(g.retornoEm.toISOString().slice(0, 10)) : '—',
-                g.perfil ? ROTULO_TLS[g.perfil] : '—',
+                g.perfis.length > 0 ? g.perfis.map((p) => ROTULO_TLS[p]).join(', ') : g.perfil ? ROTULO_TLS[g.perfil] : '—',
                 g.carregados,
                 g.descarregados,
                 g.local ?? '—',
