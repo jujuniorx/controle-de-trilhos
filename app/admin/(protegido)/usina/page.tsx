@@ -92,6 +92,13 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         <p className="w-full text-sm text-ink-muted">Mostrando: {br(est.inicio)}{est.inicio !== est.fim ? ` a ${br(est.fim)}` : ''}</p>
       </form>
 
+      <nav aria-label="Ir para o setor" className="flex flex-wrap items-center gap-2 text-sm">
+        <span className="text-ink-muted">Ir para:</span>
+        {[['estaleiro', 'Estaleiro'], ['geracao', 'Geração'], ['composicoes', 'Composições'], ['caminhao', 'Caminhão de solda'], ['trilheiros', 'Trilheiros']].map(([valor, rotulo]) => (
+          <a key={valor} className="btn btn-ghost h-9" href={`#${valor}`}>{rotulo}</a>
+        ))}
+      </nav>
+
       <nav aria-label="Imprimir" className="flex flex-wrap gap-2 text-sm">
         <span className="self-center text-ink-muted">Imprimir:</span>
         {[['estaleiro', 'Estaleiro'], ['geracao', 'Geração'], ['composicoes', 'Composições'], ['caminhao', 'Caminhão de solda'], ['trilheiros', 'Trilheiros']].map(([valor, rotulo]) => (
@@ -102,7 +109,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
 
       {/* ── Estaleiro de solda ─────────────────────────────────────── */}
       <section className="space-y-4" aria-labelledby="estaleiro">
-        <h2 id="estaleiro" className="section-title">Estaleiro de solda</h2>
+        <h2 id="estaleiro" className="section-title scroll-mt-24">Estaleiro de solda</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
           <Cartao rotulo="Soldas" valor={est.totais.soldas} />
           <Cartao rotulo="Cortes" valor={est.totais.cortes} />
@@ -170,7 +177,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
 
       {/* ── Geração de trilho ──────────────────────────────────────── */}
       <section className="space-y-4" aria-labelledby="geracao">
-        <h2 id="geracao" className="section-title">Geração de trilho</h2>
+        <h2 id="geracao" className="section-title scroll-mt-24">Geração de trilho</h2>
         <div className="grid gap-3 sm:grid-cols-3">
           {ger.porLider.map((l) => (
             <div className="card space-y-2" key={l.valor}>
@@ -216,7 +223,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
 
       {/* ── Composições ativas ─────────────────────────────────────── */}
       <section className="space-y-4" aria-labelledby="composicoes">
-        <h2 id="composicoes" className="section-title">Composições ativas</h2>
+        <h2 id="composicoes" className="section-title scroll-mt-24">Composições ativas</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {comp.map((c) => (
             <div className="card space-y-3" key={c.ativo}>
@@ -241,7 +248,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
 
       {/* ── Caminhão de solda ──────────────────────────────────────── */}
       <section className="space-y-4" aria-labelledby="caminhao">
-        <h2 id="caminhao" className="section-title">Caminhão de solda</h2>
+        <h2 id="caminhao" className="section-title scroll-mt-24">Caminhão de solda</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {cam.map((c) => (
             <div className="card space-y-3" key={c.caminhao}>
@@ -270,7 +277,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
 
       {/* ── Trilheiros ─────────────────────────────────────────────── */}
       <section className="space-y-4" aria-labelledby="trilheiros">
-        <h2 id="trilheiros" className="section-title">Trilheiros</h2>
+        <h2 id="trilheiros" className="section-title scroll-mt-24">Trilheiros</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <Cartao rotulo="Média de dias úteis na usina" valor={tril.mediaDiasUteisNaUsina ?? '—'} />
           <Cartao rotulo="Giros com tempo medido" valor={tril.girosComTempo} />
