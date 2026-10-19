@@ -8,6 +8,8 @@ import { enviarDocumentoPesagem, obterUrlTemporariaDocumento, DocumentoPesagemEr
 import { informarNumeroDocumentoRemetido } from '@/lib/services/remetido';
 import { ErroRegraNegocio } from '@/lib/services/errors';
 import { NF_REGEX, MSG_NF_INVALIDA } from '@/lib/validation/recebimento';
+import { editarDadosRecebimentoSchema, type EditarDadosRecebimentoEntrada } from '@/lib/validation/recebimentoEdicao';
+import { editarDadosRecebimento } from '@/lib/services/recebimentoEdicao';
 
 export interface AcaoResultado {
   ok: boolean;
@@ -58,6 +60,19 @@ export async function informarNumeroDocumentoRecebimentoAction(movimentacaoId: s
     return { ok: true };
   } catch (erro) {
     return { ok: false, erro: erro instanceof ErroRegraNegocio ? erro.message : 'Não foi possível salvar a nota fiscal.' };
+  }
+}
+
+/** Corrige data, origem, transporte, placas, responsável e observação. Admin-only; reabre a conferência se já estava conferido. */
+export async function editarDadosRecebimentoAction(movimentacaoId: string, dados: EditarDadosRecebimentoEntrada): Promise<AcaoResultado> {
+  const usuario = await usuarioAtual();
+  const parsed = editarDadosRecebimentoSchema.safeParse(dados);
+  if (!parsed.success) return { ok: false, erro: parsed.error.issues[0]?.message ?? 'Dados inválidos.' };
+  try {
+    await editarDadosRecebimento(movimentacaoId, parsed.data, usuario);
+    return { ok: true };
+  } catch (erro) {
+    return { ok: false, erro: erro instanceof ErroRegraNegocio ? erro.message : 'Não foi possível salvar os dados.' };
   }
 }
 

@@ -34,7 +34,7 @@ export const MARCA_LABEL: Record<Exclude<(typeof MARCAS)[number], 'OUTROS'>, str
 // Aceita os dois formatos que convivem na frota real: Mercosul (ABC1D23) e o
 // padrão antigo brasileiro (3 letras + 4 dígitos, ex.: CMG1234) — o 5º
 // caractere é letra OU dígito.
-const MSG_PLACA_INVALIDA = 'Placa inválida. Ex.: ABC1D23 (Mercosul) ou CMG1234 (padrão antigo).';
+export const MSG_PLACA_INVALIDA = 'Placa inválida. Ex.: ABC1D23 (Mercosul) ou CMG1234 (padrão antigo).';
 const MSG_PELO_MENOS_UMA_PLACA =
   'Informe ao menos uma placa: a do cavalo ou a de uma das carretas (no máximo 2 carretas).';
 

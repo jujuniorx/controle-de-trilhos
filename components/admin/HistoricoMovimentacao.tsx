@@ -8,8 +8,21 @@ export interface EventoHistorico {
   usuarioNome: string;
   valorAntigo: string | null;
   valorNovo: string | null;
+  campo?: string | null;
   timestamp: Date;
 }
+
+// Nome amigável do campo corrigido (ex.: "Origem: Pátio 2 → Pátio 3").
+const CAMPO_LABEL: Record<string, string> = {
+  dataMovimentacao: 'Data',
+  origem: 'Origem',
+  tipoTransporte: 'Transporte',
+  placaCavalo: 'Cavalo',
+  placaCarreta: 'Carreta 1',
+  placaCarreta2: 'Carreta 2',
+  responsavelPatio: 'Responsável (Pátio)',
+  observacao: 'Observação do Pátio',
+};
 
 type Setor = 'Pátio' | 'Portaria' | 'Administrativo' | 'Sistema';
 
@@ -32,6 +45,7 @@ const ACAO_INFO: Record<string, { titulo: string; setor: Setor }> = {
   PESO_NF_INFORMADO: { titulo: 'Peso da NF informado/corrigido', setor: 'Administrativo' },
   TIPO_REMETIDO_INFORMADO: { titulo: 'Tipo de remetido informado', setor: 'Administrativo' },
   EDICAO: { titulo: 'Remetido editado', setor: 'Administrativo' },
+  DADOS_EDITADOS: { titulo: 'Dados do recebimento editados', setor: 'Administrativo' },
   REABERTURA: { titulo: 'Conferência reaberta', setor: 'Administrativo' },
   CONFERENCIA: { titulo: 'Remetido conferido', setor: 'Administrativo' },
   MEDICAO_CONCLUIDA: { titulo: 'Pátio terminou de medir', setor: 'Pátio' },
@@ -120,6 +134,7 @@ export function HistoricoMovimentacao({ historico }: { historico: EventoHistoric
                   </p>
                   {temValor && (
                     <p className="mt-1 text-sm text-ink-dim">
+                      {ev.campo && CAMPO_LABEL[ev.campo] ? <span className="mr-1 text-ink-muted">{CAMPO_LABEL[ev.campo]}:</span> : null}
                       {ev.valorAntigo != null ? valorLegivel(ev.valorAntigo) : '—'}
                       <span className="mx-1.5" aria-hidden>→</span>
                       {ev.valorNovo != null ? valorLegivel(ev.valorNovo) : '—'}

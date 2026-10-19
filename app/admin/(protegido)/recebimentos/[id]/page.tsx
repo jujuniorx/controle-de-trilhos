@@ -12,6 +12,7 @@ import { rotuloNfs, nfsEmTexto } from '@/lib/nf';
 import { EditarMedicoesPainel } from './EditarMedicoesPainel';
 import { HistoricoMovimentacao } from '@/components/admin/HistoricoMovimentacao';
 import { informarNumeroDocumentoRecebimentoAction } from './actions';
+import { EditarDadosRecebimentoPainel } from './EditarDadosRecebimentoPainel';
 
 function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
@@ -86,6 +87,19 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
           )}
         </dl>
         <NfsPainel movimentacaoId={mov.id} principal={mov.numeroDocumento} extras={mov.numerosDocumentoExtras} acaoCorrigirPrincipal={informarNumeroDocumentoRecebimentoAction} />
+        <EditarDadosRecebimentoPainel
+          movimentacaoId={mov.id}
+          inicial={{
+            dataMovimentacao: mov.dataMovimentacao ? mov.dataMovimentacao.toISOString().slice(0, 10) : '',
+            origem: mov.origem ?? '',
+            tipoTransporte: mov.tipoTransporte,
+            placaCavalo: mov.placaCavalo ?? '',
+            placaCarreta: mov.placaCarreta ?? '',
+            placaCarreta2: mov.placaCarreta2 ?? '',
+            responsavelPatio: mov.responsavelPatio ?? '',
+            observacao: mov.observacao ?? '',
+          }}
+        />
       </section>
 
       {/* 2. Materiais recebidos */}
