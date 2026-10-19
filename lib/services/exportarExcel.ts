@@ -287,7 +287,12 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
     'Considerar real meta',
   ]);
 
-  for (const mov of movimentacoes) {
+  // Remetidos em ordem crescente de data, igual aos recebidos (para copiar e colar na planilha da empresa).
+  const cronologicoRemetidos = [...movimentacoes].sort(
+    (a, b) => a.dataMovimentacao.getTime() - b.dataMovimentacao.getTime() || a.createdAt.getTime() - b.createdAt.getTime(),
+  );
+
+  for (const mov of cronologicoRemetidos) {
     const [dia, mes, ano] = diaMesAno(mov.dataMovimentacao);
     const destinoTransportadora = [normalizarLocal(mov.destino),mov.transportadora ? upper(mov.transportadora) : null]
       .filter(Boolean)
