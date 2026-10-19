@@ -111,6 +111,7 @@ export default async function RelatoriosPage({
     classificacao: first(raw.classificacao),
     origemDestino: first(raw.origemDestino),
     numeroDocumento: first(raw.numeroDocumento),
+    placa: first(raw.placa),
     status: first(raw.status),
   });
 
@@ -148,7 +149,7 @@ export default async function RelatoriosPage({
             <input id="f-fim" type="date" name="dataFim" defaultValue={filtros.dataFim} className="h-10" />
           </div>
           </div>
-          <input type="checkbox" id="f-mais" className="filtros-toggle" defaultChecked={Boolean(filtros.tipo || filtros.status || filtros.perfil || filtros.material || filtros.classificacao || filtros.origemDestino || filtros.numeroDocumento)} />
+          <input type="checkbox" id="f-mais" className="filtros-toggle" defaultChecked={Boolean(filtros.tipo || filtros.status || filtros.perfil || filtros.material || filtros.classificacao || filtros.origemDestino || filtros.numeroDocumento || filtros.placa)} />
           <label htmlFor="f-mais" className="filtros-mais-btn">
             Mais filtros
           </label>
@@ -212,6 +213,10 @@ export default async function RelatoriosPage({
           <div className="field">
             <label htmlFor="f-nf">Nota fiscal</label>
             <input id="f-nf" type="text" inputMode="numeric" name="numeroDocumento" defaultValue={filtros.numeroDocumento} className="h-10" />
+          </div>
+          <div className="field">
+            <label htmlFor="f-placa">Placa</label>
+            <input id="f-placa" type="text" name="placa" placeholder="ABC1D23" defaultValue={filtros.placa} className="h-10 uppercase" />
           </div>
           </div>
         </div>

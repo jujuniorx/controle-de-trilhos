@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
     classificacao: params.get('classificacao') ?? undefined,
     origemDestino: params.get('origemDestino') ?? undefined,
     numeroDocumento: params.get('numeroDocumento') ?? undefined,
+    placa: params.get('placa') ?? undefined,
     status: params.get('status') ?? undefined,
   });
   if (!entrada.success) {

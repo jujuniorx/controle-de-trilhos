@@ -77,6 +77,7 @@ export function descreverFiltros(filtros: FiltrosRelatorioInput): string {
   if (filtros.classificacao) partes.push(`Classificação: ${filtros.classificacao}`);
   if (filtros.origemDestino) partes.push(`Origem/Destino: ${normalizarLocal(filtros.origemDestino)}`);
   if (filtros.numeroDocumento) partes.push(`NF: ${filtros.numeroDocumento}`);
+  if (filtros.placa) partes.push(`Placa: ${filtros.placa}`);
   return partes.length > 0 ? partes.join('  ·  ') : 'Sem filtros: todo o histórico.';
 }
 

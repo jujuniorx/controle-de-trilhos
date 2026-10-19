@@ -20,6 +20,20 @@ function montarWhere(filtros: FiltrosRelatorioInput): Prisma.MovimentacaoWhereIn
     ];
   }
 
+  if (filtros.placa) {
+    // Procura em cavalo e nas duas carretas (busca parcial).
+    where.AND = [
+      ...((where.AND as Prisma.MovimentacaoWhereInput[] | undefined) ?? []),
+      {
+        OR: [
+          { placaCavalo: { contains: filtros.placa } },
+          { placaCarreta: { contains: filtros.placa } },
+          { placaCarreta2: { contains: filtros.placa } },
+        ],
+      },
+    ];
+  }
+
   if (filtros.origemDestino) {
     // Locais são gravados em MAIÚSCULAS (normalizarLocal). O ILIKE sozinho pode não casar
     // "rondonópolis" com "RONDONÓPOLIS" conforme a collation do banco, então também busca
