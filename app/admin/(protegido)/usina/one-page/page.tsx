@@ -151,8 +151,8 @@ export default async function OnePageUsina({ searchParams }: { searchParams: Pro
                 titulo="Soldas e cortes por dia"
                 rotulos={serie.rotulos}
                 series={[
-                  { nome: 'Soldas', cor: CORES.estaleiro, valores: serie.estaleiro.soldas },
-                  { nome: 'Cortes', cor: '#94a3b8', valores: serie.estaleiro.cortes },
+                  { nome: 'Soldas', cor: '#2563eb', valores: serie.estaleiro.soldas },
+                  { nome: 'Cortes', cor: '#f59e0b', valores: serie.estaleiro.cortes },
                 ]}
               />
             }
@@ -173,9 +173,9 @@ export default async function OnePageUsina({ searchParams }: { searchParams: Pro
                 unidade=" m"
                 rotulos={serie.rotulos}
                 series={[
-                  { nome: 'Corte', cor: '#94a3b8', valores: serie.geracao.corte },
-                  { nome: 'Carregado', cor: CORES.geracao, valores: serie.geracao.carregado },
-                  { nome: 'Deixado na via', cor: '#f59e0b', valores: serie.geracao.deixado },
+                  { nome: 'Corte', cor: '#64748b', valores: serie.geracao.corte },
+                  { nome: 'Carregado', cor: '#059669', valores: serie.geracao.carregado },
+                  { nome: 'Deixado na via', cor: '#db2777', valores: serie.geracao.deixado },
                 ]}
               />
             }
@@ -196,8 +196,8 @@ export default async function OnePageUsina({ searchParams }: { searchParams: Pro
                 titulo="Barras por dia"
                 rotulos={serie.rotulos}
                 series={[
-                  { nome: rotuloComposicao('W61'), cor: CORES.composicoes, valores: serie.composicoes.W61 ?? [] },
-                  { nome: rotuloComposicao('W62'), cor: '#a78bfa', valores: serie.composicoes.W62 ?? [] },
+                  { nome: rotuloComposicao('W61'), cor: '#7c3aed', valores: serie.composicoes.W61 ?? [] },
+                  { nome: rotuloComposicao('W62'), cor: '#0891b2', valores: serie.composicoes.W62 ?? [] },
                 ]}
               />
             }
@@ -218,8 +218,8 @@ export default async function OnePageUsina({ searchParams }: { searchParams: Pro
                 titulo="Produção por dia"
                 rotulos={serie.rotulos}
                 series={[
-                  { nome: 'CW01', cor: CORES.caminhao, valores: serie.caminhao.CW01 ?? [] },
-                  { nome: 'CW02', cor: '#fb923c', valores: serie.caminhao.CW02 ?? [] },
+                  { nome: 'CW01', cor: '#ea580c', valores: serie.caminhao.CW01 ?? [] },
+                  { nome: 'CW02', cor: '#84cc16', valores: serie.caminhao.CW02 ?? [] },
                 ]}
               />
             }
