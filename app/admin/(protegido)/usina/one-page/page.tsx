@@ -11,7 +11,6 @@ import { seriesDoMes } from '@/lib/services/usinaGraficos';
 import { GraficoBarras } from '@/components/usina/GraficoBarras';
 import { fmtMetros, fmtPeso } from '@/lib/format';
 import { ehIsoValido } from '@/lib/usina/periodo';
-import { ImprimirBotao } from '@/components/usina/ImprimirBotao';
 
 export const dynamic = 'force-dynamic';
 
@@ -106,21 +105,9 @@ export default async function OnePageUsina({ searchParams }: { searchParams: Pro
 
   return (
     <main className="mx-auto max-w-5xl space-y-4 p-4">
-      <style>{`
-        @page { size: A4; margin: 8mm; }
-        @media print {
-          body * { visibility: hidden; }
-          #one-page-usina, #one-page-usina * { visibility: visible; }
-          #one-page-usina { position: absolute; left: 0; top: 0; width: 100%; padding: 0; background: #fff; }
-          .sem-impressao { display: none !important; }
-          #one-page-usina { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        }
-      `}</style>
-
       <div className="sem-impressao flex flex-wrap items-center gap-3">
-        <ImprimirBotao rotulo="Salvar como PDF" />
+        <a className="btn btn-primary h-11" href={`/api/usina/one-page/pdf?data=${data}`}>Baixar PDF</a>
         <a className="btn btn-ghost h-11" href={`/admin/usina?data=${data}`}>Voltar</a>
-        <p className="w-full text-xs text-ink-muted">No PC: na janela de impressão, em Destino, escolha "Salvar como PDF". No iPhone: toque em Compartilhar e depois em "Salvar em Arquivos" ou "Imprimir" e abra o PDF pela visualização.</p>
         <form action="" className="flex items-center gap-2 text-sm">
           <label htmlFor="data">Dia</label>
           <input id="data" name="data" type="date" defaultValue={data} className="h-11" />
