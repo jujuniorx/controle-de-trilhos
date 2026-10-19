@@ -151,7 +151,7 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
 
   // Recebidos em ordem crescente de data (dia 1 em cima, último dia embaixo), como a planilha da empresa.
   const cronologico = [...movimentacoes].sort(
-    (a, b) => a.dataMovimentacao.getTime() - b.dataMovimentacao.getTime() || a.createdAt.getTime() - b.createdAt.getTime(),
+    (a, b) => (a.dataMovimentacao?.getTime() ?? 0) - (b.dataMovimentacao?.getTime() ?? 0) || a.createdAt.getTime() - b.createdAt.getTime(),
   );
 
   for (const mov of cronologico) {
@@ -289,7 +289,7 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
 
   // Remetidos em ordem crescente de data, igual aos recebidos (para copiar e colar na planilha da empresa).
   const cronologicoRemetidos = [...movimentacoes].sort(
-    (a, b) => a.dataMovimentacao.getTime() - b.dataMovimentacao.getTime() || a.createdAt.getTime() - b.createdAt.getTime(),
+    (a, b) => (a.dataMovimentacao?.getTime() ?? 0) - (b.dataMovimentacao?.getTime() ?? 0) || a.createdAt.getTime() - b.createdAt.getTime(),
   );
 
   for (const mov of cronologicoRemetidos) {
