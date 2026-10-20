@@ -72,7 +72,8 @@ export async function salvarEscalaAction(_: ResultadoUsina | undefined, formData
   const semana = dataDoForm(formData.get('semana'));
   if (!semana) return { ok: false, erro: 'Semana inválida.' };
   const valor = escalaVazia();
-  for (let i = 0; i < 7; i++) {
+  // Plantao so existe no sabado (indice 5) e no domingo (indice 6).
+  for (let i = 5; i < 7; i++) {
     valor.plantao[i] = String(formData.get(`plantao_${i}`) ?? '').trim().slice(0, 40);
   }
   for (const item of ITENS_ESCALA) {

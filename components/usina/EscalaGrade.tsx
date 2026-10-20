@@ -173,19 +173,27 @@ export function EscalaGrade({
               <th scope="row" className="sticky left-0 z-10 bg-[var(--g3)] px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">
                 Plantão
               </th>
-              {plantao.map((p, i) => (
-                <td key={i} className="p-0.5">
-                  <input
-                    aria-label={`Plantão ${dias[i].nome}`}
-                    name={`plantao_${i}`}
-                    value={p}
-                    maxLength={40}
-                    onChange={(e) => setPlantao((a) => a.map((x, k) => (k === i ? e.target.value : x)))}
-                    placeholder="Nome"
-                    className="h-9 w-full text-center text-sm"
-                  />
-                </td>
-              ))}
+              {plantao.map((p, i) =>
+                i < 5 ? (
+                  <td key={i} className="p-0.5">
+                    <div className="flex h-9 w-full items-center justify-center text-xs text-ink-muted" aria-hidden="true">
+                      -
+                    </div>
+                  </td>
+                ) : (
+                  <td key={i} className="p-0.5">
+                    <input
+                      aria-label={`Plantão ${dias[i].nome}`}
+                      name={`plantao_${i}`}
+                      value={p}
+                      maxLength={40}
+                      onChange={(e) => setPlantao((a) => a.map((x, k) => (k === i ? e.target.value : x)))}
+                      placeholder="Nome"
+                      className="h-9 w-full text-center text-sm"
+                    />
+                  </td>
+                ),
+              )}
             </tr>
 
             {GRUPOS_ESCALA.map((grupo) => (
