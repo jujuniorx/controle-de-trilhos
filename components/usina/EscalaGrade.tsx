@@ -224,17 +224,7 @@ function ItemLinhas({
           className="sticky left-0 z-10 w-[120px] bg-[var(--g2)] px-2 py-1 text-left align-top"
         >
           <span className="block whitespace-nowrap text-base font-bold">{rotulo}</span>
-          <select
-            aria-label={`Tipo de escala de ${rotulo}`}
-            name={cfgTipo}
-            value={tipo}
-            onChange={(e) => onTipo(e.target.value)}
-            className="mt-1 h-8 w-full text-xs"
-          >
-            {TIPOS_CICLO.map((t) => (
-              <option key={t.valor} value={t.valor}>{t.rotulo}</option>
-            ))}
-          </select>
+          <input type="hidden" name={cfgTipo} value={tipo} />
           <input type="hidden" name={cfgInicio} value={inicio} />
         </th>
         {celulas.map((c, i) => {
