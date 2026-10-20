@@ -142,12 +142,13 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       {
         titulo: 'Caminhão de solda',
         cor: CORES_SETOR.caminhao,
-        linhas: camM.flatMap((c) => {
+        linhas: camM.map((c) => {
           const d = camD.find((x) => x.caminhao === c.caminhao);
-          return [
-            { rotulo: `${c.caminhao} · produção`, dia: String(d?.periodo.producao ?? 0), mes: String(c.mes.producao) },
-            { rotulo: `${c.caminhao} · cortes`, dia: String(d?.periodo.perda ?? 0), mes: String(c.mes.perda) },
-          ];
+          return {
+            rotulo: c.caminhao,
+            dia: `${d?.periodo.producao ?? 0} prod. · ${d?.periodo.perda ?? 0} cortes`,
+            mes: `${c.mes.producao} prod. · ${c.mes.perda} cortes`,
+          };
         }),
         grafico: {
           titulo: 'Produção por dia',
