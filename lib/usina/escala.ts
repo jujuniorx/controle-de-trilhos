@@ -119,9 +119,11 @@ export const TIPOS_CICLO = [
   { valor: '11x3', rotulo: '11x3' },
   { valor: '10x4', rotulo: '10x4' },
   { valor: '5x2', rotulo: '5x2' },
+  { valor: 'e18', rotulo: 'E18 (planilha)' },
   { valor: 'manual', rotulo: 'Manual' },
 ] as const;
 export type TipoCiclo = (typeof TIPOS_CICLO)[number]['valor'];
+// e18: 10 dias de trabalho (DESL. so no primeiro dia) + 4 de folga, como na planilha.
 const TIPOS_VALIDOS = new Set<string>(TIPOS_CICLO.map((t) => t.valor));
 
 /** inicio = primeiro dia de trabalho do bloco (yyyy-mm-dd). Vazio quando nao se aplica (5x2, manual). */
@@ -130,7 +132,7 @@ export interface ConfigCiclo { tipo: TipoCiclo; inicio: string }
 const ISO_VALIDO = /^\d{4}-\d{2}-\d{2}$/;
 
 export const CONFIG_PADRAO: Record<string, ConfigCiclo> = {
-  E18: { tipo: 'manual', inicio: '' },
+  E18: { tipo: 'e18', inicio: '2026-10-26' },
   E17: { tipo: 'manual', inicio: '' },
   ALECIO: { tipo: '11x3', inicio: '2026-10-27' },
   BRUNO: { tipo: '11x3', inicio: '2026-10-27' },
@@ -143,7 +145,7 @@ export const CONFIG_PADRAO: Record<string, ConfigCiclo> = {
 export function configValida(tipo: string, inicio: string): ConfigCiclo {
   const t = TIPOS_VALIDOS.has(tipo) ? (tipo as TipoCiclo) : 'manual';
   const i = ISO_VALIDO.test(inicio) ? inicio : '';
-  return { tipo: t, inicio: t === '11x3' || t === '10x4' ? i : '' };
+  return { tipo: t, inicio: t === '11x3' || t === '10x4' || t === 'e18' ? i : '' };
 }
 
 /** Datas ISO (yyyy-mm-dd) dos 7 dias da semana que comeca em `semana`. */
@@ -164,6 +166,10 @@ export function statusDoCiclo(cfg: ConfigCiclo, dataIso: string): string | null 
   const inicio = new Date(cfg.inicio + 'T00:00:00Z').getTime();
   const dias = Math.round((data - inicio) / 86400000);
   const pos = ((dias % 14) + 14) % 14;
+  if (cfg.tipo === 'e18') {
+    if (pos >= 10) return 'FOLGA';
+    return pos === 0 ? 'DESL.' : 'OK';
+  }
   const trabalho = cfg.tipo === '11x3' ? 11 : 10;
   if (pos >= trabalho) return 'FOLGA';
   if (pos === 0 || pos === trabalho - 1) return 'DESL.';
