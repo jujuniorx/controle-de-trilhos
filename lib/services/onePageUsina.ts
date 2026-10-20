@@ -85,6 +85,13 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         mes: `${camM.find((c) => c.caminhao === cw)?.mes.producao ?? 0} un`,
         grupo: 'Caminhão de solda',
       })),
+      {
+        rotulo: 'Trilheiros',
+        cor: CORES_SETOR.trilheiros,
+        dia: `${trilD.giros.length} giros`,
+        mes: `${trilM.giros.length} giros`,
+        grupo: 'Trilheiros',
+      },
     ],
     setores: [
       {
