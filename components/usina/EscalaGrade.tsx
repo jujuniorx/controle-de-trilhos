@@ -40,15 +40,6 @@ export function EscalaGrade({
   const [linhas, setLinhas] = useState<Record<string, DiaEscala[]>>(valor.linhas);
   const [config, setConfig] = useState<Record<string, ConfigCiclo>>(valor.config);
   const [pincel, setPincel] = useState<string>('OK');
-  const [setores, setSetores] = useState<Record<string, { tipo: string; inicio: string; desde: string }>>(() => {
-    const inicial: Record<string, { tipo: string; inicio: string; desde: string }> = {};
-    for (const g of GRUPOS_ESCALA) {
-      const primeiro = ITENS_ESCALA.find((it) => it.grupo === g && valor.config[it.id]?.tipo !== 'manual');
-      const cfg = primeiro ? valor.config[primeiro.id] : undefined;
-      inicial[g] = { tipo: cfg?.tipo ?? 'manual', inicio: cfg?.inicio ?? '', desde: cfg?.desde ?? '' };
-    }
-    return inicial;
-  });
   const [local, setLocal] = useState<string>('');
 
   function pintar(id: string, i: number) {
@@ -65,7 +56,7 @@ export function EscalaGrade({
   }
 
   /**
-   * Muda a regra de um item (usado pelo controle do setor). Se mudar o tipo, a regra anterior vale para os dias antes de `desde`.
+   * Muda a regra de uma pessoa. Se mudar o tipo, a regra anterior vale para os dias antes de `desde`.
    * Os dias a partir de `desde` (ou a semana toda, sem data) sao refeitos pela regra nova.
    */
   function mudarCiclo(id: string, parcial: Partial<ConfigCiclo>) {
@@ -91,19 +82,6 @@ export function EscalaGrade({
         }),
       };
     });
-  }
-
-  /** Aplica o tipo, o inicio e a validade a todos os itens com ciclo do setor. */
-  function mudarSetor(grupo: string, parcial: { tipo?: string; inicio?: string; desde?: string }) {
-    setSetores((atual) => ({ ...atual, [grupo]: { ...atual[grupo], ...parcial } }));
-    for (const it of ITENS_ESCALA.filter((x) => x.grupo === grupo)) {
-      if ((config[it.id]?.tipo ?? 'manual') === 'manual') continue;
-      mudarCiclo(it.id, {
-        ...(parcial.tipo !== undefined ? { tipo: parcial.tipo as ConfigCiclo['tipo'] } : {}),
-        ...(parcial.inicio !== undefined ? { inicio: parcial.inicio } : {}),
-        ...(parcial.desde !== undefined ? { desde: parcial.desde } : {}),
-      });
-    }
   }
 
   function preencherCiclos() {
@@ -165,31 +143,17 @@ export function EscalaGrade({
           </tr>
 
           {GRUPOS_ESCALA.map((grupo) => (
-            <GrupoLinhas
-              key={grupo}
-              grupo={grupo}
-              controles={
-                editando ? (
-                  <ControleSetor
-                    grupo={grupo}
-                    valor={setores[grupo]}
-                    onChange={(parcial) => mudarSetor(grupo, parcial)}
-                  />
-                ) : (
-                  <span className="text-xs font-normal normal-case tracking-normal text-ink-muted">
-                    {setores[grupo]?.tipo && setores[grupo].tipo !== 'manual'
-                      ? `Tipo: ${TIPOS_CICLO.find((t) => t.valor === setores[grupo].tipo)?.rotulo ?? ''}`
-                      : ''}
-                  </span>
-                )
-              }
-            >
+            <GrupoLinhas key={grupo} grupo={grupo}>
               {ITENS_ESCALA.filter((it) => it.grupo === grupo).map((item) => (
                 <ItemLinhas
                   key={item.id}
                   rotulo={item.rotulo}
+                  cfgTipo={`cfg_tipo_${item.id}`}
+                  cfgInicio={`cfg_inicio_${item.id}`}
                   tipo={config[item.id]?.tipo ?? 'manual'}
                   inicio={config[item.id]?.inicio ?? ''}
+                  desde={config[item.id]?.desde ?? ''}
+                  onCiclo={(parcial) => mudarCiclo(item.id, parcial)}
                   dias={linhas[item.id]}
                   rotulosDias={dias}
                   item={item.id}
@@ -280,15 +244,12 @@ export function EscalaGrade({
   );
 }
 
-function GrupoLinhas({ grupo, controles, children }: { grupo: string; controles: ReactNode; children: ReactNode }) {
+function GrupoLinhas({ grupo, children }: { grupo: string; children: ReactNode }) {
   return (
     <>
       <tr>
-        <th colSpan={8} className="px-2 pb-1 pt-5 text-left text-xs font-semibold uppercase tracking-wider text-ink-muted">
-          <div className="flex flex-wrap items-end gap-3">
-            <span>{grupo}</span>
-            {controles}
-          </div>
+        <th colSpan={8} className="px-2 pb-0 pt-5 text-left text-xs font-semibold uppercase tracking-wider text-ink-muted">
+          {grupo}
         </th>
       </tr>
       {children}
@@ -296,64 +257,14 @@ function GrupoLinhas({ grupo, controles, children }: { grupo: string; controles:
   );
 }
 
-/** Controle de um setor: tipo, inicio do bloco e validade. Aplica a todos os itens com ciclo do setor. */
-function ControleSetor({
-  grupo,
-  valor,
-  onChange,
-}: {
-  grupo: string;
-  valor: { tipo: string; inicio: string; desde: string };
-  onChange: (parcial: { tipo?: string; inicio?: string; desde?: string }) => void;
-}) {
-  const precisaInicio = valor.tipo === '11x3' || valor.tipo === '10x4' || valor.tipo === 'e18';
-  return (
-    <div className="flex flex-wrap items-end gap-2 normal-case tracking-normal">
-      <label className="text-[10px] text-ink-muted">
-        Tipo
-        <select
-          aria-label={`Tipo de escala do setor ${grupo}`}
-          value={valor.tipo}
-          onChange={(e) => onChange({ tipo: e.target.value })}
-          className="mt-0.5 block h-8 w-[110px] text-xs"
-        >
-          {TIPOS_CICLO.map((t) => (
-            <option key={t.valor} value={t.valor}>{t.rotulo}</option>
-          ))}
-        </select>
-      </label>
-      {precisaInicio && (
-        <label className="text-[10px] text-ink-muted">
-          Início do bloco
-          <input
-            type="date"
-            aria-label={`Início do bloco, setor ${grupo}`}
-            value={valor.inicio}
-            onChange={(e) => onChange({ inicio: e.target.value })}
-            className="mt-0.5 block h-8 text-xs"
-          />
-        </label>
-      )}
-      {valor.tipo !== 'manual' && (
-        <label className="text-[10px] text-ink-muted">
-          Válido a partir de
-          <input
-            type="date"
-            aria-label={`Válido a partir de, setor ${grupo}`}
-            value={valor.desde}
-            onChange={(e) => onChange({ desde: e.target.value })}
-            className="mt-0.5 block h-8 text-xs"
-          />
-        </label>
-      )}
-    </div>
-  );
-}
-
 function ItemLinhas({
   rotulo,
+  cfgTipo,
+  cfgInicio,
   tipo,
   inicio,
+  desde,
+  onCiclo,
   dias: celulas,
   rotulosDias,
   item,
@@ -361,8 +272,12 @@ function ItemLinhas({
   onPintar,
 }: {
   rotulo: string;
+  cfgTipo: string;
+  cfgInicio: string;
   tipo: string;
   inicio: string;
+  desde: string;
+  onCiclo: (parcial: Partial<ConfigCiclo>) => void;
   dias: DiaEscala[];
   rotulosDias: { nome: string; data: string }[];
   item: string;
@@ -374,7 +289,46 @@ function ItemLinhas({
       <tr>
         <th scope="rowgroup" className="sticky left-0 z-10 w-[140px] bg-[var(--g2)] px-2 py-1 text-left align-top">
           <span className="block whitespace-nowrap text-base font-bold">{rotulo}</span>
-          <span className="block text-[11px] text-ink-muted">{TIPOS_CICLO.find((t) => t.valor === tipo)?.rotulo ?? ''}</span>
+          {editando ? (
+            <div className="mt-1 space-y-1">
+              <select
+                aria-label={`Tipo de escala de ${rotulo}`}
+                value={tipo}
+                onChange={(e) => onCiclo({ tipo: e.target.value as ConfigCiclo['tipo'] })}
+                className="h-8 w-full text-xs"
+              >
+                {TIPOS_CICLO.map((t) => (
+                  <option key={t.valor} value={t.valor}>{t.rotulo}</option>
+                ))}
+              </select>
+              {(tipo === '11x3' || tipo === '10x4' || tipo === 'e18') && (
+                <label className="block text-[10px] text-ink-muted">
+                  Início do bloco
+                  <input
+                    type="date"
+                    aria-label={`Primeiro dia de trabalho de ${rotulo}`}
+                    value={inicio}
+                    onChange={(e) => onCiclo({ inicio: e.target.value })}
+                    className="mt-0.5 h-8 w-full text-xs"
+                  />
+                </label>
+              )}
+              {tipo !== 'manual' && (
+                <label className="block text-[10px] text-ink-muted">
+                  Válido a partir de
+                  <input
+                    type="date"
+                    aria-label={`Válido a partir de, ${rotulo}`}
+                    value={desde}
+                    onChange={(e) => onCiclo({ desde: e.target.value })}
+                    className="mt-0.5 h-8 w-full text-xs"
+                  />
+                </label>
+              )}
+            </div>
+          ) : (
+            <span className="block text-[11px] text-ink-muted">{TIPOS_CICLO.find((t) => t.valor === tipo)?.rotulo ?? ''}</span>
+          )}
         </th>
         {celulas.map((c, i) => {
           const est = estiloDe(c.status);
