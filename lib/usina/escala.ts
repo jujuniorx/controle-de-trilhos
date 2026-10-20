@@ -14,9 +14,13 @@ export const STATUS_ESCALA = [
   { valor: 'EXTRA', rotulo: 'Extra' },
 ] as const;
 
+/** Itens que tem so linha de status (a linha LOCAL e compartilhada com o item de cima). */
+export const ITENS_SEM_LOCAL = new Set(['E17T']);
+
 export const ITENS_ESCALA = [
   { id: 'E18', rotulo: 'E18', grupo: 'Caminhão de solda' },
-  { id: 'E17', rotulo: 'E17', grupo: 'Caminhão de solda' },
+  { id: 'E17', rotulo: 'E17 · PRUMO', grupo: 'Caminhão de solda' },
+  { id: 'E17T', rotulo: 'E17 · TITAN', grupo: 'Caminhão de solda' },
   { id: 'ALECIO', rotulo: 'Alécio', grupo: 'Geração de trilho' },
   { id: 'BRUNO', rotulo: 'Bruno', grupo: 'Geração de trilho' },
   { id: 'REGINALDO', rotulo: 'Reginaldo', grupo: 'Geração de trilho' },
@@ -40,7 +44,7 @@ export interface EscalaSemanaValor {
 const STATUS_VALIDOS = new Set<string>(STATUS_ESCALA.map((s) => s.valor));
 export const statusValido = (v: string) => STATUS_VALIDOS.has(v);
 
-export const VERSAO_ATUAL = 2;
+export const VERSAO_ATUAL = 3;
 
 export function escalaVazia(): EscalaSemanaValor {
   const linhas: Record<string, DiaEscala[]> = {};
@@ -134,6 +138,7 @@ const ISO_VALIDO = /^\d{4}-\d{2}-\d{2}$/;
 export const CONFIG_PADRAO: Record<string, ConfigCiclo> = {
   E18: { tipo: 'e18', inicio: '2026-10-26' },
   E17: { tipo: 'manual', inicio: '' },
+  E17T: { tipo: 'manual', inicio: '' },
   ALECIO: { tipo: '11x3', inicio: '2026-10-27' },
   BRUNO: { tipo: '11x3', inicio: '2026-10-27' },
   REGINALDO: { tipo: '11x3', inicio: '2026-10-27' },
@@ -179,7 +184,7 @@ export function statusDoCiclo(cfg: ConfigCiclo, dataIso: string): string | null 
 // ── Semana base (planilha de 19 a 25/10/2026) ──────────────────────────────
 // Valores lidos da planilha. Status de Geracao e trilheiros ja saem do ciclo; aqui ficam
 // os itens manuais (E18, E17), os locais e o plantao. A partir dai, tudo e automatico.
-// E17: a PRUMO trabalha no E17 de 19 a 28/10; a equipe TITAN (normalmente do E18) esta junto e aparece no local.
+// E17: duas equipes no mesmo caminhao (PRUMO e TITAN, como na planilha), com um local so.
 const DIA = (status: string, local = '') => ({ status, local });
 
 export const SEMANA_BASE: Record<string, { plantao: string[]; linhas: Record<string, DiaEscalaBase[]> }> = {
@@ -187,14 +192,15 @@ export const SEMANA_BASE: Record<string, { plantao: string[]; linhas: Record<str
     plantao: ['', '', '', '', '', 'MARCELO', 'MARCELO'],
     linhas: {
       E18: Array.from({ length: 7 }, () => DIA('MAN.', 'MMD')),
-      E17: [
-        DIA('PRUMO', 'Rio Claro · TITAN'),
-        DIA('PRUMO', 'Rio Claro · TITAN'),
-        DIA('PRUMO', 'Rio Claro · TITAN DESL.'),
-        DIA('PRUMO', 'Rio Claro · TITAN FOLGA'),
-        DIA('PRUMO', 'Rio Claro · TITAN FOLGA'),
-        DIA('PRUMO', 'Rio Claro · TITAN FOLGA'),
-        DIA('PRUMO', 'Rio Claro · TITAN FOLGA'),
+      E17: Array.from({ length: 7 }, () => DIA('PRUMO', 'Rio Claro')),
+      E17T: [
+        DIA('TITAN'),
+        DIA('TITAN'),
+        DIA('DESL.'),
+        DIA('FOLGA'),
+        DIA('FOLGA'),
+        DIA('FOLGA'),
+        DIA('FOLGA'),
       ],
       ALECIO: [DIA('', 'ZPT'), DIA('', 'ZPT'), DIA('', 'ZPT'), DIA('', ''), DIA('', ''), DIA('', ''), DIA('', '')],
       BRUNO: [DIA('', 'ZEV'), DIA('', 'ZEV'), DIA('', 'ZEV'), DIA('', ''), DIA('', ''), DIA('', ''), DIA('', '')],
