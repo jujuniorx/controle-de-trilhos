@@ -1,5 +1,5 @@
 import { PaginaPdf, A4_PAISAGEM, montarPdfVarias, larguraTexto } from '@/lib/pdf/simples';
-import { ESTILO_STATUS, ITENS_ESCALA, GRUPOS_ESCALA, STATUS_ESCALA, TIPOS_CICLO, diasDaSemana, type EscalaSemanaValor } from '@/lib/usina/escala';
+import { ESTILO_STATUS, ITENS_ESCALA, ITENS_SEM_LOCAL, GRUPOS_ESCALA, STATUS_ESCALA, TIPOS_CICLO, diasDaSemana, type EscalaSemanaValor } from '@/lib/usina/escala';
 
 type Cor = [number, number, number];
 
@@ -16,6 +16,8 @@ const TINTA: Cor = [0.1, 0.12, 0.16];
 const CINZA: Cor = [0.42, 0.45, 0.5];
 const LINHA: Cor = [0.84, 0.86, 0.9];
 const AZUL: Cor = [0.16, 0.42, 0.95];
+const FIM_SEMANA: Cor = [0.945, 0.952, 0.965];
+const TINTA_SUAVE: Cor = [0.28, 0.32, 0.38];
 
 const L = A4_PAISAGEM.largura; // 842
 const H = A4_PAISAGEM.altura; // 595
@@ -104,33 +106,38 @@ export function gerarEscalaPdf(semana: string, valor: EscalaSemanaValor, emitido
   y -= 24;
 
   for (const grupo of GRUPOS_ESCALA) {
-    y -= 6;
+    y -= 4;
     p.texto(grupo.toUpperCase(), xQuem, y - 9, 7, 'negrito', AZUL);
     p.linha(xQuem + larguraTexto(grupo.toUpperCase(), 7, 'negrito') + 8, y - 6, L - M, y - 6, LINHA, 0.6);
-    y -= 14;
+    y -= 12;
 
     for (const item of ITENS_ESCALA.filter((it) => it.grupo === grupo)) {
       const cfg = valor.config[item.id];
-      const tipoRotulo = TIPOS_CICLO.find((t) => t.valor === cfg?.tipo)?.rotulo ?? '';
-      const altura = 22 + 14;
-      // Nome e tipo de escala
+      const semLocal = ITENS_SEM_LOCAL.has(item.id);
+      const tipoRotulo = cfg?.tipo === 'e18' ? '10x4' : TIPOS_CICLO.find((t) => t.valor === cfg?.tipo)?.rotulo ?? '';
+      const altura = semLocal ? 19 : 19 + 12;
+      const nome = item.rotulo.replace(' · ', ' ');
+      // Nome do item e tipo de escala
       p.retangulo(xQuem, y - altura, wQuem - 4, altura, PAPEL);
-      p.texto(item.rotulo, xQuem + 8, y - 16, 11, 'negrito', TINTA);
-      if (tipoRotulo && tipoRotulo !== 'Manual') p.texto(tipoRotulo, xQuem + 8, y - altura + 5, 7, 'normal', CINZA);
+      p.retangulo(xQuem, y - altura, 3, altura, NAVY_2);
+      p.texto(nome, xQuem + 10, y - (semLocal ? 13 : 13), semLocal ? 9.5 : 11, semLocal ? 'normal' : 'negrito', semLocal ? CINZA : TINTA);
+      if (tipoRotulo && tipoRotulo !== 'Manual' && !semLocal) p.texto(tipoRotulo, xQuem + 10, y - altura + 3, 7, 'normal', CINZA);
 
       const linhas = valor.linhas[item.id] ?? [];
       linhas.forEach((c, i) => {
         const est = ESTILO_STATUS[c.status] ?? ESTILO_STATUS['-'];
+        const fimDeSemana = i >= 5;
         const x = xDia(i) + 1.5;
         const w = wDia - 3;
         // Status
-        if (c.status !== '-') p.retangulo(x, y - 22, w, 21, hex(est.fundo));
-        else p.retangulo(x, y - 22, w, 21, PAPEL);
-        const rotulo = STATUS_ESCALA.find((s) => s.valor === c.status)?.rotulo ?? '·';
-        centralizado(p, c.status === '-' ? '-' : rotulo, x, w, y - 15, 8.5, 'negrito', hex(est.texto));
+        if (c.status !== '-') p.retangulo(x, y - 18, w, 17, hex(est.fundo));
+        else p.retangulo(x, y - 18, w, 17, fimDeSemana ? FIM_SEMANA : PAPEL);
+        const rotulo = STATUS_ESCALA.find((st) => st.valor === c.status)?.rotulo ?? '·';
+        centralizado(p, c.status === '-' ? '-' : rotulo, x, w, y - 13, 9, 'negrito', hex(est.texto));
+        if (semLocal) return;
         // Local
-        p.retangulo(x, y - altura, w, 13, BRANCO);
-        if (c.local) centralizado(p, c.local, x, w, y - altura + 4, 7, 'normal', CINZA);
+        p.retangulo(x, y - altura, w, 11, fimDeSemana ? FIM_SEMANA : BRANCO);
+        if (c.local) centralizado(p, c.local, x, w, y - altura + 2.5, 7.5, 'normal', TINTA_SUAVE);
         // MMD destacada
         if (c.local.trim().toUpperCase() === 'MMD') contorno(p, x, y - altura, w, altura, AZUL, 1.6);
       });
