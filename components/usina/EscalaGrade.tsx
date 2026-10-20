@@ -18,8 +18,6 @@ const COR_STATUS: Record<string, string> = {
   FOLGA: 'var(--t3)',
   'DESL.': '#d97706',
   'MAN.': '#d97706',
-  TITAN: 'var(--b4)',
-  PRUMO: 'var(--b4)',
   EXTRA: '#7c3aed',
   '-': 'var(--t3)',
 };

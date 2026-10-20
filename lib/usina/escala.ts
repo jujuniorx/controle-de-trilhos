@@ -9,15 +9,12 @@ export const STATUS_ESCALA = [
   { valor: 'FOLGA', rotulo: 'Folga' },
   { valor: 'DESL.', rotulo: 'Desl.' },
   { valor: 'MAN.', rotulo: 'Man.' },
-  { valor: 'TITAN', rotulo: 'Titan' },
-  { valor: 'PRUMO', rotulo: 'Prumo' },
   { valor: 'EXTRA', rotulo: 'Extra' },
 ] as const;
 
 export const ITENS_ESCALA = [
   { id: 'E18', rotulo: 'E18', grupo: 'Caminhão de solda' },
-  { id: 'E17T', rotulo: 'E17 - TITAN', grupo: 'Caminhão de solda' },
-  { id: 'E17P', rotulo: 'E17 - PRUMO', grupo: 'Caminhão de solda' },
+  { id: 'E17', rotulo: 'E17', grupo: 'Caminhão de solda' },
   { id: 'ALECIO', rotulo: 'Alécio', grupo: 'Geração de trilho' },
   { id: 'BRUNO', rotulo: 'Bruno', grupo: 'Geração de trilho' },
   { id: 'REGINALDO', rotulo: 'Reginaldo', grupo: 'Geração de trilho' },
@@ -53,12 +50,22 @@ export function lerEscala(texto: string | null | undefined): EscalaSemanaValor |
     if (dados?.v !== 1 || !Array.isArray(dados.plantao) || typeof dados.linhas !== 'object') return null;
     const base = escalaVazia();
     base.plantao = dados.plantao.slice(0, 7).map((p: unknown) => String(p ?? ''));
+    // Semanas salvas antes: E17 - TITAN e E17 - PRUMO viraram uma linha so (E17).
+    const linhasLidas: Record<string, unknown> = { ...dados.linhas };
+    if (!Array.isArray(linhasLidas.E17)) {
+      const antiga = [linhasLidas.E17T, linhasLidas.E17P].find(Array.isArray) as unknown[] | undefined;
+      if (antiga) linhasLidas.E17 = antiga;
+    }
     for (const item of ITENS_ESCALA) {
-      const dias = Array.isArray(dados.linhas[item.id]) ? dados.linhas[item.id] : [];
-      base.linhas[item.id] = Array.from({ length: 7 }, (_, i) => ({
-        status: statusValido(String(dias[i]?.status ?? '')) ? String(dias[i].status) : '-',
-        local: String(dias[i]?.local ?? ''),
-      }));
+      const dias = Array.isArray(linhasLidas[item.id]) ? (linhasLidas[item.id] as unknown[]) : [];
+      base.linhas[item.id] = Array.from({ length: 7 }, (_, i) => {
+        const bruto = String((dias[i] as { status?: unknown; local?: unknown } | undefined)?.status ?? '');
+        const status = bruto === 'TITAN' || bruto === 'PRUMO' ? 'OK' : bruto;
+        return {
+          status: statusValido(status) ? status : '-',
+          local: String((dias[i] as { local?: unknown } | undefined)?.local ?? ''),
+        };
+      });
     }
     const cfg = dados.config ?? {};
     for (const item of ITENS_ESCALA) {
@@ -117,8 +124,7 @@ const ISO_VALIDO = /^\d{4}-\d{2}-\d{2}$/;
 
 export const CONFIG_PADRAO: Record<string, ConfigCiclo> = {
   E18: { tipo: 'manual', inicio: '' },
-  E17T: { tipo: 'manual', inicio: '' },
-  E17P: { tipo: 'manual', inicio: '' },
+  E17: { tipo: 'manual', inicio: '' },
   ALECIO: { tipo: '11x3', inicio: '2026-10-27' },
   BRUNO: { tipo: '11x3', inicio: '2026-10-27' },
   REGINALDO: { tipo: '11x3', inicio: '2026-10-27' },
