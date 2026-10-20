@@ -17,6 +17,15 @@ const TITULO_SETOR: Record<Exclude<ChaveSetor, 'todos'>, string> = {
   trilheiros: 'Trilheiros',
 };
 
+/** Nome do relatorio de cada setor, como aparece no titulo da pagina. */
+const TITULO_RELATORIO: Record<Exclude<ChaveSetor, 'todos'>, string> = {
+  estaleiro: 'Relatório do estaleiro de solda',
+  geracao: 'Relatório da geração de trilho',
+  composicoes: 'Relatório do recolhimento serra',
+  caminhao: 'Relatório do caminhão de solda',
+  trilheiros: 'Relatório dos trilheiros',
+};
+
 const br = (iso: string) => iso.split('-').reverse().join('/');
 
 export default async function ImprimirUsina({
@@ -31,7 +40,7 @@ export default async function ImprimirUsina({
   const dados = await montarDadosRelatorio(data);
   const setores = dados.setores.filter((s) => setor === 'todos' || s.titulo === TITULO_SETOR[setor]);
   const resumo = dados.resumo.filter((r) => setor === 'todos' || r.grupo === TITULO_SETOR[setor]);
-  const titulo = setor === 'todos' ? 'Relatório da usina' : `Relatório da usina · ${TITULO_SETOR[setor]}`;
+  const titulo = setor === 'todos' ? 'Relatório da usina' : TITULO_RELATORIO[setor];
 
   return (
     <main className="mx-auto max-w-5xl space-y-4 p-4">
