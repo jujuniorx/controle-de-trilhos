@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { salvarEstaleiroDia, salvarEstoqueTls, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, type TipoTlsValor } from '@/lib/services/usina';
+import { ITENS_ESCALA, escalaVazia, gravarEscala, statusValido } from '@/lib/usina/escala';
 import { salvarGeracao, salvarComposicao, salvarCaminhao, salvarGiro, salvarManutencaoTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
 import { ehIsoValido } from '@/lib/usina/periodo';
@@ -70,8 +71,20 @@ export async function salvarEscalaAction(_: ResultadoUsina | undefined, formData
   await requireAdmin();
   const semana = dataDoForm(formData.get('semana'));
   if (!semana) return { ok: false, erro: 'Semana inválida.' };
-  await salvarEscalaSemana(semana, String(formData.get('conteudo') ?? '').slice(0, 5000));
-  atualizar();
+  const valor = escalaVazia();
+  for (let i = 0; i < 7; i++) {
+    valor.plantao[i] = String(formData.get(`plantao_${i}`) ?? '').trim().slice(0, 40);
+  }
+  for (const item of ITENS_ESCALA) {
+    for (let i = 0; i < 7; i++) {
+      const status = String(formData.get(`st_${item.id}_${i}`) ?? '-');
+      valor.linhas[item.id][i] = {
+        status: statusValido(status) ? status : '-',
+        local: String(formData.get(`lc_${item.id}_${i}`) ?? '').trim().slice(0, 40),
+      };
+    }
+  }
+  await salvarEscalaSemana(semana, gravarEscala(valor));
   return { ok: true };
 }
 

@@ -1,3 +1,4 @@
+import { lerEscala, ITENS_ESCALA, diasDaSemana, textoCelula } from '@/lib/usina/escala';
 import {
   estaleiroDoPeriodo,
   geracaoDoPeriodo,
@@ -72,6 +73,7 @@ export default async function ImprimirUsina({
     trilheirosDoPeriodo('dia', data),
     trilheirosDoPeriodo('mes', data),
   ]);
+  const escalaImp = lerEscala(est.escala);
 
   // Acumulados (dia e mês) de cada setor.
   const estTxt = (x: typeof estDia) =>
@@ -122,7 +124,19 @@ export default async function ImprimirUsina({
               cab={['Estoque de TLS (em ' + br(data) + ')', 'Quantidade']}
               linhas={TIPOS_TLS.map((t) => [ROTULO_TLS[t], est.estoqueDoDia[t] ?? '—'])}
             />
-            {est.escala && <p className="whitespace-pre-line text-sm"><b>Escala:</b> {est.escala}</p>}
+            {escalaImp && (
+              <div className="space-y-1">
+                <p className="text-sm font-semibold">Escala da semana (em {br(est.semana)})</p>
+                <Tabela
+                  cab={['Quem', ...diasDaSemana(est.semana).map((d) => `${d.nome} ${d.data}`)]}
+                  linhas={[
+                    ['Plantão', ...escalaImp.plantao.map((p) => p || '-')],
+                    ...ITENS_ESCALA.map((it) => [it.rotulo, ...escalaImp.linhas[it.id].map(textoCelula)]),
+                  ]}
+                />
+              </div>
+            )}
+            {!escalaImp && est.escala && <p className="whitespace-pre-line text-sm"><b>Escala:</b> {est.escala}</p>}
           </section>
         )}
 

@@ -22,6 +22,8 @@ const SETORES: [string, string][] = [['estaleiro', 'Estaleiro'], ['geracao', 'Ge
 import { fmtMetros, fmtPeso } from '@/lib/format';
 import { PERIODOS, ehIsoValido, type Periodo } from '@/lib/usina/periodo';
 import { FormularioUsina } from '@/components/usina/FormularioUsina';
+import { EscalaGrade } from '@/components/usina/EscalaGrade';
+import { lerEscala, escalaVazia, diasDaSemana } from '@/lib/usina/escala';
 import {
   salvarEstaleiroAction,
   salvarEstoqueTlsAction,
@@ -69,6 +71,9 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
     caminhoesDoPeriodo(periodo, data),
     trilheirosDoPeriodo(periodo, data),
   ]);
+  const escalaSalva = lerEscala(est.escala);
+  const escalaSemana = escalaSalva ?? escalaVazia();
+  const escalaLegada = !escalaSalva && est.escala.trim() !== '';
 
   return (
     <div className="space-y-8">
@@ -168,15 +173,21 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           </FormularioUsina>
         </div>
 
-        <div className="card space-y-3">
-          <p className="font-semibold">Escala da semana</p>
-          <p className="text-sm text-ink-muted">Enviada na segunda-feira. O formato ainda será definido.</p>
+        <div className="card space-y-3 xl:col-span-2">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <p className="font-semibold">Escala da semana</p>
+            <p className="text-sm text-ink-muted">Preencha a semana toda. Use o seletor de status e, se for o caso, o local onde estava.</p>
+          </div>
+          {escalaLegada && (
+            <p className="rounded-lg border border-[var(--ln)] p-3 text-sm text-ink-muted">
+              Escala anterior em texto: {est.escala}. Ao salvar a grade abaixo, ela é substituída.
+            </p>
+          )}
           <FormularioUsina acao={salvarEscalaAction}>
             <input type="hidden" name="semana" value={est.semana} />
-            <div className="field">
-              <label htmlFor="conteudo">Escala</label>
-              <textarea id="conteudo" name="conteudo" rows={4} defaultValue={est.escala} className="w-full" />
-            </div>
+            <EscalaGrade valor={escalaSemana} dias={diasDaSemana(est.semana)} />
+          </FormularioUsina>
+        </div>
           </FormularioUsina>
         </div>
       </section>
