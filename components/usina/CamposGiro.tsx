@@ -23,8 +23,8 @@ export function CamposGiro({ ciclo, opcoesPerfis }: { ciclo: CicloAberto | null;
   const travada = (valor: string | null | undefined) => Boolean(ciclo && valor);
 
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div className="grid gap-4 xl:grid-cols-12">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:col-span-6">
         <div className="field">
           <label>Dia do B.O.</label>
           <input name="boEm" type="date" defaultValue={ciclo?.boEm ?? ''} readOnly={travada(ciclo?.boEm)} className={`h-11 ${travada(ciclo?.boEm) ? 'opacity-70' : ''}`} />
@@ -43,7 +43,7 @@ export function CamposGiro({ ciclo, opcoesPerfis }: { ciclo: CicloAberto | null;
         </div>
       </div>
 
-      <fieldset className="space-y-1">
+      <fieldset className="space-y-1 xl:col-span-6">
         <legend className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Perfis</legend>
         <div className="flex flex-wrap gap-2">
           {opcoesPerfis.map((p) => (
@@ -55,7 +55,7 @@ export function CamposGiro({ ciclo, opcoesPerfis }: { ciclo: CicloAberto | null;
         </div>
       </fieldset>
 
-      <div className="grid grid-cols-2 items-end gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 items-end gap-3 sm:grid-cols-4 xl:col-span-6">
         <div className="field">
           <label>TLS carregados</label>
           <input name="carregados" inputMode="numeric" value={carregados} onChange={(e) => setCarregados(e.target.value)} className="h-11" />
@@ -73,7 +73,7 @@ export function CamposGiro({ ciclo, opcoesPerfis }: { ciclo: CicloAberto | null;
           <input name="local" defaultValue={ciclo?.local ?? ''} className="h-11" />
         </div>
       </div>
-      <div className="field">
+      <div className="field xl:col-span-6">
         <label>Observação</label>
         <input name="observacao" defaultValue={ciclo?.observacao ?? ''} className="h-11" />
       </div>

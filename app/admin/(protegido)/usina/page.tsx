@@ -319,7 +319,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           </table>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid gap-4">
           {TRILHEIROS.map((t, i) => {
             const ciclo = ciclosAbertos[i];
             const iso = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : null);
