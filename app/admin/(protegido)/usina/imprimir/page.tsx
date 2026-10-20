@@ -30,7 +30,7 @@ export default async function ImprimirUsina({
 
   const dados = await montarDadosRelatorio(data);
   const setores = dados.setores.filter((s) => setor === 'todos' || s.titulo === TITULO_SETOR[setor]);
-  const resumo = dados.resumo.filter((r) => setor === 'todos' || r.rotulo === TITULO_SETOR[setor]);
+  const resumo = dados.resumo.filter((r) => setor === 'todos' || r.grupo === TITULO_SETOR[setor]);
   const titulo = setor === 'todos' ? 'Relatório da usina' : `Relatório da usina · ${TITULO_SETOR[setor]}`;
 
   return (

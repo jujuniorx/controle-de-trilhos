@@ -3,6 +3,7 @@ import {
   geracaoDoPeriodo,
   caminhoesDoPeriodo,
   trilheirosDoPeriodo,
+  TRILHEIROS,
 } from '@/lib/services/usina';
 import { seriesDoMes } from '@/lib/services/usinaGraficos';
 import { prisma } from '@/lib/db';
@@ -21,7 +22,7 @@ export interface SetorRelatorio { titulo: string; cor: string; linhas: LinhaRela
 export interface DadosRelatorio {
   data: string;
   rotulosDias: string[];
-  resumo: { rotulo: string; cor: string; dia: string; mes: string }[];
+  resumo: { rotulo: string; cor: string; dia: string; mes: string; grupo: string }[];
   setores: SetorRelatorio[];
 }
 
@@ -68,15 +69,22 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
     data,
     rotulosDias: serie.rotulos,
     resumo: [
-      { rotulo: 'Estaleiro de solda', cor: CORES_SETOR.estaleiro, dia: String(estD.totais.soldas), mes: String(estM.totais.soldas) },
+      { rotulo: 'Estaleiro de solda', cor: CORES_SETOR.estaleiro, dia: `${estD.totais.soldas} un`, mes: `${estM.totais.soldas} un`, grupo: 'Estaleiro de solda' },
       {
         rotulo: 'Geração de trilho',
         cor: CORES_SETOR.geracao,
         dia: metros(geraDia((l) => l.periodo.carregamentoM + l.periodo.deixadaViaM)),
         mes: metros(geraMes((l) => l.mes.carregamentoM + l.mes.deixadaViaM)),
+        grupo: 'Geração de trilho',
       },
-      { rotulo: 'Recolhimento serra', cor: CORES_SETOR.serra, dia: metros(serraTotalDia), mes: metros(serraTotalMes) },
-      { rotulo: 'Caminhão de solda', cor: CORES_SETOR.caminhao, dia: String(soma(camD, (c) => c.periodo.producao)), mes: String(soma(camM, (c) => c.mes.producao)) },
+      { rotulo: 'Recolhimento serra', cor: CORES_SETOR.serra, dia: metros(serraTotalDia), mes: metros(serraTotalMes), grupo: 'Recolhimento serra' },
+      ...['CW01', 'CW02'].map((cw, i) => ({
+        rotulo: cw,
+        cor: i === 0 ? CORES_SETOR.caminhao : '#84cc16',
+        dia: `${camD.find((c) => c.caminhao === cw)?.periodo.producao ?? 0} un`,
+        mes: `${camM.find((c) => c.caminhao === cw)?.mes.producao ?? 0} un`,
+        grupo: 'Caminhão de solda',
+      })),
     ],
     setores: [
       {
@@ -152,10 +160,16 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       {
         titulo: 'Trilheiros',
         cor: CORES_SETOR.trilheiros,
-        linhas: [
-          { rotulo: 'Giros', dia: String(trilD.giros.length), mes: String(trilM.giros.length) },
+        linhas: TRILHEIROS.flatMap((t) => [
+          { rotulo: `${t} · giros`, dia: String(trilD.giros.filter((g) => g.trilheiro === t).length), mes: String(trilM.giros.filter((g) => g.trilheiro === t).length) },
+          {
+            rotulo: `${t} · TLS carregados`,
+            dia: `${soma(trilD.giros.filter((g) => g.trilheiro === t), (g) => g.carregados)} TLS`,
+            mes: `${soma(trilM.giros.filter((g) => g.trilheiro === t), (g) => g.carregados)} TLS`,
+          },
+        ]).concat([
           { rotulo: 'Média de dias úteis na usina', dia: '—', mes: trilM.mediaDiasUteisNaUsina == null ? '—' : String(trilM.mediaDiasUteisNaUsina) },
-        ],
+        ]),
         grafico: null,
       },
     ],
