@@ -1,7 +1,17 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
-import { ITENS_ESCALA, GRUPOS_ESCALA, STATUS_ESCALA, type EscalaSemanaValor, type DiaEscala } from '@/lib/usina/escala';
+import {
+  ITENS_ESCALA,
+  GRUPOS_ESCALA,
+  STATUS_ESCALA,
+  TIPOS_CICLO,
+  isoDaSemana,
+  statusDoCiclo,
+  type EscalaSemanaValor,
+  type DiaEscala,
+  type ConfigCiclo,
+} from '@/lib/usina/escala';
 
 const COR_STATUS: Record<string, string> = {
   OK: 'var(--ok)',
@@ -20,9 +30,18 @@ const EH_MMD = (local: string) => local.trim().toUpperCase() === 'MMD';
  * Escala da semana no modo pincel: escolhe o status (e o local, se preenchido) na barra de cima
  * e toca nos dias para pintar. Cada dia mostra o status na cor e o local embaixo.
  */
-export function EscalaGrade({ valor, dias }: { valor: EscalaSemanaValor; dias: { nome: string; data: string }[] }) {
+export function EscalaGrade({
+  valor,
+  dias,
+  semana,
+}: {
+  valor: EscalaSemanaValor;
+  dias: { nome: string; data: string }[];
+  semana: string;
+}) {
   const [plantao, setPlantao] = useState<string[]>(valor.plantao);
   const [linhas, setLinhas] = useState<Record<string, DiaEscala[]>>(valor.linhas);
+  const [config, setConfig] = useState<Record<string, ConfigCiclo>>(valor.config);
   const [pincel, setPincel] = useState<string>('OK');
   const [local, setLocal] = useState<string>('');
 
@@ -38,10 +57,38 @@ export function EscalaGrade({ valor, dias }: { valor: EscalaSemanaValor; dias: {
     }));
   }
 
+  function mudarConfig(id: string, campo: keyof ConfigCiclo, v: string) {
+    setConfig((atual) => ({ ...atual, [id]: { ...atual[id], [campo]: v } as ConfigCiclo }));
+  }
+
+  function preencherCiclos() {
+    const isos = isoDaSemana(semana);
+    setLinhas((atual) => {
+      const proximo = { ...atual };
+      for (const item of ITENS_ESCALA) {
+        const cfg = config[item.id];
+        if (!cfg) continue;
+        const sts = isos.map((iso) => statusDoCiclo(cfg, iso));
+        if (sts.some((x) => x === null)) continue;
+        proximo[item.id] = atual[item.id].map((c, i) => ({ ...c, status: sts[i] as string }));
+      }
+      return proximo;
+    });
+  }
+
   return (
     <div className="space-y-4">
       <div className="space-y-3 rounded-xl border border-[var(--ln2)] p-3">
-        <p className="text-sm font-semibold">1. Escolha o status e toque nos dias</p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm font-semibold">Ciclo automático</p>
+          <button type="button" onClick={preencherCiclos} className="btn btn-ghost h-10 px-4 text-sm">
+            Preencher a semana pelo ciclo
+          </button>
+        </div>
+        <p className="text-xs text-ink-muted">
+          Ajuste o tipo e a data de início de cada pessoa na coluna "Quem". Depois clique no botão para preencher a semana. Você ainda pode editar qualquer dia pelo pincel abaixo. Itens em "Manual" não são preenchidos.
+        </p>
+        <p className="text-sm font-semibold">Pincel manual</p>
         <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Status do pincel">
           {STATUS_ESCALA.map((s) => {
             const ativo = pincel === s.valor;
@@ -115,7 +162,16 @@ export function EscalaGrade({ valor, dias }: { valor: EscalaSemanaValor; dias: {
             {GRUPOS_ESCALA.map((grupo) => (
               <GrupoLinhas key={grupo} grupo={grupo}>
                 {ITENS_ESCALA.filter((it) => it.grupo === grupo).map((item) => (
-                  <Linha key={item.id} rotulo={item.rotulo}>
+                  <Linha
+                    key={item.id}
+                    rotulo={item.rotulo}
+                    cfgTipo={`cfg_tipo_${item.id}`}
+                    cfgInicio={`cfg_inicio_${item.id}`}
+                    tipo={config[item.id]?.tipo ?? 'manual'}
+                    inicio={config[item.id]?.inicio ?? ''}
+                    onTipo={(v) => mudarConfig(item.id, 'tipo', v)}
+                    onInicio={(v) => mudarConfig(item.id, 'inicio', v)}
+                  >
                     {linhas[item.id].map((c, i) => {
                       const cor = COR_STATUS[c.status] ?? 'var(--t1)';
                       const mmd = EH_MMD(c.local);
@@ -165,11 +221,53 @@ function GrupoLinhas({ grupo, children }: { grupo: string; children: ReactNode }
   );
 }
 
-function Linha({ rotulo, children }: { rotulo: string; children: ReactNode }) {
+function Linha({
+  rotulo,
+  cfgTipo,
+  cfgInicio,
+  tipo,
+  inicio,
+  onTipo,
+  onInicio,
+  children,
+}: {
+  rotulo: string;
+  cfgTipo: string;
+  cfgInicio: string;
+  tipo: string;
+  inicio: string;
+  onTipo: (v: string) => void;
+  onInicio: (v: string) => void;
+  children: ReactNode;
+}) {
+  const precisaInicio = tipo === '11x3' || tipo === '10x4';
   return (
     <tr>
-      <th scope="row" className="sticky left-0 z-10 whitespace-nowrap bg-[var(--g2)] px-3 py-1 text-left text-base font-semibold">
-        {rotulo}
+      <th scope="row" className="sticky left-0 z-10 bg-[var(--g2)] px-3 py-1 text-left align-top">
+        <span className="block whitespace-nowrap text-base font-semibold">{rotulo}</span>
+        <select
+          aria-label={`Tipo de escala de ${rotulo}`}
+          name={cfgTipo}
+          value={tipo}
+          onChange={(e) => onTipo(e.target.value)}
+          className="mt-1 h-8 w-full text-xs"
+        >
+          {TIPOS_CICLO.map((t) => (
+            <option key={t.valor} value={t.valor}>{t.rotulo}</option>
+          ))}
+        </select>
+        {precisaInicio ? (
+          <input
+            type="date"
+            aria-label={`Primeiro dia de trabalho de ${rotulo}`}
+            name={cfgInicio}
+            value={inicio}
+            onChange={(e) => onInicio(e.target.value)}
+            className="mt-1 h-8 w-full text-xs"
+          />
+        ) : (
+          <input type="hidden" name={cfgInicio} value="" />
+        )}
       </th>
       {children}
     </tr>

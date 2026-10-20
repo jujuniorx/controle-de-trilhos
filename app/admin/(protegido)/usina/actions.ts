@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { salvarEstaleiroDia, salvarEstoqueTls, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, type TipoTlsValor } from '@/lib/services/usina';
-import { ITENS_ESCALA, escalaVazia, gravarEscala, statusValido } from '@/lib/usina/escala';
+import { ITENS_ESCALA, escalaVazia, gravarEscala, statusValido, configValida } from '@/lib/usina/escala';
 import { salvarGeracao, salvarComposicao, salvarCaminhao, salvarGiro, salvarManutencaoTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
 import { ehIsoValido } from '@/lib/usina/periodo';
@@ -83,6 +83,12 @@ export async function salvarEscalaAction(_: ResultadoUsina | undefined, formData
         local: String(formData.get(`lc_${item.id}_${i}`) ?? '').trim().slice(0, 40),
       };
     }
+  }
+  for (const item of ITENS_ESCALA) {
+    valor.config[item.id] = configValida(
+      String(formData.get(`cfg_tipo_${item.id}`) ?? ''),
+      String(formData.get(`cfg_inicio_${item.id}`) ?? ''),
+    );
   }
   await salvarEscalaSemana(semana, gravarEscala(valor));
   return { ok: true };

@@ -185,7 +185,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           )}
           <FormularioUsina acao={salvarEscalaAction}>
             <input type="hidden" name="semana" value={est.semana} />
-            <EscalaGrade valor={escalaSemana} dias={diasDaSemana(est.semana)} />
+            <EscalaGrade valor={escalaSemana} dias={diasDaSemana(est.semana)} semana={est.semana} />
           </FormularioUsina>
         </div>
       </section>
