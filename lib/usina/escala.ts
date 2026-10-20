@@ -293,3 +293,30 @@ export function locaisDaSemana(escala: EscalaSemanaValor): Record<string, string
   }
   return locais;
 }
+
+export interface ResumoDia {
+  trabalhando: string[];
+  deslocamento: string[];
+  folga: string[];
+  manutencao: string[];
+  semEscala: string[];
+  plantao: string;
+}
+
+/** Quem esta em cada situacao numa data (yyyy-mm-dd) da semana. */
+export function resumoDoDia(escala: EscalaSemanaValor, semana: string, data: string): ResumoDia | null {
+  const idx = isoDaSemana(semana).indexOf(data);
+  if (idx < 0) return null;
+  const r: ResumoDia = { trabalhando: [], deslocamento: [], folga: [], manutencao: [], semEscala: [], plantao: escala.plantao[idx] ?? '' };
+  for (const item of ITENS_ESCALA) {
+    const c = escala.linhas[item.id]?.[idx];
+    if (!c) continue;
+    const nome = c.local ? `${item.rotulo} (${c.local})` : item.rotulo;
+    if (c.status === '-' || c.status === '') r.semEscala.push(item.rotulo);
+    else if (c.status === 'DESL.') r.deslocamento.push(nome);
+    else if (c.status === 'FOLGA') r.folga.push(item.rotulo);
+    else if (c.status === 'MAN.') r.manutencao.push(item.rotulo);
+    else r.trabalhando.push(c.status === 'OK' || c.status === 'EXTRA' ? nome : `${item.rotulo} ${c.status}`);
+  }
+  return r;
+}
