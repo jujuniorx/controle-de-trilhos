@@ -9,6 +9,8 @@ import {
   ESTILO_STATUS,
   ITENS_SEM_LOCAL,
   aplicarCiclos,
+  statusDoCiclo,
+  isoDaSemana,
   type EscalaSemanaValor,
   type DiaEscala,
   type ConfigCiclo,
@@ -53,10 +55,33 @@ export function EscalaGrade({
     }));
   }
 
-  /** Muda o tipo ou a data de inicio; a linha da pessoa e refeita pelo ciclo novo. */
-  function mudarCiclo(id: string, novo: ConfigCiclo) {
-    setConfig((atual) => ({ ...atual, [id]: novo }));
-    setLinhas((atual) => aplicarCiclos(atual, { [id]: novo }, semana));
+  /**
+   * Muda a regra de uma pessoa. Se mudar o tipo, a regra anterior vale para os dias antes de `desde`.
+   * Os dias a partir de `desde` (ou a semana toda, sem data) sao refeitos pela regra nova.
+   */
+  function mudarCiclo(id: string, parcial: Partial<ConfigCiclo>) {
+    const atual: ConfigCiclo = config[id] ?? { tipo: 'manual', inicio: '' };
+    let novo: ConfigCiclo = { ...atual, ...parcial };
+    if (parcial.tipo !== undefined && parcial.tipo !== atual.tipo) {
+      novo.anterior = { tipo: atual.tipo, inicio: atual.inicio };
+    }
+    if (parcial.desde === '') {
+      delete novo.desde;
+      delete novo.anterior;
+    }
+    if (!novo.desde) delete novo.anterior;
+    setConfig((c) => ({ ...c, [id]: novo }));
+    setLinhas((l) => {
+      const isos = isoDaSemana(semana);
+      return {
+        ...l,
+        [id]: (l[id] ?? []).map((c, i) => {
+          if (novo.desde && isos[i] < novo.desde) return c;
+          const st = statusDoCiclo(novo, isos[i]);
+          return st === null ? c : { ...c, status: st };
+        }),
+      };
+    });
   }
 
   function preencherCiclos() {
@@ -127,7 +152,8 @@ export function EscalaGrade({
                   cfgInicio={`cfg_inicio_${item.id}`}
                   tipo={config[item.id]?.tipo ?? 'manual'}
                   inicio={config[item.id]?.inicio ?? ''}
-                  onCiclo={(novo) => mudarCiclo(item.id, novo)}
+                  desde={config[item.id]?.desde ?? ''}
+                  onCiclo={(parcial) => mudarCiclo(item.id, parcial)}
                   dias={linhas[item.id]}
                   rotulosDias={dias}
                   item={item.id}
@@ -159,6 +185,7 @@ export function EscalaGrade({
   return (
     <FormularioUsina acao={acao} rotuloBotao="Salvar escala">
       <input type="hidden" name="semana" value={semana} />
+      <input type="hidden" name="config_json" value={JSON.stringify(config)} />
       <div className="space-y-4">
         <div className="space-y-3 rounded-xl border border-[var(--ln2)] p-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -236,6 +263,7 @@ function ItemLinhas({
   cfgInicio,
   tipo,
   inicio,
+  desde,
   onCiclo,
   dias: celulas,
   rotulosDias,
@@ -248,7 +276,8 @@ function ItemLinhas({
   cfgInicio: string;
   tipo: string;
   inicio: string;
-  onCiclo: (novo: ConfigCiclo) => void;
+  desde: string;
+  onCiclo: (parcial: Partial<ConfigCiclo>) => void;
   dias: DiaEscala[];
   rotulosDias: { nome: string; data: string }[];
   item: string;
@@ -258,39 +287,47 @@ function ItemLinhas({
   return (
     <>
       <tr>
-        <th scope="rowgroup" className="sticky left-0 z-10 w-[120px] bg-[var(--g2)] px-2 py-1 text-left align-top">
+        <th scope="rowgroup" className="sticky left-0 z-10 w-[140px] bg-[var(--g2)] px-2 py-1 text-left align-top">
           <span className="block whitespace-nowrap text-base font-bold">{rotulo}</span>
           {editando ? (
             <div className="mt-1 space-y-1">
               <select
                 aria-label={`Tipo de escala de ${rotulo}`}
-                name={cfgTipo}
                 value={tipo}
-                onChange={(e) => onCiclo({ tipo: e.target.value as ConfigCiclo['tipo'], inicio })}
+                onChange={(e) => onCiclo({ tipo: e.target.value as ConfigCiclo['tipo'] })}
                 className="h-8 w-full text-xs"
               >
                 {TIPOS_CICLO.map((t) => (
                   <option key={t.valor} value={t.valor}>{t.rotulo}</option>
                 ))}
               </select>
-              {(tipo === '11x3' || tipo === '10x4') && (
-                <input
-                  type="date"
-                  aria-label={`Primeiro dia de trabalho de ${rotulo}`}
-                  name={cfgInicio}
-                  value={inicio}
-                  onChange={(e) => onCiclo({ tipo: tipo as ConfigCiclo['tipo'], inicio: e.target.value })}
-                  className="h-8 w-full text-xs"
-                />
+              {(tipo === '11x3' || tipo === '10x4' || tipo === 'e18') && (
+                <label className="block text-[10px] text-ink-muted">
+                  Início do bloco
+                  <input
+                    type="date"
+                    aria-label={`Primeiro dia de trabalho de ${rotulo}`}
+                    value={inicio}
+                    onChange={(e) => onCiclo({ inicio: e.target.value })}
+                    className="mt-0.5 h-8 w-full text-xs"
+                  />
+                </label>
               )}
-              {!(tipo === '11x3' || tipo === '10x4') && <input type="hidden" name={cfgInicio} value={inicio} />}
+              {tipo !== 'manual' && (
+                <label className="block text-[10px] text-ink-muted">
+                  Válido a partir de
+                  <input
+                    type="date"
+                    aria-label={`Válido a partir de, ${rotulo}`}
+                    value={desde}
+                    onChange={(e) => onCiclo({ desde: e.target.value })}
+                    className="mt-0.5 h-8 w-full text-xs"
+                  />
+                </label>
+              )}
             </div>
           ) : (
-            <>
-              <span className="block text-[11px] text-ink-muted">{TIPOS_CICLO.find((t) => t.valor === tipo)?.rotulo ?? ''}</span>
-              <input type="hidden" name={cfgTipo} value={tipo} />
-              <input type="hidden" name={cfgInicio} value={inicio} />
-            </>
+            <span className="block text-[11px] text-ink-muted">{TIPOS_CICLO.find((t) => t.valor === tipo)?.rotulo ?? ''}</span>
           )}
         </th>
         {celulas.map((c, i) => {
