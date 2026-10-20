@@ -8,6 +8,7 @@ import {
   TIPOS_CICLO,
   isoDaSemana,
   statusDoCiclo,
+  SEMANA_BASE,
   type EscalaSemanaValor,
   type DiaEscala,
   type ConfigCiclo,
@@ -63,10 +64,21 @@ export function EscalaGrade({
   /** Semana ainda sem escala salva: ja vem preenchida pelo ciclo. */
   novaSemana: boolean;
 }) {
-  const [plantao, setPlantao] = useState<string[]>(valor.plantao);
-  const [linhas, setLinhas] = useState<Record<string, DiaEscala[]>>(() =>
-    novaSemana ? aplicarCiclos(valor.linhas, valor.config, semana) : valor.linhas,
-  );
+  const base = novaSemana ? SEMANA_BASE[semana] : undefined;
+  const [plantao, setPlantao] = useState<string[]>(base ? base.plantao : valor.plantao);
+  const [linhas, setLinhas] = useState<Record<string, DiaEscala[]>>(() => {
+    if (!novaSemana) return valor.linhas;
+    const ciclo = aplicarCiclos(valor.linhas, valor.config, semana);
+    if (!base) return ciclo;
+    const sobre = { ...ciclo };
+    for (const [id, dias] of Object.entries(base.linhas)) {
+      sobre[id] = (ciclo[id] ?? []).map((c, i) => ({
+        status: dias[i].status || c.status,
+        local: dias[i].local,
+      }));
+    }
+    return sobre;
+  });
   const [config, setConfig] = useState<Record<string, ConfigCiclo>>(valor.config);
   const [pincel, setPincel] = useState<string>('OK');
   const [local, setLocal] = useState<string>('');

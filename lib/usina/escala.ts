@@ -164,3 +164,35 @@ export function statusDoCiclo(cfg: ConfigCiclo, dataIso: string): string | null 
   if (pos === 0 || pos === trabalho - 1) return 'DESL.';
   return 'OK';
 }
+
+// ── Semana base (planilha de 19 a 25/10/2026) ──────────────────────────────
+// Valores lidos da planilha. Status de Geracao e trilheiros ja saem do ciclo; aqui ficam
+// os itens manuais (E18, E17), os locais e o plantao. A partir dai, tudo e automatico.
+// E17: a equipe TITAN normalmente e do E18, mas esta junto com o E17 nesta semana.
+const DIA = (status: string, local = '') => ({ status, local });
+
+export const SEMANA_BASE: Record<string, { plantao: string[]; linhas: Record<string, DiaEscalaBase[]> }> = {
+  '2026-10-19': {
+    plantao: ['', '', '', '', '', 'MARCELO', 'MARCELO'],
+    linhas: {
+      E18: Array.from({ length: 7 }, () => DIA('MAN.', 'MMD')),
+      E17: [
+        DIA('TITAN', 'Rio Claro'),
+        DIA('TITAN', 'Rio Claro'),
+        DIA('DESL.', 'Rio Claro'),
+        DIA('FOLGA', 'Rio Claro'),
+        DIA('FOLGA', 'Rio Claro'),
+        DIA('FOLGA', 'Rio Claro'),
+        DIA('FOLGA', 'Rio Claro'),
+      ],
+      ALECIO: [DIA('', 'ZPT'), DIA('', 'ZPT'), DIA('', 'ZPT'), DIA('', ''), DIA('', ''), DIA('', ''), DIA('', '')],
+      BRUNO: [DIA('', 'ZEV'), DIA('', 'ZEV'), DIA('', 'ZEV'), DIA('', ''), DIA('', ''), DIA('', ''), DIA('', '')],
+      REGINALDO: [DIA('', 'Inocência'), DIA('', 'Inocência'), DIA('', 'Inocência'), DIA('', 'Inocência'), DIA('', ''), DIA('', ''), DIA('', '')],
+      E40: [DIA('', 'SPC'), DIA('', 'SPC'), DIA('', 'SPC'), DIA('', 'SPC'), DIA('', 'SPC'), DIA('', ''), DIA('', '')],
+      E42: [DIA('', 'SPS'), DIA('', 'SPS'), DIA('', 'SPS'), DIA('', 'SPS'), DIA('', 'SPS'), DIA('', ''), DIA('', '')],
+      E46: [DIA('', 'SPS'), DIA('', 'SPS'), DIA('', 'SPS'), DIA('', 'SPS'), DIA('', 'SPS'), DIA('', ''), DIA('', '')],
+    },
+  },
+};
+
+export type DiaEscalaBase = { status: string; local: string };
