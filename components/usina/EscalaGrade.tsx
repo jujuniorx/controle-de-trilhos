@@ -7,9 +7,7 @@ import {
   STATUS_ESCALA,
   TIPOS_CICLO,
   ESTILO_STATUS,
-  SEMANA_BASE,
   aplicarCiclos,
-  montarEscalaSemana,
   type EscalaSemanaValor,
   type DiaEscala,
   type ConfigCiclo,
@@ -56,13 +54,6 @@ export function EscalaGrade({
     setLinhas((atual) => aplicarCiclos(atual, config, semana));
   }
 
-  function voltarParaPlanilha() {
-    const base = montarEscalaSemana(semana, null);
-    setPlantao(base.plantao);
-    setLinhas(base.linhas);
-    setConfig(base.config);
-  }
-
   function mudarConfig(id: string, campo: keyof ConfigCiclo, v: string) {
     setConfig((atual) => ({ ...atual, [id]: { ...atual[id], [campo]: v } as ConfigCiclo }));
   }
@@ -75,11 +66,6 @@ export function EscalaGrade({
           <button type="button" onClick={preencherCiclos} className="btn btn-ghost h-10 px-4 text-sm">
             Preencher a semana pelo ciclo
           </button>
-          {SEMANA_BASE[semana] && (
-            <button type="button" onClick={voltarParaPlanilha} className="btn btn-ghost h-10 px-4 text-sm">
-              Voltar para a planilha
-            </button>
-          )}
         </div>
         <p className="text-xs text-ink-muted">
           Ajuste o tipo e a data de início de cada pessoa na coluna "Quem". Depois clique no botão para preencher a semana. Você ainda pode editar qualquer dia pelo pincel abaixo. Itens em "Manual" não são preenchidos.
@@ -236,7 +222,6 @@ function ItemLinhas({
       <tr>
         <th
           scope="rowgroup"
-          rowSpan={2}
           className="sticky left-0 z-10 w-[120px] bg-[var(--g2)] px-2 py-1 text-left align-top"
         >
           <span className="block whitespace-nowrap text-base font-bold">{rotulo}</span>
@@ -284,6 +269,9 @@ function ItemLinhas({
         })}
       </tr>
       <tr>
+        <th scope="row" className="sticky left-0 z-10 bg-[var(--g2)] px-2 pb-1 text-left text-[10px] font-semibold uppercase tracking-wider text-ink-muted">
+          Local
+        </th>
         {celulas.map((c, i) => (
           <td key={i} className="p-0">
             <div className="h-7 truncate px-1 text-center text-xs leading-7 text-ink-muted" title={c.local}>

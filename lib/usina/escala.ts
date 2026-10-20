@@ -27,6 +27,8 @@ export const ITENS_ESCALA = [
 
 export interface DiaEscala { status: string; local: string }
 export interface EscalaSemanaValor {
+  /** 2 = salva pela tela atual. Semanas salvas antes (1 ou ausente) cedem a semana base da planilha. */
+  versao: number;
   /** Nome do plantão de fim de semana em cada um dos 7 dias (seg a dom). */
   plantao: string[];
   /** Para cada item, 7 dias. */
@@ -38,10 +40,12 @@ export interface EscalaSemanaValor {
 const STATUS_VALIDOS = new Set<string>(STATUS_ESCALA.map((s) => s.valor));
 export const statusValido = (v: string) => STATUS_VALIDOS.has(v);
 
+export const VERSAO_ATUAL = 2;
+
 export function escalaVazia(): EscalaSemanaValor {
   const linhas: Record<string, DiaEscala[]> = {};
   for (const item of ITENS_ESCALA) linhas[item.id] = Array.from({ length: 7 }, () => ({ status: '-', local: '' }));
-  return { plantao: Array(7).fill(''), linhas, config: structuredClone(CONFIG_PADRAO) };
+  return { versao: VERSAO_ATUAL, plantao: Array(7).fill(''), linhas, config: structuredClone(CONFIG_PADRAO) };
 }
 
 /** Lê o conteúdo salvo. Devolve null quando é texto antigo (ou vazio). */
@@ -51,6 +55,7 @@ export function lerEscala(texto: string | null | undefined): EscalaSemanaValor |
     const dados = JSON.parse(texto);
     if (dados?.v !== 1 || !Array.isArray(dados.plantao) || typeof dados.linhas !== 'object') return null;
     const base = escalaVazia();
+    base.versao = Number(dados.versao ?? 1);
     base.plantao = dados.plantao.slice(0, 7).map((p: unknown) => String(p ?? ''));
     // Semanas salvas antes: E17 - TITAN e E17 - PRUMO viraram uma linha so (E17), com a empresa no status do dia.
     const linhasLidas: Record<string, unknown> = { ...dados.linhas };
@@ -81,7 +86,7 @@ export function lerEscala(texto: string | null | undefined): EscalaSemanaValor |
 }
 
 export function gravarEscala(valor: EscalaSemanaValor): string {
-  return JSON.stringify({ v: 1, ...valor });
+  return JSON.stringify({ v: 1, ...valor, versao: VERSAO_ATUAL });
 }
 
 /** Rótulos "Seg 20/10" ... para os 7 dias a partir da segunda-feira da semana (yyyy-mm-dd). */
@@ -233,13 +238,13 @@ export function aplicarCiclos(
  */
 export function montarEscalaSemana(semana: string, textoSalvo: string | null | undefined): EscalaSemanaValor {
   const salva = lerEscala(textoSalvo);
-  if (salva) return salva;
+  const base = SEMANA_BASE[semana];
+  if (salva && (!base || salva.versao >= VERSAO_ATUAL)) return salva;
   const vazia = escalaVazia();
   const linhas = aplicarCiclos(vazia.linhas, vazia.config, semana);
-  const base = SEMANA_BASE[semana];
-  if (!base) return { plantao: vazia.plantao, linhas, config: vazia.config };
+  if (!base) return { versao: VERSAO_ATUAL, plantao: vazia.plantao, linhas, config: vazia.config };
   for (const [id, dias] of Object.entries(base.linhas)) {
     linhas[id] = (linhas[id] ?? []).map((c, i) => ({ status: dias[i].status || c.status, local: dias[i].local }));
   }
-  return { plantao: base.plantao, linhas, config: vazia.config };
+  return { versao: VERSAO_ATUAL, plantao: base.plantao, linhas, config: vazia.config };
 }
