@@ -34,13 +34,18 @@ export function EscalaGrade({
   valor,
   dias,
   semana,
+  novaSemana,
 }: {
   valor: EscalaSemanaValor;
   dias: { nome: string; data: string }[];
   semana: string;
+  /** Semana ainda sem escala salva: ja vem preenchida pelo ciclo. */
+  novaSemana: boolean;
 }) {
   const [plantao, setPlantao] = useState<string[]>(valor.plantao);
-  const [linhas, setLinhas] = useState<Record<string, DiaEscala[]>>(valor.linhas);
+  const [linhas, setLinhas] = useState<Record<string, DiaEscala[]>>(() =>
+    novaSemana ? aplicarCiclos(valor.linhas, valor.config, semana) : valor.linhas,
+  );
   const [config, setConfig] = useState<Record<string, ConfigCiclo>>(valor.config);
   const [pincel, setPincel] = useState<string>('OK');
   const [local, setLocal] = useState<string>('');
@@ -62,18 +67,7 @@ export function EscalaGrade({
   }
 
   function preencherCiclos() {
-    const isos = isoDaSemana(semana);
-    setLinhas((atual) => {
-      const proximo = { ...atual };
-      for (const item of ITENS_ESCALA) {
-        const cfg = config[item.id];
-        if (!cfg) continue;
-        const sts = isos.map((iso) => statusDoCiclo(cfg, iso));
-        if (sts.some((x) => x === null)) continue;
-        proximo[item.id] = atual[item.id].map((c, i) => ({ ...c, status: sts[i] as string }));
-      }
-      return proximo;
-    });
+    setLinhas((atual) => aplicarCiclos(atual, config, semana));
   }
 
   return (
