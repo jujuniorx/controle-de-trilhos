@@ -16,23 +16,68 @@ const COR_STATUS: Record<string, string> = {
 
 const EH_MMD = (local: string) => local.trim().toUpperCase() === 'MMD';
 
-/** Grade da escala semanal: pessoas e caminhões nas linhas, dias nas colunas. Edição direta, sem planilha. */
+/**
+ * Escala da semana no modo pincel: escolhe o status (e o local, se preenchido) na barra de cima
+ * e toca nos dias para pintar. Cada dia mostra o status na cor e o local embaixo.
+ */
 export function EscalaGrade({ valor, dias }: { valor: EscalaSemanaValor; dias: { nome: string; data: string }[] }) {
   const [plantao, setPlantao] = useState<string[]>(valor.plantao);
   const [linhas, setLinhas] = useState<Record<string, DiaEscala[]>>(valor.linhas);
+  const [pincel, setPincel] = useState<string>('OK');
+  const [local, setLocal] = useState<string>('');
 
-  function mudar(id: string, i: number, campo: keyof DiaEscala, v: string) {
-    setLinhas((atual) => {
-      const dias = atual[id].map((c, k) => (k === i ? { ...c, [campo]: v } : c));
-      return { ...atual, [id]: dias };
-    });
+  function pintar(id: string, i: number) {
+    setLinhas((atual) => ({
+      ...atual,
+      [id]: atual[id].map((c, k) => {
+        if (k !== i) return c;
+        if (pincel === '-') return { status: '-', local: '' };
+        const novoLocal = local.trim() !== '' ? local.trim().slice(0, 40) : c.local;
+        return { status: pincel, local: novoLocal };
+      }),
+    }));
   }
 
   return (
-    <div className="space-y-3">
-      <p className="text-sm text-ink-muted">
-        <b className="text-ink">OK</b> trabalhou · <b className="text-ink">Folga</b> · <b className="text-ink">Desl.</b> deslocamento · <b className="text-ink">Man.</b> manutenção · <b className="text-ink">Titan / Prumo</b> empresas · <b className="text-ink">MMD</b> empresa de manutenção (destacada)
-      </p>
+    <div className="space-y-4">
+      <div className="space-y-3 rounded-xl border border-[var(--ln2)] p-3">
+        <p className="text-sm font-semibold">1. Escolha o status e toque nos dias</p>
+        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Status do pincel">
+          {STATUS_ESCALA.map((s) => {
+            const ativo = pincel === s.valor;
+            const cor = COR_STATUS[s.valor] ?? 'var(--t1)';
+            return (
+              <button
+                key={s.valor}
+                type="button"
+                role="radio"
+                aria-checked={ativo}
+                onClick={() => setPincel(s.valor)}
+                className="h-10 min-w-[64px] rounded-lg px-3 text-sm font-semibold"
+                style={{
+                  color: ativo ? '#fff' : cor,
+                  background: ativo ? cor : `color-mix(in srgb, ${cor} 14%, transparent)`,
+                  boxShadow: ativo ? 'none' : `inset 0 0 0 1px ${cor}`,
+                }}
+              >
+                {s.rotulo}
+              </button>
+            );
+          })}
+        </div>
+        <div className="field max-w-sm">
+          <label htmlFor="local-pincel">2. Local (opcional)</label>
+          <input
+            id="local-pincel"
+            value={local}
+            maxLength={40}
+            onChange={(e) => setLocal(e.target.value)}
+            placeholder="Ex.: MMD, Pátio, Oficina"
+            className="h-10"
+          />
+          <span className="hint">Se preencher, os dias pintados recebem esse local.</span>
+        </div>
+      </div>
 
       <div className="-mx-1 overflow-x-auto pb-2">
         <table className="w-full min-w-[900px] border-separate border-spacing-y-2 text-sm">
@@ -48,12 +93,12 @@ export function EscalaGrade({ valor, dias }: { valor: EscalaSemanaValor; dias: {
             </tr>
           </thead>
           <tbody>
-            <tr className="bg-[var(--g3)]">
-              <th scope="row" className="sticky left-0 z-10 bg-[var(--g3)] px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider">
-                Plantão (fim de semana)
+            <tr>
+              <th scope="row" className="sticky left-0 z-10 bg-[var(--g3)] px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">
+                Plantão
               </th>
               {plantao.map((p, i) => (
-                <td key={i} className="p-1">
+                <td key={i} className="p-0.5">
                   <input
                     aria-label={`Plantão ${dias[i].nome}`}
                     name={`plantao_${i}`}
@@ -72,42 +117,27 @@ export function EscalaGrade({ valor, dias }: { valor: EscalaSemanaValor; dias: {
                 {ITENS_ESCALA.filter((it) => it.grupo === grupo).map((item) => (
                   <Linha key={item.id} rotulo={item.rotulo}>
                     {linhas[item.id].map((c, i) => {
-                      const mmd = EH_MMD(c.local);
                       const cor = COR_STATUS[c.status] ?? 'var(--t1)';
+                      const mmd = EH_MMD(c.local);
                       return (
-                        <td
-                          key={i}
-                          className="p-0.5 align-top"
-                        >
-                          <div
-                            className="rounded-lg p-1"
+                        <td key={i} className="p-0.5">
+                          <input type="hidden" name={`st_${item.id}_${i}`} value={c.status} />
+                          <input type="hidden" name={`lc_${item.id}_${i}`} value={c.local} />
+                          <button
+                            type="button"
+                            onClick={() => pintar(item.id, i)}
+                            aria-label={`${item.rotulo} ${dias[i].nome}: ${c.status}${c.local ? ', ' + c.local : ''}`}
+                            className="flex min-h-[64px] w-full flex-col items-center justify-center rounded-lg px-1 py-2"
                             style={{
-                              background: c.status === '-' ? 'transparent' : `color-mix(in srgb, ${cor} 16%, transparent)`,
-                              boxShadow: mmd ? 'inset 0 0 0 2px var(--b3)' : `inset 0 0 0 1px var(--ln2)`,
+                              background: c.status === '-' ? 'transparent' : `color-mix(in srgb, ${cor} 18%, transparent)`,
+                              boxShadow: mmd ? 'inset 0 0 0 2px var(--b3)' : 'inset 0 0 0 1px var(--ln2)',
                             }}
                           >
-                          <select
-                            aria-label={`${item.rotulo} ${dias[i].nome} status`}
-                            name={`st_${item.id}_${i}`}
-                            value={c.status}
-                            onChange={(e) => mudar(item.id, i, 'status', e.target.value)}
-                            className="mb-1 h-9 w-full text-sm font-semibold"
-                            style={{ color: cor }}
-                          >
-                            {STATUS_ESCALA.map((s) => (
-                              <option key={s.valor} value={s.valor}>{s.rotulo}</option>
-                            ))}
-                          </select>
-                          <input
-                            aria-label={`${item.rotulo} ${dias[i].nome} onde estava`}
-                            name={`lc_${item.id}_${i}`}
-                            value={c.local}
-                            maxLength={40}
-                            placeholder="local"
-                            onChange={(e) => mudar(item.id, i, 'local', e.target.value)}
-                            className="h-8 w-full text-center text-xs"
-                          />
-                          </div>
+                            <span className="text-sm font-semibold" style={{ color: c.status === '-' ? 'var(--t3)' : cor }}>
+                              {c.status === '-' ? '·' : STATUS_ESCALA.find((s) => s.valor === c.status)?.rotulo ?? c.status}
+                            </span>
+                            {c.local && <span className="mt-0.5 max-w-full truncate text-xs text-ink-muted">{c.local}</span>}
+                          </button>
                         </td>
                       );
                     })}
