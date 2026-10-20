@@ -188,8 +188,6 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
             <EscalaGrade valor={escalaSemana} dias={diasDaSemana(est.semana)} />
           </FormularioUsina>
         </div>
-          </FormularioUsina>
-        </div>
       </section>
 
       {/* ── Geração de trilho ──────────────────────────────────────── */}

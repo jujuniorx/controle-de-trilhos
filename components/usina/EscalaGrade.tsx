@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { ITENS_ESCALA, GRUPOS_ESCALA, STATUS_ESCALA, type EscalaSemanaValor, type DiaEscala } from '@/lib/usina/escala';
 
 const COR_STATUS: Record<string, string> = {
@@ -120,7 +120,7 @@ export function EscalaGrade({ valor, dias }: { valor: EscalaSemanaValor; dias: {
   );
 }
 
-function GrupoLinhas({ grupo, children }: { grupo: string; children: React.ReactNode }) {
+function GrupoLinhas({ grupo, children }: { grupo: string; children: ReactNode }) {
   return (
     <>
       <tr>
@@ -133,7 +133,7 @@ function GrupoLinhas({ grupo, children }: { grupo: string; children: React.React
   );
 }
 
-function Linha({ rotulo, children }: { rotulo: string; children: React.ReactNode }) {
+function Linha({ rotulo, children }: { rotulo: string; children: ReactNode }) {
   return (
     <tr>
       <th scope="row" className="sticky left-0 z-10 whitespace-nowrap bg-[var(--g2)] px-2 py-1 text-left font-semibold">
