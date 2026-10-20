@@ -267,7 +267,7 @@ function ItemLinhas({
       <tr>
         <th scope="rowgroup" className="sticky left-0 z-10 w-[140px] bg-[var(--g2)] px-2 py-1 text-left align-top">
           <span className="block whitespace-nowrap text-base font-bold">{rotulo}</span>
-          <span className="block text-[11px] text-ink-muted">{TIPOS_CICLO.find((t) => t.valor === tipo)?.rotulo ?? ''}</span>
+          <span className="block text-[11px] text-ink-muted">{tipo === 'e18' ? 'E18 · regra fixa' : TIPOS_CICLO.find((t) => t.valor === tipo)?.rotulo ?? ''}</span>
         </th>
         {celulas.map((c, i) => {
           const est = estiloDe(c.status);
@@ -338,16 +338,20 @@ function RegrasCiclo({
                 <span className="col-span-2 text-sm font-semibold sm:col-span-1 sm:self-center">{it.rotulo}</span>
                 <div className="field min-w-0">
                   <label>Tipo</label>
-                  <select
-                    aria-label={`Tipo de escala de ${it.rotulo}`}
-                    value={cfg.tipo}
-                    onChange={(e) => onCiclo(it.id, { tipo: e.target.value as ConfigCiclo['tipo'] })}
-                    className="h-10 w-full min-w-0"
-                  >
-                    {TIPOS_CICLO.map((t) => (
-                      <option key={t.valor} value={t.valor}>{t.rotulo}</option>
-                    ))}
-                  </select>
+                  {cfg.tipo === 'e18' ? (
+                    <p className="flex h-10 w-full items-center px-3 text-sm text-ink-muted">E18 · regra fixa</p>
+                  ) : (
+                    <select
+                      aria-label={`Tipo de escala de ${it.rotulo}`}
+                      value={cfg.tipo}
+                      onChange={(e) => onCiclo(it.id, { tipo: e.target.value as ConfigCiclo['tipo'] })}
+                      className="h-10 w-full min-w-0"
+                    >
+                      {TIPOS_CICLO.filter((t) => t.valor !== 'e18').map((t) => (
+                        <option key={t.valor} value={t.valor}>{t.rotulo}</option>
+                      ))}
+                    </select>
+                  )}
                 </div>
                 {precisaInicio ? (
                   <div className="field min-w-0">
