@@ -36,7 +36,7 @@ export function EscalaGrade({
   const [editando, setEditando] = useState(false);
   const [plantao, setPlantao] = useState<string[]>(valor.plantao);
   const [linhas, setLinhas] = useState<Record<string, DiaEscala[]>>(valor.linhas);
-  const [config] = useState<Record<string, ConfigCiclo>>(valor.config);
+  const [config, setConfig] = useState<Record<string, ConfigCiclo>>(valor.config);
   const [pincel, setPincel] = useState<string>('OK');
   const [local, setLocal] = useState<string>('');
 
@@ -51,6 +51,12 @@ export function EscalaGrade({
         return { status: pincel, local: novoLocal };
       }),
     }));
+  }
+
+  /** Muda o tipo ou a data de inicio; a linha da pessoa e refeita pelo ciclo novo. */
+  function mudarCiclo(id: string, novo: ConfigCiclo) {
+    setConfig((atual) => ({ ...atual, [id]: novo }));
+    setLinhas((atual) => aplicarCiclos(atual, { [id]: novo }, semana));
   }
 
   function preencherCiclos() {
@@ -121,6 +127,7 @@ export function EscalaGrade({
                   cfgInicio={`cfg_inicio_${item.id}`}
                   tipo={config[item.id]?.tipo ?? 'manual'}
                   inicio={config[item.id]?.inicio ?? ''}
+                  onCiclo={(novo) => mudarCiclo(item.id, novo)}
                   dias={linhas[item.id]}
                   rotulosDias={dias}
                   item={item.id}
@@ -229,6 +236,7 @@ function ItemLinhas({
   cfgInicio,
   tipo,
   inicio,
+  onCiclo,
   dias: celulas,
   rotulosDias,
   item,
@@ -240,6 +248,7 @@ function ItemLinhas({
   cfgInicio: string;
   tipo: string;
   inicio: string;
+  onCiclo: (novo: ConfigCiclo) => void;
   dias: DiaEscala[];
   rotulosDias: { nome: string; data: string }[];
   item: string;
@@ -251,8 +260,38 @@ function ItemLinhas({
       <tr>
         <th scope="rowgroup" className="sticky left-0 z-10 w-[120px] bg-[var(--g2)] px-2 py-1 text-left align-top">
           <span className="block whitespace-nowrap text-base font-bold">{rotulo}</span>
-          <input type="hidden" name={cfgTipo} value={tipo} />
-          <input type="hidden" name={cfgInicio} value={inicio} />
+          {editando ? (
+            <div className="mt-1 space-y-1">
+              <select
+                aria-label={`Tipo de escala de ${rotulo}`}
+                name={cfgTipo}
+                value={tipo}
+                onChange={(e) => onCiclo({ tipo: e.target.value as ConfigCiclo['tipo'], inicio })}
+                className="h-8 w-full text-xs"
+              >
+                {TIPOS_CICLO.map((t) => (
+                  <option key={t.valor} value={t.valor}>{t.rotulo}</option>
+                ))}
+              </select>
+              {(tipo === '11x3' || tipo === '10x4') && (
+                <input
+                  type="date"
+                  aria-label={`Primeiro dia de trabalho de ${rotulo}`}
+                  name={cfgInicio}
+                  value={inicio}
+                  onChange={(e) => onCiclo({ tipo: tipo as ConfigCiclo['tipo'], inicio: e.target.value })}
+                  className="h-8 w-full text-xs"
+                />
+              )}
+              {!(tipo === '11x3' || tipo === '10x4') && <input type="hidden" name={cfgInicio} value={inicio} />}
+            </div>
+          ) : (
+            <>
+              <span className="block text-[11px] text-ink-muted">{TIPOS_CICLO.find((t) => t.valor === tipo)?.rotulo ?? ''}</span>
+              <input type="hidden" name={cfgTipo} value={tipo} />
+              <input type="hidden" name={cfgInicio} value={inicio} />
+            </>
+          )}
         </th>
         {celulas.map((c, i) => {
           const est = estiloDe(c.status);

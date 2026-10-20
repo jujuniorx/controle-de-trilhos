@@ -255,9 +255,10 @@ export function montarEscalaSemana(
 ): EscalaSemanaValor {
   const salva = lerEscala(textoSalvo);
   const base = SEMANA_BASE[semana];
-  // A configuracao de ciclo vem sempre do padrao de cada pessoa; nao depende do que foi salvo.
+  // Tipo de ciclo: o da semana salva, ou o da semana anterior (que vale ate alguem mudar); senao o padrao.
   const configPadrao = structuredClone(CONFIG_PADRAO);
-  if (salva && (!base || salva.versao >= VERSAO_ATUAL)) return { ...salva, config: configPadrao };
+  const configHerdada = anterior ? structuredClone(anterior.config) : configPadrao;
+  if (salva && (!base || salva.versao >= VERSAO_ATUAL)) return { ...salva, config: { ...configHerdada, ...salva.config } };
   const vazia = escalaVazia();
   const linhas = aplicarCiclos(vazia.linhas, vazia.config, semana);
   // Quem esta trabalhando continua no local da semana anterior, ate alguem mudar.
@@ -270,11 +271,11 @@ export function montarEscalaSemana(
       );
     }
   }
-  if (!base) return { versao: VERSAO_ATUAL, plantao: vazia.plantao, linhas, config: configPadrao };
+  if (!base) return { versao: VERSAO_ATUAL, plantao: vazia.plantao, linhas, config: configHerdada };
   for (const [id, dias] of Object.entries(base.linhas)) {
     linhas[id] = (linhas[id] ?? []).map((c, i) => ({ status: dias[i].status || c.status, local: dias[i].local }));
   }
-  return { versao: VERSAO_ATUAL, plantao: base.plantao, linhas, config: configPadrao };
+  return { versao: VERSAO_ATUAL, plantao: base.plantao, linhas, config: configHerdada };
 }
 
 /** Semana (segunda-feira) anterior, em yyyy-mm-dd. */
