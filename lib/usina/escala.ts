@@ -123,7 +123,7 @@ export const TIPOS_CICLO = [
   { valor: '11x3', rotulo: '11x3' },
   { valor: '10x4', rotulo: '10x4' },
   { valor: '5x2', rotulo: '5x2' },
-  { valor: 'e18', rotulo: 'E18 (planilha)' },
+  { valor: 'e18', rotulo: '10x4 (DESL. só no início)' },
   { valor: 'manual', rotulo: 'Manual' },
 ] as const;
 export type TipoCiclo = (typeof TIPOS_CICLO)[number]['valor'];
