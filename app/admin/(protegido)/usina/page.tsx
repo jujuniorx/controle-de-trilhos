@@ -18,7 +18,7 @@ import { CarretasGeracao } from '@/components/usina/CarretasGeracao';
 import { CamposGiro, type CicloAberto } from '@/components/usina/CamposGiro';
 import { IconeImprimir } from '@/components/icones/Icones';
 
-const SETORES: [string, string][] = [['estaleiro', 'Estaleiro'], ['geracao', 'Geração'], ['composicoes', 'Composições'], ['caminhao', 'Caminhão de solda'], ['trilheiros', 'Trilheiros']];
+const SETORES: [string, string][] = [['estaleiro', 'Estaleiro'], ['geracao', 'Geração'], ['composicoes', 'Recolhimento serra'], ['caminhao', 'Caminhão de solda'], ['trilheiros', 'Trilheiros']];
 import { fmtMetros, fmtPeso } from '@/lib/format';
 import { PERIODOS, ehIsoValido, type Periodo } from '@/lib/usina/periodo';
 import { FormularioUsina } from '@/components/usina/FormularioUsina';
