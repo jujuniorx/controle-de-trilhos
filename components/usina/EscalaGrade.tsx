@@ -8,7 +8,6 @@ import {
   TIPOS_CICLO,
   ESTILO_STATUS,
   ITENS_SEM_LOCAL,
-  aplicarCiclos,
   statusDoCiclo,
   isoDaSemana,
   type EscalaSemanaValor,
@@ -82,10 +81,6 @@ export function EscalaGrade({
         }),
       };
     });
-  }
-
-  function preencherCiclos() {
-    setLinhas((atual) => aplicarCiclos(atual, config, semana));
   }
 
   function cancelar() {
@@ -191,9 +186,6 @@ export function EscalaGrade({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm font-semibold">Editar escala</p>
             <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={preencherCiclos} className="btn btn-ghost h-10 px-4 text-sm">
-                Preencher a semana pelo ciclo
-              </button>
               <button type="button" onClick={cancelar} className="btn btn-ghost h-10 px-4 text-sm">
                 Cancelar
               </button>
