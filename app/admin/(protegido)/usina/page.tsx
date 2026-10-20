@@ -238,9 +238,9 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         })}
       </section>
 
-      {/* ── Composições ativas ─────────────────────────────────────── */}
+      {/* ── Recolhimento serra ─────────────────────────────────────── */}
       <section className="space-y-4" aria-labelledby="composicoes">
-        <h2 id="composicoes" className="section-title scroll-mt-24">Composições ativas</h2>
+        <h2 id="composicoes" className="section-title scroll-mt-24">Recolhimento serra</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {comp.map((c) => (
             <div className="card space-y-3" key={c.ativo}>

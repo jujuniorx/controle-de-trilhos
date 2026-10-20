@@ -161,7 +161,7 @@ export default async function ImprimirUsina({
 
         {mostra('composicoes') && (
           <section className="space-y-2">
-            <h2 className="text-lg font-semibold">Composições ativas</h2>
+            <h2 className="text-lg font-semibold">Recolhimento serra</h2>
             <Acumulado dia={compTxt(compDia)} mes={compTxt(compMes)} />
             <Tabela cab={['Composição', 'Barras', 'Jacarés']} linhas={comp.map((c) => [rotuloComposicao(c.ativo), c.barras, c.jacares])} />
           </section>
