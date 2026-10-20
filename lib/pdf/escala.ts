@@ -53,7 +53,6 @@ export function gerarEscalaPdf(semana: string, valor: EscalaSemanaValor, emitido
 
   // Cabecalho em faixa escura
   p.retangulo(0, H - 92, L, 92, NAVY);
-  p.texto('CONTROLE DE TRILHOS  |  USINA', M, H - 30, 7.5, 'negrito', [0.6, 0.66, 0.76]);
   p.texto('Escala da semana', M, H - 60, 22, 'negrito', BRANCO);
   const dias = diasDaSemana(semana);
   const periodo = `${dias[0].data} a ${dias[6].data}/${semana.slice(0, 4)}`;
