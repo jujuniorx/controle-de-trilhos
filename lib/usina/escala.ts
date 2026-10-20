@@ -236,15 +236,52 @@ export function aplicarCiclos(
  * Escala completa de uma semana: a salva, se existir; senao, o ciclo de cada pessoa
  * com a semana base da planilha por cima (quando houver).
  */
-export function montarEscalaSemana(semana: string, textoSalvo: string | null | undefined): EscalaSemanaValor {
+export function montarEscalaSemana(
+  semana: string,
+  textoSalvo: string | null | undefined,
+  anterior?: EscalaSemanaValor,
+): EscalaSemanaValor {
   const salva = lerEscala(textoSalvo);
   const base = SEMANA_BASE[semana];
   if (salva && (!base || salva.versao >= VERSAO_ATUAL)) return salva;
   const vazia = escalaVazia();
   const linhas = aplicarCiclos(vazia.linhas, vazia.config, semana);
+  // Quem esta trabalhando continua no local da semana anterior, ate alguem mudar.
+  if (anterior) {
+    const locais = locaisDaSemana(anterior);
+    for (const item of ITENS_ESCALA) {
+      if (vazia.config[item.id]?.tipo === 'manual' || !locais[item.id]) continue;
+      linhas[item.id] = linhas[item.id].map((c) =>
+        c.status === '-' || c.status === 'FOLGA' || c.local ? c : { ...c, local: locais[item.id] },
+      );
+    }
+  }
   if (!base) return { versao: VERSAO_ATUAL, plantao: vazia.plantao, linhas, config: vazia.config };
   for (const [id, dias] of Object.entries(base.linhas)) {
     linhas[id] = (linhas[id] ?? []).map((c, i) => ({ status: dias[i].status || c.status, local: dias[i].local }));
   }
   return { versao: VERSAO_ATUAL, plantao: base.plantao, linhas, config: vazia.config };
+}
+
+/** Semana (segunda-feira) anterior, em yyyy-mm-dd. */
+export function semanaAnterior(semana: string): string {
+  const d = new Date(`${semana}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - 7);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Ultimo local de cada item na semana anterior (dias de trabalho, nao folga). */
+export function locaisDaSemana(escala: EscalaSemanaValor): Record<string, string> {
+  const locais: Record<string, string> = {};
+  for (const item of ITENS_ESCALA) {
+    const dias = escala.linhas[item.id] ?? [];
+    for (let i = dias.length - 1; i >= 0; i--) {
+      const c = dias[i];
+      if (c.local && c.status !== '-' && c.status !== 'FOLGA') {
+        locais[item.id] = c.local;
+        break;
+      }
+    }
+  }
+  return locais;
 }

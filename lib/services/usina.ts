@@ -372,3 +372,11 @@ export async function buscarEscalaSemana(semana: string): Promise<string> {
   const e = await prisma.escalaSemana.findUnique({ where: { semanaInicio: dataBanco(semana) } });
   return e?.conteudo ?? '';
 }
+
+/** Escala da semana pronta para exibir: salva, ou gerada pelo ciclo com os locais da semana anterior. */
+export async function montarEscalaDaSemana(semana: string) {
+  const { montarEscalaSemana, semanaAnterior } = await import('@/lib/usina/escala');
+  const ant = semanaAnterior(semana);
+  const [texto, textoAnt] = await Promise.all([buscarEscalaSemana(semana), buscarEscalaSemana(ant)]);
+  return montarEscalaSemana(semana, texto, montarEscalaSemana(ant, textoAnt));
+}

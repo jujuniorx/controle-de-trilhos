@@ -1,4 +1,5 @@
-import { montarEscalaSemana, ITENS_ESCALA, diasDaSemana, textoCelula } from '@/lib/usina/escala';
+import { ITENS_ESCALA, diasDaSemana, textoCelula } from '@/lib/usina/escala';
+import { montarEscalaDaSemana } from '@/lib/services/usina';
 import {
   estaleiroDoPeriodo,
   geracaoDoPeriodo,
@@ -73,7 +74,7 @@ export default async function ImprimirUsina({
     trilheirosDoPeriodo('dia', data),
     trilheirosDoPeriodo('mes', data),
   ]);
-  const escalaImp = montarEscalaSemana(est.semana, est.escala);
+  const escalaImp = await montarEscalaDaSemana(est.semana);
 
   // Acumulados (dia e mês) de cada setor.
   const estTxt = (x: typeof estDia) =>

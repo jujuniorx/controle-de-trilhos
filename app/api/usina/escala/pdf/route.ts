@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/services/requireAdmin';
-import { buscarEscalaSemana } from '@/lib/services/usina';
+import { montarEscalaDaSemana } from '@/lib/services/usina';
 import { gerarEscalaPdf } from '@/lib/pdf/escala';
-import { montarEscalaSemana } from '@/lib/usina/escala';
 import { ehIsoValido } from '@/lib/usina/periodo';
 
 function hojeSP(): string {
@@ -24,8 +23,7 @@ export async function GET(request: NextRequest) {
   const pedido = request.nextUrl.searchParams.get('semana') ?? undefined;
   const base = ehIsoValido(pedido) ? pedido : hojeSP();
   const semana = segundaDaSemana(base);
-  const texto = await buscarEscalaSemana(semana);
-  const valor = montarEscalaSemana(semana, texto);
+  const valor = await montarEscalaDaSemana(semana);
   const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' });
   const pdf = gerarEscalaPdf(semana, valor, emitido);
   return new NextResponse(new Uint8Array(pdf), {

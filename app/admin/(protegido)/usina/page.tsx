@@ -23,7 +23,8 @@ import { fmtMetros, fmtPeso } from '@/lib/format';
 import { PERIODOS, ehIsoValido, type Periodo } from '@/lib/usina/periodo';
 import { FormularioUsina } from '@/components/usina/FormularioUsina';
 import { EscalaGrade } from '@/components/usina/EscalaGrade';
-import { lerEscala, montarEscalaSemana, diasDaSemana } from '@/lib/usina/escala';
+import { lerEscala, diasDaSemana } from '@/lib/usina/escala';
+import { montarEscalaDaSemana } from '@/lib/services/usina';
 import {
   salvarEstaleiroAction,
   salvarEstoqueTlsAction,
@@ -72,7 +73,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
     trilheirosDoPeriodo(periodo, data),
   ]);
   const escalaSalva = lerEscala(est.escala);
-  const escalaSemana = montarEscalaSemana(est.semana, est.escala);
+  const escalaSemana = await montarEscalaDaSemana(est.semana);
   const escalaLegada = !escalaSalva && est.escala.trim() !== '';
 
   return (
