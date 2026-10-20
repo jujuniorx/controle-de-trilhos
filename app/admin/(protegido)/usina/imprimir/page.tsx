@@ -1,5 +1,5 @@
-import { montarDadosRelatorio } from '@/lib/services/onePageUsina';
-import { Setor, Resumo } from '@/components/usina/RelatorioSetores';
+import { montarDadosRelatorio, montarTrilheirosRelatorio } from '@/lib/services/onePageUsina';
+import { Setor, Resumo, TrilheirosBloco } from '@/components/usina/RelatorioSetores';
 import { ehIsoValido } from '@/lib/usina/periodo';
 import { ImprimirBotao } from '@/components/usina/ImprimirBotao';
 
@@ -38,7 +38,9 @@ export default async function ImprimirUsina({
   const setor: ChaveSetor = (SETORES as readonly string[]).includes(params.setor ?? '') ? (params.setor as ChaveSetor) : 'todos';
 
   const dados = await montarDadosRelatorio(data);
-  const setores = dados.setores.filter((s) => setor === 'todos' || s.titulo === TITULO_SETOR[setor]);
+  const tril = await montarTrilheirosRelatorio(data);
+  const setores = dados.setores.filter((s) => s.titulo !== 'Trilheiros' && (setor === 'todos' || s.titulo === TITULO_SETOR[setor]));
+  const mostraTril = setor === 'todos' || setor === 'trilheiros';
   const resumo = dados.resumo.filter((r) => setor === 'todos' || r.grupo === TITULO_SETOR[setor]);
   const titulo = setor === 'todos' ? 'Relatório da usina' : TITULO_RELATORIO[setor];
 
@@ -100,6 +102,7 @@ export default async function ImprimirUsina({
             ))}
           </div>
         )}
+        {mostraTril && <TrilheirosBloco t={tril} />}
       </article>
     </main>
   );

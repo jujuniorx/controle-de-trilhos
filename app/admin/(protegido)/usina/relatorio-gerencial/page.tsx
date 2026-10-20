@@ -1,5 +1,5 @@
-import { montarDadosRelatorio } from '@/lib/services/onePageUsina';
-import { Setor, Resumo } from '@/components/usina/RelatorioSetores';
+import { montarDadosRelatorio, montarTrilheirosRelatorio } from '@/lib/services/onePageUsina';
+import { Setor, Resumo, TrilheirosBloco } from '@/components/usina/RelatorioSetores';
 import { ehIsoValido } from '@/lib/usina/periodo';
 
 export const dynamic = 'force-dynamic';
@@ -10,6 +10,7 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
   const params = await searchParams;
   const data = ehIsoValido(params.data) ? params.data : new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
   const dados = await montarDadosRelatorio(data);
+  const tril = await montarTrilheirosRelatorio(data);
 
   return (
     <main className="mx-auto max-w-5xl space-y-4 p-4">
@@ -48,10 +49,11 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
           ))}
         </div>
         <div className="grid gap-4">
-          {dados.setores.slice(3).map((s) => (
+          {dados.setores.slice(3).filter((s) => s.titulo !== 'Trilheiros').map((s) => (
             <Setor key={s.titulo} s={s} rotulosDias={dados.rotulosDias} largo />
           ))}
         </div>
+        <TrilheirosBloco t={tril} />
       </article>
     </main>
   );

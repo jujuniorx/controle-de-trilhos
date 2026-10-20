@@ -3,6 +3,7 @@ import {
   geracaoDoPeriodo,
   caminhoesDoPeriodo,
   trilheirosDoPeriodo,
+  listarCiclosAbertos,
   TRILHEIROS,
 } from '@/lib/services/usina';
 import { seriesDoMes } from '@/lib/services/usinaGraficos';
@@ -181,5 +182,59 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         grafico: null,
       },
     ],
+  };
+}
+
+export interface EquipeTrilheiro {
+  trilheiro: string;
+  giroDias: number | null;
+  partida: string | null;
+  local: string | null;
+  carregados: number;
+  descarregados: number;
+  percentual: number | null;
+  status: string;
+}
+
+export interface TrilheirosRelatorio {
+  ativos: number;
+  totalBarras: number;
+  descarregadas: number;
+  progresso: number | null;
+  equipes: EquipeTrilheiro[];
+}
+
+/** Situacao atual dos giros abertos: uma linha por equipe, com os indicadores de topo. */
+export async function montarTrilheirosRelatorio(data: string): Promise<TrilheirosRelatorio> {
+  const ciclos = await listarCiclosAbertos();
+  const diaMs = (iso: string) => Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)));
+  const equipes: EquipeTrilheiro[] = TRILHEIROS.map((t, i) => {
+    const c = ciclos[i];
+    if (!c) {
+      return { trilheiro: t, giroDias: null, partida: null, local: null, carregados: 0, descarregados: 0, percentual: null, status: 'Sem giro' };
+    }
+    const partida = c.partidaEm ? c.partidaEm.toISOString().slice(0, 10) : null;
+    const giroDias = partida ? Math.round((diaMs(data) - diaMs(partida)) / 86400000) : null;
+    const percentual = c.carregados > 0 ? Math.round((c.descarregados / c.carregados) * 100) : null;
+    return {
+      trilheiro: t,
+      giroDias,
+      partida,
+      local: c.local,
+      carregados: c.carregados,
+      descarregados: c.descarregados,
+      percentual,
+      status: partida ? 'Em execução' : 'Aguardando partida',
+    };
+  });
+  const ativos = equipes.filter((e) => e.status !== 'Sem giro');
+  const totalBarras = soma(ativos, (e) => e.carregados);
+  const descarregadas = soma(ativos, (e) => e.descarregados);
+  return {
+    ativos: ativos.length,
+    totalBarras,
+    descarregadas,
+    progresso: totalBarras > 0 ? Math.round((descarregadas / totalBarras) * 100) : null,
+    equipes,
   };
 }
