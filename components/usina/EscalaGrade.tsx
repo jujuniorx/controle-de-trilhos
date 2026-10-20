@@ -26,6 +26,24 @@ const COR_STATUS: Record<string, string> = {
 
 const EH_MMD = (local: string) => local.trim().toUpperCase() === 'MMD';
 
+/** Preenche os dias dos itens com ciclo; os itens Manual ficam como estao. */
+function aplicarCiclos(
+  atual: Record<string, DiaEscala[]>,
+  config: Record<string, ConfigCiclo>,
+  semana: string,
+): Record<string, DiaEscala[]> {
+  const isos = isoDaSemana(semana);
+  const proximo = { ...atual };
+  for (const item of ITENS_ESCALA) {
+    const cfg = config[item.id];
+    if (!cfg) continue;
+    const sts = isos.map((iso) => statusDoCiclo(cfg, iso));
+    if (sts.some((x) => x === null)) continue;
+    proximo[item.id] = atual[item.id].map((c, i) => ({ ...c, status: sts[i] as string }));
+  }
+  return proximo;
+}
+
 /**
  * Escala da semana no modo pincel: escolhe o status (e o local, se preenchido) na barra de cima
  * e toca nos dias para pintar. Cada dia mostra o status na cor e o local embaixo.
