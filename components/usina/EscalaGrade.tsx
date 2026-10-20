@@ -143,12 +143,7 @@ export function EscalaGrade({
                 <ItemLinhas
                   key={item.id}
                   rotulo={item.rotulo}
-                  cfgTipo={`cfg_tipo_${item.id}`}
-                  cfgInicio={`cfg_inicio_${item.id}`}
                   tipo={config[item.id]?.tipo ?? 'manual'}
-                  inicio={config[item.id]?.inicio ?? ''}
-                  desde={config[item.id]?.desde ?? ''}
-                  onCiclo={(parcial) => mudarCiclo(item.id, parcial)}
                   dias={linhas[item.id]}
                   rotulosDias={dias}
                   item={item.id}
@@ -231,6 +226,7 @@ export function EscalaGrade({
           </div>
         </div>
         {grade}
+        <RegrasCiclo config={config} onCiclo={mudarCiclo} />
       </div>
     </FormularioUsina>
   );
@@ -251,12 +247,7 @@ function GrupoLinhas({ grupo, children }: { grupo: string; children: ReactNode }
 
 function ItemLinhas({
   rotulo,
-  cfgTipo,
-  cfgInicio,
   tipo,
-  inicio,
-  desde,
-  onCiclo,
   dias: celulas,
   rotulosDias,
   item,
@@ -264,12 +255,7 @@ function ItemLinhas({
   onPintar,
 }: {
   rotulo: string;
-  cfgTipo: string;
-  cfgInicio: string;
   tipo: string;
-  inicio: string;
-  desde: string;
-  onCiclo: (parcial: Partial<ConfigCiclo>) => void;
   dias: DiaEscala[];
   rotulosDias: { nome: string; data: string }[];
   item: string;
@@ -281,46 +267,7 @@ function ItemLinhas({
       <tr>
         <th scope="rowgroup" className="sticky left-0 z-10 w-[140px] bg-[var(--g2)] px-2 py-1 text-left align-top">
           <span className="block whitespace-nowrap text-base font-bold">{rotulo}</span>
-          {editando ? (
-            <div className="mt-1 space-y-1">
-              <select
-                aria-label={`Tipo de escala de ${rotulo}`}
-                value={tipo}
-                onChange={(e) => onCiclo({ tipo: e.target.value as ConfigCiclo['tipo'] })}
-                className="h-8 w-full text-xs"
-              >
-                {TIPOS_CICLO.map((t) => (
-                  <option key={t.valor} value={t.valor}>{t.rotulo}</option>
-                ))}
-              </select>
-              {(tipo === '11x3' || tipo === '10x4' || tipo === 'e18') && (
-                <label className="block text-[10px] text-ink-muted">
-                  Início do bloco
-                  <input
-                    type="date"
-                    aria-label={`Primeiro dia de trabalho de ${rotulo}`}
-                    value={inicio}
-                    onChange={(e) => onCiclo({ inicio: e.target.value })}
-                    className="mt-0.5 h-8 w-full text-xs"
-                  />
-                </label>
-              )}
-              {tipo !== 'manual' && (
-                <label className="block text-[10px] text-ink-muted">
-                  Válido a partir de
-                  <input
-                    type="date"
-                    aria-label={`Válido a partir de, ${rotulo}`}
-                    value={desde}
-                    onChange={(e) => onCiclo({ desde: e.target.value })}
-                    className="mt-0.5 h-8 w-full text-xs"
-                  />
-                </label>
-              )}
-            </div>
-          ) : (
-            <span className="block text-[11px] text-ink-muted">{TIPOS_CICLO.find((t) => t.valor === tipo)?.rotulo ?? ''}</span>
-          )}
+          <span className="block text-[11px] text-ink-muted">{TIPOS_CICLO.find((t) => t.valor === tipo)?.rotulo ?? ''}</span>
         </th>
         {celulas.map((c, i) => {
           const est = estiloDe(c.status);
@@ -361,5 +308,80 @@ function ItemLinhas({
       </tr>
       )}
     </>
+  );
+}
+
+/** Painel de regras: uma linha por equipe, fora da grade, para a grade continuar limpa. */
+function RegrasCiclo({
+  config,
+  onCiclo,
+}: {
+  config: Record<string, ConfigCiclo>;
+  onCiclo: (id: string, parcial: Partial<ConfigCiclo>) => void;
+}) {
+  return (
+    <div className="space-y-4 rounded-xl border border-[var(--ln2)] p-3">
+      <div>
+        <p className="text-sm font-semibold">Regras de ciclo</p>
+        <p className="hint">
+          Escolha o tipo de cada equipe. Com "Válido a partir de", a regra nova vale dessa data em diante e os dias seguintes são refeitos por ela.
+        </p>
+      </div>
+      {GRUPOS_ESCALA.map((grupo) => (
+        <div key={grupo} className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">{grupo}</p>
+          {ITENS_ESCALA.filter((it) => it.grupo === grupo).map((it) => {
+            const cfg: ConfigCiclo = config[it.id] ?? { tipo: 'manual', inicio: '' };
+            const precisaInicio = cfg.tipo === '11x3' || cfg.tipo === '10x4' || cfg.tipo === 'e18';
+            return (
+              <div key={it.id} className="grid grid-cols-2 items-end gap-2 sm:grid-cols-[110px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
+                <span className="col-span-2 text-sm font-semibold sm:col-span-1 sm:self-center">{it.rotulo}</span>
+                <div className="field min-w-0">
+                  <label>Tipo</label>
+                  <select
+                    aria-label={`Tipo de escala de ${it.rotulo}`}
+                    value={cfg.tipo}
+                    onChange={(e) => onCiclo(it.id, { tipo: e.target.value as ConfigCiclo['tipo'] })}
+                    className="h-10 w-full min-w-0"
+                  >
+                    {TIPOS_CICLO.map((t) => (
+                      <option key={t.valor} value={t.valor}>{t.rotulo}</option>
+                    ))}
+                  </select>
+                </div>
+                {precisaInicio ? (
+                  <div className="field min-w-0">
+                    <label>Início do bloco</label>
+                    <input
+                      type="date"
+                      aria-label={`Início do bloco de ${it.rotulo}`}
+                      value={cfg.inicio}
+                      onChange={(e) => onCiclo(it.id, { inicio: e.target.value })}
+                      className="h-10 w-full min-w-0"
+                    />
+                  </div>
+                ) : (
+                  <div />
+                )}
+                {cfg.tipo !== 'manual' ? (
+                  <div className="field min-w-0">
+                    <label>Válido a partir de</label>
+                    <input
+                      type="date"
+                      aria-label={`Válido a partir de, ${it.rotulo}`}
+                      value={cfg.desde ?? ''}
+                      onChange={(e) => onCiclo(it.id, { desde: e.target.value })}
+                      className="h-10 w-full min-w-0"
+                    />
+                  </div>
+                ) : (
+                  <div />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
   );
 }
