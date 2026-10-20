@@ -146,7 +146,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
           const d = camD.find((x) => x.caminhao === c.caminhao);
           return [
             { rotulo: `${c.caminhao} · produção`, dia: String(d?.periodo.producao ?? 0), mes: String(c.mes.producao) },
-            { rotulo: `${c.caminhao} · perda`, dia: String(d?.periodo.perda ?? 0), mes: String(c.mes.perda) },
+            { rotulo: `${c.caminhao} · cortes`, dia: String(d?.periodo.perda ?? 0), mes: String(c.mes.perda) },
           ];
         }),
         grafico: {
