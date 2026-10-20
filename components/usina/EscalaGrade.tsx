@@ -7,7 +7,9 @@ import {
   STATUS_ESCALA,
   TIPOS_CICLO,
   ESTILO_STATUS,
+  SEMANA_BASE,
   aplicarCiclos,
+  montarEscalaSemana,
   type EscalaSemanaValor,
   type DiaEscala,
   type ConfigCiclo,
@@ -54,6 +56,13 @@ export function EscalaGrade({
     setLinhas((atual) => aplicarCiclos(atual, config, semana));
   }
 
+  function voltarParaPlanilha() {
+    const base = montarEscalaSemana(semana, null);
+    setPlantao(base.plantao);
+    setLinhas(base.linhas);
+    setConfig(base.config);
+  }
+
   function mudarConfig(id: string, campo: keyof ConfigCiclo, v: string) {
     setConfig((atual) => ({ ...atual, [id]: { ...atual[id], [campo]: v } as ConfigCiclo }));
   }
@@ -66,6 +75,11 @@ export function EscalaGrade({
           <button type="button" onClick={preencherCiclos} className="btn btn-ghost h-10 px-4 text-sm">
             Preencher a semana pelo ciclo
           </button>
+          {SEMANA_BASE[semana] && (
+            <button type="button" onClick={voltarParaPlanilha} className="btn btn-ghost h-10 px-4 text-sm">
+              Voltar para a planilha
+            </button>
+          )}
         </div>
         <p className="text-xs text-ink-muted">
           Ajuste o tipo e a data de início de cada pessoa na coluna "Quem". Depois clique no botão para preencher a semana. Você ainda pode editar qualquer dia pelo pincel abaixo. Itens em "Manual" não são preenchidos.
