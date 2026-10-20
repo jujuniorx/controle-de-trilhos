@@ -42,13 +42,13 @@ export function Setor({ s, rotulosDias, largo = false }: { s: SetorRelatorio; ro
       </header>
       {largo ? (
         <div className="grid gap-4 p-4 md:grid-cols-2">
-          <div>{tabela}</div>
-          <div className="border-t border-slate-100 pt-2 md:border-l md:border-t-0 md:pl-4 md:pt-0">{grafico}</div>
+          <div className="shrink-0">{tabela}</div>
+          <div className="shrink-0 border-t border-slate-100 pt-2 md:border-l md:border-t-0 md:pl-4 md:pt-0">{grafico}</div>
         </div>
       ) : (
         <div className="flex flex-1 flex-col gap-3 p-4">
-          {tabela}
-          <div className="mt-auto border-t border-slate-100 pt-2">{grafico}</div>
+          <div className="shrink-0">{tabela}</div>
+          <div className="mt-auto shrink-0 border-t border-slate-100 pt-2">{grafico}</div>
         </div>
       )}
     </section>
