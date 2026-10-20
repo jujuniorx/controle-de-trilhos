@@ -13,14 +13,19 @@ import {
   type ConfigCiclo,
 } from '@/lib/usina/escala';
 
-const COR_STATUS: Record<string, string> = {
-  OK: 'var(--ok)',
-  FOLGA: 'var(--t3)',
-  'DESL.': '#d97706',
-  'MAN.': '#d97706',
-  EXTRA: '#7c3aed',
-  '-': 'var(--t3)',
+/** Cores de fundo e de texto de cada status, como na planilha. */
+const ESTILO_STATUS: Record<string, { fundo: string; texto: string }> = {
+  OK: { fundo: '#00b050', texto: '#ffffff' },
+  FOLGA: { fundo: '#ffff00', texto: '#1a1a1a' },
+  'DESL.': { fundo: '#f4b183', texto: '#1a1a1a' },
+  'MAN.': { fundo: '#ff0000', texto: '#ffffff' },
+  TITAN: { fundo: '#fce4d6', texto: '#1a1a1a' },
+  PRUMO: { fundo: '#cc33cc', texto: '#ffffff' },
+  EXTRA: { fundo: '#ffc000', texto: '#1a1a1a' },
+  '-': { fundo: 'transparent', texto: 'var(--t3)' },
 };
+
+const estiloDe = (status: string) => ESTILO_STATUS[status] ?? ESTILO_STATUS['-'];
 
 const EH_MMD = (local: string) => local.trim().toUpperCase() === 'MMD';
 
@@ -102,7 +107,7 @@ export function EscalaGrade({
         <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Status do pincel">
           {STATUS_ESCALA.map((s) => {
             const ativo = pincel === s.valor;
-            const cor = COR_STATUS[s.valor] ?? 'var(--t1)';
+            const est = estiloDe(s.valor);
             return (
               <button
                 key={s.valor}
@@ -112,9 +117,11 @@ export function EscalaGrade({
                 onClick={() => setPincel(s.valor)}
                 className="h-10 min-w-[64px] rounded-lg px-3 text-sm font-semibold"
                 style={{
-                  color: ativo ? '#fff' : cor,
-                  background: ativo ? cor : `color-mix(in srgb, ${cor} 14%, transparent)`,
-                  boxShadow: ativo ? 'none' : `inset 0 0 0 1px ${cor}`,
+                  background: est.fundo,
+                  color: est.texto,
+                  opacity: ativo ? 1 : 0.5,
+                  boxShadow: ativo ? '0 0 0 2px var(--t1)' : 'none',
+                  border: '1px solid var(--ln2)',
                 }}
               >
                 {s.rotulo}
@@ -172,7 +179,7 @@ export function EscalaGrade({
             {GRUPOS_ESCALA.map((grupo) => (
               <GrupoLinhas key={grupo} grupo={grupo}>
                 {ITENS_ESCALA.filter((it) => it.grupo === grupo).map((item) => (
-                  <Linha
+                  <ItemLinhas
                     key={item.id}
                     rotulo={item.rotulo}
                     cfgTipo={`cfg_tipo_${item.id}`}
@@ -181,33 +188,11 @@ export function EscalaGrade({
                     inicio={config[item.id]?.inicio ?? ''}
                     onTipo={(v) => mudarConfig(item.id, 'tipo', v)}
                     onInicio={(v) => mudarConfig(item.id, 'inicio', v)}
-                  >
-                    {linhas[item.id].map((c, i) => {
-                      const cor = COR_STATUS[c.status] ?? 'var(--t1)';
-                      const mmd = EH_MMD(c.local);
-                      return (
-                        <td key={i} className="p-0.5">
-                          <input type="hidden" name={`st_${item.id}_${i}`} value={c.status} />
-                          <input type="hidden" name={`lc_${item.id}_${i}`} value={c.local} />
-                          <button
-                            type="button"
-                            onClick={() => pintar(item.id, i)}
-                            aria-label={`${item.rotulo} ${dias[i].nome}: ${c.status}${c.local ? ', ' + c.local : ''}`}
-                            className="flex min-h-[64px] w-full flex-col items-center justify-center rounded-lg px-1 py-2"
-                            style={{
-                              background: c.status === '-' ? 'transparent' : `color-mix(in srgb, ${cor} 18%, transparent)`,
-                              boxShadow: mmd ? 'inset 0 0 0 2px var(--b3)' : 'inset 0 0 0 1px var(--ln2)',
-                            }}
-                          >
-                            <span className="text-sm font-semibold" style={{ color: c.status === '-' ? 'var(--t3)' : cor }}>
-                              {c.status === '-' ? '·' : STATUS_ESCALA.find((s) => s.valor === c.status)?.rotulo ?? c.status}
-                            </span>
-                            {c.local && <span className="mt-0.5 max-w-full truncate text-xs text-ink-muted">{c.local}</span>}
-                          </button>
-                        </td>
-                      );
-                    })}
-                  </Linha>
+                    dias={linhas[item.id]}
+                    rotulosDias={dias}
+                    item={item.id}
+                    onPintar={(i) => pintar(item.id, i)}
+                  />
                 ))}
               </GrupoLinhas>
             ))}
@@ -231,7 +216,7 @@ function GrupoLinhas({ grupo, children }: { grupo: string; children: ReactNode }
   );
 }
 
-function Linha({
+function ItemLinhas({
   rotulo,
   cfgTipo,
   cfgInicio,
@@ -239,7 +224,10 @@ function Linha({
   inicio,
   onTipo,
   onInicio,
-  children,
+  dias: celulas,
+  rotulosDias,
+  item,
+  onPintar,
 }: {
   rotulo: string;
   cfgTipo: string;
@@ -248,38 +236,73 @@ function Linha({
   inicio: string;
   onTipo: (v: string) => void;
   onInicio: (v: string) => void;
-  children: ReactNode;
+  dias: DiaEscala[];
+  rotulosDias: { nome: string; data: string }[];
+  item: string;
+  onPintar: (i: number) => void;
 }) {
   const precisaInicio = tipo === '11x3' || tipo === '10x4';
   return (
-    <tr>
-      <th scope="row" className="sticky left-0 z-10 bg-[var(--g2)] px-3 py-1 text-left align-top">
-        <span className="block whitespace-nowrap text-base font-semibold">{rotulo}</span>
-        <select
-          aria-label={`Tipo de escala de ${rotulo}`}
-          name={cfgTipo}
-          value={tipo}
-          onChange={(e) => onTipo(e.target.value)}
-          className="mt-1 h-8 w-full text-xs"
+    <>
+      <tr>
+        <th
+          scope="rowgroup"
+          rowSpan={2}
+          className="sticky left-0 z-10 w-[120px] bg-[var(--g2)] px-2 py-1 text-left align-top"
         >
-          {TIPOS_CICLO.map((t) => (
-            <option key={t.valor} value={t.valor}>{t.rotulo}</option>
-          ))}
-        </select>
-        {precisaInicio ? (
-          <input
-            type="date"
-            aria-label={`Primeiro dia de trabalho de ${rotulo}`}
-            name={cfgInicio}
-            value={inicio}
-            onChange={(e) => onInicio(e.target.value)}
+          <span className="block whitespace-nowrap text-base font-bold">{rotulo}</span>
+          <select
+            aria-label={`Tipo de escala de ${rotulo}`}
+            name={cfgTipo}
+            value={tipo}
+            onChange={(e) => onTipo(e.target.value)}
             className="mt-1 h-8 w-full text-xs"
-          />
-        ) : (
-          <input type="hidden" name={cfgInicio} value="" />
-        )}
-      </th>
-      {children}
-    </tr>
+          >
+            {TIPOS_CICLO.map((t) => (
+              <option key={t.valor} value={t.valor}>{t.rotulo}</option>
+            ))}
+          </select>
+          {precisaInicio ? (
+            <input
+              type="date"
+              aria-label={`Primeiro dia de trabalho de ${rotulo}`}
+              name={cfgInicio}
+              value={inicio}
+              onChange={(e) => onInicio(e.target.value)}
+              className="mt-1 h-8 w-full text-xs"
+            />
+          ) : (
+            <input type="hidden" name={cfgInicio} value="" />
+          )}
+        </th>
+        {celulas.map((c, i) => {
+          const est = estiloDe(c.status);
+          return (
+            <td key={i} className="p-0 align-middle">
+              <input type="hidden" name={`st_${item}_${i}`} value={c.status} />
+              <input type="hidden" name={`lc_${item}_${i}`} value={c.local} />
+              <button
+                type="button"
+                onClick={() => onPintar(i)}
+                aria-label={`${rotulo} ${rotulosDias[i].nome}: ${c.status}`}
+                className="h-9 w-full text-sm font-bold"
+                style={{ background: est.fundo, color: est.texto, border: '1px solid var(--ln2)' }}
+              >
+                {c.status === '-' ? '-' : STATUS_ESCALA.find((s) => s.valor === c.status)?.rotulo ?? c.status}
+              </button>
+            </td>
+          );
+        })}
+      </tr>
+      <tr>
+        {celulas.map((c, i) => (
+          <td key={i} className="p-0">
+            <div className="h-7 truncate px-1 text-center text-xs leading-7 text-ink-muted" title={c.local}>
+              {c.local || ''}
+            </div>
+          </td>
+        ))}
+      </tr>
+    </>
   );
 }

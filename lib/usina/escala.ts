@@ -9,6 +9,8 @@ export const STATUS_ESCALA = [
   { valor: 'FOLGA', rotulo: 'Folga' },
   { valor: 'DESL.', rotulo: 'Desl.' },
   { valor: 'MAN.', rotulo: 'Man.' },
+  { valor: 'TITAN', rotulo: 'Titan' },
+  { valor: 'PRUMO', rotulo: 'Prumo' },
   { valor: 'EXTRA', rotulo: 'Extra' },
 ] as const;
 
@@ -50,7 +52,7 @@ export function lerEscala(texto: string | null | undefined): EscalaSemanaValor |
     if (dados?.v !== 1 || !Array.isArray(dados.plantao) || typeof dados.linhas !== 'object') return null;
     const base = escalaVazia();
     base.plantao = dados.plantao.slice(0, 7).map((p: unknown) => String(p ?? ''));
-    // Semanas salvas antes: E17 - TITAN e E17 - PRUMO viraram uma linha so (E17).
+    // Semanas salvas antes: E17 - TITAN e E17 - PRUMO viraram uma linha so (E17), com a empresa no status do dia.
     const linhasLidas: Record<string, unknown> = { ...dados.linhas };
     if (!Array.isArray(linhasLidas.E17)) {
       const antiga = [linhasLidas.E17T, linhasLidas.E17P].find(Array.isArray) as unknown[] | undefined;
@@ -60,7 +62,7 @@ export function lerEscala(texto: string | null | undefined): EscalaSemanaValor |
       const dias = Array.isArray(linhasLidas[item.id]) ? (linhasLidas[item.id] as unknown[]) : [];
       base.linhas[item.id] = Array.from({ length: 7 }, (_, i) => {
         const bruto = String((dias[i] as { status?: unknown; local?: unknown } | undefined)?.status ?? '');
-        const status = bruto === 'TITAN' || bruto === 'PRUMO' ? 'OK' : bruto;
+        const status = bruto;
         return {
           status: statusValido(status) ? status : '-',
           local: String((dias[i] as { local?: unknown } | undefined)?.local ?? ''),
