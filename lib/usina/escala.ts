@@ -4,14 +4,14 @@
 export const DIAS_SEMANA = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'] as const;
 
 export const STATUS_ESCALA = [
-  { valor: '-', rotulo: '- (sem escala)' },
-  { valor: 'OK', rotulo: 'OK (trabalhou)' },
-  { valor: 'FOLGA', rotulo: 'FOLGA' },
-  { valor: 'DESL.', rotulo: 'DESL. (deslocamento)' },
-  { valor: 'MAN.', rotulo: 'MAN. (manutenção)' },
-  { valor: 'TITAN', rotulo: 'TITAN (empresa)' },
-  { valor: 'PRUMO', rotulo: 'PRUMO (empresa)' },
-  { valor: 'EXTRA', rotulo: 'EXTRA' },
+  { valor: '-', rotulo: '-' },
+  { valor: 'OK', rotulo: 'OK' },
+  { valor: 'FOLGA', rotulo: 'Folga' },
+  { valor: 'DESL.', rotulo: 'Desl.' },
+  { valor: 'MAN.', rotulo: 'Man.' },
+  { valor: 'TITAN', rotulo: 'Titan' },
+  { valor: 'PRUMO', rotulo: 'Prumo' },
+  { valor: 'EXTRA', rotulo: 'Extra' },
 ] as const;
 
 export const ITENS_ESCALA = [

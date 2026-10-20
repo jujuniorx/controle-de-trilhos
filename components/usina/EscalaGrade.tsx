@@ -30,18 +30,12 @@ export function EscalaGrade({ valor, dias }: { valor: EscalaSemanaValor; dias: {
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-muted">
-        <span><b className="text-ink">OK</b> trabalhou</span>
-        <span><b className="text-ink">FOLGA</b></span>
-        <span><b className="text-ink">DESL.</b> deslocamento</span>
-        <span><b className="text-ink">MAN.</b> manutenção</span>
-        <span><b className="text-ink">TITAN / PRUMO</b> empresas</span>
-        <span><b className="text-ink">-</b> sem escala</span>
-        <span><b className="text-ink">MMD</b> = empresa de manutenção (destacada)</span>
-      </div>
+      <p className="text-sm text-ink-muted">
+        <b className="text-ink">OK</b> trabalhou · <b className="text-ink">Folga</b> · <b className="text-ink">Desl.</b> deslocamento · <b className="text-ink">Man.</b> manutenção · <b className="text-ink">Titan / Prumo</b> empresas · <b className="text-ink">MMD</b> empresa de manutenção (destacada)
+      </p>
 
       <div className="-mx-1 overflow-x-auto pb-2">
-        <table className="w-full min-w-[860px] border-separate border-spacing-0 text-sm">
+        <table className="w-full min-w-[900px] border-separate border-spacing-y-2 text-sm">
           <thead>
             <tr>
               <th className="sticky left-0 z-10 bg-[var(--g2)] px-2 py-2 text-left font-semibold">Quem</th>
@@ -79,19 +73,26 @@ export function EscalaGrade({ valor, dias }: { valor: EscalaSemanaValor; dias: {
                   <Linha key={item.id} rotulo={item.rotulo}>
                     {linhas[item.id].map((c, i) => {
                       const mmd = EH_MMD(c.local);
+                      const cor = COR_STATUS[c.status] ?? 'var(--t1)';
                       return (
                         <td
                           key={i}
-                          className="border-l border-[var(--ln)] p-1 align-top"
-                          style={mmd ? { background: 'color-mix(in srgb, var(--b3) 22%, transparent)' } : undefined}
+                          className="p-0.5 align-top"
                         >
+                          <div
+                            className="rounded-lg p-1"
+                            style={{
+                              background: c.status === '-' ? 'transparent' : `color-mix(in srgb, ${cor} 16%, transparent)`,
+                              boxShadow: mmd ? 'inset 0 0 0 2px var(--b3)' : `inset 0 0 0 1px var(--ln2)`,
+                            }}
+                          >
                           <select
                             aria-label={`${item.rotulo} ${dias[i].nome} status`}
                             name={`st_${item.id}_${i}`}
                             value={c.status}
                             onChange={(e) => mudar(item.id, i, 'status', e.target.value)}
-                            className="mb-1 h-9 w-full text-xs font-semibold"
-                            style={{ color: COR_STATUS[c.status] ?? 'var(--t1)' }}
+                            className="mb-1 h-9 w-full text-sm font-semibold"
+                            style={{ color: cor }}
                           >
                             {STATUS_ESCALA.map((s) => (
                               <option key={s.valor} value={s.valor}>{s.rotulo}</option>
@@ -102,10 +103,11 @@ export function EscalaGrade({ valor, dias }: { valor: EscalaSemanaValor; dias: {
                             name={`lc_${item.id}_${i}`}
                             value={c.local}
                             maxLength={40}
-                            placeholder="Onde"
+                            placeholder="local"
                             onChange={(e) => mudar(item.id, i, 'local', e.target.value)}
-                            className="h-9 w-full text-center text-xs"
+                            className="h-8 w-full text-center text-xs"
                           />
+                          </div>
                         </td>
                       );
                     })}
@@ -124,7 +126,7 @@ function GrupoLinhas({ grupo, children }: { grupo: string; children: ReactNode }
   return (
     <>
       <tr>
-        <th colSpan={8} className="px-2 pb-1 pt-4 text-left text-xs font-semibold uppercase tracking-wider text-ink-muted">
+        <th colSpan={8} className="px-2 pb-0 pt-5 text-left text-xs font-semibold uppercase tracking-wider text-ink-muted">
           {grupo}
         </th>
       </tr>
@@ -136,7 +138,7 @@ function GrupoLinhas({ grupo, children }: { grupo: string; children: ReactNode }
 function Linha({ rotulo, children }: { rotulo: string; children: ReactNode }) {
   return (
     <tr>
-      <th scope="row" className="sticky left-0 z-10 whitespace-nowrap bg-[var(--g2)] px-2 py-1 text-left font-semibold">
+      <th scope="row" className="sticky left-0 z-10 whitespace-nowrap bg-[var(--g2)] px-3 py-1 text-left text-base font-semibold">
         {rotulo}
       </th>
       {children}
