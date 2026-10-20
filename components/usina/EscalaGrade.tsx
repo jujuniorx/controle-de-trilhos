@@ -92,7 +92,13 @@ export function EscalaGrade({
 
   const grade = (
     <div className="-mx-1 overflow-x-auto pb-2">
-      <table className="w-full min-w-[900px] border-separate border-spacing-y-2 text-sm">
+      <table className="w-full min-w-[900px] table-fixed border-separate border-spacing-y-2 text-sm">
+        <colgroup>
+          <col style={{ width: 150 }} />
+          {dias.map((d) => (
+            <col key={d.nome} />
+          ))}
+        </colgroup>
         <thead>
           <tr>
             <th className="sticky left-0 z-10 bg-[var(--g2)] px-2 py-2 text-left font-semibold">Quem</th>
