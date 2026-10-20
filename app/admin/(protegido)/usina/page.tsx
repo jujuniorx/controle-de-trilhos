@@ -23,7 +23,7 @@ import { fmtMetros, fmtPeso } from '@/lib/format';
 import { PERIODOS, ehIsoValido, type Periodo } from '@/lib/usina/periodo';
 import { FormularioUsina } from '@/components/usina/FormularioUsina';
 import { EscalaGrade } from '@/components/usina/EscalaGrade';
-import { lerEscala, diasDaSemana, resumoDoDia } from '@/lib/usina/escala';
+import { lerEscala, diasDaSemana } from '@/lib/usina/escala';
 import { montarEscalaDaSemana } from '@/lib/services/usina';
 import {
   salvarEstaleiroAction,
@@ -185,29 +185,6 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
               Escala anterior em texto: {est.escala}. Ao salvar a grade abaixo, ela é substituída.
             </p>
           )}
-          {(() => {
-            const r = resumoDoDia(escalaSemana, est.semana, data);
-            if (!r) return null;
-            const linha = (titulo: string, itens: string[]) => (
-              <div className="space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">{titulo}</p>
-                <p className="text-sm">{itens.length ? itens.join(', ') : '-'}</p>
-              </div>
-            );
-            return (
-              <div className="grid gap-4 rounded-xl border border-[var(--ln2)] p-4 sm:grid-cols-2 xl:grid-cols-5">
-                <div className="sm:col-span-2 xl:col-span-5">
-                  <p className="font-semibold">Resumo de {br(data)}</p>
-                </div>
-                {linha('Trabalhando', r.trabalhando)}
-                {linha('Deslocamento', r.deslocamento)}
-                {linha('Folga', r.folga)}
-                {linha('Manutenção', r.manutencao)}
-                {linha('Sem escala', r.semEscala)}
-                {r.plantao && <div className="sm:col-span-2 xl:col-span-5">{linha('Plantão', [r.plantao])}</div>}
-              </div>
-            );
-          })()}
           <EscalaGrade valor={escalaSemana} dias={diasDaSemana(est.semana)} semana={est.semana} acao={salvarEscalaAction} />
         </div>
       </section>
