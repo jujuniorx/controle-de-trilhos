@@ -216,7 +216,6 @@ function ItemLinhas({
   item: string;
   onPintar: (i: number) => void;
 }) {
-  const precisaInicio = tipo === '11x3' || tipo === '10x4';
   return (
     <>
       <tr>
@@ -236,18 +235,7 @@ function ItemLinhas({
               <option key={t.valor} value={t.valor}>{t.rotulo}</option>
             ))}
           </select>
-          {precisaInicio ? (
-            <input
-              type="date"
-              aria-label={`Primeiro dia de trabalho de ${rotulo}`}
-              name={cfgInicio}
-              value={inicio}
-              onChange={(e) => onInicio(e.target.value)}
-              className="mt-1 h-8 w-full text-xs"
-            />
-          ) : (
-            <input type="hidden" name={cfgInicio} value="" />
-          )}
+          <input type="hidden" name={cfgInicio} value={inicio} />
         </th>
         {celulas.map((c, i) => {
           const est = estiloDe(c.status);
