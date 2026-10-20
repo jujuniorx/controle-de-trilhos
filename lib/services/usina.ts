@@ -366,3 +366,9 @@ export async function salvarGiro(v: GiroValor) {
 export async function salvarManutencaoTrilheiro(v: { data: string; trilheiro: (typeof TRILHEIROS)[number]; local: string | null; tipo: string | null; detalhamento: string | null }) {
   await prisma.trilheiroManutencao.create({ data: { ...v, data: dataBanco(v.data) } });
 }
+
+/** Texto salvo da escala da semana (JSON ou texto antigo). Vazio quando nao ha escala salva. */
+export async function buscarEscalaSemana(semana: string): Promise<string> {
+  const e = await prisma.escalaSemana.findUnique({ where: { semanaInicio: dataBanco(semana) } });
+  return e?.conteudo ?? '';
+}

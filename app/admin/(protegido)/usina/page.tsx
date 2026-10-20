@@ -23,7 +23,7 @@ import { fmtMetros, fmtPeso } from '@/lib/format';
 import { PERIODOS, ehIsoValido, type Periodo } from '@/lib/usina/periodo';
 import { FormularioUsina } from '@/components/usina/FormularioUsina';
 import { EscalaGrade } from '@/components/usina/EscalaGrade';
-import { lerEscala, escalaVazia, diasDaSemana } from '@/lib/usina/escala';
+import { lerEscala, montarEscalaSemana, diasDaSemana } from '@/lib/usina/escala';
 import {
   salvarEstaleiroAction,
   salvarEstoqueTlsAction,
@@ -72,7 +72,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
     trilheirosDoPeriodo(periodo, data),
   ]);
   const escalaSalva = lerEscala(est.escala);
-  const escalaSemana = escalaSalva ?? escalaVazia();
+  const escalaSemana = montarEscalaSemana(est.semana, est.escala);
   const escalaLegada = !escalaSalva && est.escala.trim() !== '';
 
   return (
@@ -176,8 +176,9 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         <div className="card space-y-3 xl:col-span-2">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <p className="font-semibold">Escala da semana</p>
-            <p className="text-sm text-ink-muted">Preencha a semana toda. Use o seletor de status e, se for o caso, o local onde estava.</p>
+            <a href={`/api/usina/escala/pdf?semana=${est.semana}`} className="btn btn-ghost h-10 px-4 text-sm">Baixar PDF da escala</a>
           </div>
+          <p className="text-sm text-ink-muted">Preencha a semana toda. Use o seletor de status e, se for o caso, o local onde estava.</p>
           {escalaLegada && (
             <p className="rounded-lg border border-[var(--ln)] p-3 text-sm text-ink-muted">
               Escala anterior em texto: {est.escala}. Ao salvar a grade abaixo, ela é substituída.
@@ -185,7 +186,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           )}
           <FormularioUsina acao={salvarEscalaAction}>
             <input type="hidden" name="semana" value={est.semana} />
-            <EscalaGrade valor={escalaSemana} dias={diasDaSemana(est.semana)} semana={est.semana} novaSemana={!escalaSalva} />
+            <EscalaGrade valor={escalaSemana} dias={diasDaSemana(est.semana)} semana={est.semana} />
           </FormularioUsina>
         </div>
       </section>

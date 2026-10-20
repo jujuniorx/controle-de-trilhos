@@ -6,47 +6,18 @@ import {
   GRUPOS_ESCALA,
   STATUS_ESCALA,
   TIPOS_CICLO,
-  isoDaSemana,
-  statusDoCiclo,
-  SEMANA_BASE,
+  ESTILO_STATUS,
+  aplicarCiclos,
   type EscalaSemanaValor,
   type DiaEscala,
   type ConfigCiclo,
 } from '@/lib/usina/escala';
 
-/** Cores de fundo e de texto de cada status, como na planilha. */
-const ESTILO_STATUS: Record<string, { fundo: string; texto: string }> = {
-  OK: { fundo: '#00b050', texto: '#ffffff' },
-  FOLGA: { fundo: '#ffff00', texto: '#1a1a1a' },
-  'DESL.': { fundo: '#f4b183', texto: '#1a1a1a' },
-  'MAN.': { fundo: '#ff0000', texto: '#ffffff' },
-  TITAN: { fundo: '#fce4d6', texto: '#1a1a1a' },
-  PRUMO: { fundo: '#cc33cc', texto: '#ffffff' },
-  EXTRA: { fundo: '#ffc000', texto: '#1a1a1a' },
-  '-': { fundo: 'transparent', texto: 'var(--t3)' },
-};
+
 
 const estiloDe = (status: string) => ESTILO_STATUS[status] ?? ESTILO_STATUS['-'];
 
 const EH_MMD = (local: string) => local.trim().toUpperCase() === 'MMD';
-
-/** Preenche os dias dos itens com ciclo; os itens Manual ficam como estao. */
-function aplicarCiclos(
-  atual: Record<string, DiaEscala[]>,
-  config: Record<string, ConfigCiclo>,
-  semana: string,
-): Record<string, DiaEscala[]> {
-  const isos = isoDaSemana(semana);
-  const proximo = { ...atual };
-  for (const item of ITENS_ESCALA) {
-    const cfg = config[item.id];
-    if (!cfg) continue;
-    const sts = isos.map((iso) => statusDoCiclo(cfg, iso));
-    if (sts.some((x) => x === null)) continue;
-    proximo[item.id] = atual[item.id].map((c, i) => ({ ...c, status: sts[i] as string }));
-  }
-  return proximo;
-}
 
 /**
  * Escala da semana no modo pincel: escolhe o status (e o local, se preenchido) na barra de cima
@@ -56,29 +27,13 @@ export function EscalaGrade({
   valor,
   dias,
   semana,
-  novaSemana,
 }: {
   valor: EscalaSemanaValor;
   dias: { nome: string; data: string }[];
   semana: string;
-  /** Semana ainda sem escala salva: ja vem preenchida pelo ciclo. */
-  novaSemana: boolean;
 }) {
-  const base = novaSemana ? SEMANA_BASE[semana] : undefined;
-  const [plantao, setPlantao] = useState<string[]>(base ? base.plantao : valor.plantao);
-  const [linhas, setLinhas] = useState<Record<string, DiaEscala[]>>(() => {
-    if (!novaSemana) return valor.linhas;
-    const ciclo = aplicarCiclos(valor.linhas, valor.config, semana);
-    if (!base) return ciclo;
-    const sobre = { ...ciclo };
-    for (const [id, dias] of Object.entries(base.linhas)) {
-      sobre[id] = (ciclo[id] ?? []).map((c, i) => ({
-        status: dias[i].status || c.status,
-        local: dias[i].local,
-      }));
-    }
-    return sobre;
-  });
+  const [plantao, setPlantao] = useState<string[]>(valor.plantao);
+  const [linhas, setLinhas] = useState<Record<string, DiaEscala[]>>(valor.linhas);
   const [config, setConfig] = useState<Record<string, ConfigCiclo>>(valor.config);
   const [pincel, setPincel] = useState<string>('OK');
   const [local, setLocal] = useState<string>('');
@@ -95,12 +50,12 @@ export function EscalaGrade({
     }));
   }
 
-  function mudarConfig(id: string, campo: keyof ConfigCiclo, v: string) {
-    setConfig((atual) => ({ ...atual, [id]: { ...atual[id], [campo]: v } as ConfigCiclo }));
-  }
-
   function preencherCiclos() {
     setLinhas((atual) => aplicarCiclos(atual, config, semana));
+  }
+
+  function mudarConfig(id: string, campo: keyof ConfigCiclo, v: string) {
+    setConfig((atual) => ({ ...atual, [id]: { ...atual[id], [campo]: v } as ConfigCiclo }));
   }
 
   return (

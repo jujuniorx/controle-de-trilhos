@@ -196,3 +196,50 @@ export const SEMANA_BASE: Record<string, { plantao: string[]; linhas: Record<str
 };
 
 export type DiaEscalaBase = { status: string; local: string };
+
+/** Cores de fundo e de texto de cada status, como na planilha. */
+export const ESTILO_STATUS: Record<string, { fundo: string; texto: string }> = {
+  OK: { fundo: '#00b050', texto: '#ffffff' },
+  FOLGA: { fundo: '#ffff00', texto: '#1a1a1a' },
+  'DESL.': { fundo: '#f4b183', texto: '#1a1a1a' },
+  'MAN.': { fundo: '#ff0000', texto: '#ffffff' },
+  TITAN: { fundo: '#fce4d6', texto: '#1a1a1a' },
+  PRUMO: { fundo: '#cc33cc', texto: '#ffffff' },
+  EXTRA: { fundo: '#ffc000', texto: '#1a1a1a' },
+  '-': { fundo: 'transparent', texto: '#6b7280' },
+};
+
+/** Preenche os dias dos itens com ciclo; os itens Manual ficam como estao. */
+export function aplicarCiclos(
+  atual: Record<string, DiaEscala[]>,
+  config: Record<string, ConfigCiclo>,
+  semana: string,
+): Record<string, DiaEscala[]> {
+  const isos = isoDaSemana(semana);
+  const proximo = { ...atual };
+  for (const item of ITENS_ESCALA) {
+    const cfg = config[item.id];
+    if (!cfg) continue;
+    const sts = isos.map((iso) => statusDoCiclo(cfg, iso));
+    if (sts.some((x) => x === null)) continue;
+    proximo[item.id] = atual[item.id].map((c, i) => ({ ...c, status: sts[i] as string }));
+  }
+  return proximo;
+}
+
+/**
+ * Escala completa de uma semana: a salva, se existir; senao, o ciclo de cada pessoa
+ * com a semana base da planilha por cima (quando houver).
+ */
+export function montarEscalaSemana(semana: string, textoSalvo: string | null | undefined): EscalaSemanaValor {
+  const salva = lerEscala(textoSalvo);
+  if (salva) return salva;
+  const vazia = escalaVazia();
+  const linhas = aplicarCiclos(vazia.linhas, vazia.config, semana);
+  const base = SEMANA_BASE[semana];
+  if (!base) return { plantao: vazia.plantao, linhas, config: vazia.config };
+  for (const [id, dias] of Object.entries(base.linhas)) {
+    linhas[id] = (linhas[id] ?? []).map((c, i) => ({ status: dias[i].status || c.status, local: dias[i].local }));
+  }
+  return { plantao: base.plantao, linhas, config: vazia.config };
+}
