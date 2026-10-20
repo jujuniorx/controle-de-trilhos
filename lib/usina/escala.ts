@@ -168,7 +168,7 @@ export function statusDoCiclo(cfg: ConfigCiclo, dataIso: string): string | null 
 // ── Semana base (planilha de 19 a 25/10/2026) ──────────────────────────────
 // Valores lidos da planilha. Status de Geracao e trilheiros ja saem do ciclo; aqui ficam
 // os itens manuais (E18, E17), os locais e o plantao. A partir dai, tudo e automatico.
-// E17: a equipe TITAN normalmente e do E18, mas esta junto com o E17 nesta semana.
+// E17: a PRUMO trabalha no E17 de 19 a 28/10; a equipe TITAN (normalmente do E18) esta junto e aparece no local.
 const DIA = (status: string, local = '') => ({ status, local });
 
 export const SEMANA_BASE: Record<string, { plantao: string[]; linhas: Record<string, DiaEscalaBase[]> }> = {
@@ -177,13 +177,13 @@ export const SEMANA_BASE: Record<string, { plantao: string[]; linhas: Record<str
     linhas: {
       E18: Array.from({ length: 7 }, () => DIA('MAN.', 'MMD')),
       E17: [
-        DIA('TITAN', 'Rio Claro'),
-        DIA('TITAN', 'Rio Claro'),
-        DIA('DESL.', 'Rio Claro'),
-        DIA('FOLGA', 'Rio Claro'),
-        DIA('FOLGA', 'Rio Claro'),
-        DIA('FOLGA', 'Rio Claro'),
-        DIA('FOLGA', 'Rio Claro'),
+        DIA('PRUMO', 'Rio Claro · TITAN'),
+        DIA('PRUMO', 'Rio Claro · TITAN'),
+        DIA('PRUMO', 'Rio Claro · TITAN DESL.'),
+        DIA('PRUMO', 'Rio Claro · TITAN FOLGA'),
+        DIA('PRUMO', 'Rio Claro · TITAN FOLGA'),
+        DIA('PRUMO', 'Rio Claro · TITAN FOLGA'),
+        DIA('PRUMO', 'Rio Claro · TITAN FOLGA'),
       ],
       ALECIO: [DIA('', 'ZPT'), DIA('', 'ZPT'), DIA('', 'ZPT'), DIA('', ''), DIA('', ''), DIA('', ''), DIA('', '')],
       BRUNO: [DIA('', 'ZEV'), DIA('', 'ZEV'), DIA('', 'ZEV'), DIA('', ''), DIA('', ''), DIA('', ''), DIA('', '')],
