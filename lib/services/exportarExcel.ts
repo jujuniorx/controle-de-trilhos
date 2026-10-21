@@ -156,6 +156,7 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
 
   for (const mov of cronologico) {
     const [dia, mes, ano] = diaMesAno(mov.dataMovimentacao);
+    const primeiraLinha = sheet.rowCount + 1;
     const base = [
       dia,
       mes,
@@ -204,10 +205,21 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         arredondar2(grupos.reduce((acc, g) => acc + metros(g), 0)),
       ]));
     }
+    pintarSePendente(sheet, primeiraLinha, mov.status);
   }
 
   formatarColunasDeData(sheet);
   aplicarCoresRecebidos(sheet);
+}
+
+/** Movimentação ainda pendente de conferência: a linha inteira fica amarela, para mostrar o que falta. */
+function pintarSePendente(sheet: ExcelJS.Worksheet, primeiraLinha: number, status: string) {
+  if (status !== 'PENDENTE_CONFERENCIA') return;
+  for (let n = primeiraLinha; n <= sheet.rowCount; n++) {
+    sheet.getRow(n).eachCell({ includeEmpty: true }, (cell) => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // amarelo
+    });
+  }
 }
 
 /** Coluna 23 é "Total" em Recebidos — colorir em vermelho com fundo amarelo. */
@@ -312,10 +324,12 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
     ];
     // Preenchidas à mão na planilha mestra — o app não captura.
     const manuais = ['', '', ''];
+    const primeiraLinha = sheet.rowCount + 1;
 
     if (mov.grupos.length === 0) {
       // Pré-cadastro ainda aguardando o Pátio confirmar a chegada — sem grupos ainda.
       sheet.addRow(sanear([...base, '', '', '', tipoRemetido, null, null, null, ...manuais]));
+      pintarSePendente(sheet, primeiraLinha, mov.status);
       continue;
     }
 
@@ -342,6 +356,7 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         ...manuais,
       ]));
     }
+    pintarSePendente(sheet, primeiraLinha, mov.status);
   }
 
   formatarColunasDeData(sheet);
