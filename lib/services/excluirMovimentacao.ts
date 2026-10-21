@@ -50,8 +50,8 @@ export async function excluirMovimentacao(
 export async function listarRecebimentosPendentesPatio() {
   return prisma.movimentacao.findMany({
     where: { tipo: 'RECEBIMENTO', status: 'PENDENTE_CONFERENCIA' },
-    select: { id: true, numeroDocumento: true, origem: true, destino: true, dataMovimentacao: true, criadoEm: true },
-    orderBy: { criadoEm: 'desc' },
+    select: { id: true, numeroDocumento: true, origem: true, destino: true, dataMovimentacao: true, createdAt: true },
+    orderBy: { createdAt: 'desc' },
     take: 30,
   });
 }
