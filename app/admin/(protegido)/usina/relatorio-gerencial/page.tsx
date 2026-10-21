@@ -13,7 +13,7 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
   const tril = await montarTrilheirosRelatorio(data);
 
   return (
-    <main className="mx-auto max-w-5xl space-y-4 p-4">
+    <main className="mx-auto max-w-6xl space-y-4 p-4">
       <div className="flex flex-wrap items-center gap-3">
         <a className="btn btn-primary h-11" href={`/api/usina/relatorio-gerencial/pdf?data=${data}`}>Baixar PDF</a>
         <a className="btn btn-ghost h-11" href={`/admin/usina?data=${data}`}>Voltar</a>
@@ -43,13 +43,8 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
         </div>
 
         <p className="text-xs text-slate-500">Cada setor mostra o valor do dia e o acumulado do mês, com o gráfico dos dias do mês.</p>
-        <div className="grid gap-4 md:grid-cols-3">
-          {dados.setores.slice(0, 3).map((s) => (
-            <Setor key={s.titulo} s={s} rotulosDias={dados.rotulosDias} />
-          ))}
-        </div>
         <div className="grid gap-4">
-          {dados.setores.slice(3).filter((s) => s.titulo !== 'Trilheiros').map((s) => (
+          {dados.setores.filter((s) => s.titulo !== 'Trilheiros').map((s) => (
             <Setor key={s.titulo} s={s} rotulosDias={dados.rotulosDias} largo />
           ))}
         </div>

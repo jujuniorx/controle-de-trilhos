@@ -19,7 +19,7 @@ export function GraficoBarras({
   unidade?: string;
 }) {
   const largura = 600;
-  const altura = 200;
+  const altura = 260;
   const margemEsq = 36;
   const margemInf = 22;
   const areaL = largura - margemEsq - 6;
@@ -36,7 +36,7 @@ export function GraficoBarras({
         {[0, 0.5, 1].map((f) => (
           <g key={f}>
             <line x1={margemEsq} x2={largura - 6} y1={yDe(max * f)} y2={yDe(max * f)} stroke="#0002" />
-            <text x={margemEsq - 4} y={yDe(max * f) + 3} textAnchor="end" fontSize="9" fill="#555">
+            <text x={margemEsq - 4} y={yDe(max * f) + 3} textAnchor="end" fontSize="11" fill="#555">
               {Math.round(max * f)}
             </text>
           </g>
@@ -54,7 +54,7 @@ export function GraficoBarras({
               );
             })}
             {(i % (rotulos.length > 20 ? 5 : 2) === 0 || i === rotulos.length - 1) && (
-              <text x={margemEsq + i * grupo + grupo / 2} y={altura - 6} textAnchor="middle" fontSize="9" fill="#555">
+              <text x={margemEsq + i * grupo + grupo / 2} y={altura - 6} textAnchor="middle" fontSize="11" fill="#555">
                 {r}
               </text>
             )}

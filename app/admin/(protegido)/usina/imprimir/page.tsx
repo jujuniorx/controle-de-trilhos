@@ -84,13 +84,8 @@ export default async function ImprimirUsina({
 
         {setor === 'todos' ? (
           <>
-            <div className="grid gap-4 md:grid-cols-3">
-              {setores.slice(0, 3).map((s) => (
-                <Setor key={s.titulo} s={s} rotulosDias={dados.rotulosDias} />
-              ))}
-            </div>
             <div className="grid gap-4">
-              {setores.slice(3).map((s) => (
+              {setores.map((s) => (
                 <Setor key={s.titulo} s={s} rotulosDias={dados.rotulosDias} largo />
               ))}
             </div>
