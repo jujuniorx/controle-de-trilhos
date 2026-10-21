@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { CampoObservacao, ICONE_CAMINHAO, Secao } from '@/components/portaria/Secao';
-import { confirmarSaidaAction, registrarChegadaAction, salvarDadosAction, type ResultadoPortaria } from './actions';
+import { confirmarSaidaAction, desfazerSaidaAction, registrarChegadaAction, salvarDadosAction, type ResultadoPortaria } from './actions';
 import { ROTULO_ESTADO } from '@/lib/domain/portaria';
 import type { ItemPortaria } from '@/lib/services/portaria';
 import { formatarCpfDigitado, formatarTelefoneDigitado } from '@/lib/validation/portaria';
@@ -135,6 +135,27 @@ export function CartaoPortaria({ item }: { item: ItemPortaria }) {
           {chegou && <p className="rounded-lg bg-warn/10 px-3 py-2 text-sm text-warn">Chegada registrada. Agora o Pátio carrega e libera a carreta; você será avisado.</p>}
           {liberada && <p className="rounded-lg bg-ok/10 px-3 py-2 text-sm text-ok">O Pátio liberou a carreta. Quando ela passar pela portaria, toque em &ldquo;Saída confirmada&rdquo;.</p>}
           {saiu && <p className="rounded-lg bg-surface-2 px-3 py-2 text-sm text-ink-muted">Carreta saiu. Só consulta.</p>}
+          {saiu && (
+            <button
+              type="button"
+              className="btn btn-ghost h-12 w-full"
+              disabled={pendente}
+              onClick={() => {
+                setResultado(null);
+                iniciar(async () => {
+                  try {
+                    const r = await desfazerSaidaAction(item.id);
+                    setResultado(r);
+                    if (r.ok) router.refresh();
+                  } catch {
+                    setResultado({ ok: false, erro: 'Sem conexão. Tente de novo.' });
+                  }
+                });
+              }}
+            >
+              {pendente ? 'Aguarde...' : 'Desfazer saída (voltar para a portaria)'}
+            </button>
+          )}
 
           <p className="text-xs text-ink-muted">O PDF leva o que está <b>salvo</b>: toque em &ldquo;Salvar dados&rdquo; antes de baixar.</p>
           <div className="grid grid-cols-2 gap-2">

@@ -239,3 +239,12 @@ export async function excluirChegadaPatio(id: string, motivo: string, atorNome: 
   });
   if (r.count === 0) throw new ErroRegraNegocio('Não foi possível excluir: a situação mudou. Atualize a tela.');
 }
+
+/** Portaria: desfaz uma saída de caminhão registrada por engano. */
+export async function desfazerSaidaChegada(id: string): Promise<void> {
+  const r = await prisma.chegadaCaminhao.updateMany({
+    where: { id, saidaEm: { not: null } },
+    data: { saidaEm: null, saidaPor: null },
+  });
+  if (r.count === 0) throw new ErroRegraNegocio('Este caminhão não está como saída. Atualize a tela.');
+}

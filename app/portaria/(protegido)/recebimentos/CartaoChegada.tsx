@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { CampoObservacao, ICONE_CAMINHAO, Secao } from '@/components/portaria/Secao';
-import { cancelarChegadaAction, confirmarSaidaChegadaAction, definirOrdemChegadaAction, registrarChegadaAction, salvarChegadaAction } from './actions';
+import { cancelarChegadaAction, confirmarSaidaChegadaAction, definirOrdemChegadaAction, desfazerSaidaChegadaAction, registrarChegadaAction, salvarChegadaAction } from './actions';
 import type { ResultadoPortaria } from '../actions';
 import { ROTULO_ESTADO_CHEGADA } from '@/lib/domain/portaria';
 import { formatarCpfDigitado, formatarTelefoneDigitado } from '@/lib/validation/portaria';
@@ -187,6 +187,27 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
           {aguardaCarga && <p className="rounded-lg bg-warn/10 px-3 py-2 text-sm text-warn">O Pátio descarregou. Aguardando o carregamento: a saída libera depois que o Pátio confirmar a carga.</p>}
           {descarregado && !aguardaCarga && <p className="rounded-lg bg-ok/10 px-3 py-2 text-sm text-ok">O Pátio descarregou. Quando o caminhão passar pela portaria, toque em &ldquo;Saída confirmada&rdquo;.</p>}
           {saiu && <p className="rounded-lg bg-surface-2 px-3 py-2 text-sm text-ink-muted">Caminhão saiu. Só consulta.</p>}
+          {saiu && (
+            <button
+              type="button"
+              className="btn btn-ghost h-12 w-full"
+              disabled={pendente}
+              onClick={() => {
+                setResultado(null);
+                iniciar(async () => {
+                  try {
+                    const r = await desfazerSaidaChegadaAction(item.id);
+                    setResultado(r);
+                    if (r.ok) router.refresh();
+                  } catch {
+                    setResultado({ ok: false, erro: 'Sem conexão. Tente de novo.' });
+                  }
+                });
+              }}
+            >
+              {pendente ? 'Aguarde...' : 'Desfazer saída (voltar para a portaria)'}
+            </button>
+          )}
           {!rascunho && <p className="text-xs text-ink-muted">O PDF leva o que está <b>salvo</b>: toque em &ldquo;Salvar dados&rdquo; antes de baixar.</p>}
 
           <div className="grid grid-cols-2 gap-2">

@@ -298,3 +298,13 @@ export async function criarEnvioPelaPortaria(
   );
   return mov.id;
 }
+
+/** Portaria: desfaz uma saída registrada por engano (a carreta volta para dentro da portaria). */
+export async function desfazerSaidaCarreta(id: string, atorNome: string, atorId?: string): Promise<void> {
+  const r = await prisma.movimentacao.updateMany({
+    where: { id, tipo: 'REMETIDO', saidaPortariaEm: { not: null } },
+    data: { saidaPortariaEm: null, saidaPortariaPor: null },
+  });
+  if (r.count === 0) throw new ErroRegraNegocio('Esta carreta não está como saída. Atualize a tela.');
+  await registrarHistorico({ movimentacaoId: id, usuarioId: atorId, usuarioNome: `${atorNome} (portaria)`, acao: 'SAIDA_DESFEITA' });
+}
