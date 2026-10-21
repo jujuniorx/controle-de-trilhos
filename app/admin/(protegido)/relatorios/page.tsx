@@ -147,6 +147,17 @@ export default async function RelatoriosPage({
             <label htmlFor="f-fim">Período (fim)</label>
             <input id="f-fim" type="date" name="dataFim" defaultValue={filtros.dataFim} className="h-10" />
           </div>
+          <div className="field">
+            <label htmlFor="f-status">Status</label>
+            <select id="f-status" name="status" defaultValue={filtros.status ?? ''} className="h-10">
+              <option value="">Todos</option>
+              {STATUS_RELATORIO.map((s) => (
+                <option key={s} value={s}>
+                  {STATUS_TEXTO[s]}
+                </option>
+              ))}
+            </select>
+          </div>
           </div>
           <input type="checkbox" id="f-mais" className="filtros-toggle" defaultChecked={Boolean(filtros.tipo || filtros.status || filtros.perfil || filtros.material || filtros.classificacao || filtros.origemDestino || filtros.numeroDocumento || filtros.placa)} />
           <label htmlFor="f-mais" className="filtros-mais-btn">
@@ -159,17 +170,6 @@ export default async function RelatoriosPage({
               <option value="">Todos</option>
               <option value="RECEBIMENTO">Recebimento</option>
               <option value="REMETIDO">Remetido</option>
-            </select>
-          </div>
-          <div className="field">
-            <label htmlFor="f-status">Status</label>
-            <select id="f-status" name="status" defaultValue={filtros.status ?? ''} className="h-10">
-              <option value="">Todos</option>
-              {STATUS_RELATORIO.map((s) => (
-                <option key={s} value={s}>
-                  {STATUS_TEXTO[s]}
-                </option>
-              ))}
             </select>
           </div>
           <div className="field">
