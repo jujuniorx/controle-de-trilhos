@@ -93,7 +93,7 @@ export async function criarChegada(atorNome: string): Promise<{ id: string }> {
 export async function listarChegadasPortaria() {
   const ontem = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const lista = await prisma.chegadaCaminhao.findMany({
-    where: { canceladaEm: null, OR: [{ saidaEm: null }, { saidaEm: { gte: ontem } }] },
+    where: { canceladaEm: null, excluidaEm: null, OR: [{ saidaEm: null }, { saidaEm: { gte: ontem } }] },
     orderBy: { criadoEm: 'desc' },
   });
   return lista.map((c) => ({ ...c, capacidadeCarga: num(c.capacidadeCarga), estado: estadoChegada(c) }));
@@ -162,7 +162,7 @@ export async function cancelarChegada(id: string): Promise<void> {
 /** Pátio: caminhões liberados para descarregar que ainda não viraram recebimento. */
 export async function listarChegadasLiberadas() {
   return prisma.chegadaCaminhao.findMany({
-    where: { liberadaEm: { not: null }, canceladaEm: null, movimentacaoId: null },
+    where: { liberadaEm: { not: null }, canceladaEm: null, excluidaEm: null, movimentacaoId: null },
     select: { id: true, origem: true, transportadora: true, placaCarreta: true, placaCavalo: true, liberadaEm: true, materialPrevisto: true, observacao: true, descarregadaEm: true, saidaEm: true, ordemDia: true, ordemData: true, cargaDescarga: true, destinoCarga: true, cargaCarregadaEm: true },
     orderBy: [{ ordemData: 'asc' }, { ordemDia: 'asc' }, { liberadaEm: 'asc' }],
   });
@@ -172,7 +172,7 @@ export async function listarChegadasLiberadas() {
 export async function buscarChegadaLiberada(id: string) {
   const c = await prisma.chegadaCaminhao.findUnique({ where: { id } });
   // Liberada pela Portaria e ainda sem recebimento (inclusive se o Pátio já descarregou e o caminhão saiu).
-  if (!c || !c.liberadaEm || c.canceladaEm || c.movimentacaoId) return null;
+  if (!c || !c.liberadaEm || c.canceladaEm || c.excluidaEm || c.movimentacaoId) return null;
   return {
     id: c.id,
     origem: c.origem ?? '',
@@ -219,4 +219,23 @@ export async function buscarFichaChegada(id: string) {
     saidaPor: c.saidaPor,
     observacao: c.observacao,
   };
+}
+
+/**
+ * Pátio: exclui uma chegada (cadastrada por engano, caminhão não veio, etc.). Não apaga:
+ * ela vai para a lixeira com o motivo, e o dono pode restaurar. Só chegada ainda sem recebimento.
+ */
+export async function excluirChegadaPatio(id: string, motivo: string, atorNome: string): Promise<void> {
+  const texto = motivo.trim();
+  if (texto.length < 3) throw new ErroRegraNegocio('Escreva o motivo da exclusão (pelo menos 3 letras).');
+  const c = await prisma.chegadaCaminhao.findUnique({ where: { id } });
+  if (!c) throw new ErroRegraNegocio('Chegada não encontrada.');
+  if (c.excluidaEm) throw new ErroRegraNegocio('Esta chegada já foi excluída.');
+  if (c.movimentacaoId) throw new ErroRegraNegocio('Esta chegada já virou recebimento. Exclua pelo recebimento.');
+  if (c.saidaEm) throw new ErroRegraNegocio('Este caminhão já saiu. Não dá para excluir.');
+  const r = await prisma.chegadaCaminhao.updateMany({
+    where: { id, excluidaEm: null, movimentacaoId: null, saidaEm: null },
+    data: { excluidaEm: new Date(), excluidaPor: atorNome, excluidaMotivo: texto },
+  });
+  if (r.count === 0) throw new ErroRegraNegocio('Não foi possível excluir: a situação mudou. Atualize a tela.');
 }
