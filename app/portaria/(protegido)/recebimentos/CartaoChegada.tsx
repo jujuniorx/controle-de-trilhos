@@ -6,7 +6,8 @@ import { CampoObservacao, ICONE_CAMINHAO, Secao } from '@/components/portaria/Se
 import { cancelarChegadaAction, confirmarSaidaChegadaAction, definirOrdemChegadaAction, registrarChegadaAction, salvarChegadaAction } from './actions';
 import type { ResultadoPortaria } from '../actions';
 import { ROTULO_ESTADO_CHEGADA } from '@/lib/domain/portaria';
-import { formatarCpfDigitado } from '@/lib/validation/portaria';
+import { formatarCpfDigitado, formatarTelefoneDigitado } from '@/lib/validation/portaria';
+import { formatarCpf, formatarTelefone } from '@/lib/domain/portaria';
 import type { ItemChegada } from '@/lib/services/chegada';
 
 const BADGE_CHEGADA = { AGUARDANDO_LIBERACAO: 'badge-muted', LIBERADA: 'badge-warn', RECEBIDA: 'badge-ok', SAIU: 'badge-info', CANCELADA: 'badge-muted' } as const;
@@ -32,8 +33,8 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
   const [v, setV] = useState({
     transportadora: item.transportadora ?? '',
     motoristaNome: item.motoristaNome ?? '',
-    motoristaCpf: item.motoristaCpf ?? '',
-    motoristaTelefone: item.motoristaTelefone ?? '',
+    motoristaCpf: formatarCpf(item.motoristaCpf),
+    motoristaTelefone: formatarTelefone(item.motoristaTelefone),
     placaCarreta: item.placaCarreta ?? '',
     placaCarreta2: item.placaCarreta2 ?? '',
     placaCavalo: item.placaCavalo ?? '',
@@ -46,7 +47,7 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
   const [cargaDescarga, setCargaDescarga] = useState(item.cargaDescarga ?? false);
   const [destinoCarga, setDestinoCarga] = useState(item.destinoCarga ?? '');
   const set = (campo: keyof typeof v) => (e: { target: { value: string } }) =>
-    setV((atual) => ({ ...atual, [campo]: campo === 'motoristaCpf' ? formatarCpfDigitado(e.target.value) : String(campo).startsWith('placa') ? limparPlaca(e.target.value) : e.target.value }));
+    setV((atual) => ({ ...atual, [campo]: campo === 'motoristaCpf' ? formatarCpfDigitado(e.target.value) : campo === 'motoristaTelefone' ? formatarTelefoneDigitado(e.target.value) : String(campo).startsWith('placa') ? limparPlaca(e.target.value) : e.target.value }));
 
   const rascunho = item.estado === 'AGUARDANDO_LIBERACAO';
   const chegou = item.estado === 'LIBERADA';

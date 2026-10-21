@@ -99,3 +99,13 @@ export const novoEnvioPortariaSchema = dadosPortariaSchema
     path: ['placaCarreta'],
   });
 export type NovoEnvioPortariaInput = z.infer<typeof novoEnvioPortariaSchema>;
+
+/** Telefone digitado com DDD e traço automáticos: (16) 9600-9213 ou (16) 99600-9213 (celular). Só a formatação. */
+export function formatarTelefoneDigitado(valor: string): string {
+  const d = valor.replace(/\D/g, '').slice(0, 11);
+  if (d.length === 0) return '';
+  if (d.length <= 2) return `(${d}`;
+  const resto = d.slice(2);
+  const corte = d.length > 10 ? 5 : 4;
+  return resto.length > corte ? `(${d.slice(0, 2)}) ${resto.slice(0, corte)}-${resto.slice(corte)}` : `(${d.slice(0, 2)}) ${resto}`;
+}
