@@ -73,7 +73,7 @@ export default async function PatioHomePage() {
   const liberadas = liberadasTodas.filter((c) => !aguardandoCarga.includes(c));
 
   return (
-    <main className="mx-auto max-w-md space-y-5 p-6 sm:max-w-2xl lg:max-w-3xl">
+    <main className="mx-auto w-full max-w-md space-y-5 p-6 sm:max-w-2xl lg:max-w-none">
       <section className="patio-hero">
         <FundoTrilhos />
         <div className="patio-hero-texto">
