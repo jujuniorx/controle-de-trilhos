@@ -215,10 +215,12 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
 /** Movimentação ainda pendente de conferência: a linha inteira fica amarela, para mostrar o que falta. */
 function pintarSePendente(sheet: ExcelJS.Worksheet, primeiraLinha: number, status: string) {
   if (status !== 'PENDENTE_CONFERENCIA') return;
+  const colunas = sheet.columnCount;
   for (let n = primeiraLinha; n <= sheet.rowCount; n++) {
-    sheet.getRow(n).eachCell({ includeEmpty: true }, (cell) => {
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // amarelo
-    });
+    const row = sheet.getRow(n);
+    for (let c = 1; c <= colunas; c++) {
+      row.getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // amarelo
+    }
   }
 }
 
@@ -236,16 +238,19 @@ function aplicarCoresRecebidos(sheet: ExcelJS.Worksheet) {
 
 /** Aplica bordas em todas as células da planilha. */
 function aplicarBordas(sheet: ExcelJS.Worksheet) {
-  sheet.eachRow((row) => {
-    row.eachCell((cell) => {
-      cell.border = {
+  // Percorre todas as colunas da aba (inclusive as vazias): sem isso, células sem valor ficam sem contorno.
+  const colunas = sheet.columnCount;
+  for (let n = 1; n <= sheet.rowCount; n++) {
+    const row = sheet.getRow(n);
+    for (let c = 1; c <= colunas; c++) {
+      row.getCell(c).border = {
         top: { style: 'thin' },
         left: { style: 'thin' },
         bottom: { style: 'thin' },
         right: { style: 'thin' },
       };
-    });
-  });
+    }
+  }
 }
 
 /** Valor da coluna "Tipo" do MATERIAL na planilha: NOVO, TAMPÃO, REEMPREGO G1, SUCATA. */
