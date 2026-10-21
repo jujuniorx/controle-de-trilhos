@@ -459,7 +459,7 @@ export function RecebimentoWizard({
   if (confirmadoId) return <ConfirmacaoRecebimento clientId={confirmadoId} />;
 
   return (
-    <main className="mx-auto max-w-xl lg:max-w-3xl p-6">
+    <main className="mx-auto max-w-xl lg:max-w-none p-6">
       <h1 className="font-condensed text-xl font-bold uppercase tracking-wide text-ink">Novo recebimento — Caminhão</h1>
       <div className="mb-6 mt-3">
         <ProgressoEtapas etapa={step} total={4} />
