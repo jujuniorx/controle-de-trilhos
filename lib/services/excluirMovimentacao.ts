@@ -46,32 +46,6 @@ export async function excluirMovimentacao(
   return { rotulo, tipo: mov.tipo };
 }
 
-/** Pátio: recebimentos ainda pendentes de conferência (para o Pátio poder excluir os que não devem existir). */
-export async function listarRecebimentosPendentesPatio() {
-  return prisma.movimentacao.findMany({
-    where: { tipo: 'RECEBIMENTO', status: 'PENDENTE_CONFERENCIA' },
-    select: { id: true, numeroDocumento: true, origem: true, destino: true, dataMovimentacao: true, createdAt: true },
-    orderBy: { createdAt: 'desc' },
-    take: 30,
-  });
-}
-
-/**
- * Pátio: exclui um recebimento pendente de conferência, com motivo obrigatório. Vai para a lixeira
- * do dono (restaurável). Se veio de uma chegada, ela volta a aparecer para descarregar ao restaurar.
- */
-export async function excluirRecebimentoPendentePatio(movimentacaoId: string, motivo: string, atorNome: string): Promise<void> {
-  const texto = motivo.trim();
-  if (texto.length < 3) throw new ErroRegraNegocio('Escreva o motivo da exclusão (pelo menos 3 letras).');
-  const mov = await prisma.movimentacao.findUnique({ where: { id: movimentacaoId }, select: { tipo: true, status: true } });
-  if (!mov) throw new ErroRegraNegocio('Recebimento não encontrado (talvez já tenha sido excluído).');
-  if (mov.tipo !== 'RECEBIMENTO' || mov.status !== 'PENDENTE_CONFERENCIA') {
-    throw new ErroRegraNegocio('Só dá para excluir recebimento pendente de conferência.');
-  }
-  const chegada = await prisma.chegadaCaminhao.findUnique({ where: { movimentacaoId }, select: { id: true } });
-  await excluirMovimentacao(movimentacaoId, { userId: null, nome: atorNome }, { motivo: texto, chegadaId: chegada?.id });
-}
-
 /**
  * Pátio: exclui uma carreta de remetido que a Portaria registrou e ainda não foi liberada/saiu.
  * Motivo obrigatório; vai para a lixeira do dono (restaurável).

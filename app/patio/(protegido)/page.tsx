@@ -12,9 +12,8 @@ import { DescarregadoBotao } from '@/components/patio/DescarregadoBotao';
 import { CarregadoBotao } from '@/components/patio/CarregadoBotao';
 import { normalizarLocal } from '@/lib/domain/local';
 import { chavePublicaPush } from '@/lib/services/push';
-import { listarRecebimentosPendentesPatio } from '@/lib/services/excluirMovimentacao';
 import { ExcluirPatioBotao } from '@/components/patio/ExcluirPatioBotao';
-import { excluirChegadaPatioAction, excluirRecebimentoPendentePatioAction } from './recebimentos/actions';
+import { excluirChegadaPatioAction } from './recebimentos/actions';
 
 const atraso = (n: number) => ({ '--i': n }) as CSSProperties;
 
@@ -31,14 +30,6 @@ async function carregarLiberadas() {
     return await listarChegadasLiberadas();
   } catch {
     return []; // idem: o aviso é um extra
-  }
-}
-
-async function carregarPendentes() {
-  try {
-    return await listarRecebimentosPendentesPatio();
-  } catch {
-    return [];
   }
 }
 
@@ -67,7 +58,7 @@ function hora(d: Date | null): string {
 }
 
 export default async function PatioHomePage() {
-  const [aguardando, liberadasTodas, carretas, pendentes] = await Promise.all([contarAguardando(), carregarLiberadas(), carregarCarretas(), carregarPendentes()]);
+  const [aguardando, liberadasTodas, carretas] = await Promise.all([contarAguardando(), carregarLiberadas(), carregarCarretas()]);
   // Carga e descarga já descarregada espera o carregamento: fica numa seção própria, com um toque para carregar.
   const aguardandoCarga = liberadasTodas.filter((c) => c.cargaDescarga && c.descarregadaEm && !c.cargaCarregadaEm && !c.saidaEm);
   const liberadas = liberadasTodas.filter((c) => !aguardandoCarga.includes(c));
@@ -147,23 +138,6 @@ export default async function PatioHomePage() {
         </section>
       )}
 
-      {pendentes.length > 0 && (
-        <section aria-label="Recebimentos pendentes de conferência" className="space-y-2">
-          <h2 className="font-condensed text-base font-bold uppercase tracking-wide text-ink-muted">Recebimentos pendentes de conferência</h2>
-          {pendentes.map((m) => {
-            const rotulo = [m.numeroDocumento ? `NF ${m.numeroDocumento}` : null, normalizarLocal(m.destino ?? m.origem) || null].filter(Boolean).join(' · ') || 'Recebimento';
-            return (
-              <div key={m.id} className="card flex flex-wrap items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="font-medium text-ink">{rotulo}</p>
-                  <p className="text-sm text-ink-muted">Aguardando conferência</p>
-                </div>
-                <ExcluirPatioBotao nome={rotulo} oQue="este recebimento" alvoId={m.id} aoConfirmar={excluirRecebimentoPendentePatioAction} />
-              </div>
-            );
-          })}
-        </section>
-      )}
 
       <div className="acoes-patio">
         <Link href="/patio/recebimentos/novo" className="acao-patio acao-patio-principal" style={atraso(0)}>
