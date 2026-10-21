@@ -99,9 +99,9 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         titulo: 'Estaleiro de solda',
         cor: CORES_SETOR.estaleiro,
         linhas: [
-          { rotulo: 'Soldas (unidades)', dia: String(estD.totais.soldas), mes: String(estM.totais.soldas) },
-          { rotulo: 'Cortes (unidades)', dia: String(estD.totais.cortes), mes: String(estM.totais.cortes) },
-          { rotulo: 'Tampões carregados (unidades)', dia: String(estD.carreta.tampoes), mes: String(estM.carreta.tampoes) },
+          { rotulo: 'Soldas (UND)', dia: String(estD.totais.soldas), mes: String(estM.totais.soldas) },
+          { rotulo: 'Cortes (UND)', dia: String(estD.totais.cortes), mes: String(estM.totais.cortes) },
+          { rotulo: 'Tampões carregados (UND)', dia: String(estD.carreta.tampoes), mes: String(estM.carreta.tampoes) },
           { rotulo: 'Trilho novo carregado (m)', dia: metros(estD.carreta.trilhoNovoM), mes: metros(estM.carreta.trilhoNovoM) },
           { rotulo: 'Sucata saída (t)', dia: `${fmtPeso(estD.carreta.sucataT)} t`, mes: `${fmtPeso(estM.carreta.sucataT)} t` },
         ],
@@ -120,7 +120,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
           { rotulo: 'Corte (m)', dia: metros(geraDia((l) => l.periodo.corteM)), mes: metros(geraMes((l) => l.mes.corteM)) },
           { rotulo: 'Carregado (m)', dia: metros(geraDia((l) => l.periodo.carregamentoM)), mes: metros(geraMes((l) => l.mes.carregamentoM)) },
           { rotulo: 'Deixado na via (m)', dia: metros(geraDia((l) => l.periodo.deixadaViaM)), mes: metros(geraMes((l) => l.mes.deixadaViaM)) },
-          { rotulo: 'Barras (unidades)', dia: String(geraDia((l) => l.periodo.quantidade)), mes: String(geraMes((l) => l.mes.quantidade)) },
+          { rotulo: 'Barras (UND)', dia: String(geraDia((l) => l.periodo.quantidade)), mes: String(geraMes((l) => l.mes.quantidade)) },
         ],
         grafico: {
           titulo: 'Metros por dia',
@@ -154,8 +154,8 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
           const d = camD.find((x) => x.caminhao === c.caminhao);
           return {
             rotulo: c.caminhao,
-            dia: `${d?.periodo.producao ?? 0} prod. · ${d?.periodo.perda ?? 0} cortes`,
-            mes: `${c.mes.producao} prod. · ${c.mes.perda} cortes`,
+            dia: `${d?.periodo.producao ?? 0} UND prod. · ${d?.periodo.perda ?? 0} UND cortes`,
+            mes: `${c.mes.producao} UND prod. · ${c.mes.perda} UND cortes`,
           };
         }),
         grafico: {
