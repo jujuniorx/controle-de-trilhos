@@ -10,7 +10,7 @@ import {
   PERFIL_TOCO,
 } from '@/lib/validation/remetido';
 import { PERFIS, MARCAS, MARCA_LABEL, PLACA_REGEX, NF_REGEX, MSG_NF_INVALIDA, CLASSIFICACOES_SC, CLASSIFICACOES_SC_MEDIDAS } from '@/lib/validation/recebimento';
-import { validarReemprego, classificarSC, pecasDoGrupo } from '@/lib/domain/regras';
+import { validarReemprego, classificarSC, pecasDoGrupo, formatarComprimentoDigitado } from '@/lib/domain/regras';
 import { confirmarRemetidoAction } from './[id]/confirmar/actions';
 import { criarRemetidoDiretoAction } from './novo/actions';
 // Reuso intencional (Task 17/20): a edição administrativa de Remetido usa o
@@ -750,11 +750,11 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
                     )}
                     <input
                       inputMode="decimal"
-                      placeholder="Comprimento (m)"
+                      placeholder="Comprimento (m), ex.: digite 810 para 8,10"
                       className="h-11 flex-1 min-w-[160px]"
                       value={draftMedicao.comprimento}
                       onChange={(e) => {
-                        const texto = e.target.value;
+                        const texto = formatarComprimentoDigitado(e.target.value);
                         const r = parseComprimento(texto);
                         setDraftMedicao((d) => ({
                           ...d,

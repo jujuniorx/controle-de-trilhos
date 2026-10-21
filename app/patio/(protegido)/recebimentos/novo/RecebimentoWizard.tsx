@@ -13,7 +13,7 @@ import {
   MARCA_LABEL,
   recebimentoCaminhaoSchema,
 } from '@/lib/validation/recebimento';
-import { validarReemprego, classificarSC, pecasDoGrupo } from '@/lib/domain/regras';
+import { validarReemprego, classificarSC, pecasDoGrupo, formatarComprimentoDigitado } from '@/lib/domain/regras';
 import {
   salvarRecebimentoLocal,
   salvarRascunhoRecebimento,
@@ -714,11 +714,11 @@ export function RecebimentoWizard({
             <input
               aria-label="Comprimento"
               className="h-11 flex-1 min-w-[160px]"
-              placeholder="Comprimento (m), ex.: 8,10"
+              placeholder="Comprimento (m), ex.: digite 810 para 8,10"
               inputMode="decimal"
               value={draft.comprimento}
               onChange={(e) => {
-                const texto = e.target.value;
+                const texto = formatarComprimentoDigitado(e.target.value);
                 // Sugere a classificação SC pelo comprimento (Bloco 2.1) — só enquanto o
                 // Pátio não tiver trocado manualmente o select para este lançamento.
                 const r = parseComprimento(texto);
