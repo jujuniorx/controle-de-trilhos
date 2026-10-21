@@ -157,6 +157,15 @@ export async function liberarCarreta(id: string): Promise<void> {
     },
     'PORTARIA',
   );
+  // O administrativo libera a nota daqui: avisa o painel no computador e no celular.
+  await enviarAvisoPush(
+    {
+      titulo: 'Carreta liberada pelo Pátio',
+      corpo: `${destino}${placa ? ` — placa ${placa}` : ''}. Já pode liberar a nota.`,
+      url: `/admin/remetidos/${id}`,
+    },
+    'ADMIN',
+  );
 }
 
 /** Pátio: liberou por engano — volta para "aguardando o Pátio". Só antes da Portaria confirmar a saída. */

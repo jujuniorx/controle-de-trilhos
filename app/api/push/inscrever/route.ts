@@ -19,7 +19,8 @@ async function setorDoPedido(): Promise<SetorPush | null> {
   if (pin && (await validarAcessoPatio(pin))) return 'PATIO';
   const sessao = jar.get('sessao_admin')?.value;
   const usuario = sessao ? await validarSessao(sessao) : null;
-  if (usuario && usuario.role !== 'ADMIN') return 'PORTARIA';
+  if (usuario?.role === 'PORTARIA') return 'PORTARIA';
+  if (usuario) return 'ADMIN'; // ADMIN e DONO: painel administrativo
   return null;
 }
 

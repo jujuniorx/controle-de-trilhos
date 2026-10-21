@@ -8,6 +8,8 @@ import { saudacaoRotativa } from '@/lib/saudacao';
 import { ContadorAnimado } from '@/components/ui/ContadorAnimado';
 import { EstadoVazio } from '@/components/ui/EstadoVazio';
 import { FundoTrilhos } from '@/components/ui/FundoTrilhos';
+import { AtivarAvisos } from '@/components/patio/AtivarAvisos';
+import { chavePublicaPush } from '@/lib/services/push';
 
 function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
@@ -143,6 +145,8 @@ export default async function AdminHomePage() {
           </table>
         </div>
       </div>
+
+      <AtivarAvisos chavePublica={chavePublicaPush()} titulo="Avisos de carreta liberada" descricao="Receba um aviso neste aparelho quando o Pátio liberar uma carreta, para liberar a nota." />
 
       <div>
         <div className="page-header">
