@@ -70,7 +70,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
     data,
     rotulosDias: serie.rotulos,
     resumo: [
-      { rotulo: 'Estaleiro de solda', cor: CORES_SETOR.estaleiro, dia: `${estD.totais.soldas} un`, mes: `${estM.totais.soldas} un`, grupo: 'Estaleiro de solda' },
+      { rotulo: 'Estaleiro de solda', cor: CORES_SETOR.estaleiro, dia: `${estD.totais.soldas} UND`, mes: `${estM.totais.soldas} UND`, grupo: 'Estaleiro de solda' },
       {
         rotulo: 'Geração de trilho',
         cor: CORES_SETOR.geracao,
@@ -82,8 +82,8 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       ...['CW01', 'CW02'].map((cw, i) => ({
         rotulo: cw,
         cor: i === 0 ? CORES_SETOR.caminhao : '#84cc16',
-        dia: `${camD.find((c) => c.caminhao === cw)?.periodo.producao ?? 0} un`,
-        mes: `${camM.find((c) => c.caminhao === cw)?.mes.producao ?? 0} un`,
+        dia: `${camD.find((c) => c.caminhao === cw)?.periodo.producao ?? 0} UND`,
+        mes: `${camM.find((c) => c.caminhao === cw)?.mes.producao ?? 0} UND`,
         grupo: 'Caminhão de solda',
       })),
       {
