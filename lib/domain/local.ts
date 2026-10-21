@@ -12,9 +12,13 @@ export function normalizarLocal(valor: string | null | undefined): string {
   return (valor ?? '').replace(/\s+/g, ' ').trim().toLocaleUpperCase('pt-BR');
 }
 
-/** Chave para comparar/agrupar locais: igual a normalizarLocal, ignorando acentos ("MARINGÁ" = "MARINGA"). */
+/**
+ * Chave para comparar/agrupar locais: ignora acentos ("MARINGÁ" = "MARINGA") e pontuação/espaços
+ * ("ITU SP" = "ITU-SP" = "ITUSP"), para que grafias diferentes não virem itens separados.
+ */
 export function chaveLocal(valor: string | null | undefined): string {
   return normalizarLocal(valor)
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '');
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^A-Z0-9]/g, '');
 }
