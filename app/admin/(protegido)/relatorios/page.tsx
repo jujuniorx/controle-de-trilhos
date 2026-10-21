@@ -10,6 +10,7 @@ import { montarDadosGraficos } from '@/lib/services/graficosRelatorio';
 import { PERFIS } from '@/lib/validation/recebimento';
 import {
   buscarMovimentacoesRelatorio,
+  ordenarPorSituacao,
   resumoRelatorio,
   listarPendencias,
   type MovimentacaoRelatorio,
@@ -288,7 +289,7 @@ export default async function RelatoriosPage({
                 </tr>
               </thead>
               <tbody>
-                {movimentacoes.map((m) => (
+                {ordenarPorSituacao(movimentacoes).map((m) => (
                   <LinhaTabela key={m.id} mov={m} />
                 ))}
                 {movimentacoes.length === 0 && (
