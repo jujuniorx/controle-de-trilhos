@@ -164,6 +164,13 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
                     </div>
                   ))}
                 </div>
+                <div className="mt-2 flex flex-wrap justify-between gap-2 border-t border-line pt-2 font-semibold">
+                  <span className="font-mono">Metragem: {fmtMetros(g.metrosTotal)} m</span>
+                  <span className="font-mono">
+                    Peso: {fmtPeso(Number(g.pesoCalculado ?? 0))} t
+                    {g.tipoMaterial === 'SUCATA' && <span className="ml-1 text-xs font-normal text-warn">(estimado, a confirmar)</span>}
+                  </span>
+                </div>
               </div>
             </div>
           ))}

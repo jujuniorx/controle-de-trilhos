@@ -220,6 +220,12 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
                         </div>
                       ))}
                     </div>
+                    <div className="mt-2 flex flex-wrap justify-between gap-2 border-t border-line pt-2 font-semibold">
+                      <span className="font-mono">Metragem: {fmtMetros(g.metrosTotal)} m</span>
+                      <span className="font-mono">
+                        Peso: {fmtPeso(Number(g.pesoInformado ?? g.pesoCalculado ?? 0))} t
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))}
