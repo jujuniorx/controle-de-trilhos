@@ -5,7 +5,7 @@ import { requirePatioAcesso } from '@/lib/services/requirePatioAcesso';
 import { marcarChegadaCarregada, marcarChegadaDescarregada } from '@/lib/services/chegada';
 import { ErroRegraNegocio } from '@/lib/services/errors';
 import { excluirChegadaPatio } from '@/lib/services/chegada';
-import { excluirRecebimentoPendentePatio } from '@/lib/services/excluirMovimentacao';
+import { excluirRecebimentoPendentePatio, excluirRemetidoPatio } from '@/lib/services/excluirMovimentacao';
 
 export interface ResultadoRecebimentoPatio {
   ok: boolean;
@@ -63,6 +63,21 @@ export async function excluirRecebimentoPendentePatioAction(movimentacaoId: stri
     revalidatePath('/patio');
     revalidatePath('/portaria');
     revalidatePath('/portaria/recebimentos');
+    revalidatePath('/admin', 'layout');
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, erro: e instanceof ErroRegraNegocio ? e.message : 'Não foi possível excluir. Tente de novo.' };
+  }
+}
+
+/** Pátio: exclui uma carreta de remetido que a Portaria registrou (vai para a lixeira do dono, com motivo). */
+export async function excluirRemetidoPatioAction(movimentacaoId: string, motivo: string): Promise<ResultadoRecebimentoPatio> {
+  await requirePatioAcesso();
+  try {
+    await excluirRemetidoPatio(movimentacaoId, motivo, 'Pátio');
+    revalidatePath('/patio');
+    revalidatePath('/patio/remetidos');
+    revalidatePath('/portaria');
     revalidatePath('/admin', 'layout');
     return { ok: true };
   } catch (e) {

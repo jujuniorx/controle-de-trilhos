@@ -4,6 +4,8 @@ import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { liberarCarretaAction } from '@/app/patio/(protegido)/remetidos/portaria-actions';
+import { ExcluirPatioBotao } from '@/components/patio/ExcluirPatioBotao';
+import { excluirRemetidoPatioAction } from '@/app/patio/(protegido)/recebimentos/actions';
 
 export interface CarretaNaPortariaProps {
   id: string;
@@ -63,6 +65,9 @@ export function CarretaNaPortaria({ id, titulo, detalhe, observacao, chegouAs, f
           {erro}
         </p>
       )}
+      <div className="flex justify-end">
+        <ExcluirPatioBotao nome={titulo} oQue="esta carreta" alvoId={id} aoConfirmar={excluirRemetidoPatioAction} />
+      </div>
     </div>
   );
 }
