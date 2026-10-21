@@ -17,7 +17,7 @@ export function normalizarLocal(valor: string | null | undefined): string {
  * ("ITU SP" = "ITU-SP" = "ITUSP"), para que grafias diferentes não virem itens separados.
  */
 /** Grafias curtas que são a mesma cidade (ex.: "ITU" é Itu, SP). */
-const MESMO_LOCAL: Record<string, string> = { ITU: 'ITUSP' };
+const MESMO_LOCAL: Record<string, string> = { ITU: 'ITUSP', ALTOTAQUARI: 'TAQUARI', TAQUARIMT: 'TAQUARI' };
 
 export function chaveLocal(valor: string | null | undefined): string {
   const chave = normalizarLocal(valor)
