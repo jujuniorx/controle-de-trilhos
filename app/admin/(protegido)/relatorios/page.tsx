@@ -56,18 +56,6 @@ function LinhaTabela({ mov }: { mov: MovimentacaoRelatorio }) {
   );
 }
 
-/** Subtotal embaixo de cada grupo (Recebimentos ou Remetidos): metragem e peso em campos separados. */
-function LinhaTotalGrupo({ rotulo, itens }: { rotulo: string; itens: MovimentacaoRelatorio[] }) {
-  const r = resumoRelatorio(itens);
-  return (
-    <tr className="bg-[var(--g2)] font-semibold">
-      <td colSpan={2} data-label="Total">{rotulo} ({itens.length})</td>
-      <td colSpan={2} data-label="Metragem" className="font-mono">Metragem: {fmtMetros(r.metros)} m</td>
-      <td colSpan={2} data-label="Peso" className="font-mono">Peso: {fmtPeso(r.toneladas)} t</td>
-    </tr>
-  );
-}
-
 function TabelaPendencia({ titulo, itens, vazio }: { titulo: string; itens: MovimentacaoRelatorio[]; vazio: string }) {
   return (
     <div>
@@ -129,8 +117,6 @@ export default async function RelatoriosPage({
 
   const [movimentacoes, pendencias] = await Promise.all([buscarMovimentacoesRelatorio(filtros), listarPendencias()]);
   const resumo = resumoRelatorio(movimentacoes);
-  const recebidos = movimentacoes.filter((m) => m.tipo === 'RECEBIMENTO');
-  const remetidos = movimentacoes.filter((m) => m.tipo !== 'RECEBIMENTO');
   const graficos = montarDadosGraficos(movimentacoes);
   const temFiltro = Object.values(filtros).some((v) => v !== undefined);
   const queryString = new URLSearchParams(
@@ -302,14 +288,9 @@ export default async function RelatoriosPage({
                 </tr>
               </thead>
               <tbody>
-                {recebidos.map((m) => (
+                {movimentacoes.map((m) => (
                   <LinhaTabela key={m.id} mov={m} />
                 ))}
-                {recebidos.length > 0 && <LinhaTotalGrupo rotulo="Recebimentos" itens={recebidos} />}
-                {remetidos.map((m) => (
-                  <LinhaTabela key={m.id} mov={m} />
-                ))}
-                {remetidos.length > 0 && <LinhaTotalGrupo rotulo="Remetidos" itens={remetidos} />}
                 {movimentacoes.length === 0 && (
                   <tr>
                     <td colSpan={6}>
