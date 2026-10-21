@@ -15,12 +15,14 @@ const inscricaoSchema = z.object({
 /** Quem está pedindo: tablet do Pátio (PIN) ou usuário logado (Portaria). Null = sem acesso. */
 async function setorDoPedido(): Promise<SetorPush | null> {
   const jar = await cookies();
-  const pin = jar.get('acesso_patio')?.value;
-  if (pin && (await validarAcessoPatio(pin))) return 'PATIO';
+  // Sessão primeiro: quem está logado no administrativo recebe o aviso do administrativo,
+  // mesmo que o mesmo aparelho também tenha o acesso do Pátio gravado.
   const sessao = jar.get('sessao_admin')?.value;
   const usuario = sessao ? await validarSessao(sessao) : null;
   if (usuario?.role === 'PORTARIA') return 'PORTARIA';
   if (usuario) return 'ADMIN'; // ADMIN e DONO: painel administrativo
+  const pin = jar.get('acesso_patio')?.value;
+  if (pin && (await validarAcessoPatio(pin))) return 'PATIO';
   return null;
 }
 
