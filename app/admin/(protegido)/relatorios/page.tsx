@@ -20,6 +20,10 @@ function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
 }
 
+function fmtHora(d: Date | null): string {
+  return d ? d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }) : '—';
+}
+
 function detalheHref(mov: { id: string; tipo: string }): string {
   return mov.tipo === 'RECEBIMENTO' ? `/admin/recebimentos/${mov.id}` : `/admin/remetidos/${mov.id}`;
 }
@@ -43,8 +47,11 @@ function LinhaTabela({ mov }: { mov: MovimentacaoRelatorio }) {
     <tr data-mov-id={mov.id} data-mov-rotulo={mov.numeroDocumento ? rotuloNfs(mov) : (mov.destino ?? mov.origem ?? 'Movimentação em aberto')}>
       <td data-label="Tipo">{mov.tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'}</td>
       <td data-label="Data" className="font-mono">{fmtData(mov.dataMovimentacao)}</td>
+      <td data-label="Hora" className="font-mono">{fmtHora(mov.createdAt)}</td>
       <td data-label="NF" className="font-mono">{nfsEmTexto(mov) || 'Em aberto'}</td>
       <td data-label="Origem/Destino">{normalizarLocal(mov.tipo === 'RECEBIMENTO' ? mov.origem : mov.destino)}</td>
+      <td data-label="Caminhão" className="font-mono">{[mov.placaCarreta, mov.placaCarreta2, mov.placaCavalo].filter(Boolean).join(' / ') || '—'}</td>
+      <td data-label="Responsável">{mov.responsavelPatio}</td>
       <td data-label="Status">
         <span className={`badge ${STATUS_BADGE[mov.status] ?? 'badge-muted'}`}>{STATUS_TEXTO[mov.status] ?? mov.status}</span>
       </td>
@@ -282,8 +289,11 @@ export default async function RelatoriosPage({
                 <tr>
                   <th>Tipo</th>
                   <th>Data</th>
+                  <th>Hora</th>
                   <th>NF</th>
                   <th>Origem/Destino</th>
+                  <th>Caminhão</th>
+                  <th>Responsável</th>
                   <th>Status</th>
                   <th></th>
                 </tr>
@@ -294,7 +304,7 @@ export default async function RelatoriosPage({
                 ))}
                 {movimentacoes.length === 0 && (
                   <tr>
-                    <td colSpan={6}>
+                    <td colSpan={9}>
                       <EstadoVazio titulo="Nada encontrado" texto="Nenhuma movimentação com esses filtros." />
                     </td>
                   </tr>
