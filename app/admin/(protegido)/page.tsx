@@ -154,7 +154,6 @@ export default async function AdminHomePage() {
             <table>
               <thead>
                 <tr>
-                  <th>Reserva/Pedido</th>
                   <th>Destino</th>
                   <th>NF</th>
                   <th>Enviado em</th>
@@ -164,7 +163,6 @@ export default async function AdminHomePage() {
               <tbody>
                 {aguardandoChegada.map((r) => (
                   <tr key={r.id} data-mov-id={r.id} data-mov-rotulo={r.destino ?? r.reservaPedido ?? "Remetido aguardando chegada"}>
-                    <td>{r.reservaPedido ?? '—'}</td>
                     <td>{normalizarLocal(r.destino)}</td>
                     <td className="font-mono">{r.numeroDocumento ?? 'Em aberto'}</td>
                     <td className="font-mono">{fmtHora(r.createdAt)}</td>
