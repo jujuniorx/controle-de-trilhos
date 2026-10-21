@@ -19,9 +19,9 @@ export const PERFIS = [
 ] as const;
 
 export const CLASSIFICACOES_REEMPREGO = ['G1', 'G2', 'G3'] as const;
-export const CLASSIFICACOES_SC = ['SC1', 'SC2', 'SC3', 'DIVERSOS'] as const;
+export const CLASSIFICACOES_SC = ['SC1', 'SC2', 'SC3', 'DIVERSOS', 'JACARE'] as const;
 /** O que o Pátio escolhe ao medir sucata no recebimento. "Diversos" só existe no envio (Remetido), nunca no recebimento. */
-export const CLASSIFICACOES_SC_MEDIDAS = ['SC1', 'SC2', 'SC3'] as const;
+export const CLASSIFICACOES_SC_MEDIDAS = ['SC1', 'SC2', 'SC3', 'JACARE'] as const;
 
 // Lista fechada de marcas (V1.2 §11) — "OUTROS" libera o texto livre em fabricanteOutro.
 export const MARCAS = ['NIPPON', 'EVRAZ', 'PANGANG', 'OUTROS'] as const;
@@ -68,7 +68,7 @@ const medicaoSchema = z.object({
   modo: z.enum(['INDIVIDUAL', 'QTD_COMPRIMENTO'] as const),
   quantidade: z.number().int().min(1).max(99),
   comprimento: comprimentoSchema,
-  classificacaoSC: z.enum(['SC1', 'SC2', 'SC3', 'DIVERSOS'] as const).optional(),
+  classificacaoSC: z.enum(['SC1', 'SC2', 'SC3', 'DIVERSOS', 'JACARE'] as const).optional(),
 });
 
 const grupoNovoSchema = z

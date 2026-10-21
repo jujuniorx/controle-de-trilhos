@@ -348,7 +348,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
       return;
     }
     if (grupoAtivo.tipoMaterial === 'SUCATA' && !draftMedicao.sc) {
-      setDraftMedicao((d) => ({ ...d, erro: 'Selecione a classificação SC1, SC2 ou SC3.' }));
+      setDraftMedicao((d) => ({ ...d, erro: 'Selecione a classificação SC1, SC2, SC3 ou Jacaré.' }));
       return;
     }
     const quantidade = modoDraft === 'QTD_COMPRIMENTO' ? Math.max(1, Number(draftMedicao.quantidade) || 1) : 1;
@@ -783,7 +783,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
                         <option value="">SC</option>
                         {CLASSIFICACOES_SC_MEDIDAS.map((sc) => (
                           <option key={sc} value={sc}>
-                            {sc}
+                            {sc === 'JACARE' ? 'Jacaré' : sc}
                           </option>
                         ))}
                       </select>

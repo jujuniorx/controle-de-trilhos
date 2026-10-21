@@ -25,7 +25,7 @@ import { ConfirmacaoRecebimento } from '@/components/patio/ConfirmacaoRecebiment
 
 type TipoMaterial = 'NOVO' | 'REEMPREGO' | 'SUCATA';
 type ModoMedicao = 'INDIVIDUAL' | 'QTD_COMPRIMENTO';
-type ClassificacaoSC = 'SC1' | 'SC2' | 'SC3' | 'DIVERSOS';
+type ClassificacaoSC = 'SC1' | 'SC2' | 'SC3' | 'DIVERSOS' | 'JACARE';
 
 interface MedicaoLocal {
   clientId: string;
@@ -347,7 +347,7 @@ export function RecebimentoWizard({
       return;
     }
     if (grupoAtivo.tipoMaterial === 'SUCATA' && !draft.sc) {
-      setDraft((d) => ({ ...d, erro: 'Selecione a classificação SC1, SC2 ou SC3.' }));
+      setDraft((d) => ({ ...d, erro: 'Selecione a classificação SC1, SC2, SC3 ou Jacaré.' }));
       return;
     }
     const quantidade = modoDraft === 'QTD_COMPRIMENTO' ? Math.max(1, Number(draft.quantidade) || 1) : 1;
@@ -743,7 +743,7 @@ export function RecebimentoWizard({
               >
                 <option value="">SC?</option>
                 {CLASSIFICACOES_SC_MEDIDAS.map((sc) => (
-                  <option key={sc}>{sc}</option>
+                  <option key={sc} value={sc}>{sc === 'JACARE' ? 'Jacaré' : sc}</option>
                 ))}
               </select>
             )}

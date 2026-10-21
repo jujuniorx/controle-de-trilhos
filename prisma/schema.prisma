@@ -73,6 +73,8 @@ enum ClassificacaoSC {
   SC2
   SC3
   DIVERSOS
+  // Jacaré: peça formada por ~4 barras; medida como peça inteira, sempre SC3 de peso (pelo perfil).
+  JACARE
 }
 
 enum ModoMedicao {
