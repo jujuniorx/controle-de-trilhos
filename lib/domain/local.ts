@@ -16,9 +16,13 @@ export function normalizarLocal(valor: string | null | undefined): string {
  * Chave para comparar/agrupar locais: ignora acentos ("MARINGÁ" = "MARINGA") e pontuação/espaços
  * ("ITU SP" = "ITU-SP" = "ITUSP"), para que grafias diferentes não virem itens separados.
  */
+/** Grafias curtas que são a mesma cidade (ex.: "ITU" é Itu, SP). */
+const MESMO_LOCAL: Record<string, string> = { ITU: 'ITUSP' };
+
 export function chaveLocal(valor: string | null | undefined): string {
-  return normalizarLocal(valor)
+  const chave = normalizarLocal(valor)
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
     .replace(/[^A-Z0-9]/g, '');
+  return MESMO_LOCAL[chave] ?? chave;
 }
