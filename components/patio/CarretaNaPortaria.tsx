@@ -26,6 +26,7 @@ export function CarretaNaPortaria({ id, ordemDia, placaCarreta, placaCavalo, ori
   const router = useRouter();
   const [pendente, iniciar] = useTransition();
   const [erro, setErro] = useState('');
+  const titulo = placaCarreta || destino || 'carreta';
 
   return (
     <div className="card space-y-2 border-2 border-warn">
