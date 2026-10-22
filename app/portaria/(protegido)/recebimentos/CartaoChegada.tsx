@@ -31,7 +31,6 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
   const [confirmaCancelar, setConfirmaCancelar] = useState(false);
   const [resultado, setResultado] = useState<ResultadoPortaria | null>(null);
   const [tambemCarrega, setTambemCarrega] = useState(false);
-  const [destinoCarga, setDestinoCarga] = useState('');
   const [v, setV] = useState({
     transportadora: item.transportadora ?? '',
     motoristaNome: item.motoristaNome ?? '',
