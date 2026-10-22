@@ -36,7 +36,7 @@
     "@types/s3rver": "^3.7.4",
     "@types/web-push": "^3.6.4",
     "@vitejs/plugin-react": "^6.1.1",
-    "eslint": "^9",
+    "eslint": "^10",
     "eslint-config-next": "16.3.8",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^30.0.1",
