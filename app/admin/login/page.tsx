@@ -13,11 +13,11 @@ export default function LoginPage() {
   return (
     <TelaEntrada area="area-admin">
       <h1 className="font-condensed text-2xl font-bold uppercase tracking-wide text-ink">Login do Administrativo</h1>
-      <p className="mt-1 text-sm text-ink-muted">Entre com seu usuário (ou e-mail) e senha para continuar.</p>
+      <p className="mt-1 text-sm text-ink-muted">Entre com seu usuário e senha para continuar.</p>
 
       <form action={formAction} className="mt-4 space-y-4">
         <div className="field">
-          <label htmlFor="identificador">Usuário ou e-mail</label>
+          <label htmlFor="identificador">Usuário</label>
           <input id="identificador" name="identificador" type="text" required className="h-12" />
         </div>
 

@@ -224,7 +224,7 @@ export async function criarRemetidoDireto(
  */
 export async function informarNumeroDocumentoRemetido(
   movimentacaoId: string,
-  numeroDocumento: string,
+  numeroDocumento: string | null,
   usuario: UsuarioAdmin,
 ): Promise<void> {
   const mov = await prisma.movimentacao.findUnique({ where: { id: movimentacaoId } });

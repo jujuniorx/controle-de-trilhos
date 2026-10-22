@@ -1,0 +1,24 @@
+name: lancar-recolhimento
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci-diag5]
+    paths: ['.github/workflows/lancar-recolhimento.yml', 'scripts/lancar-recolhimento-w61-w62.ts']
+jobs:
+  lancar:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm install --no-audit --no-fund
+      - run: npx prisma generate
+      - name: migrar
+        run: npx prisma migrate deploy
+      - name: importar recebidos da serra (sem repetir NF)
+        run: npx tsx scripts/importar-serra.ts
+      - name: lançar recolhimento W61/W62 de 2026
+        run: npx tsx scripts/lancar-recolhimento-w61-w62.ts

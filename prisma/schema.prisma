@@ -73,6 +73,8 @@ enum ClassificacaoSC {
   SC2
   SC3
   DIVERSOS
+  // Jacaré: peça formada por ~4 barras; medida como peça inteira, sempre SC3 de peso (pelo perfil).
+  JACARE
 }
 
 enum ModoMedicao {
@@ -262,6 +264,8 @@ model MovimentacaoExcluida {
   excluidoPorNome String
   excluidoEm      DateTime         @default(now())
   restauradoEm    DateTime?
+  // Motivo informado ao excluir (obrigatório na exclusão pelo Pátio).
+  motivo          String?
 
   @@index([excluidoEm])
 }
@@ -307,6 +311,10 @@ model ChegadaCaminhao {
   capacidadeCarga   Decimal? // toneladas
   comprimentoCarreta Decimal? // metros
   observacao        String? // da Portaria, para o Pátio
+  // Caminhão que descarrega e também carrega na mesma viagem (o Pátio vê o aviso).
+  cargaDescarga     Boolean   @default(false)
+  // Para onde o caminhão vai levar a carga depois de descarregar.
+  destinoCarga      String?
   criadoPor         String
   criadoEm          DateTime  @default(now())
   liberadaEm        DateTime?
@@ -318,11 +326,19 @@ model ChegadaCaminhao {
   // Pátio descarregou e libera a saída antes da medição (medição fica para depois).
   descarregadaEm    DateTime?
   descarregadaPor   String?
+  // Carga e descarga: depois de descarregar, o caminhão carrega. A medição da carga é obrigatória
+  // antes de liberar a saída; a medição da descarga pode ficar pendente.
+  cargaCarregadaEm  DateTime?
+  cargaCarregadaPor String?
   // Número de ordem do caminhão no dia (1, 2, 3...). Automático ao registrar a chegada; a Portaria pode trocar.
   ordemDia          Int?
   ordemData         String?   // dia da ordem, AAAA-MM-DD (fuso de São Paulo)
   saidaEm DateTime?
   saidaPor String?
+  // Exclusão pelo Pátio (vai para a lixeira do dono, com motivo). Some das listas; o dono restaura.
+  excluidaEm      DateTime?
+  excluidaPor     String?
+  excluidaMotivo  String?
 
   @@index([criadoEm])
 }
@@ -408,14 +424,31 @@ model GeracaoDia {
   lider         LiderGeracao
   local         String?
   corteM        Decimal?
+  // Colunas de carregamento/perfil/barras/deixada ficaram como legado: o dado agora está em GeracaoCarreta.
   carregamentoM Decimal?
   perfil        String?
   quantidade    Int?
   deixadaViaM   Decimal?
   observacao    String?
   atualizadoEm  DateTime      @updatedAt
+  carretas      GeracaoCarreta[]
 
   @@unique([data, lider])
+}
+
+/// Uma carreta carregada/deixada no dia por um líder. Um dia pode ter várias.
+model GeracaoCarreta {
+  id            String     @id @default(cuid())
+  geracaoDiaId  String
+  geracaoDia    GeracaoDia @relation(fields: [geracaoDiaId], references: [id], onDelete: Cascade)
+  perfis        String[]   @default([])
+  quantidade    Int?
+  carregamentoM Decimal?
+  deixadaViaM   Decimal?
+  ordem         Int        @default(0)
+  criadoEm      DateTime   @default(now())
+
+  @@index([geracaoDiaId])
 }
 
 // Composições ativas (W61 e W62): barras e jacarés por dia.
@@ -441,6 +474,8 @@ model TrilheiroGiro {
   partidaEm     DateTime?     @db.Date
   retornoEm     DateTime?     @db.Date
   perfil        TipoTls?
+  // Um giro pode levar vários perfis. `perfil` ficou como legado (dado antigo preservado).
+  perfis        TipoTls[]     @default([])
   carregados    Int           @default(0)
   descarregados Int           @default(0)
   local         String?

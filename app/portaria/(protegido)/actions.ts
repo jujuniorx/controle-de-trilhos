@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { revogarSessao } from '@/lib/services/auth';
 import { requirePortaria } from '@/lib/services/requirePortaria';
-import { apagarCarretaPelaPortaria, confirmarSaidaCarreta, criarEnvioPelaPortaria, registrarChegadaCarreta, salvarDadosPortaria } from '@/lib/services/portaria';
+import { apagarCarretaPelaPortaria, confirmarSaidaCarreta, criarEnvioPelaPortaria, desfazerSaidaCarreta, registrarChegadaCarreta, salvarDadosPortaria } from '@/lib/services/portaria';
 import { ErroRegraNegocio } from '@/lib/services/errors';
 import { dadosPortariaSchema, novoEnvioPortariaSchema } from '@/lib/validation/portaria';
 
@@ -100,6 +100,21 @@ export async function novoEnvioPortariaAction(entrada: unknown): Promise<Resulta
   } catch (e) {
     if (e instanceof ErroRegraNegocio) return { ok: false, erro: e.message };
     console.error('[portaria] falha ao criar envio', e);
+    return { ok: false, erro: 'Não foi possível concluir. Tente de novo.' };
+  }
+}
+
+/** Portaria: desfaz a saída registrada por engano. */
+export async function desfazerSaidaAction(id: string): Promise<ResultadoPortaria> {
+  const ator = await requirePortaria();
+  try {
+    await desfazerSaidaCarreta(id, ator.nome, ator.userId);
+    revalidatePath('/portaria');
+    revalidatePath('/patio/remetidos');
+    return { ok: true, mensagem: 'Saída desfeita. A carreta voltou para a portaria.' };
+  } catch (e) {
+    if (e instanceof ErroRegraNegocio) return { ok: false, erro: e.message };
+    console.error('[portaria] falha ao desfazer saída', e);
     return { ok: false, erro: 'Não foi possível concluir. Tente de novo.' };
   }
 }

@@ -120,3 +120,49 @@ export function montarPdf(pagina: PaginaPdf, titulo: string): Buffer {
   partes.push(Buffer.from(xref, 'latin1'));
   return Buffer.concat(partes);
 }
+
+export const A4_PAISAGEM = { largura: 842, altura: 595 } as const;
+
+/** Largura aproximada de um texto (pontos), para alinhar à direita. */
+export function larguraTexto(texto: string, tamanho: number, fonte: Fonte = 'normal'): number {
+  return texto.length * tamanho * LARGURA_MEDIA[fonte];
+}
+
+/**
+ * Várias páginas do mesmo tamanho. Objetos: 1 catálogo, 2 páginas, 3–4 fontes, 5 info,
+ * e depois um par (página, conteúdo) por folha.
+ */
+export function montarPdfVarias(paginas: PaginaPdf[], titulo: string, tamanho: { largura: number; altura: number } = A4): Buffer {
+  const objetos: Buffer[] = [];
+  const add = (s: string | Buffer) => objetos.push(Buffer.isBuffer(s) ? s : Buffer.from(s, 'latin1'));
+  const kids = paginas.map((_, i) => `${6 + 2 * i} 0 R`).join(' ');
+
+  add('<< /Type /Catalog /Pages 2 0 R >>');
+  add(`<< /Type /Pages /Kids [${kids}] /Count ${paginas.length} >>`);
+  add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+  add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+  add(`<< /Title (${escaparTexto(titulo)}) /Producer (Controle de Trilhos) >>`);
+  paginas.forEach((pagina, i) => {
+    const fluxo = Buffer.from(pagina.conteudo(), 'latin1');
+    add(
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${tamanho.largura} ${tamanho.altura}] ` +
+        `/Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${7 + 2 * i} 0 R >>`,
+    );
+    add(Buffer.concat([Buffer.from(`<< /Length ${fluxo.length} >>\nstream\n`, 'latin1'), fluxo, Buffer.from('\nendstream', 'latin1')]));
+  });
+
+  const partes: Buffer[] = [Buffer.from('%PDF-1.4\n', 'latin1')];
+  const posicoes: number[] = [];
+  let deslocamento = partes[0].length;
+  objetos.forEach((obj, i) => {
+    const bloco = Buffer.concat([Buffer.from(`${i + 1} 0 obj\n`, 'latin1'), obj, Buffer.from('\nendobj\n', 'latin1')]);
+    posicoes.push(deslocamento);
+    deslocamento += bloco.length;
+    partes.push(bloco);
+  });
+  let xref = `xref\n0 ${objetos.length + 1}\n0000000000 65535 f \n`;
+  for (const p of posicoes) xref += `${String(p).padStart(10, '0')} 00000 n \n`;
+  xref += `trailer\n<< /Size ${objetos.length + 1} /Root 1 0 R /Info 5 0 R >>\nstartxref\n${deslocamento}\n%%EOF\n`;
+  partes.push(Buffer.from(xref, 'latin1'));
+  return Buffer.concat(partes);
+}

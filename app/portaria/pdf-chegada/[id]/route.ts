@@ -8,7 +8,8 @@ import { gerarFichaPortariaPdf, nomeArquivoFicha } from '@/lib/pdf/fichaPortaria
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const token = (await cookies()).get('sessao_admin')?.value;
   const sessao = token ? await validarSessao(token) : null;
-  if (!sessao) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 });
+  // Ficha da Portaria: só a Portaria e o Dono; o escritório (ADMIN) não entra aqui.
+  if (!sessao || sessao.role === 'ADMIN') return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 });
 
   const ficha = await buscarFichaChegada((await params).id);
   if (!ficha) return NextResponse.json({ erro: 'Chegada não encontrada' }, { status: 404 });

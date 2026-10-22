@@ -69,16 +69,22 @@ export async function verificarPin(pinInformado: string): Promise<boolean> {
  * Deve ser o ponto de entrada usado pela Server Action de acesso do Pátio —
  * verificarPin() sozinho não tem proteção contra força bruta.
  */
-export async function verificarPinComBloqueio(pinInformado: string): Promise<ResultadoVerificacaoPin> {
+export async function verificarPinComBloqueio(pinInformado: string, ip = 'desconhecido'): Promise<ResultadoVerificacaoPin> {
+  // Bloqueio por computador (um aparelho errando não trava o Pátio inteiro) e teto global para tentativa em massa.
+  const chaveIp = `${PIN_IDENTIFICADOR}@${ip}`;
+  const TETO_GLOBAL_PIN = 30;
   let tentativa;
+  let global;
   try {
-    tentativa = await prisma.loginAttempt.findUnique({ where: { identificador: PIN_IDENTIFICADOR } });
+    tentativa = await prisma.loginAttempt.findUnique({ where: { identificador: chaveIp } });
+    global = await prisma.loginAttempt.findUnique({ where: { identificador: PIN_IDENTIFICADOR } });
   } catch (erro) {
     if (!erroDeConexaoComBanco(erro)) throw erro;
     return { ok: false, erro: MSG_BANCO_INDISPONIVEL };
   }
 
-  if (tentativa?.bloqueadoAte && tentativa.bloqueadoAte > new Date()) {
+  const agora = new Date();
+  if ((tentativa?.bloqueadoAte && tentativa.bloqueadoAte > agora) || (global?.bloqueadoAte && global.bloqueadoAte > agora)) {
     return { ok: false, erro: 'Código bloqueado temporariamente. Tente novamente mais tarde.' };
   }
 
@@ -94,14 +100,21 @@ export async function verificarPinComBloqueio(pinInformado: string): Promise<Res
     // inválido.", para não contar silenciosamente um problema de infra como
     // tentativa incorreta nem deixar passar sem registrar no rate limiting.
     try {
-      const novasTentativas = (tentativa?.tentativas ?? 0) + 1;
+      // Se o bloqueio anterior já venceu, a contagem recomeça do zero (senão uma falha renova o bloqueio para sempre).
+      const baseIp = tentativa?.bloqueadoAte && tentativa.bloqueadoAte <= agora ? 0 : (tentativa?.tentativas ?? 0);
+      const baseGlobal = global?.bloqueadoAte && global.bloqueadoAte <= agora ? 0 : (global?.tentativas ?? 0);
+      const novasTentativas = baseIp + 1;
+      const novasGlobais = baseGlobal + 1;
+      const bloqueio = new Date(Date.now() + BLOQUEIO_MINUTOS * 60 * 1000);
+      await prisma.loginAttempt.upsert({
+        where: { identificador: chaveIp },
+        create: { identificador: chaveIp, tentativas: 1 },
+        update: { tentativas: novasTentativas, bloqueadoAte: novasTentativas >= MAX_TENTATIVAS ? bloqueio : null },
+      });
       await prisma.loginAttempt.upsert({
         where: { identificador: PIN_IDENTIFICADOR },
         create: { identificador: PIN_IDENTIFICADOR, tentativas: 1 },
-        update: {
-          tentativas: novasTentativas,
-          bloqueadoAte: novasTentativas >= MAX_TENTATIVAS ? new Date(Date.now() + BLOQUEIO_MINUTOS * 60 * 1000) : null,
-        },
+        update: { tentativas: novasGlobais, bloqueadoAte: novasGlobais >= TETO_GLOBAL_PIN ? bloqueio : null },
       });
     } catch (erro) {
       if (!erroDeConexaoComBanco(erro)) throw erro;
@@ -116,7 +129,7 @@ export async function verificarPinComBloqueio(pinInformado: string): Promise<Res
   // também depende do banco, então não haveria acesso de verdade de qualquer
   // forma, e negar aqui evita um ok:true que não se sustenta.
   try {
-    await prisma.loginAttempt.deleteMany({ where: { identificador: PIN_IDENTIFICADOR } });
+    await prisma.loginAttempt.deleteMany({ where: { identificador: { in: [chaveIp, PIN_IDENTIFICADOR] } } });
   } catch (erro) {
     if (!erroDeConexaoComBanco(erro)) throw erro;
     return { ok: false, erro: MSG_BANCO_INDISPONIVEL };

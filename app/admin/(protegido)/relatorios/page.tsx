@@ -11,6 +11,7 @@ import { montarDadosGraficos } from '@/lib/services/graficosRelatorio';
 import { PERFIS } from '@/lib/validation/recebimento';
 import {
   buscarMovimentacoesRelatorio,
+  ordenarPorSituacao,
   resumoRelatorio,
   listarPendencias,
   type MovimentacaoRelatorio,
@@ -18,6 +19,10 @@ import {
 
 function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
+}
+
+function fmtHora(d: Date | null): string {
+  return d ? d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }) : '—';
 }
 
 function detalheHref(mov: { id: string; tipo: string }): string {
@@ -35,8 +40,11 @@ function LinhaTabela({ mov }: { mov: MovimentacaoRelatorio }) {
     <tr data-mov-id={mov.id} data-mov-rotulo={mov.numeroDocumento ? rotuloNfs(mov) : (mov.destino ?? mov.origem ?? 'Movimentação em aberto')}>
       <td data-label="Tipo">{mov.tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'}</td>
       <td data-label="Data" className="font-mono">{fmtData(mov.dataMovimentacao)}</td>
+      <td data-label="Hora" className="font-mono">{fmtHora(mov.createdAt)}</td>
       <td data-label="NF" className="font-mono">{nfsEmTexto(mov) || 'Em aberto'}</td>
       <td data-label="Origem/Destino">{normalizarLocal(mov.tipo === 'RECEBIMENTO' ? mov.origem : mov.destino)}</td>
+      <td data-label="Caminhão" className="font-mono">{[mov.placaCarreta, mov.placaCarreta2, mov.placaCavalo].filter(Boolean).join(' / ') || '—'}</td>
+      <td data-label="Responsável">{mov.responsavelPatio}</td>
       <td data-label="Status">
         {(() => { const r = rotuloStatusRemetido(mov.status, mov.chegadaPortariaEm); return <span className={`badge ${r.badge}`}>{r.texto}</span>; })()}
       </td>
@@ -104,6 +112,7 @@ export default async function RelatoriosPage({
     classificacao: first(raw.classificacao),
     origemDestino: first(raw.origemDestino),
     numeroDocumento: first(raw.numeroDocumento),
+    placa: first(raw.placa),
     status: first(raw.status),
   });
 
@@ -126,7 +135,6 @@ export default async function RelatoriosPage({
           </nav>
           <h1 className="page-title mt-1">Relatório de movimentação</h1>
         </div>
-        <Link href="/admin/usina" className="btn btn-ghost h-11">Relatório da usina →</Link>
       </div>
 
       <form method="get" className="card">
@@ -140,8 +148,19 @@ export default async function RelatoriosPage({
             <label htmlFor="f-fim">Período (fim)</label>
             <input id="f-fim" type="date" name="dataFim" defaultValue={filtros.dataFim} className="h-10" />
           </div>
+          <div className="field">
+            <label htmlFor="f-status">Status</label>
+            <select id="f-status" name="status" defaultValue={filtros.status ?? ''} className="h-10">
+              <option value="">Todos</option>
+              {STATUS_RELATORIO.map((s) => (
+                <option key={s} value={s}>
+                  {STATUS_TEXTO[s]}
+                </option>
+              ))}
+            </select>
           </div>
-          <input type="checkbox" id="f-mais" className="filtros-toggle" defaultChecked={Boolean(filtros.tipo || filtros.status || filtros.perfil || filtros.material || filtros.classificacao || filtros.origemDestino || filtros.numeroDocumento)} />
+          </div>
+          <input type="checkbox" id="f-mais" className="filtros-toggle" defaultChecked={Boolean(filtros.tipo || filtros.status || filtros.perfil || filtros.material || filtros.classificacao || filtros.origemDestino || filtros.numeroDocumento || filtros.placa)} />
           <label htmlFor="f-mais" className="filtros-mais-btn">
             Mais filtros
           </label>
@@ -152,17 +171,6 @@ export default async function RelatoriosPage({
               <option value="">Todos</option>
               <option value="RECEBIMENTO">Recebimento</option>
               <option value="REMETIDO">Remetido</option>
-            </select>
-          </div>
-          <div className="field">
-            <label htmlFor="f-status">Status</label>
-            <select id="f-status" name="status" defaultValue={filtros.status ?? ''} className="h-10">
-              <option value="">Todos</option>
-              {STATUS_RELATORIO.map((s) => (
-                <option key={s} value={s}>
-                  {STATUS_TEXTO[s]}
-                </option>
-              ))}
             </select>
           </div>
           <div className="field">
@@ -205,6 +213,10 @@ export default async function RelatoriosPage({
           <div className="field">
             <label htmlFor="f-nf">Nota fiscal</label>
             <input id="f-nf" type="text" inputMode="numeric" name="numeroDocumento" defaultValue={filtros.numeroDocumento} className="h-10" />
+          </div>
+          <div className="field">
+            <label htmlFor="f-placa">Placa</label>
+            <input id="f-placa" type="text" name="placa" placeholder="ABC1D23" defaultValue={filtros.placa} className="h-10 uppercase" />
           </div>
           </div>
         </div>
@@ -254,9 +266,14 @@ export default async function RelatoriosPage({
           <h2 className="font-condensed text-base font-semibold uppercase tracking-wide text-ink">
             Movimentações <span className="font-sans font-normal normal-case tracking-normal text-ink-dim">({movimentacoes.length})</span>
           </h2>
-          <a href={`/api/relatorios/exportar${queryString ? `?${queryString}` : ''}`} className="btn btn-ghost btn-sm">
-            Exportar Excel
-          </a>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <a href={`/api/relatorios/pdf${queryString ? `?${queryString}` : ''}`} className="btn btn-ghost btn-sm">
+              Baixar PDF
+            </a>
+            <a href={`/api/relatorios/exportar${queryString ? `?${queryString}` : ''}`} className="btn btn-ghost btn-sm">
+              Exportar Excel
+            </a>
+          </div>
         </div>
         <div className="card">
           <div className="tbl-wrap tbl-cards">
@@ -265,19 +282,22 @@ export default async function RelatoriosPage({
                 <tr>
                   <th>Tipo</th>
                   <th>Data</th>
+                  <th>Hora</th>
                   <th>NF</th>
                   <th>Origem/Destino</th>
+                  <th>Caminhão</th>
+                  <th>Responsável</th>
                   <th>Status</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
-                {movimentacoes.map((m) => (
+                {ordenarPorSituacao(movimentacoes).map((m) => (
                   <LinhaTabela key={m.id} mov={m} />
                 ))}
                 {movimentacoes.length === 0 && (
                   <tr>
-                    <td colSpan={6}>
+                    <td colSpan={9}>
                       <EstadoVazio titulo="Nada encontrado" texto="Nenhuma movimentação com esses filtros." />
                     </td>
                   </tr>

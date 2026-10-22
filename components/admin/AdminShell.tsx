@@ -24,6 +24,19 @@ const ICONES_NAV = {
       <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
     </svg>
   ),
+  informativo: (
+    <svg width="24" height="24" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
+      <path d="M3 3v18h18M7 15l4-4 3 3 5-6" />
+    </svg>
+  ),
+  visao: (
+    <svg width="24" height="24" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
+      <rect x="3" y="3" width="7.5" height="7.5" rx="1.5" />
+      <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5" />
+      <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5" />
+      <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5" />
+    </svg>
+  ),
   usuarios: (
     <svg width="24" height="24" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
       <circle cx="9" cy="8" r="3.5" />
@@ -36,8 +49,10 @@ function abasDoAdmin(dono: boolean): Aba[] {
   const abas: Aba[] = [
     { href: '/admin', rotulo: 'Pendências', icone: ICONES_NAV.inicio },
     { href: '/admin/relatorios', rotulo: 'Relatórios', icone: ICONES_NAV.relatorios },
+    { href: '/admin/informativo', rotulo: 'Informativo', icone: ICONES_NAV.informativo },
   ];
-  if (dono) abas.push({ href: '/admin/usuarios', rotulo: 'Usuários', icone: ICONES_NAV.usuarios });
+  // Cinco vagas na barra: a Visão geral entra para o dono; Usuários e demais ficam em Mais.
+  if (dono) abas.push({ href: '/admin/dono', rotulo: 'Visão geral', icone: ICONES_NAV.visao });
   abas.push({
     rotulo: 'Mais',
     icone: (

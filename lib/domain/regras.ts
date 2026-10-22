@@ -38,3 +38,13 @@ export function classificarSC(comprimento: number): 'SC1' | 'SC2' | 'SC3' {
 export function pecasDoGrupo(medicoes: { quantidade: number }[]): number {
   return medicoes.reduce((acc, m) => acc + m.quantidade, 0);
 }
+
+/**
+ * Campo de comprimento do Pátio: quem digita só os números. Os dois últimos dígitos são
+ * sempre centavos de metro, e a vírgula entra sozinha: "812" vira "8,12", "1234" vira "12,34".
+ */
+export function formatarComprimentoDigitado(texto: string): string {
+  const digitos = texto.replace(/\D/g, '').slice(0, 6).replace(/^0+(?=\d)/, '');
+  if (!digitos) return '';
+  return (parseInt(digitos, 10) / 100).toFixed(2).replace('.', ',');
+}

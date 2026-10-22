@@ -10,10 +10,21 @@ import {
   COMPOSICOES,
   CAMINHOES_ATIVOS,
   TRILHEIROS,
+  listarCiclosAbertos,
+  rotuloComposicao,
 } from '@/lib/services/usina';
+import { PERFIS } from '@/lib/validation/recebimento';
+import { CarretasGeracao } from '@/components/usina/CarretasGeracao';
+import { CamposGiro, type CicloAberto } from '@/components/usina/CamposGiro';
+import { IconeImprimir } from '@/components/icones/Icones';
+
+const SETORES: [string, string][] = [['estaleiro', 'Estaleiro'], ['geracao', 'Geração'], ['composicoes', 'Recolhimento serra'], ['caminhao', 'Caminhão de solda'], ['trilheiros', 'Trilheiros']];
 import { fmtMetros, fmtPeso } from '@/lib/format';
 import { PERIODOS, ehIsoValido, type Periodo } from '@/lib/usina/periodo';
 import { FormularioUsina } from '@/components/usina/FormularioUsina';
+import { EscalaGrade } from '@/components/usina/EscalaGrade';
+import { lerEscala, diasDaSemana } from '@/lib/usina/escala';
+import { montarEscalaDaSemana } from '@/lib/services/usina';
 import {
   salvarEstaleiroAction,
   salvarEstoqueTlsAction,
@@ -52,6 +63,8 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
   const periodo = periodoValido(params.periodo);
   const data = ehIsoValido(params.data) ? params.data : hojeIso();
 
+  const ciclosAbertos = await listarCiclosAbertos();
+
   const [est, ger, comp, cam, tril] = await Promise.all([
     estaleiroDoPeriodo(periodo, data),
     geracaoDoPeriodo(periodo, data),
@@ -59,6 +72,9 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
     caminhoesDoPeriodo(periodo, data),
     trilheirosDoPeriodo(periodo, data),
   ]);
+  const escalaSalva = lerEscala(est.escala);
+  const escalaSemana = await montarEscalaDaSemana(est.semana);
+  const escalaLegada = !escalaSalva && est.escala.trim() !== '';
 
   return (
     <div className="space-y-8">
@@ -86,16 +102,26 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         <p className="w-full text-sm text-ink-muted">Mostrando: {br(est.inicio)}{est.inicio !== est.fim ? ` a ${br(est.fim)}` : ''}</p>
       </form>
 
-      <nav aria-label="Imprimir" className="flex flex-wrap gap-2 text-sm">
-        <span className="self-center text-ink-muted">Imprimir:</span>
-        {[['todos', 'Tudo'], ['estaleiro', 'Estaleiro'], ['geracao', 'Geração'], ['composicoes', 'Composições'], ['caminhao', 'Caminhão de solda'], ['trilheiros', 'Trilheiros']].map(([valor, rotulo]) => (
-          <a key={valor} className="btn btn-ghost h-9" href={`/admin/usina/imprimir?periodo=${periodo}&data=${data}&setor=${valor}`}>{rotulo}</a>
+      <nav aria-label="Setores" className="flex flex-wrap items-center gap-2 border-b border-line pb-3 text-sm">
+        {SETORES.map(([valor, rotulo]) => (
+          <a key={valor} className="btn btn-ghost btn-sm" href={`#${valor}`}>{rotulo}</a>
         ))}
+        <details className="relative ml-auto">
+          <summary className="btn btn-secondary btn-sm cursor-pointer list-none">
+            <IconeImprimir size={14} /> Imprimir
+          </summary>
+          <div className="absolute right-0 z-10 mt-2 flex min-w-48 flex-col gap-1 rounded-lg border border-line bg-surface p-2 shadow-lg">
+            {SETORES.map(([valor, rotulo]) => (
+              <a key={valor} className="rounded px-3 py-2 hover:bg-surface-2" href={`/admin/usina/imprimir?periodo=${periodo}&data=${data}&setor=${valor}`}>{rotulo}</a>
+            ))}
+            <a className="rounded px-3 py-2 font-semibold hover:bg-surface-2" href={`/admin/usina/relatorio-gerencial?data=${data}`}>Relatório gerencial</a>
+          </div>
+        </details>
       </nav>
 
       {/* ── Estaleiro de solda ─────────────────────────────────────── */}
       <section className="space-y-4" aria-labelledby="estaleiro">
-        <h2 id="estaleiro" className="section-title">Estaleiro de solda</h2>
+        <h2 id="estaleiro" className="section-title scroll-mt-24">Estaleiro de solda</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
           <Cartao rotulo="Soldas" valor={est.totais.soldas} />
           <Cartao rotulo="Cortes" valor={est.totais.cortes} />
@@ -148,22 +174,24 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           </FormularioUsina>
         </div>
 
-        <div className="card space-y-3">
-          <p className="font-semibold">Escala da semana</p>
-          <p className="text-sm text-ink-muted">Enviada na segunda-feira. O formato ainda será definido.</p>
-          <FormularioUsina acao={salvarEscalaAction}>
-            <input type="hidden" name="semana" value={est.semana} />
-            <div className="field">
-              <label htmlFor="conteudo">Escala</label>
-              <textarea id="conteudo" name="conteudo" rows={4} defaultValue={est.escala} className="w-full" />
-            </div>
-          </FormularioUsina>
+        <div className="card space-y-3 xl:col-span-2">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <p className="font-semibold">Escala da semana</p>
+            <a href={`/api/usina/escala/pdf?semana=${est.semana}`} className="btn btn-ghost h-10 px-4 text-sm">Baixar PDF da escala</a>
+          </div>
+          <p className="text-sm text-ink-muted">Preencha a semana toda. Use o seletor de status e, se for o caso, o local onde estava.</p>
+          {escalaLegada && (
+            <p className="rounded-lg border border-[var(--ln)] p-3 text-sm text-ink-muted">
+              Escala anterior em texto: {est.escala}. Ao salvar a grade abaixo, ela é substituída.
+            </p>
+          )}
+          <EscalaGrade valor={escalaSemana} dias={diasDaSemana(est.semana)} semana={est.semana} acao={salvarEscalaAction} />
         </div>
       </section>
 
       {/* ── Geração de trilho ──────────────────────────────────────── */}
       <section className="space-y-4" aria-labelledby="geracao">
-        <h2 id="geracao" className="section-title">Geração de trilho</h2>
+        <h2 id="geracao" className="section-title scroll-mt-24">Geração de trilho</h2>
         <div className="grid gap-3 sm:grid-cols-3">
           {ger.porLider.map((l) => (
             <div className="card space-y-2" key={l.valor}>
@@ -171,7 +199,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
               <p className="text-sm">Corte: {fmtMetros(l.periodo.corteM)} m · Carregamento: {fmtMetros(l.periodo.carregamentoM)} m</p>
               <p className="text-sm">Barras: {l.periodo.quantidade} · Deixadas na via: {fmtMetros(l.periodo.deixadaViaM)} m</p>
               <p className="text-xs text-ink-muted">
-                Mês: {fmtMetros(l.mes.totalM)} m (carregado + deixado) · {l.mes.metaAlcancada ? 'meta de 5.000 m alcançada' : 'abaixo da meta de 5.000 m'}
+                Mês: {fmtMetros(l.mes.totalM)} m (carregado + deixado)
               </p>
             </div>
           ))}
@@ -187,12 +215,19 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                   <input type="hidden" name="lider" value={l.valor} />
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                     <div className="field"><label>Local</label><input name="local" defaultValue={dia?.local ?? ''} className="h-11" /></div>
-                    <div className="field"><label>Perfil</label><input name="perfil" defaultValue={dia?.perfil ?? ''} className="h-11" placeholder="TR60" /></div>
-                    <div className="field"><label>Quantidade (barras)</label><input name="quantidade" inputMode="numeric" defaultValue={dia?.quantidade ?? ''} className="h-11" /></div>
-                    <div className="field"><label>Corte (m)</label><input name="corteM" inputMode="decimal" defaultValue={dia?.corteM != null ? String(dia.corteM) : ''} className="h-11" /></div>
-                    <div className="field"><label>Carregamento (m)</label><input name="carregamentoM" inputMode="decimal" defaultValue={dia?.carregamentoM != null ? String(dia.carregamentoM) : ''} className="h-11" /></div>
-                    <div className="field"><label>Deixada na via (m)</label><input name="deixadaViaM" inputMode="decimal" defaultValue={dia?.deixadaViaM != null ? String(dia.deixadaViaM) : ''} className="h-11" /></div>
+                    <div className="field"><label>Corte do dia (m)</label><input name="corteM" inputMode="decimal" defaultValue={dia?.corteM != null ? String(dia.corteM) : ''} className="h-11" /></div>
                   </div>
+                  <p className="text-sm font-semibold">Carretas do dia</p>
+                  <CarretasGeracao
+                    opcoesPerfis={PERFIS}
+                    iniciais={(dia?.carretas ?? []).map((c) => ({
+                      perfis: c.perfis,
+                      quantidade: c.quantidade != null ? String(c.quantidade) : '',
+                      carregamentoM: c.carregamentoM != null ? String(c.carregamentoM) : '',
+                      deixadaViaM: c.deixadaViaM != null ? String(c.deixadaViaM) : '',
+                    }))}
+                  />
+                  <div className="field"><label>Observação</label><textarea name="observacao" rows={2} defaultValue={dia?.observacao ?? ''} className="w-full" /></div>
                 </FormularioUsina>
               </div>
             </details>
@@ -200,13 +235,13 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         })}
       </section>
 
-      {/* ── Composições ativas ─────────────────────────────────────── */}
+      {/* ── Recolhimento serra ─────────────────────────────────────── */}
       <section className="space-y-4" aria-labelledby="composicoes">
-        <h2 id="composicoes" className="section-title">Composições ativas</h2>
+        <h2 id="composicoes" className="section-title scroll-mt-24">Recolhimento serra</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {comp.map((c) => (
             <div className="card space-y-3" key={c.ativo}>
-              <p className="font-semibold">{c.ativo}</p>
+              <p className="font-semibold">{rotuloComposicao(c.ativo)}</p>
               <p className="text-sm">No período: {c.barras} barras · {c.jacares} jacarés</p>
               <FormularioUsina acao={salvarComposicaoAction}>
                 <input type="hidden" name="data" value={data} />
@@ -227,7 +262,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
 
       {/* ── Caminhão de solda ──────────────────────────────────────── */}
       <section className="space-y-4" aria-labelledby="caminhao">
-        <h2 id="caminhao" className="section-title">Caminhão de solda</h2>
+        <h2 id="caminhao" className="section-title scroll-mt-24">Caminhão de solda</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {cam.map((c) => (
             <div className="card space-y-3" key={c.caminhao}>
@@ -256,7 +291,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
 
       {/* ── Trilheiros ─────────────────────────────────────────────── */}
       <section className="space-y-4" aria-labelledby="trilheiros">
-        <h2 id="trilheiros" className="section-title">Trilheiros</h2>
+        <h2 id="trilheiros" className="section-title scroll-mt-24">Trilheiros</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <Cartao rotulo="Média de dias úteis na usina" valor={tril.mediaDiasUteisNaUsina ?? '—'} />
           <Cartao rotulo="Giros com tempo medido" valor={tril.girosComTempo} />
@@ -267,7 +302,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-ink-muted">
-                <th>Trilheiro</th><th>B.O.</th><th>Chegada</th><th>Partida</th><th>Retorno</th><th>Perfil</th><th>Carregados</th><th>Descarregados</th><th>Local</th>
+                <th>Trilheiro</th><th>B.O.</th><th>Chegada</th><th>Partida</th><th>Retorno</th><th>Perfis</th><th>Carregados</th><th>Descarregados</th><th>Saldo</th><th>Local</th>
               </tr>
             </thead>
             <tbody>
@@ -278,45 +313,59 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                   <td>{g.chegadaUsinaEm ? br(g.chegadaUsinaEm.toISOString().slice(0, 10)) : '—'}</td>
                   <td>{g.partidaEm ? br(g.partidaEm.toISOString().slice(0, 10)) : '—'}</td>
                   <td>{g.retornoEm ? br(g.retornoEm.toISOString().slice(0, 10)) : '—'}</td>
-                  <td>{g.perfil ? ROTULO_TLS[g.perfil] : '—'}</td>
+                  <td>{g.perfis.length > 0 ? g.perfis.map((p) => ROTULO_TLS[p]).join(', ') : g.perfil ? ROTULO_TLS[g.perfil] : '—'}</td>
                   <td>{g.carregados}</td>
                   <td>{g.descarregados}</td>
+                  <td className="font-mono">{g.carregados - g.descarregados}</td>
                   <td>{g.local ?? '—'}</td>
                 </tr>
               ))}
               {tril.giros.length === 0 && (
-                <tr><td colSpan={9} className="py-3 text-ink-muted">Nenhum giro neste período.</td></tr>
+                <tr><td colSpan={10} className="py-3 text-ink-muted">Nenhum giro neste período.</td></tr>
               )}
             </tbody>
           </table>
         </div>
 
-        <details className="card">
-          <summary className="cursor-pointer font-semibold">Lançar giro de trilheiro</summary>
-          <div className="mt-3">
-            <FormularioUsina acao={salvarGiroAction} rotuloBotao="Salvar giro">
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <div className="field"><label>Trilheiro</label>
-                  <select name="trilheiro" className="h-11">{TRILHEIROS.map((t) => <option key={t} value={t}>{t}</option>)}</select>
+        <div className="grid gap-4">
+          {TRILHEIROS.map((t, i) => {
+            const ciclo = ciclosAbertos[i];
+            const iso = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : null);
+            const valorCiclo: CicloAberto | null = ciclo
+              ? {
+                  boEm: iso(ciclo.boEm),
+                  chegadaUsinaEm: iso(ciclo.chegadaUsinaEm),
+                  partidaEm: iso(ciclo.partidaEm),
+                  perfis: ciclo.perfis,
+                  carregados: ciclo.carregados,
+                  descarregados: ciclo.descarregados,
+                  local: ciclo.local,
+                  observacao: ciclo.observacao,
+                }
+              : null;
+            return (
+              <details className="card" key={t} open={Boolean(ciclo)}>
+                <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2 font-semibold">
+                  <span>{t}</span>
+                  {ciclo ? (
+                    <span className="text-sm font-normal text-ink-muted">
+                      Saldo a descarregar: <strong className="font-mono text-ink">{ciclo.carregados - ciclo.descarregados}</strong> TLS
+                      <span className="ml-2">({ciclo.carregados} carregados, {ciclo.descarregados} descarregados)</span>
+                    </span>
+                  ) : (
+                    <span className="text-sm font-normal text-ink-muted">lançar giro</span>
+                  )}
+                </summary>
+                <div className="mt-3">
+                  <FormularioUsina acao={salvarGiroAction} rotuloBotao={ciclo ? 'Salvar ciclo' : 'Iniciar ciclo'}>
+                    <input type="hidden" name="trilheiro" value={t} />
+                    <CamposGiro ciclo={valorCiclo} opcoesPerfis={TIPOS_TLS.map((p) => ({ valor: p, rotulo: ROTULO_TLS[p] }))} />
+                  </FormularioUsina>
                 </div>
-                <div className="field"><label>Dia do B.O.</label><input name="boEm" type="date" className="h-11" /></div>
-                <div className="field"><label>Chegada na usina</label><input name="chegadaUsinaEm" type="date" className="h-11" /></div>
-                <div className="field"><label>Dia da partida</label><input name="partidaEm" type="date" className="h-11" /></div>
-                <div className="field"><label>Retorno</label><input name="retornoEm" type="date" className="h-11" /></div>
-                <div className="field"><label>Perfil</label>
-                  <select name="perfil" className="h-11" defaultValue="">
-                    <option value="">—</option>
-                    {TIPOS_TLS.map((t) => <option key={t} value={t}>{ROTULO_TLS[t]}</option>)}
-                  </select>
-                </div>
-                <div className="field"><label>TLS carregados</label><input name="carregados" inputMode="numeric" className="h-11" /></div>
-                <div className="field"><label>TLS descarregados</label><input name="descarregados" inputMode="numeric" className="h-11" /></div>
-                <div className="field"><label>Local</label><input name="local" className="h-11" /></div>
-              </div>
-              <div className="field"><label>Observação</label><input name="observacao" className="h-11" /></div>
-            </FormularioUsina>
-          </div>
-        </details>
+              </details>
+            );
+          })}
+        </div>
 
         <details className="card">
           <summary className="cursor-pointer font-semibold">Registrar manutenção do trilheiro</summary>
