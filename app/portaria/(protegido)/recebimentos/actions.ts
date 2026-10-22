@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { requirePortaria } from '@/lib/services/requirePortaria';
 import { cancelarChegada, confirmarSaidaChegada, criarChegada, definirOrdemChegada, liberarChegada, salvarDadosChegada } from '@/lib/services/chegada';
+import { criarEnvioPelaPortaria } from '@/lib/services/portaria';
 import { ErroRegraNegocio } from '@/lib/services/errors';
 import { dadosChegadaSchema } from '@/lib/validation/chegada';
 import type { ResultadoPortaria } from '../actions';
@@ -50,10 +51,23 @@ export async function salvarChegadaAction(id: string, entrada: unknown): Promise
   });
 }
 
+/**
+ * Caminhão que descarrega e carrega na mesma visita: ao registrar a chegada, a Portaria
+ * também cria a carga (aba Carga), já com as placas e a origem. O Pátio vê as duas coisas.
+ */
 export async function registrarChegadaAction(id: string, entrada: unknown): Promise<ResultadoPortaria> {
+  const extra = (entrada ?? {}) as { tambemCarrega?: unknown; destinoCarga?: unknown };
+  const tambemCarrega = extra.tambemCarrega === true;
+  const destinoCarga = typeof extra.destinoCarga === 'string' ? extra.destinoCarga.trim() : '';
+  if (tambemCarrega && !destinoCarga) return { ok: false, erro: 'Informe o destino da carga.' };
   return comDados(entrada, async (d, nome) => {
     await liberarChegada(id, d, nome);
-    return 'Chegada registrada! O Pátio foi avisado.';
+    if (!tambemCarrega) return 'Chegada registrada! O Pátio foi avisado.';
+    await criarEnvioPelaPortaria({ ...d, destino: destinoCarga }, nome);
+    revalidatePath('/portaria');
+    revalidatePath('/patio/remetidos');
+    revalidatePath('/patio');
+    return 'Chegada e carga registradas! O Pátio foi avisado.';
   });
 }
 

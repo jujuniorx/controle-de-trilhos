@@ -29,6 +29,8 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
   const [aberto, setAberto] = useState(item.estado === 'AGUARDANDO_LIBERACAO' || item.estado === 'RECEBIDA');
   const [confirmaCancelar, setConfirmaCancelar] = useState(false);
   const [resultado, setResultado] = useState<ResultadoPortaria | null>(null);
+  const [tambemCarrega, setTambemCarrega] = useState(false);
+  const [destinoCarga, setDestinoCarga] = useState('');
   const [v, setV] = useState({
     transportadora: item.transportadora ?? '',
     motoristaNome: item.motoristaNome ?? '',
@@ -167,6 +169,21 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
           </div>
           <CampoObservacao id={`${item.id}-observacao`} valor={v.observacao} aoMudar={(x) => setV((a) => ({ ...a, observacao: x }))} desabilitado={pendente || saiu || descarregado} />
 
+          {rascunho && (
+            <div className="space-y-2 rounded-lg border border-line p-3">
+              <label className="flex items-center gap-2 text-sm font-semibold">
+                <input type="checkbox" className="h-5 w-5" checked={tambemCarrega} onChange={(e) => setTambemCarrega(e.target.checked)} disabled={pendente} />
+                Também vai carregar depois de descarregar
+              </label>
+              {tambemCarrega && (
+                <div className="field">
+                  <label htmlFor={`${item.id}-destino-carga`}>Destino da carga *</label>
+                  <input id={`${item.id}-destino-carga`} className="h-12" value={destinoCarga} onChange={(e) => setDestinoCarga(e.target.value)} disabled={pendente} placeholder="Para onde vai o carregamento" />
+                  <p className="text-xs text-ink-muted">Aparece na aba Carga. O Pátio confirma o carregamento depois.</p>
+                </div>
+              )}
+            </div>
+          )}
           {rascunho && <p className="text-sm text-ink-muted">Preencha ao menos uma placa e toque em &ldquo;Registrar chegada&rdquo;. O Pátio será avisado.</p>}
           {chegou && <p className="rounded-lg bg-warn/10 px-3 py-2 text-sm text-warn">Chegada registrada. O Pátio vai descarregar; você será avisado quando terminar.</p>}
           {descarregado && <p className="rounded-lg bg-ok/10 px-3 py-2 text-sm text-ok">O Pátio descarregou. Quando o caminhão passar pela portaria, toque em &ldquo;Saída confirmada&rdquo;.</p>}
@@ -183,7 +200,7 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
               Baixar PDF
             </a>
             {rascunho && (
-              <button type="button" className="btn btn-primary h-12 col-span-2 order-first" disabled={pendente} onClick={() => enviar(registrarChegadaAction)}>
+              <button type="button" className="btn btn-primary h-12 col-span-2 order-first" disabled={pendente} onClick={() => enviar((id, dados) => registrarChegadaAction(id, { ...(dados as object), tambemCarrega, destinoCarga }))}>
                 {pendente ? 'Aguarde...' : 'Registrar chegada'}
               </button>
             )}
@@ -210,21 +227,6 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
             )}
           </div>
 
-          {(rascunho || chegou) && (!confirmaCancelar ? (
-            <button type="button" className="text-sm text-ink-muted underline" onClick={() => setConfirmaCancelar(true)}>
-              Cancelar esta chegada
-            </button>
-          ) : (
-            <div className="flex flex-wrap items-center gap-2 text-sm">
-              <span>Cancelar esta chegada?</span>
-              <button type="button" className="btn btn-ghost btn-sm text-bad" disabled={pendente} onClick={cancelar}>
-                Sim, cancelar
-              </button>
-              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setConfirmaCancelar(false)}>
-                Não
-              </button>
-            </div>
-          ))}
 
           {resultado?.erro && (
             <p role="alert" className="text-sm text-bad">
@@ -233,6 +235,24 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
           )}
           {resultado?.ok && resultado.mensagem && <p role="status" className="badge badge-ok !text-sm !normal-case">{resultado.mensagem}</p>}
         </form>
+      )}
+      {(rascunho || chegou) && (!confirmaCancelar ? (
+        <button type="button" className="btn btn-ghost h-11 w-full text-bad" onClick={() => setConfirmaCancelar(true)}>
+          Apagar chegada
+        </button>
+      ) : (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg bg-bad/10 px-3 py-2 text-sm">
+          <span>Apagar esta chegada? Ela some das telas da Portaria e do Pátio.</span>
+          <button type="button" className="btn btn-primary btn-sm" disabled={pendente} onClick={cancelar}>
+            {pendente ? 'Aguarde...' : 'Sim, apagar'}
+          </button>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setConfirmaCancelar(false)}>
+            Não
+          </button>
+        </div>
+      ))}
+      {resultado?.erro && !aberto && (
+        <p role="alert" className="text-sm text-bad">{resultado.erro}</p>
       )}
     </section>
   );
