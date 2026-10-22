@@ -41,18 +41,24 @@ const telefone = opcional(
     .pipe(z.string().regex(/^\d{10,11}$/, 'Telefone inválido. Informe DDD + número.')),
 );
 
+/** Aceita "12,3", "12.3", "12, 3" ou "12 3": tira espaços e troca a vírgula decimal. Texto sem número vira NaN e é recusado depois. */
+function numeroDigitado(v: string): number {
+  const limpo = v.replace(/\s/g, '').replace(',', '.');
+  return /^\d+(\.\d+)?$/.test(limpo) ? Number(limpo) : Number.NaN;
+}
+
 const capacidade = opcional(
   z
     .union([z.string(), z.number()])
-    .transform((v) => (typeof v === 'number' ? v : Number(v.replace(',', '.'))))
-    .pipe(z.number().positive('A capacidade precisa ser maior que zero.').max(200, 'Capacidade muito alta (máx. 200 t).')),
+    .transform((v) => (typeof v === 'number' ? v : numeroDigitado(v)))
+    .pipe(z.number({ error: 'Informe um número, ex.: 28 ou 12,3.' }).positive('A capacidade precisa ser maior que zero.').max(200, 'Capacidade muito alta (máx. 200 t).')),
 );
 
 const comprimento = opcional(
   z
     .union([z.string(), z.number()])
-    .transform((v) => (typeof v === 'number' ? v : Number(v.replace(',', '.'))))
-    .pipe(z.number().positive('O comprimento precisa ser maior que zero.').max(60, 'Comprimento muito alto (máx. 60 m).')),
+    .transform((v) => (typeof v === 'number' ? v : numeroDigitado(v)))
+    .pipe(z.number({ error: 'Informe um número, ex.: 12,3.' }).positive('O comprimento precisa ser maior que zero.').max(60, 'Comprimento muito alto (máx. 60 m).')),
 );
 
 /** CPF digitado com os pontos e o traço automáticos (000.000.000-00). Só a formatação, não valida dígitos. */
@@ -93,3 +99,13 @@ export const novoEnvioPortariaSchema = dadosPortariaSchema
     path: ['placaCarreta'],
   });
 export type NovoEnvioPortariaInput = z.infer<typeof novoEnvioPortariaSchema>;
+
+/** Telefone digitado com DDD e traço automáticos: (16) 9600-9213 ou (16) 99600-9213 (celular). Só a formatação. */
+export function formatarTelefoneDigitado(valor: string): string {
+  const d = valor.replace(/\D/g, '').slice(0, 11);
+  if (d.length === 0) return '';
+  if (d.length <= 2) return `(${d}`;
+  const resto = d.slice(2);
+  const corte = d.length > 10 ? 5 : 4;
+  return resto.length > corte ? `(${d.slice(0, 2)}) ${resto.slice(0, corte)}-${resto.slice(corte)}` : `(${d.slice(0, 2)}) ${resto}`;
+}

@@ -9,10 +9,12 @@ export const NAV_ITEMS = [
   { href: '/admin/relatorios', label: 'Relatórios' },
   { href: '/admin/informativo', label: 'Informativo' },
   { href: '/admin/portaria', label: 'Portaria' },
+  { href: '/admin/usina', label: 'Usina' },
 ] as const;
 
 /** Itens extras, só para o DONO. */
 export const NAV_ITEMS_DONO = [
+  { href: '/admin/dono', label: 'Visão geral' },
   { href: '/admin/usuarios', label: 'Usuários' },
   { href: '/admin/lixeira', label: 'Lixeira' },
   { href: '/admin/auditoria', label: 'Auditoria' },
@@ -39,6 +41,19 @@ const ICONES_NAV: Record<string, ReactNode> = {
   '/admin/portaria': (
     <svg width="18" height="18" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
       <path d="M3 7h11v9H3zM14 10h4l3 3v3h-7M7 18.5a1.5 1.5 0 1 0 0-.01M17 18.5a1.5 1.5 0 1 0 0-.01" />
+    </svg>
+  ),
+  '/admin/usina': (
+    <svg width="18" height="18" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
+      <path d="M3 21V10l6 4V10l6 4V6h6v15zM7 21v-3M11 21v-3M15 21v-3" />
+    </svg>
+  ),
+  '/admin/dono': (
+    <svg width="18" height="18" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
+      <rect x="3" y="3" width="7.5" height="7.5" rx="1.5" />
+      <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5" />
+      <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5" />
+      <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5" />
     </svg>
   ),
   '/admin/usuarios': (

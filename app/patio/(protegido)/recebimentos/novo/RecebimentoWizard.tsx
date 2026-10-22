@@ -13,7 +13,7 @@ import {
   MARCA_LABEL,
   recebimentoCaminhaoSchema,
 } from '@/lib/validation/recebimento';
-import { validarReemprego, classificarSC, pecasDoGrupo } from '@/lib/domain/regras';
+import { validarReemprego, classificarSC, pecasDoGrupo, formatarComprimentoDigitado } from '@/lib/domain/regras';
 import {
   salvarRecebimentoLocal,
   salvarRascunhoRecebimento,
@@ -25,7 +25,7 @@ import { ConfirmacaoRecebimento } from '@/components/patio/ConfirmacaoRecebiment
 
 type TipoMaterial = 'NOVO' | 'REEMPREGO' | 'SUCATA';
 type ModoMedicao = 'INDIVIDUAL' | 'QTD_COMPRIMENTO';
-type ClassificacaoSC = 'SC1' | 'SC2' | 'SC3' | 'DIVERSOS';
+type ClassificacaoSC = 'SC1' | 'SC2' | 'SC3' | 'DIVERSOS' | 'JACARE';
 
 interface MedicaoLocal {
   clientId: string;
@@ -178,6 +178,20 @@ export interface ChegadaPrefill {
   transportadora: string;
   /** Recado da Portaria (mostrado pela página, não entra no formulário). */
   observacao?: string;
+}
+
+/** Traduz o primeiro erro do Zod em frase para o Pátio, dizendo qual grupo corrigir. */
+function descreverErroValidacao(
+  issue: { message: string; path: PropertyKey[] } | undefined,
+  totalGrupos: number,
+): string {
+  if (!issue) return 'Dados inválidos. Revise os campos e tente novamente.';
+  const [raiz, indiceGrupo] = issue.path;
+  if (raiz === 'grupos' && typeof indiceGrupo === 'number') {
+    const sufixo = totalGrupos > 1 ? ` (grupo ${indiceGrupo + 1})` : '';
+    return `${issue.message}${sufixo}`;
+  }
+  return issue.message;
 }
 
 export function RecebimentoWizard({
@@ -346,7 +360,7 @@ export function RecebimentoWizard({
       return;
     }
     if (grupoAtivo.tipoMaterial === 'SUCATA' && !draft.sc) {
-      setDraft((d) => ({ ...d, erro: 'Selecione a classificação SC1, SC2 ou SC3.' }));
+      setDraft((d) => ({ ...d, erro: 'Selecione a classificação SC1, SC2, SC3 ou Jacaré.' }));
       return;
     }
     const quantidade = modoDraft === 'QTD_COMPRIMENTO' ? Math.max(1, Number(draft.quantidade) || 1) : 1;
@@ -417,7 +431,7 @@ export function RecebimentoWizard({
     const parsed = recebimentoCaminhaoSchema.safeParse(payload);
     if (!parsed.success) {
       setEnviando(false);
-      setErroFinal('Dados inválidos. Revise os campos e tente novamente.');
+      setErroFinal(descreverErroValidacao(parsed.error.issues[0], payload.grupos.length));
       return;
     }
 
@@ -458,7 +472,7 @@ export function RecebimentoWizard({
   if (confirmadoId) return <ConfirmacaoRecebimento clientId={confirmadoId} />;
 
   return (
-    <main className="mx-auto max-w-xl lg:max-w-3xl p-6">
+    <main className="mx-auto max-w-xl lg:max-w-none p-6">
       <h1 className="font-condensed text-xl font-bold uppercase tracking-wide text-ink">Novo recebimento — Caminhão</h1>
       <div className="mb-6 mt-3">
         <ProgressoEtapas etapa={step} total={4} />
@@ -742,7 +756,7 @@ export function RecebimentoWizard({
               >
                 <option value="">SC?</option>
                 {CLASSIFICACOES_SC_MEDIDAS.map((sc) => (
-                  <option key={sc}>{sc}</option>
+                  <option key={sc} value={sc}>{sc === 'JACARE' ? 'Jacaré' : sc}</option>
                 ))}
               </select>
             )}

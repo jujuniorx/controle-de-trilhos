@@ -28,7 +28,7 @@ test.describe('PWA — manifest e Service Worker', () => {
     const manifestData = await manifestResponse.json();
     expect(manifestData.name).toBe('Controle de Trilhos');
     expect(manifestData.short_name).toBe('Trilhos');
-    expect(manifestData.start_url).toBe('/patio/acesso');
+    expect(manifestData.start_url).toBe('/');
     expect(manifestData.display).toBe('standalone');
   });
 });

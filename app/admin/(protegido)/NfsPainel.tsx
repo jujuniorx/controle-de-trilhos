@@ -94,14 +94,15 @@ export function NfsPainel({
             className="h-11 flex-1"
             inputMode="numeric"
             aria-label="Corrigir a NF principal"
+            placeholder="Em branco = sem NF"
             value={principalEditada}
             onChange={(e) => {
               setPrincipalEditada(e.target.value);
               setErro('');
             }}
           />
-          <button className="btn btn-ghost h-11" disabled={ocupado || principalEditada.trim() === '' || principalEditada.trim() === principal} onClick={corrigirPrincipal}>
-            {ocupado ? 'Salvando...' : 'Corrigir NF principal'}
+          <button className="btn btn-ghost h-11" disabled={ocupado || principalEditada.trim() === (principal ?? '')} onClick={corrigirPrincipal}>
+            {ocupado ? 'Salvando...' : principalEditada.trim() === '' ? 'Deixar sem NF' : 'Corrigir NF principal'}
           </button>
         </div>
       )}

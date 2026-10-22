@@ -3,7 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { salvarEstaleiroDia, salvarEstoqueTls, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, type TipoTlsValor } from '@/lib/services/usina';
-import { salvarGeracao, salvarComposicao, salvarCaminhao, salvarGiro, salvarManutencaoTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor } from '@/lib/services/usina';
+import { ITENS_ESCALA, escalaVazia, gravarEscala, statusValido, cfgDeObjeto } from '@/lib/usina/escala';
+import { salvarGeracao, salvarComposicao, salvarCaminhao, salvarGiro, salvarManutencaoTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
+import { PERFIS } from '@/lib/validation/recebimento';
 import { ehIsoValido } from '@/lib/usina/periodo';
 
 export interface ResultadoUsina {
@@ -69,8 +71,30 @@ export async function salvarEscalaAction(_: ResultadoUsina | undefined, formData
   await requireAdmin();
   const semana = dataDoForm(formData.get('semana'));
   if (!semana) return { ok: false, erro: 'Semana inválida.' };
-  await salvarEscalaSemana(semana, String(formData.get('conteudo') ?? '').slice(0, 5000));
-  atualizar();
+  const valor = escalaVazia();
+  // Plantao so existe no sabado (indice 5) e no domingo (indice 6).
+  for (let i = 5; i < 7; i++) {
+    valor.plantao[i] = String(formData.get(`plantao_${i}`) ?? '').trim().slice(0, 40);
+  }
+  for (const item of ITENS_ESCALA) {
+    for (let i = 0; i < 7; i++) {
+      const status = String(formData.get(`st_${item.id}_${i}`) ?? '-');
+      valor.linhas[item.id][i] = {
+        status: statusValido(status) ? status : '-',
+        local: String(formData.get(`lc_${item.id}_${i}`) ?? '').trim().slice(0, 40),
+      };
+    }
+  }
+  let bruto: Record<string, unknown> = {};
+  try {
+    bruto = JSON.parse(String(formData.get('config_json') ?? '{}')) as Record<string, unknown>;
+  } catch {
+    bruto = {};
+  }
+  for (const item of ITENS_ESCALA) {
+    valor.config[item.id] = cfgDeObjeto(bruto[item.id]);
+  }
+  await salvarEscalaSemana(semana, gravarEscala(valor));
   return { ok: true };
 }
 
@@ -98,17 +122,34 @@ export async function salvarGeracaoAction(_: ResultadoUsina | undefined, formDat
   if (!data) return { ok: false, erro: 'Data inválida.' };
   if (!LIDERES.some((l) => l.valor === lider)) return { ok: false, erro: 'Líder inválido.' };
   const corteM = decimal(formData.get('corteM'));
-  const carregamentoM = decimal(formData.get('carregamentoM'));
-  const deixadaViaM = decimal(formData.get('deixadaViaM'));
-  const quantidade = inteiro(formData.get('quantidade'));
-  if (corteM === 'invalido' || carregamentoM === 'invalido' || deixadaViaM === 'invalido' || quantidade === 'invalido') return erroNumero;
+  if (corteM === 'invalido') return erroNumero;
+
+  // Carretas chegam como JSON (lista editável na tela): perfis múltiplos + números por carreta.
+  let brutas: unknown;
+  try {
+    brutas = JSON.parse(String(formData.get('carretas') ?? '[]'));
+  } catch {
+    return { ok: false, erro: 'Não foi possível ler as carretas. Atualize a página e tente de novo.' };
+  }
+  if (!Array.isArray(brutas)) return { ok: false, erro: 'Não foi possível ler as carretas.' };
+
+  const carretas: CarretaGeracaoValor[] = [];
+  for (const item of brutas as Array<Record<string, unknown>>) {
+    const perfis = Array.isArray(item.perfis) ? item.perfis.map(String) : [];
+    if (perfis.some((p) => !(PERFIS as readonly string[]).includes(p))) return { ok: false, erro: 'Perfil inválido em uma carreta.' };
+    const quantidade = inteiro(String(item.quantidade ?? ''));
+    const carregamentoM = decimal(String(item.carregamentoM ?? ''));
+    const deixadaViaM = decimal(String(item.deixadaViaM ?? ''));
+    if (quantidade === 'invalido' || carregamentoM === 'invalido' || deixadaViaM === 'invalido') return erroNumero;
+    const vazia = perfis.length === 0 && quantidade == null && carregamentoM == null && deixadaViaM == null;
+    if (!vazia) carretas.push({ perfis, quantidade, carregamentoM, deixadaViaM });
+  }
+
   await salvarGeracao(data, lider, {
     local: texto(formData.get('local'), 120),
     corteM,
-    carregamentoM,
-    perfil: texto(formData.get('perfil'), 20),
-    quantidade,
-    deixadaViaM,
+    observacao: texto(formData.get('observacao'), 500),
+    carretas,
   });
   atualizar();
   return { ok: true };
@@ -124,6 +165,7 @@ export async function salvarComposicaoAction(_: ResultadoUsina | undefined, form
   const jacares = inteiro(formData.get('jacares'));
   if (barras === 'invalido' || jacares === 'invalido') return { ok: false, erro: 'Use só números inteiros.' };
   await salvarComposicao(data, ativo, barras, jacares, texto(formData.get('observacao')));
+  revalidatePath('/admin/informativo');
   atualizar();
   return { ok: true };
 }
@@ -163,16 +205,15 @@ export async function salvarGiroAction(_: ResultadoUsina | undefined, formData: 
   const carregados = inteiro(formData.get('carregados'));
   const descarregados = inteiro(formData.get('descarregados'));
   if (carregados === 'invalido' || descarregados === 'invalido') return { ok: false, erro: 'Use só números inteiros em TLS.' };
-  const perfil = String(formData.get('perfil') ?? '');
-  const id = String(formData.get('id') ?? '') || undefined;
+  // Vários perfis: vários campos "perfis" no formulário.
+  const perfis = formData.getAll('perfis').map(String).filter((p): p is TipoTlsValor => TIPOS_TLS.includes(p as TipoTlsValor));
   await salvarGiro({
-    id,
     trilheiro,
     boEm: valores.boEm,
     chegadaUsinaEm: valores.chegadaUsinaEm,
     partidaEm: valores.partidaEm,
     retornoEm: valores.retornoEm,
-    perfil: TIPOS_TLS.includes(perfil as TipoTlsValor) ? (perfil as TipoTlsValor) : null,
+    perfis,
     carregados: carregados ?? 0,
     descarregados: descarregados ?? 0,
     local: texto(formData.get('local'), 120),

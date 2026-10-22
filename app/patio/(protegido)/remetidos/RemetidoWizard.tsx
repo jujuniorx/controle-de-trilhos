@@ -10,7 +10,7 @@ import {
   PERFIL_TOCO,
 } from '@/lib/validation/remetido';
 import { PERFIS, MARCAS, MARCA_LABEL, PLACA_REGEX, NF_REGEX, MSG_NF_INVALIDA, CLASSIFICACOES_SC, CLASSIFICACOES_SC_MEDIDAS } from '@/lib/validation/recebimento';
-import { validarReemprego, classificarSC, pecasDoGrupo } from '@/lib/domain/regras';
+import { validarReemprego, classificarSC, pecasDoGrupo, formatarComprimentoDigitado } from '@/lib/domain/regras';
 import { confirmarRemetidoAction } from './[id]/confirmar/actions';
 import { criarRemetidoDiretoAction } from './novo/actions';
 // Reuso intencional (Task 17/20): a edição administrativa de Remetido usa o
@@ -348,7 +348,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
       return;
     }
     if (grupoAtivo.tipoMaterial === 'SUCATA' && !draftMedicao.sc) {
-      setDraftMedicao((d) => ({ ...d, erro: 'Selecione a classificação SC1, SC2 ou SC3.' }));
+      setDraftMedicao((d) => ({ ...d, erro: 'Selecione a classificação SC1, SC2, SC3 ou Jacaré.' }));
       return;
     }
     const quantidade = modoDraft === 'QTD_COMPRIMENTO' ? Math.max(1, Number(draftMedicao.quantidade) || 1) : 1;
@@ -750,11 +750,11 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
                     )}
                     <input
                       inputMode="decimal"
-                      placeholder="Comprimento (m)"
+                      placeholder="Comprimento (m), ex.: digite 810 para 8,10"
                       className="h-11 flex-1 min-w-[160px]"
                       value={draftMedicao.comprimento}
                       onChange={(e) => {
-                        const texto = e.target.value;
+                        const texto = formatarComprimentoDigitado(e.target.value);
                         const r = parseComprimento(texto);
                         setDraftMedicao((d) => ({
                           ...d,
@@ -783,7 +783,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
                         <option value="">SC</option>
                         {CLASSIFICACOES_SC_MEDIDAS.map((sc) => (
                           <option key={sc} value={sc}>
-                            {sc}
+                            {sc === 'JACARE' ? 'Jacaré' : sc}
                           </option>
                         ))}
                       </select>

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { requirePortaria } from '@/lib/services/requirePortaria';
-import { cancelarChegada, confirmarSaidaChegada, criarChegada, definirOrdemChegada, liberarChegada, salvarDadosChegada } from '@/lib/services/chegada';
+import { cancelarChegada, confirmarSaidaChegada, criarChegada, definirOrdemChegada, desfazerSaidaChegada, liberarChegada, salvarDadosChegada } from '@/lib/services/chegada';
 import { criarEnvioPelaPortaria } from '@/lib/services/portaria';
 import { ErroRegraNegocio } from '@/lib/services/errors';
 import { dadosChegadaSchema } from '@/lib/validation/chegada';
@@ -100,6 +100,18 @@ export async function definirOrdemChegadaAction(id: string, ordem: number): Prom
     await definirOrdemChegada(id, ordem);
     atualizarTelas();
     return { ok: true, mensagem: `Caminhão nº ${ordem}.` };
+  } catch (e) {
+    return erro(e);
+  }
+}
+
+/** Portaria: desfaz a saída de um caminhão registrada por engano. */
+export async function desfazerSaidaChegadaAction(id: string): Promise<ResultadoPortaria> {
+  const ator = await requirePortaria();
+  try {
+    await desfazerSaidaChegada(id);
+    atualizarTelas();
+    return { ok: true, mensagem: 'Saída desfeita. O caminhão voltou para a portaria.' };
   } catch (e) {
     return erro(e);
   }

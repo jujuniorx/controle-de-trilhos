@@ -3,10 +3,11 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { CampoObservacao, ICONE_CAMINHAO, Secao } from '@/components/portaria/Secao';
-import { apagarCarretaAction, confirmarSaidaAction, registrarChegadaAction, salvarDadosAction, type ResultadoPortaria } from './actions';
+import { apagarCarretaAction, confirmarSaidaAction, desfazerSaidaAction, registrarChegadaAction, salvarDadosAction, type ResultadoPortaria } from './actions';
 import { ROTULO_ESTADO } from '@/lib/domain/portaria';
 import type { ItemPortaria } from '@/lib/services/portaria';
-import { formatarCpfDigitado } from '@/lib/validation/portaria';
+import { formatarCpfDigitado, formatarTelefoneDigitado } from '@/lib/validation/portaria';
+import { formatarCpf, formatarTelefone } from '@/lib/domain/portaria';
 
 const TIPO_REMETIDO: Record<string, string> = { VENDA: 'Venda', TRANS: 'Transferência', INDUS: 'Industrialização' };
 const BADGE = { AGUARDANDO_CARRETA: 'badge-muted', CHEGOU: 'badge-warn', LIBERADA: 'badge-ok', SAIU: 'badge-info' } as const;
@@ -28,8 +29,8 @@ export function CartaoPortaria({ item }: { item: ItemPortaria }) {
   const [v, setV] = useState({
     transportadora: item.transportadora ?? '',
     motoristaNome: item.motoristaNome ?? '',
-    motoristaCpf: item.motoristaCpf ?? '',
-    motoristaTelefone: item.motoristaTelefone ?? '',
+    motoristaCpf: formatarCpf(item.motoristaCpf),
+    motoristaTelefone: formatarTelefone(item.motoristaTelefone),
     placaCarreta: item.placaCarreta ?? '',
     placaCarreta2: item.placaCarreta2 ?? '',
     placaCavalo: item.placaCavalo ?? '',
@@ -41,7 +42,7 @@ export function CartaoPortaria({ item }: { item: ItemPortaria }) {
     observacao: item.observacaoPortaria ?? '',
   });
   const set = (campo: keyof typeof v) => (e: { target: { value: string } }) =>
-    setV((atual) => ({ ...atual, [campo]: campo === 'motoristaCpf' ? formatarCpfDigitado(e.target.value) : String(campo).startsWith('placa') ? limparPlaca(e.target.value) : e.target.value }));
+    setV((atual) => ({ ...atual, [campo]: campo === 'motoristaCpf' ? formatarCpfDigitado(e.target.value) : campo === 'motoristaTelefone' ? formatarTelefoneDigitado(e.target.value) : String(campo).startsWith('placa') ? limparPlaca(e.target.value) : e.target.value }));
 
   const aguardando = item.estado === 'AGUARDANDO_CARRETA';
   const chegou = item.estado === 'CHEGOU';
@@ -135,6 +136,27 @@ export function CartaoPortaria({ item }: { item: ItemPortaria }) {
           {chegou && <p className="rounded-lg bg-warn/10 px-3 py-2 text-sm text-warn">Chegada registrada. Agora o Pátio carrega e libera a carreta; você será avisado.</p>}
           {liberada && <p className="rounded-lg bg-ok/10 px-3 py-2 text-sm text-ok">O Pátio liberou a carreta. Quando ela passar pela portaria, toque em &ldquo;Saída confirmada&rdquo;.</p>}
           {saiu && <p className="rounded-lg bg-surface-2 px-3 py-2 text-sm text-ink-muted">Carreta saiu. Só consulta.</p>}
+          {saiu && (
+            <button
+              type="button"
+              className="btn btn-ghost h-12 w-full"
+              disabled={pendente}
+              onClick={() => {
+                setResultado(null);
+                iniciar(async () => {
+                  try {
+                    const r = await desfazerSaidaAction(item.id);
+                    setResultado(r);
+                    if (r.ok) router.refresh();
+                  } catch {
+                    setResultado({ ok: false, erro: 'Sem conexão. Tente de novo.' });
+                  }
+                });
+              }}
+            >
+              {pendente ? 'Aguarde...' : 'Desfazer saída (voltar para a portaria)'}
+            </button>
+          )}
 
           <p className="text-xs text-ink-muted">O PDF leva o que está <b>salvo</b>: toque em &ldquo;Salvar dados&rdquo; antes de baixar.</p>
           <div className="grid grid-cols-2 gap-2">

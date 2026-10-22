@@ -60,6 +60,17 @@ async function main() {
     skipDuplicates: true,
   });
   console.log(`Gravadas agora: ${r.count}.`);
+  // Linhas que já existiam: atualiza a metragem (createMany não altera o que já está gravado).
+  let atualizadas = 0;
+  for (const l of linhas) {
+    if (l.metrosTotal == null) continue;
+    const u = await prisma.recebimentoSerraHistorico.updateMany({
+      where: { sheet: l.sheet, linha: l.linha },
+      data: { metrosTotal: l.metrosTotal },
+    });
+    atualizadas += u.count;
+  }
+  console.log(`Metragem atualizada em linhas existentes: ${atualizadas}.`);
 }
 
 main()

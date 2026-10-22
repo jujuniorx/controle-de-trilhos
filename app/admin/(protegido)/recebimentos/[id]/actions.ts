@@ -8,6 +8,8 @@ import { enviarDocumentoPesagem, obterUrlTemporariaDocumento, DocumentoPesagemEr
 import { informarNumeroDocumentoRemetido } from '@/lib/services/remetido';
 import { ErroRegraNegocio } from '@/lib/services/errors';
 import { NF_REGEX, MSG_NF_INVALIDA } from '@/lib/validation/recebimento';
+import { editarDadosRecebimentoSchema, type EditarDadosRecebimentoEntrada } from '@/lib/validation/recebimentoEdicao';
+import { editarDadosRecebimento } from '@/lib/services/recebimentoEdicao';
 
 export interface AcaoResultado {
   ok: boolean;
@@ -48,14 +50,29 @@ export async function informarPesoSucataAction(movimentacaoId: string, peso: num
 
 /** Corrige a NF principal do recebimento. Se já estava conferido, a conferência é reaberta (mesma regra do resto). */
 export async function informarNumeroDocumentoRecebimentoAction(movimentacaoId: string, numeroDocumento: string): Promise<AcaoResultado> {
-  if (!NF_REGEX.test(numeroDocumento)) return { ok: false, erro: MSG_NF_INVALIDA };
+  // Em branco = deixar sem NF (sem apagar o recebimento). Admin-only, como o resto da tela.
+  const nf = numeroDocumento.trim();
+  if (nf !== '' && !NF_REGEX.test(nf)) return { ok: false, erro: MSG_NF_INVALIDA };
   const { userId } = await requireAdmin();
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
   try {
-    await informarNumeroDocumentoRemetido(movimentacaoId, numeroDocumento, { userId, nome: user.nome });
+    await informarNumeroDocumentoRemetido(movimentacaoId, nf === '' ? null : nf, { userId, nome: user.nome });
     return { ok: true };
   } catch (erro) {
     return { ok: false, erro: erro instanceof ErroRegraNegocio ? erro.message : 'Não foi possível salvar a nota fiscal.' };
+  }
+}
+
+/** Corrige data, origem, transporte, placas, responsável e observação. Admin-only; reabre a conferência se já estava conferido. */
+export async function editarDadosRecebimentoAction(movimentacaoId: string, dados: EditarDadosRecebimentoEntrada): Promise<AcaoResultado> {
+  const usuario = await usuarioAtual();
+  const parsed = editarDadosRecebimentoSchema.safeParse(dados);
+  if (!parsed.success) return { ok: false, erro: parsed.error.issues[0]?.message ?? 'Dados inválidos.' };
+  try {
+    await editarDadosRecebimento(movimentacaoId, parsed.data, usuario);
+    return { ok: true };
+  } catch (erro) {
+    return { ok: false, erro: erro instanceof ErroRegraNegocio ? erro.message : 'Não foi possível salvar os dados.' };
   }
 }
 
