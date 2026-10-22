@@ -4,12 +4,10 @@ import { listarPendentesConferencia } from '@/lib/services/movimentacao';
 import { listarAguardandoChegada } from '@/lib/services/remetido';
 import { normalizarLocal } from '@/lib/domain/local';
 import { requireAdmin } from '@/lib/services/requireAdmin';
-import { saudacaoRotativa } from '@/lib/saudacao';
+import { saudacaoCompleta } from '@/lib/saudacao';
 import { ContadorAnimado } from '@/components/ui/ContadorAnimado';
 import { EstadoVazio } from '@/components/ui/EstadoVazio';
 import { FundoTrilhos } from '@/components/ui/FundoTrilhos';
-import { AtivarAvisos } from '@/components/patio/AtivarAvisos';
-import { chavePublicaPush } from '@/lib/services/push';
 
 function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
@@ -44,7 +42,7 @@ export default async function AdminHomePage() {
         <FundoTrilhos />
         <div className="saudacao-hero-texto">
           <p className="saudacao-hero-saudacao">
-            {saudacaoRotativa()}, {primeiroNome}
+            {saudacaoCompleta()}, {primeiroNome}
           </p>
           <p className="saudacao-hero-sub">
             {movimentacoes.length === 0
@@ -146,8 +144,6 @@ export default async function AdminHomePage() {
         </div>
       </div>
 
-      <AtivarAvisos chavePublica={chavePublicaPush()} titulo="Avisos de carreta liberada" descricao="Receba um aviso neste aparelho quando o Pátio liberar uma carreta, para liberar a nota." />
-
       <div>
         <div className="page-header">
           <h2 className="page-title text-base">Remetidos aguardando chegada</h2>
@@ -158,6 +154,7 @@ export default async function AdminHomePage() {
             <table>
               <thead>
                 <tr>
+                  <th>Reserva/Pedido</th>
                   <th>Destino</th>
                   <th>NF</th>
                   <th>Enviado em</th>
@@ -167,6 +164,7 @@ export default async function AdminHomePage() {
               <tbody>
                 {aguardandoChegada.map((r) => (
                   <tr key={r.id} data-mov-id={r.id} data-mov-rotulo={r.destino ?? r.reservaPedido ?? "Remetido aguardando chegada"}>
+                    <td>{r.reservaPedido ?? '—'}</td>
                     <td>{normalizarLocal(r.destino)}</td>
                     <td className="font-mono">{r.numeroDocumento ?? 'Em aberto'}</td>
                     <td className="font-mono">{fmtHora(r.createdAt)}</td>

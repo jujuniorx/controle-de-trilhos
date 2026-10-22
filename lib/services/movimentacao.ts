@@ -29,7 +29,7 @@ interface GrupoParaCriar {
     quantidade: number;
     comprimento: string | number;
     metros: string | number;
-    classificacaoSC: 'SC1' | 'SC2' | 'SC3' | 'DIVERSOS' | 'JACARE' | null;
+    classificacaoSC: 'SC1' | 'SC2' | 'SC3' | 'DIVERSOS' | null;
   }[];
 }
 

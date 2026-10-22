@@ -4,8 +4,6 @@ import { validarAcessoPatio } from '@/lib/services/patioAcesso';
 import { preCadastroSyncSchema } from '@/lib/validation/remetido';
 import { criarPreCadastroRemetido } from '@/lib/services/remetido';
 import { ErroRegraNegocio, resumirErro } from '@/lib/services/errors';
-import { dentroDoLimite } from '@/lib/services/limiteTaxa';
-import { ipDoCliente } from '@/lib/services/clienteIp';
 
 /**
  * Recebe um pré-cadastro de remetido ("aguardando chegada") capturado no Pátio —
@@ -15,9 +13,6 @@ import { ipDoCliente } from '@/lib/services/clienteIp';
  * 401 / 400 / 422 são terminais; 5xx é recuperável e será reenviado.
  */
 export async function POST(request: NextRequest) {
-  if (!(await dentroDoLimite('precad', 120, 60_000, await ipDoCliente()))) {
-    return new Response(JSON.stringify({ erro: 'Muitas requisições. Aguarde um minuto.' }), { status: 429, headers: { 'Content-Type': 'application/json' } });
-  }
   const token = (await cookies()).get('acesso_patio')?.value;
   const autorizado = token ? await validarAcessoPatio(token) : false;
   if (!autorizado) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 });

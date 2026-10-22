@@ -20,13 +20,6 @@ export const filtrosRelatorioSchema = z.object({
   classificacao: z.enum(CLASSIFICACOES_RELATORIO).optional().catch(undefined),
   origemDestino: z.string().trim().min(1).max(120).optional().catch(undefined),
   numeroDocumento: z.string().trim().regex(NF_REGEX).optional().catch(undefined),
-  // Busca parcial: "ABC1" acha "ABC1D23"; ignora maiúsculas, espaços e traço.
-  placa: z
-    .string()
-    .transform((v) => v.toUpperCase().replace(/[^A-Z0-9]/g, ''))
-    .pipe(z.string().min(3).max(7))
-    .optional()
-    .catch(undefined),
   status: z.enum(STATUS_RELATORIO).optional().catch(undefined),
 });
 

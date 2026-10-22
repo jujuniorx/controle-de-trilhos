@@ -4,8 +4,6 @@ import { z } from 'zod';
 import { validarAcessoPatio } from '@/lib/services/patioAcesso';
 import { validarSessao } from '@/lib/services/auth';
 import { removerInscricaoPush, salvarInscricaoPush, type SetorPush } from '@/lib/services/push';
-import { dentroDoLimite } from '@/lib/services/limiteTaxa';
-import { ipDoCliente } from '@/lib/services/clienteIp';
 
 const inscricaoSchema = z.object({
   endpoint: z.url().max(1000),
@@ -15,22 +13,15 @@ const inscricaoSchema = z.object({
 /** Quem está pedindo: tablet do Pátio (PIN) ou usuário logado (Portaria). Null = sem acesso. */
 async function setorDoPedido(): Promise<SetorPush | null> {
   const jar = await cookies();
-  // Sessão primeiro: quem está logado no administrativo recebe o aviso do administrativo,
-  // mesmo que o mesmo aparelho também tenha o acesso do Pátio gravado.
-  const sessao = jar.get('sessao_admin')?.value;
-  const usuario = sessao ? await validarSessao(sessao) : null;
-  if (usuario?.role === 'PORTARIA') return 'PORTARIA';
-  if (usuario) return 'ADMIN'; // ADMIN e DONO: painel administrativo
   const pin = jar.get('acesso_patio')?.value;
   if (pin && (await validarAcessoPatio(pin))) return 'PATIO';
+  const sessao = jar.get('sessao_admin')?.value;
+  if (sessao && (await validarSessao(sessao))) return 'PORTARIA';
   return null;
 }
 
 /** O aparelho se inscreve para receber avisos: o tablet do Pátio ou o computador/celular da Portaria. */
 export async function POST(request: NextRequest) {
-  if (!(await dentroDoLimite('push', 20, 60_000, await ipDoCliente()))) {
-    return new Response(JSON.stringify({ erro: 'Muitas requisições. Aguarde um minuto.' }), { status: 429, headers: { 'Content-Type': 'application/json' } });
-  }
   const setor = await setorDoPedido();
   if (!setor) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 });
   const parsed = inscricaoSchema.safeParse(await request.json().catch(() => null));

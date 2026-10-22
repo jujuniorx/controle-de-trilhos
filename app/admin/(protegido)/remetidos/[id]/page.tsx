@@ -1,3 +1,4 @@
+import { IconeImpressora } from '@/components/icones/Icones';
 import { rotuloStatusRemetido } from '@/lib/domain/statusRemetido';
 import Link from 'next/link';
 import { fmtMetros, fmtPeso } from '@/lib/format';
@@ -14,7 +15,6 @@ import { rotuloNfs } from '@/lib/nf';
 import { PesoGrupoPainel } from './PesoGrupoPainel';
 import { TipoRemetidoPainel } from './TipoRemetidoPainel';
 import { HistoricoMovimentacao } from '@/components/admin/HistoricoMovimentacao';
-import { IconeImprimir } from '@/components/icones/Icones';
 
 function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
@@ -71,7 +71,7 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
             )}
             {/* <a> e não <Link>: o romaneio é um documento HTML puro (route handler), sem prefetch/RSC. */}
             <a href={`/admin/remetidos/${mov.id}/romaneio`} className="btn btn-ghost btn-sm">
-              <IconeImprimir size={15} /> Imprimir romaneio
+              <IconeImpressora size={15} className="inline-block align-[-3px]" /> Imprimir romaneio
             </a>
           </div>
         </div>
@@ -213,16 +213,6 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
                           )}
                         </div>
                       ))}
-                    </div>
-                    <div className="mt-3 grid grid-cols-2 gap-3 border-t border-line pt-3">
-                      <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Metragem</p>
-                        <p className="font-mono text-base font-semibold text-ink">{fmtMetros(g.metrosTotal)} m</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Peso</p>
-                        <p className="font-mono text-base font-semibold text-ink">{fmtPeso(Number(g.pesoInformado ?? g.pesoCalculado ?? 0))} t</p>
-                      </div>
                     </div>
                   </div>
                 </div>

@@ -36,7 +36,7 @@ export default async function RemetidosAguardandoPage({
   );
 
   return (
-    <main className="mx-auto max-w-md lg:max-w-none p-6">
+    <main className="mx-auto max-w-md lg:max-w-xl p-6">
       <AvisoSucesso mensagem={mensagem} />
       <AtualizarAuto />
       <h1 className="font-condensed text-xl font-bold uppercase tracking-wide text-ink">Remetidos</h1>

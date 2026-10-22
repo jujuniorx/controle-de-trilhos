@@ -3,15 +3,13 @@
 //
 // Uso: `npx tsx scripts/criar-usuarios-administrativos.ts`
 import { prisma } from '../lib/db';
-import { randomBytes } from 'crypto';
 import { hashSegredo } from '../lib/services/auth';
 
-// Senha inicial sorteada e mostrada uma única vez no terminal. Nunca fica escrita no código.
 const CONTAS = [
-  { nome: 'Paula', username: 'paula' },
-  { nome: 'Priscila', username: 'priscila' },
-  { nome: 'Marcelo', username: 'marcelo' },
-  { nome: 'Bianca', username: 'bianca' },
+  { nome: 'Paula', username: 'paula', senha: 'Paula2026!' },
+  { nome: 'Priscila', username: 'priscila', senha: 'Priscila2026!' },
+  { nome: 'Marcelo', username: 'marcelo', senha: 'Marcelo2026!' },
+  { nome: 'Bianca', username: 'bianca', senha: 'Bianca2026!' },
 ] as const;
 
 async function main() {
@@ -22,7 +20,6 @@ async function main() {
       continue;
     }
 
-    const senhaSorteada = randomBytes(9).toString("base64url") + "A1";
     await prisma.user.create({
       data: {
         nome: conta.nome,
@@ -31,10 +28,10 @@ async function main() {
         // é pelo username.
         email: `${conta.username}@controle-trilhos.local`,
         username: conta.username,
-        senhaHash: await hashSegredo(senhaSorteada),
+        senhaHash: await hashSegredo(conta.senha),
       },
     });
-    console.log(`Usuário "${conta.username}" criado. Senha inicial (anote e troque no primeiro acesso): ${senhaSorteada}`);
+    console.log(`Usuário "${conta.username}" criado.`);
   }
 }
 

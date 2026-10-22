@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db';
-import { verificarSegredo, criarSessao, gastarTempoDeVerificacao } from '@/lib/services/auth';
+import { verificarSegredo, criarSessao } from '@/lib/services/auth';
 
 const MAX_TENTATIVAS = 5;
 const BLOQUEIO_MINUTOS = 15;
@@ -19,46 +19,33 @@ export interface ResultadoLogin {
  * script de criação, então comparar em minúsculas nunca rejeita um login
  * válido e evita o usuário "Paula" não bater com "paula".
  */
-const TETO_GLOBAL = 20; // tentativas erradas por usuário, vindas de qualquer computador
-
-export async function autenticar(identificador: string, senha: string, ip = 'desconhecido'): Promise<ResultadoLogin> {
+export async function autenticar(identificador: string, senha: string): Promise<ResultadoLogin> {
   const chave = identificador.trim().toLowerCase();
-  // Bloqueio por usuário E computador: quem erra a senha só trava a própria tentativa, não a conta de todos.
-  const chaveIp = `${chave}@${ip}`;
-  const tentativa = await prisma.loginAttempt.findUnique({ where: { identificador: chaveIp } });
-  const global = await prisma.loginAttempt.findUnique({ where: { identificador: chave } });
-  const agora = new Date();
-  if ((tentativa?.bloqueadoAte && tentativa.bloqueadoAte > agora) || (global?.bloqueadoAte && global.bloqueadoAte > agora)) {
+  const tentativa = await prisma.loginAttempt.findUnique({ where: { identificador: chave } });
+  if (tentativa?.bloqueadoAte && tentativa.bloqueadoAte > new Date()) {
     return { ok: false, erro: 'Conta temporariamente bloqueada. Tente novamente mais tarde.' };
   }
 
   const user = await prisma.user.findFirst({
     where: { OR: [{ email: { equals: chave, mode: 'insensitive' } }, { username: { equals: chave, mode: 'insensitive' } }] },
   });
-  const senhaValida = user ? await verificarSegredo(senha, user.senhaHash) : (await gastarTempoDeVerificacao(senha), false);
+  const senhaValida = user ? await verificarSegredo(senha, user.senhaHash) : false;
 
   // Conta desativada é tratada como credencial inválida (não revela que a conta existe).
   if (!user || !user.ativo || !senhaValida) {
-    // Se o bloqueio anterior já venceu, a contagem recomeça do zero (senão uma falha renova o bloqueio para sempre).
-    const baseIp = tentativa?.bloqueadoAte && tentativa.bloqueadoAte <= agora ? 0 : (tentativa?.tentativas ?? 0);
-    const baseGlobal = global?.bloqueadoAte && global.bloqueadoAte <= agora ? 0 : (global?.tentativas ?? 0);
-    const novasTentativas = baseIp + 1;
-    const novasGlobais = baseGlobal + 1;
-    const bloqueio = new Date(Date.now() + BLOQUEIO_MINUTOS * 60 * 1000);
-    await prisma.loginAttempt.upsert({
-      where: { identificador: chaveIp },
-      create: { identificador: chaveIp, tentativas: 1 },
-      update: { tentativas: novasTentativas, bloqueadoAte: novasTentativas >= MAX_TENTATIVAS ? bloqueio : null },
-    });
+    const novasTentativas = (tentativa?.tentativas ?? 0) + 1;
     await prisma.loginAttempt.upsert({
       where: { identificador: chave },
       create: { identificador: chave, tentativas: 1 },
-      update: { tentativas: novasGlobais, bloqueadoAte: novasGlobais >= TETO_GLOBAL ? bloqueio : null },
+      update: {
+        tentativas: novasTentativas,
+        bloqueadoAte: novasTentativas >= MAX_TENTATIVAS ? new Date(Date.now() + BLOQUEIO_MINUTOS * 60 * 1000) : null,
+      },
     });
     return { ok: false, erro: 'Usuário/e-mail ou senha inválidos.' };
   }
 
-  await prisma.loginAttempt.deleteMany({ where: { identificador: { in: [chaveIp, chave] } } });
+  await prisma.loginAttempt.deleteMany({ where: { identificador: chave } });
   const { token, expiresAt } = await criarSessao(user.id);
   return { ok: true, token, expiresAt };
 }

@@ -12,17 +12,9 @@ export function normalizarLocal(valor: string | null | undefined): string {
   return (valor ?? '').replace(/\s+/g, ' ').trim().toLocaleUpperCase('pt-BR');
 }
 
-/**
- * Chave para comparar/agrupar locais: ignora acentos ("MARINGÁ" = "MARINGA") e pontuação/espaços
- * ("ITU SP" = "ITU-SP" = "ITUSP"), para que grafias diferentes não virem itens separados.
- */
-/** Grafias curtas que são a mesma cidade (ex.: "ITU" é Itu, SP). */
-const MESMO_LOCAL: Record<string, string> = { ITU: 'ITUSP', ALTOTAQUARI: 'TAQUARI', TAQUARIMT: 'TAQUARI' };
-
+/** Chave para comparar/agrupar locais: igual a normalizarLocal, ignorando acentos ("MARINGÁ" = "MARINGA"). */
 export function chaveLocal(valor: string | null | undefined): string {
-  const chave = normalizarLocal(valor)
+  return normalizarLocal(valor)
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[^A-Z0-9]/g, '');
-  return MESMO_LOCAL[chave] ?? chave;
+    .replace(/[̀-ͯ]/g, '');
 }

@@ -17,7 +17,6 @@ import { rotuloNfs } from '@/lib/nf';
 import { fmtMetros, fmtPeso } from '@/lib/format';
 import { pecasDoGrupo } from '@/lib/domain/regras';
 import { normalizarLocal } from '@/lib/domain/local';
-import { SVG_IMPRIMIR_HTML } from '@/components/icones/Icones';
 
 export interface MedicaoRomaneio {
   quantidade: number;
@@ -238,7 +237,7 @@ function documento(o: OpcoesDocumento): string {
 </head>
 <body>
   <div class="acoes">
-    <button type="button" class="btn" id="btn-imprimir">${SVG_IMPRIMIR_HTML} Imprimir</button>
+    <button type="button" class="btn" id="btn-imprimir"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg> Imprimir</button>
     <button type="button" class="btn" id="btn-voltar">← Voltar</button>
   </div>
 

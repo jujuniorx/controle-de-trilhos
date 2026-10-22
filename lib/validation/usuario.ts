@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const senha = z
   .string()
-  .min(10, 'A senha precisa ter ao menos 10 caracteres.')
+  .min(8, 'A senha precisa ter ao menos 8 caracteres.')
   .regex(/[A-Za-z]/, 'A senha precisa ter ao menos uma letra.')
   .regex(/[0-9]/, 'A senha precisa ter ao menos um número.');
 

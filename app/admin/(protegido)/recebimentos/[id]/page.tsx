@@ -1,4 +1,4 @@
-import { IconeImprimir } from '@/components/icones/Icones';
+import { IconeImpressora } from '@/components/icones/Icones';
 import Link from 'next/link';
 import { fmtMetros, fmtPeso } from '@/lib/format';
 import { normalizarLocal } from '@/lib/domain/local';
@@ -13,7 +13,6 @@ import { rotuloNfs, nfsEmTexto } from '@/lib/nf';
 import { EditarMedicoesPainel } from './EditarMedicoesPainel';
 import { HistoricoMovimentacao } from '@/components/admin/HistoricoMovimentacao';
 import { informarNumeroDocumentoRecebimentoAction } from './actions';
-import { EditarDadosRecebimentoPainel } from './EditarDadosRecebimentoPainel';
 
 function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
@@ -50,7 +49,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
             )}
             {/* <a> e não <Link>: o romaneio é um documento HTML puro (route handler), sem prefetch/RSC. */}
             <a href={`/admin/recebimentos/${mov.id}/romaneio`} className="btn btn-ghost btn-sm">
-              <IconeImprimir size={15} /> Imprimir romaneio
+              <IconeImpressora size={15} className="inline-block align-[-3px]" /> Imprimir romaneio
             </a>
           </div>
         </div>
@@ -88,19 +87,6 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
           )}
         </dl>
         <NfsPainel movimentacaoId={mov.id} principal={mov.numeroDocumento} extras={mov.numerosDocumentoExtras} acaoCorrigirPrincipal={informarNumeroDocumentoRecebimentoAction} />
-        <EditarDadosRecebimentoPainel
-          movimentacaoId={mov.id}
-          inicial={{
-            dataMovimentacao: mov.dataMovimentacao ? mov.dataMovimentacao.toISOString().slice(0, 10) : '',
-            origem: mov.origem ?? '',
-            tipoTransporte: mov.tipoTransporte,
-            placaCavalo: mov.placaCavalo ?? '',
-            placaCarreta: mov.placaCarreta ?? '',
-            placaCarreta2: mov.placaCarreta2 ?? '',
-            responsavelPatio: mov.responsavelPatio ?? '',
-            observacao: mov.observacao ?? '',
-          }}
-        />
       </section>
 
       {/* 2. Materiais recebidos */}
@@ -163,19 +149,6 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
                       )}
                     </div>
                   ))}
-                </div>
-                <div className="mt-3 grid grid-cols-2 gap-3 border-t border-line pt-3">
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Metragem</p>
-                    <p className="font-mono text-base font-semibold text-ink">{fmtMetros(g.metrosTotal)} m</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Peso</p>
-                    <p className="font-mono text-base font-semibold text-ink">
-                      {fmtPeso(Number(g.pesoCalculado ?? 0))} t
-                      {g.tipoMaterial === 'SUCATA' && <span className="ml-2 text-xs font-normal text-warn">estimado, a confirmar</span>}
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>

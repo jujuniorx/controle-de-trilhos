@@ -61,7 +61,7 @@ function unicos(valores: (string | null | undefined)[]): string[] {
   return [...new Set(valores.filter((v): v is string => Boolean(v)))];
 }
 
-function metrosPorSC(medicoes: Medicao[], sc: 'SC1' | 'SC2' | 'SC3' | 'DIVERSOS' | 'JACARE'): number | null {
+function metrosPorSC(medicoes: Medicao[], sc: 'SC1' | 'SC2' | 'SC3' | 'DIVERSOS'): number | null {
   const soma = medicoes.filter((m) => m.classificacaoSC === sc).reduce((acc, m) => acc + Number(m.metros), 0);
   return soma > 0 ? arredondar2(soma) : null;
 }
@@ -91,23 +91,13 @@ function formatarColunasDeData(sheet: ExcelJS.Worksheet) {
   });
 }
 
-/**
- * Proteção contra injeção de fórmula: texto que começa com = + @ ou - (ou tab/CR) vira fórmula no Excel.
- * Um apóstrofo na frente faz a célula ficar como texto. O traço isolado ("-") é marcador da planilha e fica como está.
- */
-function sanear<T>(valores: T[]): T[] {
-  return valores.map((v) =>
-    typeof v === 'string' && v !== '-' && /^[=+@\t\r-]/.test(v) ? (`'${v}` as unknown as T) : v,
-  );
-}
-
 function aplicarCabecalho(sheet: ExcelJS.Worksheet, colunas: string[]) {
   sheet.addRow(colunas);
   const headerRow = sheet.getRow(1);
   headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, name: 'Calibri', size: 11 }; // branco, negrito
   headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2D5AA6' } }; // azul escuro
   headerRow.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-  headerRow.height = 32; // duas linhas: cabeçalhos longos (ex.: "Tipo do documento") quebram e não ficam cortados
+  headerRow.height = 18; // altura padronizada
   sheet.views = [{ state: 'frozen', ySplit: 1 }];
   sheet.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: colunas.length } };
   sheet.columns.forEach((c) => (c.width = 16));
@@ -149,14 +139,8 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
     'Total',
   ]);
 
-  // Recebidos em ordem crescente de data (dia 1 em cima, último dia embaixo), como a planilha da empresa.
-  const cronologico = [...movimentacoes].sort(
-    (a, b) => (a.dataMovimentacao?.getTime() ?? 0) - (b.dataMovimentacao?.getTime() ?? 0) || a.createdAt.getTime() - b.createdAt.getTime(),
-  );
-
-  for (const mov of cronologico) {
+  for (const mov of movimentacoes) {
     const [dia, mes, ano] = diaMesAno(mov.dataMovimentacao);
-    const primeiraLinha = sheet.rowCount + 1;
     const base = [
       dia,
       mes,
@@ -181,7 +165,7 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
 
       const fabricantes = unicos(novos.map((g) => upper(g.fabricante)));
 
-      sheet.addRow(sanear([
+      sheet.addRow([
         ...base,
         descricaoPerfil(grupos[0].perfil),
         fabricantes.length > 0 ? fabricantes.join(' / ') : '-',
@@ -203,25 +187,12 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         somaOuNull(sucatas.map(metros), arredondar2),
         somaOuNull(novos.map(metros), arredondar2),
         arredondar2(grupos.reduce((acc, g) => acc + metros(g), 0)),
-      ]));
+      ]);
     }
-    pintarSePendente(sheet, primeiraLinha, mov.status);
   }
 
   formatarColunasDeData(sheet);
   aplicarCoresRecebidos(sheet);
-}
-
-/** Movimentação ainda pendente de conferência: a linha inteira fica amarela, para mostrar o que falta. */
-function pintarSePendente(sheet: ExcelJS.Worksheet, primeiraLinha: number, status: string) {
-  if (status !== 'PENDENTE_CONFERENCIA') return;
-  const colunas = sheet.columnCount;
-  for (let n = primeiraLinha; n <= sheet.rowCount; n++) {
-    const row = sheet.getRow(n);
-    for (let c = 1; c <= colunas; c++) {
-      row.getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // amarelo
-    }
-  }
 }
 
 /** Coluna 23 é "Total" em Recebidos — colorir em vermelho com fundo amarelo. */
@@ -238,19 +209,16 @@ function aplicarCoresRecebidos(sheet: ExcelJS.Worksheet) {
 
 /** Aplica bordas em todas as células da planilha. */
 function aplicarBordas(sheet: ExcelJS.Worksheet) {
-  // Percorre todas as colunas da aba (inclusive as vazias): sem isso, células sem valor ficam sem contorno.
-  const colunas = sheet.columnCount;
-  for (let n = 1; n <= sheet.rowCount; n++) {
-    const row = sheet.getRow(n);
-    for (let c = 1; c <= colunas; c++) {
-      row.getCell(c).border = {
+  sheet.eachRow((row) => {
+    row.eachCell((cell) => {
+      cell.border = {
         top: { style: 'thin' },
         left: { style: 'thin' },
         bottom: { style: 'thin' },
         right: { style: 'thin' },
       };
-    }
-  }
+    });
+  });
 }
 
 /** Valor da coluna "Tipo" do MATERIAL na planilha: NOVO, TAMPÃO, REEMPREGO G1, SUCATA. */
@@ -304,12 +272,7 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
     'Considerar real meta',
   ]);
 
-  // Remetidos em ordem crescente de data, igual aos recebidos (para copiar e colar na planilha da empresa).
-  const cronologicoRemetidos = [...movimentacoes].sort(
-    (a, b) => (a.dataMovimentacao?.getTime() ?? 0) - (b.dataMovimentacao?.getTime() ?? 0) || a.createdAt.getTime() - b.createdAt.getTime(),
-  );
-
-  for (const mov of cronologicoRemetidos) {
+  for (const mov of movimentacoes) {
     const [dia, mes, ano] = diaMesAno(mov.dataMovimentacao);
     const destinoTransportadora = [normalizarLocal(mov.destino),mov.transportadora ? upper(mov.transportadora) : null]
       .filter(Boolean)
@@ -329,12 +292,10 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
     ];
     // Preenchidas à mão na planilha mestra — o app não captura.
     const manuais = ['', '', ''];
-    const primeiraLinha = sheet.rowCount + 1;
 
     if (mov.grupos.length === 0) {
       // Pré-cadastro ainda aguardando o Pátio confirmar a chegada — sem grupos ainda.
-      sheet.addRow(sanear([...base, '', '', '', tipoRemetido, null, null, null, ...manuais]));
-      pintarSePendente(sheet, primeiraLinha, mov.status);
+      sheet.addRow([...base, '', '', '', tipoRemetido, null, null, null, ...manuais]);
       continue;
     }
 
@@ -349,7 +310,7 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         arredondar3,
       );
 
-      sheet.addRow(sanear([
+      sheet.addRow([
         ...base,
         descricaoPerfil(grupos[0].perfil),
         rotuloMaterial(grupos[0]),
@@ -359,9 +320,8 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         diversos ? '-' : arredondar2(grupos.reduce((acc, g) => acc + Number(g.metrosTotal), 0)),
         diversos ? (toneladas ?? '-') : toneladas,
         ...manuais,
-      ]));
+      ]);
     }
-    pintarSePendente(sheet, primeiraLinha, mov.status);
   }
 
   formatarColunasDeData(sheet);

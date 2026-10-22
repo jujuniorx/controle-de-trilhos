@@ -20,20 +20,6 @@ function montarWhere(filtros: FiltrosRelatorioInput): Prisma.MovimentacaoWhereIn
     ];
   }
 
-  if (filtros.placa) {
-    // Procura em cavalo e nas duas carretas (busca parcial).
-    where.AND = [
-      ...((where.AND as Prisma.MovimentacaoWhereInput[] | undefined) ?? []),
-      {
-        OR: [
-          { placaCavalo: { contains: filtros.placa } },
-          { placaCarreta: { contains: filtros.placa } },
-          { placaCarreta2: { contains: filtros.placa } },
-        ],
-      },
-    ];
-  }
-
   if (filtros.origemDestino) {
     // Locais são gravados em MAIÚSCULAS (normalizarLocal). O ILIKE sozinho pode não casar
     // "rondonópolis" com "RONDONÓPOLIS" conforme a collation do banco, então também busca
@@ -161,17 +147,4 @@ export async function listarPendencias(): Promise<Pendencias> {
   ]);
 
   return { aguardandoConferencia, remetidosAguardandoChegada, recebidosAguardandoPesoSucata };
-}
-
-/** Ordem de exibição da lista: primeiro o que está travado (pendente, aguardando chegada), depois conferido. */
-const ORDEM_SITUACAO: Record<string, number> = { PENDENTE_CONFERENCIA: 0, AGUARDANDO_CHEGADA: 1, CONFERIDO: 2 };
-
-/** Lista do relatório: agrupada por situação e, dentro de cada grupo, da data mais recente para a mais antiga. */
-export function ordenarPorSituacao<T extends { status: string; dataMovimentacao: Date | null; createdAt: Date }>(movs: T[]): T[] {
-  const tempo = (d: Date | null, fallback: Date) => (d ?? fallback).getTime();
-  return [...movs].sort((a, b) => {
-    const porSituacao = (ORDEM_SITUACAO[a.status] ?? 9) - (ORDEM_SITUACAO[b.status] ?? 9);
-    if (porSituacao !== 0) return porSituacao;
-    return tempo(b.dataMovimentacao, b.createdAt) - tempo(a.dataMovimentacao, a.createdAt);
-  });
 }

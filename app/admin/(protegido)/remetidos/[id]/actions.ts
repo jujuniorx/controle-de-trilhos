@@ -24,15 +24,13 @@ async function usuarioAtual() {
 }
 
 export async function informarNumeroDocumentoAction(movimentacaoId: string, numeroDocumento: string): Promise<AcaoResultado> {
-  // Em branco = deixar sem NF (sem apagar o remetido).
-  const nf = numeroDocumento.trim();
-  if (nf !== '' && !NF_REGEX.test(nf)) {
+  if (!NF_REGEX.test(numeroDocumento)) {
     return { ok: false, erro: MSG_NF_INVALIDA };
   }
 
   const usuario = await usuarioAtual();
   try {
-    await informarNumeroDocumentoRemetido(movimentacaoId, nf === '' ? null : nf, usuario);
+    await informarNumeroDocumentoRemetido(movimentacaoId, numeroDocumento, usuario);
     return { ok: true };
   } catch (erro) {
     const mensagem = erro instanceof ErroRegraNegocio ? erro.message : 'Não foi possível salvar a nota fiscal.';

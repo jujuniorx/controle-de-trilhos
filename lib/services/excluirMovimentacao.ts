@@ -10,15 +10,12 @@ import { rotuloDaMovimentacao, tirarSnapshot } from '@/lib/services/lixeira';
  */
 export async function excluirMovimentacao(
   movimentacaoId: string,
-  ator: { userId: string | null; nome: string },
-  opcoes: { motivo?: string; chegadaId?: string } = {},
+  ator: { userId: string; nome: string },
 ): Promise<{ rotulo: string; tipo: string }> {
   const foto = await tirarSnapshot(movimentacaoId);
   if (!foto) throw new ErroRegraNegocio('Movimentação não encontrada (talvez já tenha sido excluída).');
   const { mov, json } = foto;
   const rotulo = rotuloDaMovimentacao(mov);
-  // Chegada de onde veio o recebimento: fica guardada na lixeira para religar ao restaurar.
-  const dados = opcoes.chegadaId ? { ...(json as object), chegadaIdOrigem: opcoes.chegadaId } : json;
 
   await prisma.$transaction([
     prisma.movimentacaoExcluida.create({
@@ -26,15 +23,11 @@ export async function excluirMovimentacao(
         movimentacaoId: mov.id,
         tipo: mov.tipo,
         rotulo,
-        dados: dados as object,
+        dados: json,
         excluidoPorId: ator.userId,
         excluidoPorNome: ator.nome,
-        motivo: opcoes.motivo ?? null,
       },
     }),
-    ...(opcoes.chegadaId
-      ? [prisma.chegadaCaminhao.updateMany({ where: { id: opcoes.chegadaId, movimentacaoId }, data: { movimentacaoId: null, recebidaEm: null } })]
-      : []),
     prisma.medicao.deleteMany({ where: { grupo: { movimentacaoId } } }),
     prisma.anexo.deleteMany({ where: { movimentacaoId } }),
     prisma.grupo.deleteMany({ where: { movimentacaoId } }),
@@ -44,23 +37,4 @@ export async function excluirMovimentacao(
   ]);
 
   return { rotulo, tipo: mov.tipo };
-}
-
-/**
- * Pátio: exclui uma carreta de remetido que a Portaria registrou e ainda não foi liberada/saiu.
- * Motivo obrigatório; vai para a lixeira do dono (restaurável).
- */
-export async function excluirRemetidoPatio(movimentacaoId: string, motivo: string, atorNome: string): Promise<void> {
-  const texto = motivo.trim();
-  if (texto.length < 3) throw new ErroRegraNegocio('Escreva o motivo da exclusão (pelo menos 3 letras).');
-  const mov = await prisma.movimentacao.findUnique({
-    where: { id: movimentacaoId },
-    select: { tipo: true, carretaLiberadaEm: true, saidaPortariaEm: true },
-  });
-  if (!mov) throw new ErroRegraNegocio('Remetido não encontrado (talvez já tenha sido excluído).');
-  if (mov.tipo !== 'REMETIDO') throw new ErroRegraNegocio('Este registro não é um remetido.');
-  if (mov.carretaLiberadaEm || mov.saidaPortariaEm) {
-    throw new ErroRegraNegocio('Esta carreta já foi liberada ou já saiu. Não dá para excluir.');
-  }
-  await excluirMovimentacao(movimentacaoId, { userId: null, nome: atorNome }, { motivo: texto });
 }

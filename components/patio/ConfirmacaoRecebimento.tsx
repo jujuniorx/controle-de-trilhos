@@ -7,7 +7,6 @@ import { liveQuery } from 'dexie';
 import { db, type RecebimentoLocal, type SyncStatus } from '@/lib/offline/db';
 import { sincronizarPendentes } from '@/lib/offline/sync';
 import { ChecagemAnimada } from '@/components/ui/ChecagemAnimada';
-import { IconeAlerta } from '@/components/icones/Icones';
 
 function metrosDaMedicao(m: { quantidade: number; comprimento: number }): number {
   return Math.round(m.quantidade * m.comprimento * 100) / 100;
@@ -65,7 +64,7 @@ export function ConfirmacaoRecebimento({ clientId }: { clientId: string }) {
 
   if (carregando) {
     return (
-      <main className="mx-auto max-w-xl lg:max-w-none p-6">
+      <main className="mx-auto max-w-xl lg:max-w-3xl p-6">
         <p className="text-sm text-ink-muted">Carregando...</p>
       </main>
     );
@@ -75,7 +74,7 @@ export function ConfirmacaoRecebimento({ clientId }: { clientId: string }) {
     // Equivalente client-side de notFound(): nenhum registro local com este clientId
     // (ex.: link acessado direto, em outro dispositivo, ou dados locais limpos).
     return (
-      <main className="mx-auto max-w-xl lg:max-w-none p-6">
+      <main className="mx-auto max-w-xl lg:max-w-3xl p-6">
         <h1 className="font-condensed text-lg font-bold uppercase tracking-wide text-ink">Recebimento não encontrado</h1>
         <p className="mt-2 text-sm text-ink-muted">
           Não há nenhum recebimento salvo neste dispositivo com este identificador.
@@ -98,7 +97,7 @@ export function ConfirmacaoRecebimento({ clientId }: { clientId: string }) {
   };
 
   return (
-    <main className="mx-auto max-w-xl lg:max-w-none space-y-4 p-6">
+    <main className="mx-auto max-w-xl lg:max-w-3xl space-y-4 p-6">
       <div className="conf-block conf-ok text-center">
         <div className="mx-auto w-fit">
           <ChecagemAnimada size={64} />

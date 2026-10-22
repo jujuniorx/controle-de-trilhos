@@ -7,16 +7,10 @@ import { chaveLocal } from '@/lib/domain/local';
  * W61/W62 = barras × 10,5 m. Meta de recolhimento: 47.625 m.
  */
 
-export { METROS_POR_UNIDADE, METROS_POR_BARRA, META_RECOLHIMENTO_M } from '@/lib/domain/informativo';
-import { METROS_POR_UNIDADE, METROS_POR_BARRA, META_RECOLHIMENTO_M } from '@/lib/domain/informativo';
-/** Cidade da serra a partir da origem gravada (aceita variações como "EVANGELISTA DE SOUZA"). */
-export function cidadeDaOrigem(origem: string | null | undefined): 'EVANGELISTA' | 'PARATINGA' | null {
-  const o = chaveLocal(origem);
-  if (o.startsWith('EVANGELISTA')) return 'EVANGELISTA';
-  if (o.startsWith('PARATINGA')) return 'PARATINGA';
-  return null;
-}
-
+export const METROS_POR_UNIDADE = 10;
+export const METROS_POR_BARRA = 10.5;
+export const META_RECOLHIMENTO_M = 47625;
+const CIDADES = ['EVANGELISTA', 'PARATINGA'];
 
 export interface Quadro { geracao: number; w61: number; w62: number; recebido: number; recolhido: number; naoChegou: number }
 
@@ -73,7 +67,8 @@ export async function informativoDoAno(ano: number, dia: string) {
     tocar(r.data).recolhido += m;
   }
   for (const g of recebidosSistema) {
-    if (!cidadeDaOrigem(g.movimentacao.origem)) continue;
+    const origem = chaveLocal(g.movimentacao.origem);
+    if (!CIDADES.includes(origem)) continue;
     const data = g.movimentacao.dataMovimentacao;
     if (!data || data.getUTCFullYear() !== ano) continue;
     const m = Number(g.metrosTotal);
@@ -86,11 +81,7 @@ export async function informativoDoAno(ano: number, dia: string) {
     meses[mesDe(h.data)].recebido += m;
     tocar(h.data).recebido += m;
   }
-  // Recolhido = W61 + W62 (composição diária). A planilha da serra não tem recolhimento de 2026.
-  for (const q of [...meses, ...porDia.values()]) {
-    q.recolhido = q.w61 + q.w62;
-    q.naoChegou = Math.max(q.recolhido - q.recebido, 0);
-  }
+  for (const q of [...meses, ...porDia.values()]) q.naoChegou = Math.max(q.recolhido - q.recebido, 0);
 
   const somar = (lista: Quadro[]): Quadro =>
     lista.reduce((t, q) => ({ geracao: t.geracao + q.geracao, w61: t.w61 + q.w61, w62: t.w62 + q.w62, recebido: t.recebido + q.recebido, recolhido: t.recolhido + q.recolhido, naoChegou: t.naoChegou + q.naoChegou }), vazio());

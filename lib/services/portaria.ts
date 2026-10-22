@@ -177,15 +177,6 @@ export async function liberarCarreta(id: string): Promise<void> {
     },
     'PORTARIA',
   );
-  // O administrativo libera a nota daqui: avisa o painel no computador e no celular.
-  await enviarAvisoPush(
-    {
-      titulo: 'Carreta liberada pelo Pátio',
-      corpo: `${destino}${placa ? ` — placa ${placa}` : ''}. Já pode liberar a nota.`,
-      url: `/admin/remetidos/${id}`,
-    },
-    'ADMIN',
-  );
 }
 
 /** Pátio: liberou por engano — volta para "aguardando o Pátio". Só antes da Portaria confirmar a saída. */
@@ -319,14 +310,4 @@ export async function criarEnvioPelaPortaria(
   await registrarHistorico({ movimentacaoId: mov.id, usuarioId: atorId, usuarioNome: `${atorNome} (portaria)`, acao: 'CARRETA_CHEGOU' });
 
   return mov.id;
-}
-
-/** Portaria: desfaz uma saída registrada por engano (a carreta volta para dentro da portaria). */
-export async function desfazerSaidaCarreta(id: string, atorNome: string, atorId?: string): Promise<void> {
-  const r = await prisma.movimentacao.updateMany({
-    where: { id, tipo: 'REMETIDO', saidaPortariaEm: { not: null } },
-    data: { saidaPortariaEm: null, saidaPortariaPor: null },
-  });
-  if (r.count === 0) throw new ErroRegraNegocio('Esta carreta não está como saída. Atualize a tela.');
-  await registrarHistorico({ movimentacaoId: id, usuarioId: atorId, usuarioNome: `${atorNome} (portaria)`, acao: 'SAIDA_DESFEITA' });
 }

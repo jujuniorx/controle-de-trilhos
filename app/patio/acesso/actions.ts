@@ -3,11 +3,10 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { verificarPinComBloqueio, criarAcessoPatio } from '@/lib/services/patioAcesso';
-import { ipDoCliente } from '@/lib/services/clienteIp';
 
 export async function acessarPatio(formData: FormData): Promise<{ ok: boolean; erro?: string }> {
   const pin = String(formData.get('pin') ?? '');
-  const resultado = await verificarPinComBloqueio(pin, await ipDoCliente());
+  const resultado = await verificarPinComBloqueio(pin);
   if (!resultado.ok) return { ok: false, erro: resultado.erro };
 
   const { token, expiresAt } = await criarAcessoPatio();

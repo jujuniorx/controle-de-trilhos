@@ -3,8 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { novoEnvioPortariaAction } from './actions';
-import { formatarCpfDigitado, formatarTelefoneDigitado } from '@/lib/validation/portaria';
-import { formatarCpf, formatarTelefone } from '@/lib/domain/portaria';
+import { formatarCpfDigitado } from '@/lib/validation/portaria';
 
 /** Carreta que chegou sem o Pátio ter cadastrado o envio: a Portaria cria aqui e o Pátio é avisado. */
 export function NovoEnvioPortaria() {
@@ -27,7 +26,7 @@ export function NovoEnvioPortaria() {
           inputMode={opcoes?.numerico ? 'decimal' : nome === 'motoristaCpf' ? 'numeric' : undefined}
           value={valores[nome]}
           style={opcoes?.maiusculo ? { textTransform: 'uppercase' } : undefined}
-          onChange={(e) => setValores({ ...valores, [nome]: nome === 'motoristaCpf' ? formatarCpfDigitado(e.target.value) : nome === 'motoristaTelefone' ? formatarTelefoneDigitado(e.target.value) : e.target.value })}
+          onChange={(e) => setValores({ ...valores, [nome]: nome === 'motoristaCpf' ? formatarCpfDigitado(e.target.value) : e.target.value })}
         />
       </label>
     );

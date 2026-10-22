@@ -16,7 +16,7 @@ export function chavePublicaPush(): string | null {
   return process.env.VAPID_PUBLIC_KEY ?? null;
 }
 
-export type SetorPush = 'PATIO' | 'PORTARIA' | 'ADMIN';
+export type SetorPush = 'PATIO' | 'PORTARIA';
 
 export async function salvarInscricaoPush(endpoint: string, p256dh: string, auth: string, setor: SetorPush = 'PATIO'): Promise<void> {
   await prisma.pushSubscription.upsert({

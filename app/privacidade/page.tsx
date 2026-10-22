@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 const CONTATO = process.env.NEXT_PUBLIC_CONTATO_PRIVACIDADE;
 
 const COOKIES = [
-  { nome: 'sessao_admin', para: 'Mantém o Administrativo conectado depois do login.', prazo: '12 horas, ou até você sair' },
+  { nome: 'sessao_admin', para: 'Mantém o Administrativo conectado depois do login.', prazo: '7 dias, ou até você sair' },
   { nome: 'acesso_patio', para: 'Mantém o aparelho do Pátio autorizado depois de digitar o código de acesso.', prazo: '90 dias, ou até o acesso ser revogado' },
   { nome: 'ct_tema', para: 'Lembra se você escolheu o tema claro ou escuro.', prazo: '1 ano' },
 ];
@@ -33,7 +33,7 @@ export default function PrivacidadePage() {
         <ul className="list-disc space-y-1 pl-5 text-sm text-ink">
           <li><b>Registros da operação:</b> data, nota fiscal, origem ou destino, placas, perfis, medições, pesos e fotos ou documentos anexados.</li>
           <li><b>Nome de quem lançou:</b> o responsável informado pelo Pátio e o nome do administrador que conferiu, para saber quem fez cada lançamento.</li>
-          <li><b>Contas do Administrativo:</b> nome, usuário e a senha, guardada de forma protegida (nunca em texto aberto).</li>
+          <li><b>Contas do Administrativo:</b> nome, usuário ou e-mail e a senha, guardada de forma protegida (nunca em texto aberto).</li>
           <li><b>Histórico de alterações:</b> o que mudou, quando e por quem.</li>
         </ul>
         <p className="text-sm text-ink-muted">Os dados são usados só para operar e conferir o controle de trilhos. Não são vendidos nem usados para publicidade.</p>

@@ -66,35 +66,8 @@ export function listarLixeira() {
   return prisma.movimentacaoExcluida.findMany({
     where: { restauradoEm: null },
     orderBy: { excluidoEm: 'desc' },
-    select: { id: true, tipo: true, rotulo: true, excluidoPorNome: true, excluidoEm: true, motivo: true },
+    select: { id: true, tipo: true, rotulo: true, excluidoPorNome: true, excluidoEm: true },
   });
-}
-
-/** Chegadas excluídas pelo Pátio (ainda na lixeira). */
-export function listarChegadasExcluidas() {
-  return prisma.chegadaCaminhao.findMany({
-    where: { excluidaEm: { not: null } },
-    orderBy: { excluidaEm: 'desc' },
-    select: {
-      id: true,
-      origem: true,
-      placaCarreta: true,
-      placaCavalo: true,
-      transportadora: true,
-      excluidaEm: true,
-      excluidaPor: true,
-      excluidaMotivo: true,
-    },
-  });
-}
-
-/** Recoloca uma chegada excluída pelo Pátio: volta para a lista de onde saiu. */
-export async function restaurarChegada(id: string): Promise<void> {
-  const r = await prisma.chegadaCaminhao.updateMany({
-    where: { id, excluidaEm: { not: null } },
-    data: { excluidaEm: null, excluidaPor: null, excluidaMotivo: null },
-  });
-  if (r.count === 0) throw new ErroRegraNegocio('Esta chegada não está mais na lixeira.');
 }
 
 /** Recoloca uma movimentação excluída exatamente como estava (grupos, medições, anexos e histórico). */
@@ -108,7 +81,7 @@ export async function restaurarMovimentacao(
   }
 
   const snap = reviverDatas(registro.dados as unknown as DadosMovimentacaoSnapshot);
-  const { remetidoDetalhe, grupos, anexos, historico, chegadaIdOrigem, ...mov } = snap as typeof snap & { chegadaIdOrigem?: string };
+  const { remetidoDetalhe, grupos, anexos, historico, ...mov } = snap;
 
   await prisma.$transaction(
     async (tx) => {
@@ -146,13 +119,6 @@ export async function restaurarMovimentacao(
           acao: 'RESTAURADO',
         },
       });
-      // Recebimento que veio de uma chegada: religa a chegada se ela ainda estiver sem recebimento.
-      if (chegadaIdOrigem) {
-        await tx.chegadaCaminhao.updateMany({
-          where: { id: chegadaIdOrigem, movimentacaoId: null },
-          data: { movimentacaoId: mov.id, recebidaEm: new Date() },
-        });
-      }
       await tx.movimentacaoExcluida.update({ where: { id: lixeiraId }, data: { restauradoEm: new Date() } });
     },
     { timeout: 30_000, maxWait: 10_000 },

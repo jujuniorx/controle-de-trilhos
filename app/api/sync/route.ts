@@ -4,8 +4,6 @@ import { validarAcessoPatio } from '@/lib/services/patioAcesso';
 import { recebimentoCaminhaoSchema } from '@/lib/validation/recebimento';
 import { criarRecebimentoCaminhao } from '@/lib/services/movimentacao';
 import { ErroRegraNegocio, resumirErro } from '@/lib/services/errors';
-import { dentroDoLimite } from '@/lib/services/limiteTaxa';
-import { ipDoCliente } from '@/lib/services/clienteIp';
 
 /**
  * Recebe um Recebimento capturado offline (fila Dexie) e o persiste.
@@ -17,9 +15,6 @@ import { ipDoCliente } from '@/lib/services/clienteIp';
  * - 5xx            → recuperável. Falha de infraestrutura, tenta de novo depois.
  */
 export async function POST(request: NextRequest) {
-  if (!(await dentroDoLimite('sync', 120, 60_000, await ipDoCliente()))) {
-    return new Response(JSON.stringify({ erro: 'Muitas requisições. Aguarde um minuto.' }), { status: 429, headers: { 'Content-Type': 'application/json' } });
-  }
   const token = (await cookies()).get('acesso_patio')?.value;
   const autorizado = token ? await validarAcessoPatio(token) : false;
   if (!autorizado) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 });

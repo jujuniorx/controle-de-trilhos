@@ -3,11 +3,10 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { CampoObservacao, ICONE_CAMINHAO, Secao } from '@/components/portaria/Secao';
-import { cancelarChegadaAction, confirmarSaidaChegadaAction, definirOrdemChegadaAction, desfazerSaidaChegadaAction, registrarChegadaAction, salvarChegadaAction } from './actions';
+import { cancelarChegadaAction, confirmarSaidaChegadaAction, definirOrdemChegadaAction, registrarChegadaAction, salvarChegadaAction } from './actions';
 import type { ResultadoPortaria } from '../actions';
 import { ROTULO_ESTADO_CHEGADA } from '@/lib/domain/portaria';
-import { formatarCpfDigitado, formatarTelefoneDigitado } from '@/lib/validation/portaria';
-import { formatarCpf, formatarTelefone } from '@/lib/domain/portaria';
+import { formatarCpfDigitado } from '@/lib/validation/portaria';
 import type { ItemChegada } from '@/lib/services/chegada';
 
 const BADGE_CHEGADA = { AGUARDANDO_LIBERACAO: 'badge-muted', LIBERADA: 'badge-warn', RECEBIDA: 'badge-ok', SAIU: 'badge-info', CANCELADA: 'badge-muted' } as const;
@@ -35,8 +34,8 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
   const [v, setV] = useState({
     transportadora: item.transportadora ?? '',
     motoristaNome: item.motoristaNome ?? '',
-    motoristaCpf: formatarCpf(item.motoristaCpf),
-    motoristaTelefone: formatarTelefone(item.motoristaTelefone),
+    motoristaCpf: item.motoristaCpf ?? '',
+    motoristaTelefone: item.motoristaTelefone ?? '',
     placaCarreta: item.placaCarreta ?? '',
     placaCarreta2: item.placaCarreta2 ?? '',
     placaCavalo: item.placaCavalo ?? '',
@@ -46,16 +45,12 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
     observacao: item.observacao ?? '',
     origem: item.origem ?? '',
   });
-  const [cargaDescarga, setCargaDescarga] = useState(item.cargaDescarga ?? false);
-  const [destinoCarga, setDestinoCarga] = useState(item.destinoCarga ?? '');
   const set = (campo: keyof typeof v) => (e: { target: { value: string } }) =>
-    setV((atual) => ({ ...atual, [campo]: campo === 'motoristaCpf' ? formatarCpfDigitado(e.target.value) : campo === 'motoristaTelefone' ? formatarTelefoneDigitado(e.target.value) : String(campo).startsWith('placa') ? limparPlaca(e.target.value) : e.target.value }));
+    setV((atual) => ({ ...atual, [campo]: campo === 'motoristaCpf' ? formatarCpfDigitado(e.target.value) : String(campo).startsWith('placa') ? limparPlaca(e.target.value) : e.target.value }));
 
   const rascunho = item.estado === 'AGUARDANDO_LIBERACAO';
   const chegou = item.estado === 'LIBERADA';
   const descarregado = item.estado === 'RECEBIDA';
-  // Carga e descarga: a saída só libera depois que o Pátio confirma o carregamento.
-  const aguardaCarga = descarregado && item.cargaDescarga && !item.cargaCarregadaEm;
   const saiu = item.estado === 'SAIU';
   const semSalvar = saiu || descarregado;
 
@@ -63,7 +58,7 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
     setResultado(null);
     iniciar(async () => {
       try {
-        const r = await acao(item.id, { ...v, cargaDescarga, destinoCarga });
+        const r = await acao(item.id, v);
         setResultado(r);
         if (r.ok) router.refresh();
       } catch {
@@ -172,16 +167,6 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
             {campo('capacidadeCarga', 'Limite de carga (t)', { inputMode: 'decimal', maxLength: 6, placeholder: 'ex.: 48' })}
             {campo('comprimentoCarreta', 'Comprimento da carreta (m)', { inputMode: 'decimal', maxLength: 6, placeholder: 'ex.: 15,5' })}
           </div>
-          <label className="flex min-h-12 items-center gap-3 rounded-xl border border-line px-4 text-sm">
-            <input type="checkbox" className="h-5 w-5" checked={cargaDescarga} onChange={(e) => setCargaDescarga(e.target.checked)} disabled={pendente || saiu || descarregado} />
-            <span><b>Carga e descarga</b> — este caminhão também vai carregar depois de descarregar</span>
-          </label>
-          {cargaDescarga && (
-            <div className="field">
-              <label htmlFor={`${item.id}-destino-carga`}>Carregar para (destino)</label>
-              <input id={`${item.id}-destino-carga`} value={destinoCarga} onChange={(e) => setDestinoCarga(e.target.value)} className="h-12" maxLength={120} autoComplete="off" disabled={pendente || saiu || descarregado} />
-            </div>
-          )}
           <CampoObservacao id={`${item.id}-observacao`} valor={v.observacao} aoMudar={(x) => setV((a) => ({ ...a, observacao: x }))} desabilitado={pendente || saiu || descarregado} />
 
           {rascunho && (
@@ -201,30 +186,8 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
           )}
           {rascunho && <p className="text-sm text-ink-muted">Preencha ao menos uma placa e toque em &ldquo;Registrar chegada&rdquo;. O Pátio será avisado.</p>}
           {chegou && <p className="rounded-lg bg-warn/10 px-3 py-2 text-sm text-warn">Chegada registrada. O Pátio vai descarregar; você será avisado quando terminar.</p>}
-          {aguardaCarga && <p className="rounded-lg bg-warn/10 px-3 py-2 text-sm text-warn">O Pátio descarregou. Aguardando o carregamento: a saída libera depois que o Pátio confirmar a carga.</p>}
-          {descarregado && !aguardaCarga && <p className="rounded-lg bg-ok/10 px-3 py-2 text-sm text-ok">O Pátio descarregou. Quando o caminhão passar pela portaria, toque em &ldquo;Saída confirmada&rdquo;.</p>}
+          {descarregado && <p className="rounded-lg bg-ok/10 px-3 py-2 text-sm text-ok">O Pátio descarregou. Quando o caminhão passar pela portaria, toque em &ldquo;Saída confirmada&rdquo;.</p>}
           {saiu && <p className="rounded-lg bg-surface-2 px-3 py-2 text-sm text-ink-muted">Caminhão saiu. Só consulta.</p>}
-          {saiu && (
-            <button
-              type="button"
-              className="btn btn-ghost h-12 w-full"
-              disabled={pendente}
-              onClick={() => {
-                setResultado(null);
-                iniciar(async () => {
-                  try {
-                    const r = await desfazerSaidaChegadaAction(item.id);
-                    setResultado(r);
-                    if (r.ok) router.refresh();
-                  } catch {
-                    setResultado({ ok: false, erro: 'Sem conexão. Tente de novo.' });
-                  }
-                });
-              }}
-            >
-              {pendente ? 'Aguarde...' : 'Desfazer saída (voltar para a portaria)'}
-            </button>
-          )}
           {!rascunho && <p className="text-xs text-ink-muted">O PDF leva o que está <b>salvo</b>: toque em &ldquo;Salvar dados&rdquo; antes de baixar.</p>}
 
           <div className="grid grid-cols-2 gap-2">
@@ -241,7 +204,7 @@ export function CartaoChegada({ item }: { item: ItemChegada }) {
                 {pendente ? 'Aguarde...' : 'Registrar chegada'}
               </button>
             )}
-            {descarregado && !aguardaCarga && (
+            {descarregado && (
               <button
                 type="button"
                 className="btn btn-primary h-12 col-span-2 order-first"

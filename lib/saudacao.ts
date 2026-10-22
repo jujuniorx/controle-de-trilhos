@@ -24,33 +24,3 @@ export function saudacaoCompleta(agora: Date = new Date()): string {
   if (diaSemana === 1) return 'Boa segunda';
   return saudacao(agora);
 }
-
-const FRASES_POR_MOMENTO: Record<string, string[]> = {
-  madrugada: ['Boa madrugada', 'Que madrugada produtiva'],
-  manha: ['Bom dia', 'Bom dia, bora render', 'Boa manhã de trabalho'],
-  tarde: ['Boa tarde', 'Bom trabalho na tarde', 'Boa tarde, seguimos firme'],
-  noite: ['Boa noite', 'Boa noite, bom descanso'],
-  segunda: ['Boa segunda', 'Bora começar a semana', 'Segunda de trilhos no lugar'],
-  sexta: ['Boa sexta', 'Feliz sexta-feira', 'Chegamos na sexta'],
-  fimDeSemana: ['Bom fim de semana', 'Aproveite o fim de semana'],
-};
-
-/**
- * Saudação que revezar a cada abertura: sorteia entre frases do mesmo momento
- * (madrugada, manhã, tarde, noite, segunda, sexta, fim de semana).
- * `escolher` devolve um número entre 0 e 1; por padrão é aleatório (testes passam um valor fixo).
- */
-export function saudacaoRotativa(agora: Date = new Date(), escolher: () => number = Math.random): string {
-  const { hora, diaSemana } = momentoBrasilia(agora);
-  const chave =
-    diaSemana === 0 || diaSemana === 6 ? 'fimDeSemana'
-    : diaSemana === 5 ? 'sexta'
-    : diaSemana === 1 ? 'segunda'
-    : hora < 6 ? 'madrugada'
-    : hora < 12 ? 'manha'
-    : hora < 18 ? 'tarde'
-    : 'noite';
-  const frases = FRASES_POR_MOMENTO[chave];
-  const indice = Math.min(frases.length - 1, Math.floor(escolher() * frases.length));
-  return frases[indice];
-}

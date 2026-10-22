@@ -8,14 +8,6 @@ import { chaveLocal } from '@/lib/domain/local';
  * - Ainda não chegou: recolhido − na usina (nunca negativo).
  */
 
-/** Cidade da serra a partir da origem gravada (aceita variações como "EVANGELISTA DE SOUZA"). */
-export function cidadeDaOrigem(origem: string | null | undefined): 'EVANGELISTA' | 'PARATINGA' | null {
-  const o = chaveLocal(origem);
-  if (o.startsWith('EVANGELISTA')) return 'EVANGELISTA';
-  if (o.startsWith('PARATINGA')) return 'PARATINGA';
-  return null;
-}
-
 export const CIDADES_SERRA = ['EVANGELISTA', 'PARATINGA'] as const;
 export const ROTULO_CIDADE: Record<(typeof CIDADES_SERRA)[number], string> = { EVANGELISTA: 'Evangelista', PARATINGA: 'Paratinga' };
 export const METROS_POR_UNIDADE = 10;
@@ -54,7 +46,7 @@ export async function resumoSerra(): Promise<{ cidades: ResumoCidadeSerra[]; rec
     const unidades = recolhidos.find((r) => r.cidade === cidade)?._sum.unidades ?? 0;
     const recolhidoM = unidades * METROS_POR_UNIDADE;
     const doSistema = recebidos
-      .filter((g) => cidadeDaOrigem(g.movimentacao.origem) === cidade)
+      .filter((g) => chaveLocal(g.movimentacao.origem) === cidade)
       .reduce((soma, g) => soma + Number(g.metrosTotal), 0);
     const daPlanilha = historicoNovo
       .filter((h) => h.cidade === cidade)

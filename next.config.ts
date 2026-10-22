@@ -6,11 +6,6 @@ const nextConfig: NextConfig = {
   agentRules: false,
   async headers() {
     return [
-      // Páginas autenticadas nunca ficam em cache (botão Voltar depois de sair não mostra dados).
-      {
-        source: "/(admin|portaria|patio)/:path*",
-        headers: [{ key: "Cache-Control", value: "no-store, max-age=0" }],
-      },
       {
         source: "/:path*",
         headers: [
@@ -25,22 +20,6 @@ const nextConfig: NextConfig = {
           {
             key: "X-Frame-Options",
             value: "DENY",
-          },
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=(), usb=(), payment=(), interest-cohort=()",
-          },
-          {
-            key: "Cross-Origin-Opener-Policy",
-            value: "same-origin",
-          },
-          {
-            key: "Cross-Origin-Resource-Policy",
-            value: "same-origin",
-          },
-          {
-            key: "X-DNS-Prefetch-Control",
-            value: "off",
           },
           {
             key: "Strict-Transport-Security",

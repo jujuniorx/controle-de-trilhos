@@ -19,9 +19,9 @@ export const PERFIS = [
 ] as const;
 
 export const CLASSIFICACOES_REEMPREGO = ['G1', 'G2', 'G3'] as const;
-export const CLASSIFICACOES_SC = ['SC1', 'SC2', 'SC3', 'DIVERSOS', 'JACARE'] as const;
+export const CLASSIFICACOES_SC = ['SC1', 'SC2', 'SC3', 'DIVERSOS'] as const;
 /** O que o Pátio escolhe ao medir sucata no recebimento. "Diversos" só existe no envio (Remetido), nunca no recebimento. */
-export const CLASSIFICACOES_SC_MEDIDAS = ['SC1', 'SC2', 'SC3', 'JACARE'] as const;
+export const CLASSIFICACOES_SC_MEDIDAS = ['SC1', 'SC2', 'SC3'] as const;
 
 // Lista fechada de marcas (V1.2 §11) — "OUTROS" libera o texto livre em fabricanteOutro.
 export const MARCAS = ['NIPPON', 'EVRAZ', 'PANGANG', 'OUTROS'] as const;
@@ -34,7 +34,7 @@ export const MARCA_LABEL: Record<Exclude<(typeof MARCAS)[number], 'OUTROS'>, str
 // Aceita os dois formatos que convivem na frota real: Mercosul (ABC1D23) e o
 // padrão antigo brasileiro (3 letras + 4 dígitos, ex.: CMG1234) — o 5º
 // caractere é letra OU dígito.
-export const MSG_PLACA_INVALIDA = 'Placa inválida. Ex.: ABC1D23 (Mercosul) ou CMG1234 (padrão antigo).';
+const MSG_PLACA_INVALIDA = 'Placa inválida. Ex.: ABC1D23 (Mercosul) ou CMG1234 (padrão antigo).';
 const MSG_PELO_MENOS_UMA_PLACA =
   'Informe ao menos uma placa: a do cavalo ou a de uma das carretas (no máximo 2 carretas).';
 
@@ -68,7 +68,7 @@ const medicaoSchema = z.object({
   modo: z.enum(['INDIVIDUAL', 'QTD_COMPRIMENTO'] as const),
   quantidade: z.number().int().min(1).max(99),
   comprimento: comprimentoSchema,
-  classificacaoSC: z.enum(['SC1', 'SC2', 'SC3', 'DIVERSOS', 'JACARE'] as const).optional(),
+  classificacaoSC: z.enum(['SC1', 'SC2', 'SC3', 'DIVERSOS'] as const).optional(),
 });
 
 const grupoNovoSchema = z

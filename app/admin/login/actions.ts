@@ -3,13 +3,12 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { autenticar } from '@/lib/services/loginService';
-import { ipDoCliente } from '@/lib/services/clienteIp';
 
 export async function login(formData: FormData): Promise<{ ok: boolean; erro?: string }> {
   const identificador = String(formData.get('identificador') ?? '');
   const senha = String(formData.get('senha') ?? '');
 
-  const resultado = await autenticar(identificador, senha, await ipDoCliente());
+  const resultado = await autenticar(identificador, senha);
   if (!resultado.ok || !resultado.token || !resultado.expiresAt) {
     return { ok: false, erro: resultado.erro };
   }

@@ -20,21 +20,13 @@ export async function verificarSegredo(valor: string, hash: string): Promise<boo
   }
 }
 
-let hashFicticio: Promise<string> | null = null;
-
-/** Gasta o mesmo tempo de uma verificação real quando o usuário não existe (evita descobrir contas pelo tempo de resposta). */
-export async function gastarTempoDeVerificacao(valor: string): Promise<void> {
-  hashFicticio ??= argon2.hash(crypto.randomUUID());
-  await argon2.verify(await hashFicticio, valor).catch(() => false);
-}
-
 function hashToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
 export async function criarSessao(userId: string): Promise<{ token: string; expiresAt: Date }> {
   const token = crypto.randomUUID();
-  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 12); // 12 horas: sessão curta para computador compartilhado
+  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
   await prisma.session.create({ data: { userId, tokenHash: hashToken(token), expiresAt } });
   return { token, expiresAt };
 }
