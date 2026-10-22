@@ -1,3 +1,4 @@
+import { rotuloStatusRemetido } from '@/lib/domain/statusRemetido';
 import Link from 'next/link';
 import { fmtMetros, fmtPeso } from '@/lib/format';
 import { normalizarLocal } from '@/lib/domain/local';
@@ -29,13 +30,6 @@ const TIPO_REMETIDO_LABEL: Record<string, string> = {
   INDUS: 'Industrialização',
 };
 
-// Mapeia o status (valor armazenado no banco, intocado) para texto/variante de badge.
-const STATUS_LABEL: Record<string, { texto: string; badge: string }> = {
-  AGUARDANDO_CHEGADA: { texto: 'AGUARDANDO CHEGADA', badge: 'badge-muted' },
-  PENDENTE_CONFERENCIA: { texto: 'PENDENTE DE CONFERÊNCIA', badge: 'badge-warn' },
-  CONFERIDO: { texto: 'CONFERIDO', badge: 'badge-ok' },
-};
-
 // Mesmo princípio do detalhe de Recebimento (Task 18): nunca mostrar o CUID
 // como identificação principal. NF é a referência mais usada na operação;
 // na falta dela, cai para reserva/pedido e por último destino+data — sempre
@@ -56,7 +50,7 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
   const pesoTotal = resumoPesoRemetido(mov);
   const totalBarras = mov.grupos.reduce((acc, g) => acc + pecasDoGrupo(g.medicoes), 0);
   const totalMetros = mov.grupos.reduce((acc, g) => acc + Number(g.metrosTotal), 0);
-  const statusInfo = STATUS_LABEL[mov.status];
+  const statusInfo = rotuloStatusRemetido(mov.status, mov.chegadaPortariaEm);
   const podeEditar = mov.status !== 'AGUARDANDO_CHEGADA';
 
   return (

@@ -1,3 +1,4 @@
+import { rotuloStatusRemetido } from '@/lib/domain/statusRemetido';
 import { nfsEmTexto, rotuloNfs } from '@/lib/nf';
 import Link from 'next/link';
 import { fmtMetros, fmtPeso } from '@/lib/format';
@@ -23,14 +24,6 @@ function detalheHref(mov: { id: string; tipo: string }): string {
   return mov.tipo === 'RECEBIMENTO' ? `/admin/recebimentos/${mov.id}` : `/admin/remetidos/${mov.id}`;
 }
 
-// Mapeia o status (valor armazenado no banco, intocado) para a variante visual
-// do badge — só a aparência muda, nunca o valor persistido.
-const STATUS_BADGE: Record<string, string> = {
-  AGUARDANDO_CHEGADA: 'badge-muted',
-  PENDENTE_CONFERENCIA: 'badge-warn',
-  CONFERIDO: 'badge-ok',
-};
-
 const STATUS_TEXTO: Record<string, string> = {
   AGUARDANDO_CHEGADA: 'Aguardando chegada',
   PENDENTE_CONFERENCIA: 'Pendente de conferência',
@@ -45,7 +38,7 @@ function LinhaTabela({ mov }: { mov: MovimentacaoRelatorio }) {
       <td data-label="NF" className="font-mono">{nfsEmTexto(mov) || 'Em aberto'}</td>
       <td data-label="Origem/Destino">{normalizarLocal(mov.tipo === 'RECEBIMENTO' ? mov.origem : mov.destino)}</td>
       <td data-label="Status">
-        <span className={`badge ${STATUS_BADGE[mov.status] ?? 'badge-muted'}`}>{STATUS_TEXTO[mov.status] ?? mov.status}</span>
+        {(() => { const r = rotuloStatusRemetido(mov.status, mov.chegadaPortariaEm); return <span className={`badge ${r.badge}`}>{r.texto}</span>; })()}
       </td>
       <td className="text-right">
         <Link href={detalheHref(mov)} className="tbl-action">
