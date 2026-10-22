@@ -125,8 +125,8 @@ export async function registrarChegadaCarreta(id: string, dados: DadosPortaria, 
   const destino = normalizarLocal(dados.destino ?? mov.destino) || 'Remetido';
   await enviarAvisoPush(
     {
-      titulo: 'Carreta chegou na Portaria',
-      corpo: `${destino}${placa ? ` — placa ${placa}` : ''}. Pode carregar.`,
+      titulo: 'Carreta na portaria',
+      corpo: `${destino}${placa ? ` · ${placa}` : ''}`,
       url: `/patio/remetidos/${id}/confirmar`,
     },
     'PATIO',
@@ -151,8 +151,8 @@ export async function liberarCarreta(id: string): Promise<void> {
   const destino = normalizarLocal(mov.destino) || 'Remetido';
   await enviarAvisoPush(
     {
-      titulo: 'Carreta liberada pelo Pátio',
-      corpo: `${destino}${placa ? ` — placa ${placa}` : ''}. Pode sair.`,
+      titulo: 'Carreta liberada',
+      corpo: `${destino}${placa ? ` · ${placa}` : ''}. Pode sair.`,
       url: '/portaria',
     },
     'PORTARIA',
@@ -287,14 +287,5 @@ export async function criarEnvioPelaPortaria(
   await registrarHistorico({ movimentacaoId: mov.id, usuarioId: atorId, usuarioNome: `${atorNome} (portaria)`, acao: 'PORTARIA_CRIOU_ENVIO' });
   await registrarHistorico({ movimentacaoId: mov.id, usuarioId: atorId, usuarioNome: `${atorNome} (portaria)`, acao: 'CARRETA_CHEGOU' });
 
-  const destino = normalizarLocal(dados.destino);
-  await enviarAvisoPush(
-    {
-      titulo: 'Carreta chegou na Portaria (sem aviso antes)',
-      corpo: `${destino}${placa ? ` — placa ${placa}` : ''}. Pode carregar.`,
-      url: `/patio/remetidos/${mov.id}/confirmar`,
-    },
-    'PATIO',
-  );
   return mov.id;
 }

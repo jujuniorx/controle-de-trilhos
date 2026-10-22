@@ -179,8 +179,8 @@ export async function criarRecebimentoCaminhao(input: RecebimentoCaminhaoInput) 
         const placa = chegada.placaCarreta ?? chegada.placaCavalo;
         await enviarAvisoPush(
           {
-            titulo: 'Caminhão descarregado',
-            corpo: `${chegada.origem ?? 'Recebimento'}${placa ? ` — placa ${placa}` : ''}. Pode sair.`,
+            titulo: 'Descarga concluída',
+            corpo: `${chegada.origem ?? 'Recebimento'}${placa ? ` · ${placa}` : ''}`,
             url: '/portaria/recebimentos',
           },
           'PORTARIA',
