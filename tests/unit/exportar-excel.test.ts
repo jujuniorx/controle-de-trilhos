@@ -91,9 +91,9 @@ describe('Excel — aba Recebidos: uma linha por trilho dentro de cada nota', ()
     expect(tr55.getCell(18).value).toBe(454.7); // SC-1
     expect(tr55.getCell(19).value).toBe(33.9); // SC-2 - L
     expect(tr55.getCell(20).value).toBe(5.6); // SC-3
-    expect(tr55.getCell(23).value).toBe(494.2); // Total sucata
-    expect(tr55.getCell(24).value).toBeNull(); // Novo
-    expect(tr55.getCell(25).value).toBe(506.2); // soma de metros do veículo
+    expect(tr55.getCell(22).value).toBe(494.2); // Total sucata
+    expect(tr55.getCell(23).value).toBeNull(); // Novo
+    expect(tr55.getCell(24).value).toBe(506.2); // soma de metros do veículo
 
     expect(tr60.getCell(10).value).toBe('TRILHOS TR-60');
     expect(tr60.getCell(11).value).toBe('PANGANG');

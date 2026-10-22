@@ -142,7 +142,6 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
     'SC-1',
     'SC-2 - L',
     'SC-3',
-    'Diversos',
     'Em Classificação',
     'Total',
     'Novo',
@@ -198,7 +197,6 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         metrosPorSC(medicoesSucata, 'SC1'),
         metrosPorSC(medicoesSucata, 'SC2'),
         metrosPorSC(medicoesSucata, 'SC3'),
-        metrosPorSC(medicoesSucata, 'DIVERSOS'),
         null, // Em Classificação — sempre vazia, ver nota no topo do arquivo
         somaOuNull(sucatas.map(metros), arredondar2),
         somaOuNull(novos.map(metros), arredondar2),
@@ -224,11 +222,11 @@ function pintarSePendente(sheet: ExcelJS.Worksheet, primeiraLinha: number, statu
   }
 }
 
-/** Coluna 23 é "Total" em Recebidos — colorir em vermelho com fundo amarelo. */
+/** Coluna 22 é "Total" (sucata) em Recebidos — colorir em vermelho com fundo amarelo. */
 function aplicarCoresRecebidos(sheet: ExcelJS.Worksheet) {
   sheet.eachRow((row, rowNum) => {
     if (rowNum === 1) return; // pula cabeçalho
-    const cellTotal = row.getCell(23); // coluna 23 = "Total"
+    const cellTotal = row.getCell(22); // coluna 22 = "Total" (sucata)
     if (cellTotal.value != null) {
       cellTotal.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFF0000' } }; // vermelho
       cellTotal.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // fundo amarelo
