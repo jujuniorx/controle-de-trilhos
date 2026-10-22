@@ -189,6 +189,7 @@ export async function listarCarretasNaPortaria() {
     select: {
       id: true,
       destino: true,
+      origem: true,
       reservaPedido: true,
       placaCarreta: true,
       placaCavalo: true,

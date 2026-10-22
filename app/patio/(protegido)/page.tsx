@@ -60,12 +60,15 @@ export default async function PatioHomePage() {
 
       {carretas.length > 0 && (
         <section aria-label="Carretas na Portaria" className="space-y-2">
-          <h2 className="font-condensed text-base font-bold uppercase tracking-wide text-warn">Carretas na Portaria (remetidos)</h2>
+          <h2 className="font-condensed text-base font-bold uppercase tracking-wide text-warn">Carretas na Portaria (carregar)</h2>
           {carretas.map((c) => (
             <CarretaNaPortaria
               key={c.id}
               id={c.id}
-              titulo={`${c.placaCarreta || c.placaCavalo || 'Carreta'} — ${normalizarLocal(c.destino) || 'Remetido'}`}
+              placaCarreta={c.placaCarreta}
+              placaCavalo={c.placaCavalo}
+              origem={c.origem ? normalizarLocal(c.origem) : null}
+              destino={c.destino ? normalizarLocal(c.destino) : null}
               detalhe={[c.transportadora, c.reservaPedido && `Reserva ${c.reservaPedido}`].filter(Boolean).join(' · ')}
               observacao={c.observacaoPortaria}
               chegouAs={hora(c.chegadaPortariaEm)}

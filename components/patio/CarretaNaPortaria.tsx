@@ -7,7 +7,10 @@ import { liberarCarretaAction } from '@/app/patio/(protegido)/remetidos/portaria
 
 export interface CarretaNaPortariaProps {
   id: string;
-  titulo: string;
+  placaCarreta: string | null;
+  placaCavalo: string | null;
+  origem: string | null;
+  destino: string | null;
   detalhe: string;
   observacao: string | null;
   chegouAs: string;
@@ -16,7 +19,7 @@ export interface CarretaNaPortariaProps {
 }
 
 /** Carreta que a Portaria registrou: o Pátio confirma o carregamento e libera para sair. */
-export function CarretaNaPortaria({ id, titulo, detalhe, observacao, chegouAs, faltaConfirmar }: CarretaNaPortariaProps) {
+export function CarretaNaPortaria({ id, placaCarreta, placaCavalo, origem, destino, detalhe, observacao, chegouAs, faltaConfirmar }: CarretaNaPortariaProps) {
   const router = useRouter();
   const [pendente, iniciar] = useTransition();
   const [erro, setErro] = useState('');
@@ -24,8 +27,17 @@ export function CarretaNaPortaria({ id, titulo, detalhe, observacao, chegouAs, f
   return (
     <div className="card space-y-2 border-2 border-warn">
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="font-medium text-ink">{titulo}</p>
+        <div className="min-w-0 space-y-1">
+          <p className="font-condensed text-xl font-bold uppercase tracking-wide text-ink">
+            {placaCarreta || 'Sem placa da carreta'}
+            {placaCavalo && <span className="text-ink-muted"> · cavalo {placaCavalo}</span>}
+          </p>
+          <p className="text-sm text-ink">
+            <span className="text-ink-muted">Destino:</span> <strong>{destino || 'não informado'}</strong>
+          </p>
+          <p className="text-sm text-ink">
+            <span className="text-ink-muted">Origem:</span> <strong>{origem || 'não informada'}</strong>
+          </p>
           {detalhe && <p className="text-sm text-ink-muted">{detalhe}</p>}
         </div>
         <span className="badge badge-warn shrink-0">Chegou às {chegouAs}</span>
