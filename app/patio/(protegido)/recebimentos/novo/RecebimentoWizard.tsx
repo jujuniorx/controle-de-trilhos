@@ -113,6 +113,19 @@ function formatarNF(texto: string): string {
   return digitos.length > 6 ? `${digitos.slice(0, 6)}-${digitos.slice(6)}` : digitos;
 }
 
+/**
+ * Formata o comprimento enquanto o Pátio digita, no estilo de máscara de
+ * valor: só os dígitos entram e os dois últimos são sempre centavos, então a
+ * vírgula aparece sozinha. Ex.: "980" -> "9,80", "1200" -> "12,00".
+ */
+function formatarComprimento(texto: string): string {
+  const digitos = texto.replace(/\D/g, '').replace(/^0+(?=\d)/, '').slice(0, 5);
+  if (!digitos) return '';
+  const inteiro = digitos.length > 2 ? digitos.slice(0, -2) : '0';
+  const centavos = digitos.padStart(3, '0').slice(-2);
+  return `${inteiro},${centavos}`;
+}
+
 function parseComprimento(texto: string): { valor?: number; erro?: string } {
   // Normaliza espaços "invisíveis" (NBSP etc. — comuns em teclados de
   // tablet/Android). Aceita tanto vírgula (formato BR, com ponto como
@@ -700,11 +713,11 @@ export function RecebimentoWizard({
             <input
               aria-label="Comprimento"
               className="h-11 flex-1 min-w-[160px]"
-              placeholder="Comprimento (m), ex.: 8,10"
-              inputMode="decimal"
+              placeholder="Comprimento (m), ex.: 980 = 9,80"
+              inputMode="numeric"
               value={draft.comprimento}
               onChange={(e) => {
-                const texto = e.target.value;
+                const texto = formatarComprimento(e.target.value);
                 // Sugere a classificação SC pelo comprimento (Bloco 2.1) — só enquanto o
                 // Pátio não tiver trocado manualmente o select para este lançamento.
                 const r = parseComprimento(texto);
