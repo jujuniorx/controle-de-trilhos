@@ -7,7 +7,6 @@ import { usePathname } from 'next/navigation';
 import { SidebarNav } from './SidebarNav';
 import { BotaoSair } from './BotaoSair';
 import { EVENTO_MENU } from '@/components/ui/GestosApp';
-import { IconeFechar, IconeMenu } from '@/components/icones/Icones';
 
 /** Botão de menu do cabeçalho e a folha "Mais" (abre de baixo; também é aberta pela aba "Mais"). */
 export function MobileNav({ dono }: { dono?: boolean }) {
