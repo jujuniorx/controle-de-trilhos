@@ -168,6 +168,9 @@ model Movimentacao {
   carretaLiberadaEm  DateTime?
   carretaLiberadaPor String?
   chegadaPortariaEm DateTime?
+  // Número de ordem da carreta no dia (1, 2, 3...), dado quando a Portaria registra a chegada.
+  ordemDia          Int?
+  ordemData         String?   // dia da ordem, AAAA-MM-DD (fuso de São Paulo)
   chegadaPortariaPor String?
   saidaPortariaEm DateTime?
   saidaPortariaPor String?

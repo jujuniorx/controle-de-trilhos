@@ -4,6 +4,7 @@ import { listarChegadasDaPortaria, listarRemetidosDaPortaria } from '@/lib/servi
 import { ROTULO_ESTADO, ROTULO_ESTADO_CHEGADA } from '@/lib/domain/portaria';
 import { EstadoVazio } from '@/components/ui/EstadoVazio';
 import { BotaoApagar } from './BotaoApagar';
+import { BotaoExcluirMovimentacao } from '@/components/admin/BotaoExcluirMovimentacao';
 import { apagarChegadaAction, limparDadosPortariaAction } from './actions';
 
 export const dynamic = 'force-dynamic';
@@ -121,6 +122,7 @@ export default async function AdminPortariaPage() {
                 <Link href={`/admin/remetidos/${m.id}`} className="btn btn-ghost btn-sm">
                   Ver remetido
                 </Link>
+                <BotaoExcluirMovimentacao id={m.id} rotulo={m.destino || 'Remetido'} />
                 {dono && (
                   <BotaoApagar
                     rotulo="Apagar dados da Portaria"

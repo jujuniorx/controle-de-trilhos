@@ -1,5 +1,6 @@
 'use client';
 
+import { IconeAlerta } from '@/components/icones/Icones';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { liveQuery } from 'dexie';
@@ -137,7 +138,7 @@ export function ConfirmacaoRecebimento({ clientId }: { clientId: string }) {
 
       {temSucata && (
         <div className="conf-block">
-          <p className="text-sm font-medium text-warn">⚠ Sucata com peso pendente</p>
+          <p className="flex items-center gap-1.5 text-sm font-medium text-warn"><IconeAlerta size={16} /> Sucata com peso pendente</p>
           <p className="mt-1 text-sm text-warn">
             Este recebimento tem sucata com peso pendente. O peso será informado pelo Administrativo com base no
             documento de pesagem.

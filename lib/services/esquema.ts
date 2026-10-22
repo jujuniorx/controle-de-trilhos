@@ -37,6 +37,8 @@ export const COMANDOS_ESQUEMA: readonly string[] = [
   `ALTER TABLE "PushSubscription" ADD COLUMN IF NOT EXISTS "setor" TEXT NOT NULL DEFAULT 'PATIO'`,
   // 20261015170000_nfs_extras
   `ALTER TABLE "Movimentacao" ADD COLUMN IF NOT EXISTS "numerosDocumentoExtras" TEXT[] DEFAULT ARRAY[]::TEXT[]`,
+  // 20261022120000_ordem_carreta
+  `ALTER TABLE "Movimentacao" ADD COLUMN IF NOT EXISTS "ordemDia" INTEGER, ADD COLUMN IF NOT EXISTS "ordemData" TEXT`,
 ];
 
 /** Está faltando algo? Confere uma coluna e duas tabelas das migrations recentes. Nunca lança. */

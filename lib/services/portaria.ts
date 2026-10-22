@@ -1,3 +1,4 @@
+import { excluirMovimentacao } from '@/lib/services/excluirMovimentacao';
 import { prisma } from '@/lib/db';
 import { ErroRegraNegocio } from '@/lib/services/errors';
 import { registrarHistorico } from '@/lib/services/historico';
@@ -38,6 +39,8 @@ const SELECT_PORTARIA = {
   materialPrevisto: true,
   chegadaPortariaEm: true,
   chegadaPortariaPor: true,
+  ordemDia: true,
+  ordemData: true,
   carretaLiberadaEm: true,
   carretaLiberadaPor: true,
   saidaPortariaEm: true,
@@ -113,9 +116,13 @@ export async function registrarChegadaCarreta(id: string, dados: DadosPortaria, 
   if (motivo) throw new ErroRegraNegocio(motivo);
 
   // Condição no WHERE: se duas pessoas registrarem juntas, só uma vence (e só ela avisa o Pátio).
+  // Sequência do dia das carretas (1, 2, 3...), separada da sequência dos caminhões de descarga.
+  const dia = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+  const maior = await prisma.movimentacao.aggregate({ where: { tipo: 'REMETIDO', ordemData: dia }, _max: { ordemDia: true } });
+  const ordemDia = (maior._max.ordemDia ?? 0) + 1;
   const r = await prisma.movimentacao.updateMany({
     where: { id, chegadaPortariaEm: null, carretaLiberadaEm: null, saidaPortariaEm: null },
-    data: { ...paraBanco(dados), chegadaPortariaEm: new Date(), chegadaPortariaPor: atorNome },
+    data: { ...paraBanco(dados), chegadaPortariaEm: new Date(), chegadaPortariaPor: atorNome, ordemDia, ordemData: dia },
   });
   if (r.count === 0) throw new ErroRegraNegocio('Não foi possível registrar: a situação mudou. Atualize a tela.');
 
@@ -131,6 +138,19 @@ export async function registrarChegadaCarreta(id: string, dados: DadosPortaria, 
     },
     'PATIO',
   );
+}
+
+/**
+ * Portaria: a carreta já chegou na portaria mas ainda não foi liberada pelo Pátio. Apaga o
+ * remetido (vai para a Lixeira, restaurável pelo dono). Depois de liberada, não pode mais.
+ */
+export async function apagarCarretaPelaPortaria(id: string, ator: { userId: string; nome: string }): Promise<void> {
+  const mov = await prisma.movimentacao.findFirst({ where: { id, tipo: 'REMETIDO' }, select: { chegadaPortariaEm: true, carretaLiberadaEm: true, saidaPortariaEm: true } });
+  if (!mov) throw new ErroRegraNegocio('Carreta não encontrada.');
+  if (!mov.chegadaPortariaEm || mov.carretaLiberadaEm || mov.saidaPortariaEm) {
+    throw new ErroRegraNegocio('Só dá para apagar a carreta que chegou e ainda não foi liberada pelo Pátio.');
+  }
+  await excluirMovimentacao(id, ator);
 }
 
 /** Pátio: carregou e conferiu — libera a carreta para sair. Avisa a Portaria. */
@@ -197,6 +217,7 @@ export async function listarCarretasNaPortaria() {
       observacaoPortaria: true,
       chegadaPortariaEm: true,
       status: true,
+      ordemDia: true,
     },
     orderBy: { chegadaPortariaEm: 'asc' },
   });

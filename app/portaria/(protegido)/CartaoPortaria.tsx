@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { CampoObservacao, ICONE_CAMINHAO, Secao } from '@/components/portaria/Secao';
-import { confirmarSaidaAction, registrarChegadaAction, salvarDadosAction, type ResultadoPortaria } from './actions';
+import { apagarCarretaAction, confirmarSaidaAction, registrarChegadaAction, salvarDadosAction, type ResultadoPortaria } from './actions';
 import { ROTULO_ESTADO } from '@/lib/domain/portaria';
 import type { ItemPortaria } from '@/lib/services/portaria';
 import { formatarCpfDigitado } from '@/lib/validation/portaria';
@@ -24,6 +24,7 @@ export function CartaoPortaria({ item }: { item: ItemPortaria }) {
   const [pendente, iniciar] = useTransition();
   const [aberto, setAberto] = useState(item.estado === 'AGUARDANDO_CARRETA' || item.estado === 'LIBERADA');
   const [resultado, setResultado] = useState<ResultadoPortaria | null>(null);
+  const [confirmaApagar, setConfirmaApagar] = useState(false);
   const [v, setV] = useState({
     transportadora: item.transportadora ?? '',
     motoristaNome: item.motoristaNome ?? '',
@@ -83,7 +84,7 @@ export function CartaoPortaria({ item }: { item: ItemPortaria }) {
         <span className="flex min-w-0 items-start gap-3">
           <span className="grid h-10 w-10 flex-none place-items-center rounded-xl bg-primary/15 text-primary">{ICONE_CAMINHAO}</span>
           <span className="min-w-0">
-          <span className="block break-words font-semibold text-ink">{item.destino || 'Carga'}</span>
+          <span className="block break-words font-semibold text-ink">{item.ordemDia ? `Carreta nº ${item.ordemDia} — ` : ''}{item.destino || 'Carga'}</span>
           <span className="block text-sm text-ink-muted">
             {TIPO_REMETIDO[item.remetidoDetalhe?.tipoRemetido ?? ''] ?? '—'}
             {item.reservaPedido ? ` · Reserva ${item.reservaPedido}` : ''}
@@ -180,6 +181,40 @@ export function CartaoPortaria({ item }: { item: ItemPortaria }) {
           )}
           {resultado?.ok && resultado.mensagem && <p role="status" className="badge badge-ok !text-sm !normal-case">{resultado.mensagem}</p>}
         </form>
+      )}
+      {chegou && (!confirmaApagar ? (
+        <button type="button" className="btn btn-ghost h-11 w-full text-bad" onClick={() => setConfirmaApagar(true)} disabled={pendente}>
+          Apagar carreta
+        </button>
+      ) : (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg bg-bad/10 px-3 py-2 text-sm">
+          <span>Apagar esta carreta? Ela some das telas da Portaria e do Pátio.</span>
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            disabled={pendente}
+            onClick={() => {
+              setResultado(null);
+              iniciar(async () => {
+                try {
+                  const r = await apagarCarretaAction(item.id);
+                  if (!r.ok) setResultado(r);
+                  else router.refresh();
+                } catch {
+                  setResultado({ ok: false, erro: 'Sem conexão. Tente de novo.' });
+                }
+              });
+            }}
+          >
+            {pendente ? 'Aguarde...' : 'Sim, apagar'}
+          </button>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setConfirmaApagar(false)}>
+            Não
+          </button>
+        </div>
+      ))}
+      {!aberto && resultado?.erro && (
+        <p role="alert" className="text-sm text-bad">{resultado.erro}</p>
       )}
     </section>
   );

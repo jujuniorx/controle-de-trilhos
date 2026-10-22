@@ -1,5 +1,6 @@
 'use client';
 
+import { IconeFechar, IconeMenu } from '@/components/icones/Icones';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -7,7 +8,7 @@ import { SidebarNav } from './SidebarNav';
 import { BotaoSair } from './BotaoSair';
 import { EVENTO_MENU } from '@/components/ui/GestosApp';
 
-/** Botão ☰ do cabeçalho e a folha "Mais" (abre de baixo; também é aberta pela aba "Mais"). */
+/** Botão de menu do cabeçalho e a folha "Mais" (abre de baixo; também é aberta pela aba "Mais"). */
 export function MobileNav({ dono }: { dono?: boolean }) {
   const [aberto, setAberto] = useState(false);
   const pathname = usePathname();
@@ -43,7 +44,7 @@ export function MobileNav({ dono }: { dono?: boolean }) {
         onClick={() => setAberto((v) => !v)}
       >
         <span aria-hidden className="text-2xl leading-none">
-          {aberto ? '✕' : '☰'}
+          {aberto ? <IconeFechar size={22} /> : <IconeMenu size={22} />}
         </span>
       </button>
       {aberto && (

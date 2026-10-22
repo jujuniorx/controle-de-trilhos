@@ -65,6 +65,7 @@ export default async function PatioHomePage() {
             <CarretaNaPortaria
               key={c.id}
               id={c.id}
+              ordemDia={c.ordemDia}
               placaCarreta={c.placaCarreta}
               placaCavalo={c.placaCavalo}
               origem={c.origem ? normalizarLocal(c.origem) : null}

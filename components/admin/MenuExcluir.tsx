@@ -23,6 +23,7 @@ export function MenuExcluir() {
   const [menu, setMenu] = useState<Alvo | null>(null);
   const [confirmar, setConfirmar] = useState<Alvo | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [motivo, setMotivo] = useState('');
   const [pendente, iniciar] = useTransition();
 
   useEffect(() => {
@@ -72,7 +73,7 @@ export function MenuExcluir() {
     const alvo = confirmar;
     setErro(null);
     iniciar(async () => {
-      const r = await excluirMovimentacaoAction(alvo.id);
+      const r = await excluirMovimentacaoAction(alvo.id, motivo);
       if (r.ok) {
         setConfirmar(null);
         router.refresh();
@@ -97,6 +98,7 @@ export function MenuExcluir() {
             onClick={() => {
               setConfirmar(menu);
               setErro(null);
+              setMotivo('');
               setMenu(null);
             }}
           >
@@ -114,6 +116,10 @@ export function MenuExcluir() {
             <p className="mt-2 text-sm text-ink-muted">
               <b className="text-ink">{confirmar.rotulo}</b> sai da lista e vai para a Lixeira, de onde você pode restaurar com todas as medições e o histórico.
             </p>
+            <label className="mt-3 block text-sm">
+              <span className="mb-1 block font-semibold">Motivo *</span>
+              <textarea className="w-full" rows={2} value={motivo} onChange={(e) => setMotivo(e.target.value)} disabled={pendente} />
+            </label>
             {erro && (
               <p role="alert" className="mt-2 text-sm text-bad">
                 {erro}
@@ -123,7 +129,7 @@ export function MenuExcluir() {
               <button type="button" className="btn btn-secondary" onClick={() => setConfirmar(null)} disabled={pendente}>
                 Cancelar
               </button>
-              <button type="button" className="btn btn-danger" onClick={excluir} disabled={pendente}>
+              <button type="button" className="btn btn-danger" onClick={excluir} disabled={pendente || motivo.trim().length < 3}>
                 {pendente ? 'Excluindo…' : 'Excluir'}
               </button>
             </div>

@@ -6,12 +6,17 @@ import { registrarAuditoria } from '@/lib/services/auditoria';
 import { excluirMovimentacao } from '@/lib/services/excluirMovimentacao';
 import { ErroRegraNegocio } from '@/lib/services/errors';
 
-export async function excluirMovimentacaoAction(id: string): Promise<{ ok: boolean; erro?: string }> {
+export async function excluirMovimentacaoAction(id: string, motivo: string): Promise<{ ok: boolean; erro?: string }> {
   const sessao = await requireAdmin();
-  if (sessao.role !== 'DONO') return { ok: false, erro: 'Só o dono do sistema pode excluir movimentações.' };
+  const motivoLimpo = (motivo ?? '').trim();
+  if (motivoLimpo.length < 3) return { ok: false, erro: 'Escreva o motivo da exclusão (pelo menos 3 letras).' };
   try {
     const { rotulo, tipo } = await excluirMovimentacao(id, sessao);
-    await registrarAuditoria(sessao, 'Exclusão de movimentação', `${tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'} ${rotulo} (vai para a lixeira)`);
+    await registrarAuditoria(
+      sessao,
+      'Exclusão de movimentação',
+      `${tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'} ${rotulo} (vai para a lixeira). Motivo: ${motivoLimpo}`,
+    );
   } catch (e) {
     if (e instanceof ErroRegraNegocio) return { ok: false, erro: e.message };
     console.error('Falha ao excluir movimentação', e);

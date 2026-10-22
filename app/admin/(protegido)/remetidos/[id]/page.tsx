@@ -1,3 +1,4 @@
+import { IconeImpressora } from '@/components/icones/Icones';
 import { rotuloStatusRemetido } from '@/lib/domain/statusRemetido';
 import Link from 'next/link';
 import { fmtMetros, fmtPeso } from '@/lib/format';
@@ -70,7 +71,7 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
             )}
             {/* <a> e não <Link>: o romaneio é um documento HTML puro (route handler), sem prefetch/RSC. */}
             <a href={`/admin/remetidos/${mov.id}/romaneio`} className="btn btn-ghost btn-sm">
-              🖨️ Imprimir romaneio
+              <IconeImpressora size={15} className="inline-block align-[-3px]" /> Imprimir romaneio
             </a>
           </div>
         </div>

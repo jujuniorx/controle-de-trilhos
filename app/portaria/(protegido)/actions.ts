@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { revogarSessao } from '@/lib/services/auth';
 import { requirePortaria } from '@/lib/services/requirePortaria';
-import { confirmarSaidaCarreta, criarEnvioPelaPortaria, registrarChegadaCarreta, salvarDadosPortaria } from '@/lib/services/portaria';
+import { apagarCarretaPelaPortaria, confirmarSaidaCarreta, criarEnvioPelaPortaria, registrarChegadaCarreta, salvarDadosPortaria } from '@/lib/services/portaria';
 import { ErroRegraNegocio } from '@/lib/services/errors';
 import { dadosPortariaSchema, novoEnvioPortariaSchema } from '@/lib/validation/portaria';
 
@@ -54,6 +54,22 @@ export async function salvarDadosAction(id: string, entrada: unknown): Promise<R
 
 export async function registrarChegadaAction(id: string, entrada: unknown): Promise<ResultadoPortaria> {
   return processar(id, entrada, true);
+}
+
+/** Portaria: apaga a carreta que chegou e ainda não foi liberada pelo Pátio. */
+export async function apagarCarretaAction(id: string): Promise<ResultadoPortaria> {
+  const ator = await requirePortaria();
+  try {
+    await apagarCarretaPelaPortaria(id, { userId: ator.userId, nome: ator.nome });
+    revalidatePath('/portaria');
+    revalidatePath('/patio');
+    revalidatePath('/patio/remetidos');
+    return { ok: true, mensagem: 'Carreta apagada.' };
+  } catch (e) {
+    if (e instanceof ErroRegraNegocio) return { ok: false, erro: e.message };
+    console.error('[portaria] falha ao apagar carreta', e);
+    return { ok: false, erro: 'Não foi possível apagar. Nada foi alterado.' };
+  }
 }
 
 export async function confirmarSaidaAction(id: string): Promise<ResultadoPortaria> {
