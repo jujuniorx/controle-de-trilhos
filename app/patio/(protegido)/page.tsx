@@ -76,6 +76,11 @@ export default async function PatioHomePage() {
 
       <AtualizarAuto segundos={20} />
 
+      <Link href="/patio/pilhas" className="card flex items-center justify-between gap-3 font-medium text-ink">
+        <span>Pilhas do pátio: nome de cada pilha e o que tem nela</span>
+        <span aria-hidden="true">→</span>
+      </Link>
+
       {carretas.length > 0 && (
         <section aria-label="Carretas na Portaria" className="space-y-2">
           <h2 className="font-condensed text-base font-bold uppercase tracking-wide text-warn">Carretas na Portaria (carregar)</h2>
