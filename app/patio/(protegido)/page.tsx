@@ -77,7 +77,7 @@ export default async function PatioHomePage() {
       <AtualizarAuto segundos={20} />
 
       <Link href="/patio/pilhas" className="card flex items-center justify-between gap-3 font-medium text-ink">
-        <span>Pilhas do pátio: nome de cada pilha e o que tem nela</span>
+        <span>Pilhas do pátio</span>
         <span aria-hidden="true">→</span>
       </Link>
 
