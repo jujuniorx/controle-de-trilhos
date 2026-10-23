@@ -480,7 +480,7 @@ export async function trilheirosDaSemana(semana: string) {
     const trilheiros = Object.fromEntries(
       TRILHEIROS.map((t) => {
         const r = linhas.find((x) => iso(x.data) === d && x.trilheiro === t);
-        return [t, { boEm: iso(r?.boEm), descarregadas: r?.descarregadas ?? null, programacao: r?.programacao ?? null, observacao: r?.observacao ?? null }];
+        return [t, { boEm: iso(r?.boEm), descarregadas: r?.descarregadas ?? null, total: r?.total ?? null, programacao: r?.programacao ?? null, observacao: r?.observacao ?? null }];
       }),
     );
     return { data: d, trilheiros };
@@ -490,7 +490,7 @@ export async function trilheirosDaSemana(semana: string) {
 export async function salvarTrilheiroDia(
   data: string,
   trilheiro: (typeof TRILHEIROS)[number],
-  v: { boEm: string | null; descarregadas: number | null; programacao: string | null; observacao: string | null },
+  v: { boEm: string | null; descarregadas: number | null; total: number | null; programacao: string | null; observacao: string | null },
 ) {
   const valores = { ...v, boEm: v.boEm ? dataBanco(v.boEm) : null };
   await prisma.trilheiroDia.upsert({

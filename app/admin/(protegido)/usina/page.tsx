@@ -9,7 +9,6 @@ import {
   COMPOSICOES,
   CAMINHOES_ATIVOS,
   TRILHEIROS,
-  BARRAS_POR_TRILHEIRO,
 } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
 import { GeracaoSemana } from '@/components/usina/GeracaoSemana';
@@ -421,7 +420,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         <div className="card space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <p className="font-semibold">Semana de {br(est.semana)} a {br(somarDiasPagina(est.semana, 3))}</p>
-            <p className="text-sm text-ink-muted">Cada trilheiro leva {BARRAS_POR_TRILHEIRO} barras. Lance cada dia e salve tudo de uma vez.</p>
+            <p className="text-sm text-ink-muted">Preencha o total de barras do giro e quantas já foram descarregadas. Salve tudo de uma vez.</p>
           </div>
           <FormularioUsina acao={salvarTrilheirosSemanaAction} rotuloBotao="Salvar a semana">
             <input type="hidden" name="semana" value={est.semana} />
@@ -437,7 +436,8 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                     <thead>
                       <tr className="text-left text-ink-muted">
                         <th className="py-2">Dia</th>
-                        <th className="py-2 text-right">Descarregadas (de {BARRAS_POR_TRILHEIRO})</th>
+                        <th className="py-2 text-right">Total do giro</th>
+                        <th className="py-2 text-right">Descarregadas</th>
                         <th className="py-2">Programação do dia</th>
                         <th className="py-2">Observação</th>
                       </tr>
@@ -446,6 +446,9 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                       {trilheirosSemana.map((d, i) => (
                         <tr key={d.data} className="border-t border-line">
                           <td className="py-2 font-medium">{NOME_DIA[i]} {br(d.data)}</td>
+                          <td className="py-2 text-right">
+                            <input name={`total_${t}_${d.data}`} inputMode="numeric" defaultValue={d.trilheiros[t].total ?? ''} className="h-11 w-24 text-right" aria-label={`Total do giro ${t} ${br(d.data)}`} />
+                          </td>
                           <td className="py-2 text-right">
                             <input name={`desc_${t}_${d.data}`} inputMode="numeric" defaultValue={d.trilheiros[t].descarregadas ?? ''} className="h-11 w-24 text-right" aria-label={`Descarregadas ${t} ${br(d.data)}`} />
                           </td>

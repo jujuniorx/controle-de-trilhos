@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { salvarEstaleiroDia, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, geracaoDaSemana, salvarGeracaoDia, salvarEstoqueTls, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, type TipoTlsValor } from '@/lib/services/usina';
 import { ITENS_ESCALA, escalaVazia, gravarEscala, statusValido, cfgDeObjeto } from '@/lib/usina/escala';
-import { salvarComposicao, salvarCaminhao, salvarGiro, trilheirosDaSemana, salvarTrilheiroDia, BARRAS_POR_TRILHEIRO, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
+import { salvarComposicao, salvarCaminhao, salvarGiro, trilheirosDaSemana, salvarTrilheiroDia, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
 import { ehIsoValido } from '@/lib/usina/periodo';
 
@@ -294,12 +294,14 @@ export async function salvarTrilheirosSemanaAction(_: ResultadoUsina | undefined
   const boEm = boRaw === '' ? null : boRaw;
 
   // Valida tudo antes de gravar.
-  const lancamentos: { data: string; trilheiro: (typeof TRILHEIROS)[number]; v: { boEm: string | null; descarregadas: number | null; programacao: string | null; observacao: string | null } }[] = [];
+  const lancamentos: { data: string; trilheiro: (typeof TRILHEIROS)[number]; v: { boEm: string | null; descarregadas: number | null; total: number | null; programacao: string | null; observacao: string | null } }[] = [];
   for (const d of dias) {
     for (const t of TRILHEIROS) {
       const descarregadas = inteiro(formData.get(`desc_${t}_${d.data}`));
-      if (descarregadas === 'invalido' || (descarregadas !== null && descarregadas > BARRAS_POR_TRILHEIRO)) {
-        return { ok: false, erro: `Barras descarregadas: use um número de 0 a ${BARRAS_POR_TRILHEIRO}.` };
+      const total = inteiro(formData.get(`total_${t}_${d.data}`));
+      if (total === 'invalido' || descarregadas === 'invalido') return { ok: false, erro: 'Use só números inteiros nas barras.' };
+      if (total !== null && descarregadas !== null && descarregadas > total) {
+        return { ok: false, erro: `${t}: descarregadas não pode ser maior que o total do giro.` };
       }
       lancamentos.push({
         data: d.data,
@@ -307,6 +309,7 @@ export async function salvarTrilheirosSemanaAction(_: ResultadoUsina | undefined
         v: {
           boEm,
           descarregadas,
+          total,
           programacao: texto(formData.get(`prog_${t}_${d.data}`), 40),
           observacao: texto(formData.get(`obs_${t}_${d.data}`), 500),
         },

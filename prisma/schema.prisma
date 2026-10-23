@@ -494,6 +494,7 @@ model TrilheiroDia {
   trilheiro     TrilheiroCod
   boEm          DateTime?    @db.Date
   descarregadas Int?
+  total         Int?
   programacao   String?
   observacao    String?
   atualizadoEm  DateTime     @updatedAt
