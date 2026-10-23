@@ -11,8 +11,10 @@ import { FundoTrilhos } from '@/components/ui/FundoTrilhos';
 import { AtivarAvisos } from '@/components/patio/AtivarAvisos';
 import { chavePublicaPush } from '@/lib/services/push';
 
-function fmtData(d: Date | null): string {
-  return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
+function fmtData(d: Date | null, fallback?: Date | null): string {
+  if (d) return d.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+  // Sem data da movimentação (ex.: chegada registrada pela Portaria antes da data): usa o dia do cadastro.
+  return fallback ? fallback.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '—';
 }
 
 function fmtHora(d: Date | null): string {
@@ -100,7 +102,7 @@ export default async function AdminHomePage() {
                   <td data-label="Tipo">
                     <span className="badge badge-info">{m.tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'}</span>
                   </td>
-                  <td data-label="Data" className="font-mono">{fmtData(m.dataMovimentacao)}</td>
+                  <td data-label="Data" className="font-mono">{fmtData(m.dataMovimentacao, m.createdAt)}</td>
                   <td data-label="Hora" className="font-mono">{fmtHora(m.createdAt)}</td>
                   <td data-label="NF" className="font-mono" title={nfsEmTexto(m) || undefined}>
                     {m.numeroDocumento ? (

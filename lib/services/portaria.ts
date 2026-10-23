@@ -308,6 +308,7 @@ export async function criarEnvioPelaPortaria(
       status: 'AGUARDANDO_CHEGADA',
       ...paraBanco(dados),
       destino: normalizarLocal(dados.destino),
+      dataMovimentacao: new Date(`${agora.toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })}T00:00:00`),
       chegadaPortariaEm: agora,
       chegadaPortariaPor: atorNome,
       remetidoDetalhe: { create: { tipoRemetido: null } },
