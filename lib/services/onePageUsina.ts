@@ -99,7 +99,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         mes: metros(geraMes((l) => l.mes.carregamentoM + l.mes.deixadaViaM)),
         grupo: 'Geração de trilho',
       },
-      { rotulo: 'Recolhimento serra (estimado)', cor: CORES_SETOR.serra, dia: metros(serraTotalDia), mes: metros(serraTotalMes), grupo: 'Recolhimento serra' },
+      { rotulo: 'Serra (estimado)', cor: CORES_SETOR.serra, dia: metros(serraTotalDia), mes: metros(serraTotalMes), grupo: 'Recolhimento serra' },
       ...['CW01', 'CW02'].map((cw, i) => ({
         rotulo: cw,
         cor: i === 0 ? CORES_SETOR.caminhao : '#84cc16',

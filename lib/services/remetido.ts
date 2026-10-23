@@ -89,7 +89,8 @@ async function criarGruposEMedicoes(
         perfil: grupo.perfil,
         tipoMaterial: grupo.tipoMaterial,
         classificacao: grupo.tipoMaterial === 'REEMPREGO' ? grupo.classificacao : null,
-        tampao: grupo.tipoMaterial === 'REEMPREGO' ? Boolean(grupo.tampao) : false,
+        // Tampão é todo reemprego G1 ou G2 (não é mais marcado no pátio).
+        tampao: grupo.tipoMaterial === 'REEMPREGO' && (grupo.classificacao === 'G1' || grupo.classificacao === 'G2'),
         fabricante: grupo.tipoMaterial === 'NOVO' ? resolverFabricante(grupo) : null,
         metrosTotal,
         pesoCalculado,

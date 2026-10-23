@@ -75,13 +75,14 @@ export async function carregamentoCarretaDoPeriodo(inicio: string, fim: string) 
         dataMovimentacao: { gte: dataBanco(inicio), lte: dataBanco(fim) },
       },
     },
-    select: { tampao: true, tipoMaterial: true, metrosTotal: true, pesoInformado: true, pesoCalculado: true },
+    select: { classificacao: true, tipoMaterial: true, metrosTotal: true, pesoInformado: true, pesoCalculado: true },
   });
   let tampoes = 0;
   let trilhoNovoM = 0;
   let sucataT = 0;
   for (const g of grupos) {
-    if (g.tampao) tampoes++;
+    // Tampão = reemprego G1 ou G2.
+    if (g.tipoMaterial === 'REEMPREGO' && (g.classificacao === 'G1' || g.classificacao === 'G2')) tampoes++;
     if (g.tipoMaterial === 'NOVO') trilhoNovoM += Number(g.metrosTotal);
     if (g.tipoMaterial === 'SUCATA') sucataT += Number(g.pesoInformado ?? g.pesoCalculado ?? 0);
   }

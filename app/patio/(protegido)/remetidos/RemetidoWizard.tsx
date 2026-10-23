@@ -402,7 +402,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
       clientId: g.clientId,
       perfil: g.perfil,
       tipoMaterial: g.tipoMaterial,
-      ...(g.tipoMaterial === 'REEMPREGO' ? { classificacao: g.classificacao, tampao: g.tampao } : {}),
+      ...(g.tipoMaterial === 'REEMPREGO' ? { classificacao: g.classificacao } : {}),
       ...(g.tipoMaterial === 'NOVO'
         ? {
             ...(g.marca ? { marca: g.marca } : {}),
@@ -627,7 +627,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
             <div className="flex items-center justify-between">
               <span className="grupo-title">
                 {g.perfil === PERFIL_TOCO ? 'DIVERSOS (TOCO) — SUCATA' : `${g.perfil} — ${g.tipoMaterial}`}
-                {g.tampao ? ' (Tampão)' : ''}
+                {g.tipoMaterial === 'REEMPREGO' && (g.classificacao === 'G1' || g.classificacao === 'G2') ? ' (Tampão)' : ''}
               </span>
               <button className="text-sm text-bad" onClick={() => removerGrupo(g.clientId)}>
                 Remover
@@ -664,26 +664,13 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
 
             {g.tipoMaterial === 'REEMPREGO' && (
               <div className="mt-2 space-y-2">
-                <label className="flex items-center gap-2 text-sm normal-case text-ink">
-                  <input
-                    type="checkbox"
-                    checked={g.tampao}
-                    onChange={(e) =>
-                      atualizarGrupo(g.clientId, {
-                        tampao: e.target.checked,
-                        classificacao: e.target.checked && g.classificacao === 'G3' ? undefined : g.classificacao,
-                      })
-                    }
-                  />
-                  É tampão
-                </label>
                 <select
                   className="h-11"
                   value={g.classificacao ?? ''}
                   onChange={(e) => atualizarGrupo(g.clientId, { classificacao: (e.target.value || undefined) as Classificacao | undefined })}
                 >
-                  <option value="">{g.tampao ? 'Classificação (G1 ou G2)' : 'Classificação'}</option>
-                  {CLASSIFICACOES_REEMPREGO_REMETIDO.filter((c) => !g.tampao || c !== 'G3').map((c) => (
+                  <option value="">Classificação</option>
+                  {CLASSIFICACOES_REEMPREGO_REMETIDO.map((c) => (
                     <option key={c} value={c}>
                       {c}
                     </option>
