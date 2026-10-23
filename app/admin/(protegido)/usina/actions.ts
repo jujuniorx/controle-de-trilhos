@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { salvarEstaleiroDia, salvarEstoqueTls, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, type TipoTlsValor } from '@/lib/services/usina';
 import { ITENS_ESCALA, escalaVazia, gravarEscala, statusValido, cfgDeObjeto } from '@/lib/usina/escala';
-import { salvarGeracao, salvarComposicao, salvarCaminhao, salvarGiro, salvarManutencaoTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
+import { salvarGeracao, salvarComposicao, salvarCaminhao, salvarGiro, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
 import { ehIsoValido } from '@/lib/usina/periodo';
 
@@ -238,4 +238,26 @@ export async function salvarManutencaoTrilheiroAction(_: ResultadoUsina | undefi
   });
   atualizar();
   return { ok: true };
+}
+
+export async function apagarGiroAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(formData.get('id') ?? '');
+  if (id) await apagarGiroTrilheiro(id);
+  atualizar();
+}
+
+export async function apagarManutencaoTrilheiroAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = String(formData.get('id') ?? '');
+  if (id) await apagarManutencaoTrilheiro(id);
+  atualizar();
+}
+
+export async function zerarTrilheiroAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const trilheiro = String(formData.get('trilheiro') ?? '') as (typeof TRILHEIROS)[number];
+  if (!TRILHEIROS.includes(trilheiro)) return;
+  await zerarTrilheiro(trilheiro);
+  atualizar();
 }

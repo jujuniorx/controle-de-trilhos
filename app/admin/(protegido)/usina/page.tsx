@@ -16,6 +16,7 @@ import {
 import { PERFIS } from '@/lib/validation/recebimento';
 import { CarretasGeracao } from '@/components/usina/CarretasGeracao';
 import { CamposGiro, type CicloAberto } from '@/components/usina/CamposGiro';
+import { BotaoApagarRegistro } from '@/components/usina/BotaoApagarRegistro';
 import { IconeImprimir } from '@/components/icones/Icones';
 
 const SETORES: [string, string][] = [['estaleiro', 'Estaleiro'], ['geracao', 'Geração'], ['composicoes', 'Recolhimento serra'], ['caminhao', 'Caminhão de solda'], ['trilheiros', 'Trilheiros']];
@@ -35,6 +36,9 @@ import {
   salvarCaminhaoAction,
   salvarGiroAction,
   salvarManutencaoTrilheiroAction,
+  apagarGiroAction,
+  apagarManutencaoTrilheiroAction,
+  zerarTrilheiroAction,
 } from './actions';
 
 export const dynamic = 'force-dynamic';
@@ -302,7 +306,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-ink-muted">
-                <th>Trilheiro</th><th>B.O.</th><th>Chegada</th><th>Partida</th><th>Retorno</th><th>Perfis</th><th>Carregados</th><th>Descarregados</th><th>Saldo</th><th>Local</th>
+                <th>Trilheiro</th><th>B.O.</th><th>Chegada</th><th>Partida</th><th>Retorno</th><th>Perfis</th><th>Carregados</th><th>Descarregados</th><th>Saldo</th><th>Local</th><th></th>
               </tr>
             </thead>
             <tbody>
@@ -318,10 +322,13 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                   <td>{g.descarregados}</td>
                   <td className="font-mono">{g.carregados - g.descarregados}</td>
                   <td>{g.local ?? '—'}</td>
+                  <td className="text-right">
+                    <BotaoApagarRegistro acao={apagarGiroAction} campos={{ id: g.id }} />
+                  </td>
                 </tr>
               ))}
               {tril.giros.length === 0 && (
-                <tr><td colSpan={10} className="py-3 text-ink-muted">Nenhum giro neste período.</td></tr>
+                <tr><td colSpan={11} className="py-3 text-ink-muted">Nenhum giro neste período.</td></tr>
               )}
             </tbody>
           </table>
@@ -361,6 +368,14 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                     <input type="hidden" name="trilheiro" value={t} />
                     <CamposGiro ciclo={valorCiclo} opcoesPerfis={TIPOS_TLS.map((p) => ({ valor: p, rotulo: ROTULO_TLS[p] }))} />
                   </FormularioUsina>
+                  <div className="mt-4 border-t border-line pt-3">
+                    <BotaoApagarRegistro
+                      acao={zerarTrilheiroAction}
+                      campos={{ trilheiro: t }}
+                      rotulo={`Reiniciar ${t} (apagar todos os giros e manutenções)`}
+                      rotuloConfirmar={`Toque de novo para apagar tudo do ${t}`}
+                    />
+                  </div>
                 </div>
               </details>
             );
@@ -387,7 +402,10 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         {tril.manutencoes.length > 0 && (
           <ul className="card space-y-2 text-sm">
             {tril.manutencoes.map((m) => (
-              <li key={m.id}><span className="font-mono">{br(m.data.toISOString().slice(0, 10))}</span> · {m.trilheiro} · {m.tipo ?? 'Manutenção'}{m.local ? ` · ${m.local}` : ''}{m.detalhamento ? ` — ${m.detalhamento}` : ''}</li>
+              <li key={m.id} className="flex flex-wrap items-baseline justify-between gap-2">
+                <span><span className="font-mono">{br(m.data.toISOString().slice(0, 10))}</span> · {m.trilheiro} · {m.tipo ?? 'Manutenção'}{m.local ? ` · ${m.local}` : ''}{m.detalhamento ? ` — ${m.detalhamento}` : ''}</span>
+                <BotaoApagarRegistro acao={apagarManutencaoTrilheiroAction} campos={{ id: m.id }} />
+              </li>
             ))}
           </ul>
         )}

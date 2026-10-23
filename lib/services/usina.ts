@@ -363,6 +363,24 @@ export async function salvarGiro(v: GiroValor) {
   });
 }
 
+/** Apaga um giro (ciclo) lançado por engano ou de teste. */
+export async function apagarGiroTrilheiro(id: string) {
+  await prisma.trilheiroGiro.delete({ where: { id } });
+}
+
+/** Apaga uma manutenção do trilheiro. */
+export async function apagarManutencaoTrilheiro(id: string) {
+  await prisma.trilheiroManutencao.delete({ where: { id } });
+}
+
+/** Reinicia um trilheiro: apaga todos os giros e manutenções dele. Usado quando o lançamento foi teste. */
+export async function zerarTrilheiro(trilheiro: (typeof TRILHEIROS)[number]) {
+  await prisma.$transaction([
+    prisma.trilheiroGiro.deleteMany({ where: { trilheiro } }),
+    prisma.trilheiroManutencao.deleteMany({ where: { trilheiro } }),
+  ]);
+}
+
 export async function salvarManutencaoTrilheiro(v: { data: string; trilheiro: (typeof TRILHEIROS)[number]; local: string | null; tipo: string | null; detalhamento: string | null }) {
   await prisma.trilheiroManutencao.create({ data: { ...v, data: dataBanco(v.data) } });
 }
