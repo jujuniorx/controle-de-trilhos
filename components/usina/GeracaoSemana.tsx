@@ -205,14 +205,23 @@ export function GeracaoSemana({
                           ))}
                         </div>
                       </td>
-                      <td className="py-2 text-right align-top">
-                        <input inputMode="numeric" value={c.quantidade} onChange={(e) => alterarCarreta(d.data, l.valor, c.chave, { quantidade: e.target.value })} className="h-11 w-20 text-right" aria-label={`Barras ${l.rotulo} ${d.rotulo} carreta ${idx + 1}`} />
+                      <td className="py-2 align-top">
+                        <div className="field">
+                          <label>Barras</label>
+                          <input inputMode="numeric" value={c.quantidade} onChange={(e) => alterarCarreta(d.data, l.valor, c.chave, { quantidade: e.target.value })} className="h-11 w-20" aria-label={`Barras ${l.rotulo} ${d.rotulo} carreta ${idx + 1}`} />
+                        </div>
                       </td>
-                      <td className="py-2 text-right align-top">
-                        <input inputMode="decimal" value={c.carregamentoM} onChange={(e) => alterarCarreta(d.data, l.valor, c.chave, { carregamentoM: e.target.value })} className="h-11 w-24 text-right" aria-label={`Carregado ${l.rotulo} ${d.rotulo} carreta ${idx + 1}`} />
+                      <td className="py-2 align-top">
+                        <div className="field">
+                          <label>Carregado (m)</label>
+                          <input inputMode="decimal" value={c.carregamentoM} onChange={(e) => alterarCarreta(d.data, l.valor, c.chave, { carregamentoM: e.target.value })} className="h-11 w-28" aria-label={`Carregado ${l.rotulo} ${d.rotulo} carreta ${idx + 1}`} />
+                        </div>
                       </td>
-                      <td className="py-2 text-right align-top">
-                        <input inputMode="decimal" value={c.deixadaViaM} onChange={(e) => alterarCarreta(d.data, l.valor, c.chave, { deixadaViaM: e.target.value })} className="h-11 w-24 text-right" aria-label={`Deixado ${l.rotulo} ${d.rotulo} carreta ${idx + 1}`} />
+                      <td className="py-2 align-top">
+                        <div className="field">
+                          <label>Deixado na via (m)</label>
+                          <input inputMode="decimal" value={c.deixadaViaM} onChange={(e) => alterarCarreta(d.data, l.valor, c.chave, { deixadaViaM: e.target.value })} className="h-11 w-28" aria-label={`Deixado ${l.rotulo} ${d.rotulo} carreta ${idx + 1}`} />
+                        </div>
                       </td>
                       <td className="py-2 text-right align-top">
                         <button type="button" className="h-11 text-sm text-bad underline" onClick={() => removerCarreta(d.data, l.valor, c.chave)}>Remover</button>
