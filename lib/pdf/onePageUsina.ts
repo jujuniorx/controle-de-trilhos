@@ -25,7 +25,7 @@ function textoDireita(p: PaginaPdf, texto: string, xDireita: number, y: number, 
 }
 
 /** Gráfico de barras por dia: uma barra por série e por dia, na área (x, yBase) até (x+w, yBase+altura). */
-function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yBase: number, w: number, altura: number) {
+function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yBase: number, w: number, altura: number, rotulos: string[] = []) {
   const n = Math.max(1, ...g.series.map((s) => s.valores.length));
   const topo = Math.max(1, ...g.series.flatMap((s) => s.valores));
   const gw = w / n;
@@ -39,6 +39,12 @@ function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yBase: nu
     });
   });
   p.linha(x, yBase, x + w, yBase, LINHA, 0.6);
+  // Nome do dia (Seg 19, Ter 20...) embaixo de cada grupo de barras.
+  const yRotulo = yBase - 9;
+  rotulos.forEach((r, i) => {
+    const cx = x + i * gw + gw / 2;
+    p.texto(r, cx - larguraTexto(r, 6) / 2, yRotulo, 6, 'normal', CINZA);
+  });
 }
 
 function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false) {
@@ -75,7 +81,7 @@ function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number,
       lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
     }
     p.texto(s.grafico.titulo, xg, topo - 32, 6.5, 'negrito', CINZA);
-    desenharGrafico(p, s.grafico, xg, base + 14, wg, Math.max(40, h - 60));
+    desenharGrafico(p, s.grafico, xg, base + 22, wg, Math.max(40, h - 66), s.rotulosDias);
     textoDireita(p, 'Segunda a quinta', xg + wg, base + 3, 6, 'negrito', CINZA);
     return;
   }
@@ -88,7 +94,7 @@ function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number,
     lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
   }
   // Sem título próprio: a legenda já diz as séries, e o gráfico fica abaixo da tabela.
-  desenharGrafico(p, s.grafico, x + 8, base + 24, w - 16, 64);
+  desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 60, s.rotulosDias);
   textoDireita(p, 'Segunda a quinta', x + w - 8, base + 12, 6, 'negrito', CINZA);
 }
 
