@@ -120,37 +120,29 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
     p.texto(r.mes, meio, topoRes - 46, 11, 'negrito', hex(r.cor));
   });
 
-  // Página 1: setores em grade de 3 colunas.
+  // Linha 1: Estaleiro, Geração e Recolhimento serra, lado a lado.
   const colunas = 3;
   const gapC = 12;
   const wSet = (L - 2 * M - (colunas - 1) * gapC) / colunas;
-  const altSet = 230;
+  const altSet = 170;
   const topoGrade = topoRes - altRes - 16;
-  d.setores.slice(0, colunas).forEach((s, i) => {
-    const x = M + i * (wSet + gapC);
-    desenharSetor(p, s, x, topoGrade, wSet, altSet);
+  const porTitulo = (t: string) => d.setores.find((s) => s.titulo === t);
+  const linha1 = d.setores.filter((s) => s.titulo !== 'Caminhão de solda' && s.titulo !== 'Trilheiros');
+  linha1.slice(0, colunas).forEach((s, i) => {
+    desenharSetor(p, s, M + i * (wSet + gapC), topoGrade, wSet, altSet);
   });
+
+  // Linha 2: Caminhão de solda e Trilheiros, lado a lado.
+  const wMeio = (L - 2 * M - gapC) / 2;
+  const altLinha2 = 220;
+  const topoLinha2 = topoGrade - altSet - 12;
+  const caminhao = porTitulo('Caminhão de solda');
+  const trilheiros = porTitulo('Trilheiros');
+  if (caminhao) desenharSetor(p, caminhao, M, topoLinha2, wMeio, altLinha2);
+  if (trilheiros) desenharSetor(p, trilheiros, M + wMeio + gapC, topoLinha2, wMeio, altLinha2);
 
   const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
   p.texto(`Emitido em ${emitido}`, M, 18, 6.5, 'normal', CINZA);
 
-  // Página 2 (quando houver): Caminhão e Trilheiros, um sobre o outro, na largura toda, com espaço para as linhas.
-  const restantes = d.setores.slice(colunas);
-  if (restantes.length === 0) return montarPdfVarias([p], `Relatório gerencial usina ${d.data}`, A4_PAISAGEM);
-  const p2 = new PaginaPdf();
-  p2.retangulo(0, 0, L, H, BRANCO);
-  p2.texto('CONTROLE DE TRILHOS', M, H - 26, 7.5, 'negrito', CINZA);
-  p2.texto('Relatório gerencial (continuação)', M, H - 50, 16, 'negrito', TINTA);
-  textoDireita(p2, 'SEMANA (SEGUNDA A SEXTA)', L - M, H - 26, 7, 'negrito', CINZA);
-  textoDireita(p2, faixaSemanaSegSex(d.data), L - M, H - 48, 15, 'negrito', TINTA);
-  p2.linha(M, H - 60, L - M, H - 60, [0.1, 0.12, 0.16], 1.2);
-  let topo = H - 74;
-  for (const s of restantes) {
-    const alt = s.titulo === 'Trilheiros' ? 250 : 170;
-    desenharSetor(p2, s, M, topo, L - 2 * M, alt, true);
-    topo -= alt + 12;
-  }
-  p2.texto(`Emitido em ${emitido}`, M, 18, 6.5, 'normal', CINZA);
-
-  return montarPdfVarias([p, p2], `Relatório gerencial usina ${d.data}`, A4_PAISAGEM);
+  return montarPdfVarias([p], `Relatório gerencial usina ${d.data}`, A4_PAISAGEM);
 }
