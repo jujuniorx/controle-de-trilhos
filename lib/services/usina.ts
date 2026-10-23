@@ -468,6 +468,38 @@ export async function zerarTrilheiro(trilheiro: (typeof TRILHEIROS)[number]) {
   ]);
 }
 
+/** Barras que cada trilheiro leva em um giro. */
+export const BARRAS_POR_TRILHEIRO = 40;
+
+/** Acompanhamento de segunda a quinta: por trilheiro, o que foi lançado em cada dia. */
+export async function trilheirosDaSemana(semana: string) {
+  const fim = somarDias(semana, 3);
+  const linhas = await prisma.trilheiroDia.findMany({ where: { data: { gte: dataBanco(semana), lte: dataBanco(fim) } } });
+  return [0, 1, 2, 3].map((i) => {
+    const d = somarDias(semana, i);
+    const trilheiros = Object.fromEntries(
+      TRILHEIROS.map((t) => {
+        const r = linhas.find((x) => iso(x.data) === d && x.trilheiro === t);
+        return [t, { boEm: iso(r?.boEm), descarregadas: r?.descarregadas ?? null, programacao: r?.programacao ?? null, observacao: r?.observacao ?? null }];
+      }),
+    );
+    return { data: d, trilheiros };
+  });
+}
+
+export async function salvarTrilheiroDia(
+  data: string,
+  trilheiro: (typeof TRILHEIROS)[number],
+  v: { boEm: string | null; descarregadas: number | null; programacao: string | null; observacao: string | null },
+) {
+  const valores = { ...v, boEm: v.boEm ? dataBanco(v.boEm) : null };
+  await prisma.trilheiroDia.upsert({
+    where: { data_trilheiro: { data: dataBanco(data), trilheiro } },
+    update: valores,
+    create: { data: dataBanco(data), trilheiro, ...valores },
+  });
+}
+
 export async function salvarManutencaoTrilheiro(v: { data: string; trilheiro: (typeof TRILHEIROS)[number]; local: string | null; tipo: string | null; detalhamento: string | null }) {
   await prisma.trilheiroManutencao.create({ data: { ...v, data: dataBanco(v.data) } });
 }

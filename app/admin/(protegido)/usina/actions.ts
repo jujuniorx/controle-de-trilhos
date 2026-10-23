@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { salvarEstaleiroDia, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, geracaoDaSemana, salvarGeracaoDia, salvarEstoqueTls, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, type TipoTlsValor } from '@/lib/services/usina';
 import { ITENS_ESCALA, escalaVazia, gravarEscala, statusValido, cfgDeObjeto } from '@/lib/usina/escala';
-import { salvarComposicao, salvarCaminhao, salvarGiro, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
+import { salvarComposicao, salvarCaminhao, salvarGiro, trilheirosDaSemana, salvarTrilheiroDia, BARRAS_POR_TRILHEIRO, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
 import { ehIsoValido } from '@/lib/usina/periodo';
 
@@ -278,6 +278,40 @@ export async function salvarCaminhoesSemanaAction(_: ResultadoUsina | undefined,
       });
     }
   }
+  atualizar();
+  return { ok: true };
+}
+
+/** Lança o acompanhamento dos trilheiros da semana (segunda a quinta), de uma vez. */
+export async function salvarTrilheirosSemanaAction(_: ResultadoUsina | undefined, formData: FormData): Promise<ResultadoUsina> {
+  await requireAdmin();
+  const semana = dataDoForm(formData.get('semana'));
+  if (!semana) return { ok: false, erro: 'Semana inválida.' };
+  const dias = await trilheirosDaSemana(semana);
+
+  // Valida tudo antes de gravar.
+  const lancamentos: { data: string; trilheiro: (typeof TRILHEIROS)[number]; v: { boEm: string | null; descarregadas: number | null; programacao: string | null; observacao: string | null } }[] = [];
+  for (const d of dias) {
+    for (const t of TRILHEIROS) {
+      const boRaw = String(formData.get(`bo_${t}_${d.data}`) ?? '').trim();
+      if (boRaw !== '' && !ehIsoValido(boRaw)) return { ok: false, erro: 'Data do B.O. inválida.' };
+      const descarregadas = inteiro(formData.get(`desc_${t}_${d.data}`));
+      if (descarregadas === 'invalido' || (descarregadas !== null && descarregadas > BARRAS_POR_TRILHEIRO)) {
+        return { ok: false, erro: `Barras descarregadas: use um número de 0 a ${BARRAS_POR_TRILHEIRO}.` };
+      }
+      lancamentos.push({
+        data: d.data,
+        trilheiro: t,
+        v: {
+          boEm: boRaw === '' ? null : boRaw,
+          descarregadas,
+          programacao: texto(formData.get(`prog_${t}_${d.data}`), 40),
+          observacao: texto(formData.get(`obs_${t}_${d.data}`), 500),
+        },
+      });
+    }
+  }
+  for (const l of lancamentos) await salvarTrilheiroDia(l.data, l.trilheiro, l.v);
   atualizar();
   return { ok: true };
 }

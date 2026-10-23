@@ -9,11 +9,10 @@ import {
   COMPOSICOES,
   CAMINHOES_ATIVOS,
   TRILHEIROS,
-  listarCiclosAbertos,
+  BARRAS_POR_TRILHEIRO,
 } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
 import { GeracaoSemana } from '@/components/usina/GeracaoSemana';
-import { CamposGiro, type CicloAberto } from '@/components/usina/CamposGiro';
 import { BotaoApagarRegistro } from '@/components/usina/BotaoApagarRegistro';
 import { SeletorDia } from '@/components/usina/SeletorDia';
 import { IconeImprimir } from '@/components/icones/Icones';
@@ -24,13 +23,13 @@ import { ehIsoValido, faixaSemanaSegSex, type Periodo } from '@/lib/usina/period
 import { FormularioUsina } from '@/components/usina/FormularioUsina';
 import { EscalaGrade } from '@/components/usina/EscalaGrade';
 import { lerEscala, diasDaSemana } from '@/lib/usina/escala';
-import { montarEscalaDaSemana, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, geracaoDaSemana } from '@/lib/services/usina';
+import { montarEscalaDaSemana, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, geracaoDaSemana, trilheirosDaSemana } from '@/lib/services/usina';
 import {
   salvarEstaleiroAction,
   salvarEstoqueTlsAction,
   salvarManutencaoAction,
   salvarEscalaAction,
-  salvarGiroAction,
+  salvarTrilheirosSemanaAction,
   salvarManutencaoTrilheiroAction,
   salvarEstaleiroSemanaAction,
   salvarSerraSemanaAction,
@@ -38,7 +37,6 @@ import {
   salvarGeracaoSemanaAction,
   apagarGiroAction,
   apagarManutencaoTrilheiroAction,
-  zerarTrilheiroAction,
 } from './actions';
 
 export const dynamic = 'force-dynamic';
@@ -75,7 +73,6 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
   const periodo = periodoValido(params.periodo);
   const data = ehIsoValido(params.data) ? params.data : hojeIso();
 
-  const ciclosAbertos = await listarCiclosAbertos();
 
   const [est, ger, tril] = await Promise.all([
     estaleiroDoPeriodo(periodo, data),
@@ -88,6 +85,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
   const serraSemana = await composicoesDaSemana(est.semana);
   const caminhoesSemana = await caminhoesDaSemana(est.semana);
   const geracaoSemana = await geracaoDaSemana(est.semana);
+  const trilheirosSemana = await trilheirosDaSemana(est.semana);
   const totalSemana = diasSemana.reduce((t, d) => ({ soldas: t.soldas + (d.soldas ?? 0), cortes: t.cortes + (d.cortes ?? 0) }), { soldas: 0, cortes: 0 });
   const escalaLegada = !escalaSalva && est.escala.trim() !== '';
 
@@ -419,52 +417,51 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           </table>
         </div>
 
-        <div className="grid gap-4">
-          {TRILHEIROS.map((t, i) => {
-            const ciclo = ciclosAbertos[i];
-            const iso = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : null);
-            const valorCiclo: CicloAberto | null = ciclo
-              ? {
-                  boEm: iso(ciclo.boEm),
-                  chegadaUsinaEm: iso(ciclo.chegadaUsinaEm),
-                  partidaEm: iso(ciclo.partidaEm),
-                  perfis: ciclo.perfis,
-                  carregados: ciclo.carregados,
-                  descarregados: ciclo.descarregados,
-                  local: ciclo.local,
-                  observacao: ciclo.observacao,
-                }
-              : null;
-            return (
-              <details className="card" key={t} open={Boolean(ciclo)}>
-                <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2 font-semibold">
-                  <span>{t}</span>
-                  {ciclo ? (
-                    <span className="text-sm font-normal text-ink-muted">
-                      Saldo a descarregar: <strong className="font-mono text-ink">{ciclo.carregados - ciclo.descarregados}</strong> TLS
-                      <span className="ml-2">({ciclo.carregados} carregados, {ciclo.descarregados} descarregados)</span>
-                    </span>
-                  ) : (
-                    <span className="text-sm font-normal text-ink-muted">lançar giro</span>
-                  )}
-                </summary>
-                <div className="mt-3">
-                  <FormularioUsina acao={salvarGiroAction} rotuloBotao={ciclo ? 'Salvar ciclo' : 'Iniciar ciclo'}>
-                    <input type="hidden" name="trilheiro" value={t} />
-                    <CamposGiro ciclo={valorCiclo} opcoesPerfis={TIPOS_TLS.map((p) => ({ valor: p, rotulo: ROTULO_TLS[p] }))} />
-                  </FormularioUsina>
-                  <div className="mt-4 border-t border-line pt-3">
-                    <BotaoApagarRegistro
-                      acao={zerarTrilheiroAction}
-                      campos={{ trilheiro: t }}
-                      rotulo={`Reiniciar ${t} (apagar todos os giros e manutenções)`}
-                      rotuloConfirmar={`Toque de novo para apagar tudo do ${t}`}
-                    />
-                  </div>
+        <div className="card space-y-3">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <p className="font-semibold">Semana de {br(est.semana)} a {br(somarDiasPagina(est.semana, 3))}</p>
+            <p className="text-sm text-ink-muted">Cada trilheiro leva {BARRAS_POR_TRILHEIRO} barras. Lance cada dia e salve tudo de uma vez.</p>
+          </div>
+          <FormularioUsina acao={salvarTrilheirosSemanaAction} rotuloBotao="Salvar a semana">
+            <input type="hidden" name="semana" value={est.semana} />
+            {TRILHEIROS.map((t) => (
+              <div key={t} className="space-y-2">
+                <p className="text-sm font-semibold">{t}</p>
+                <div className="tbl-wrap">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-ink-muted">
+                        <th className="py-2">Dia</th>
+                        <th className="py-2">Dia do B.O.</th>
+                        <th className="py-2 text-right">Descarregadas (de {BARRAS_POR_TRILHEIRO})</th>
+                        <th className="py-2">Programação do dia</th>
+                        <th className="py-2">Observação</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {trilheirosSemana.map((d, i) => (
+                        <tr key={d.data} className="border-t border-line">
+                          <td className="py-2 font-medium">{NOME_DIA[i]} {br(d.data)}</td>
+                          <td className="py-2">
+                            <input type="date" name={`bo_${t}_${d.data}`} defaultValue={d.trilheiros[t].boEm ?? ''} className="h-11 w-40" aria-label={`Dia do B.O. ${t} ${br(d.data)}`} />
+                          </td>
+                          <td className="py-2 text-right">
+                            <input name={`desc_${t}_${d.data}`} inputMode="numeric" defaultValue={d.trilheiros[t].descarregadas ?? ''} className="h-11 w-24 text-right" aria-label={`Descarregadas ${t} ${br(d.data)}`} />
+                          </td>
+                          <td className="py-2">
+                            <input name={`prog_${t}_${d.data}`} defaultValue={d.trilheiros[t].programacao ?? ''} className="h-11 w-28" placeholder="D" aria-label={`Programação ${t} ${br(d.data)}`} />
+                          </td>
+                          <td className="py-2">
+                            <input name={`obs_${t}_${d.data}`} defaultValue={d.trilheiros[t].observacao ?? ''} className="h-11 w-64" aria-label={`Observação ${t} ${br(d.data)}`} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              </details>
-            );
-          })}
+              </div>
+            ))}
+          </FormularioUsina>
         </div>
 
         <details className="card">

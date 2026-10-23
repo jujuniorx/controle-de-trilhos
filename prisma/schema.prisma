@@ -486,6 +486,21 @@ model TrilheiroGiro {
   @@index([trilheiro, boEm])
 }
 
+// Trilheiro: acompanhamento diário. Cada trilheiro leva 40 barras; aqui fica quantas
+// já foram descarregadas até o dia, a programação do dia (status) e a observação.
+model TrilheiroDia {
+  id            String       @id @default(cuid())
+  data          DateTime     @db.Date
+  trilheiro     TrilheiroCod
+  boEm          DateTime?    @db.Date
+  descarregadas Int?
+  programacao   String?
+  observacao    String?
+  atualizadoEm  DateTime     @updatedAt
+
+  @@unique([data, trilheiro])
+}
+
 // Trilheiro: manutenções registradas (data, tipo e detalhamento).
 model TrilheiroManutencao {
   id           String       @id @default(cuid())
