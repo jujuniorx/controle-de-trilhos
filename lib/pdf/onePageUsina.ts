@@ -47,7 +47,7 @@ function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yBase: nu
   });
 }
 
-function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false) {
+function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = []) {
   const base = topo - h;
   p.retangulo(x, base, w, h, FUNDO_CARTAO);
   p.retangulo(x, topo - 20, w, 20, hex(s.cor));
@@ -81,7 +81,7 @@ function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number,
       lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
     }
     p.texto(s.grafico.titulo, xg, topo - 32, 6.5, 'negrito', CINZA);
-    desenharGrafico(p, s.grafico, xg, base + 22, wg, Math.max(40, h - 66), s.rotulosDias);
+    desenharGrafico(p, s.grafico, xg, base + 22, wg, Math.max(40, h - 66), rotulos);
     textoDireita(p, 'Segunda a quinta', xg + wg, base + 3, 6, 'negrito', CINZA);
     return;
   }
@@ -94,7 +94,7 @@ function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number,
     lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
   }
   // Sem título próprio: a legenda já diz as séries, e o gráfico fica abaixo da tabela.
-  desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 60, s.rotulosDias);
+  desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 60, rotulos);
   textoDireita(p, 'Segunda a quinta', x + w - 8, base + 12, 6, 'negrito', CINZA);
 }
 
@@ -135,7 +135,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
   const porTitulo = (t: string) => d.setores.find((s) => s.titulo === t);
   const linha1 = d.setores.filter((s) => s.titulo !== 'Caminhão de solda' && s.titulo !== 'Trilheiros');
   linha1.slice(0, colunas).forEach((s, i) => {
-    desenharSetor(p, s, M + i * (wSet + gapC), topoGrade, wSet, altSet);
+    desenharSetor(p, s, M + i * (wSet + gapC), topoGrade, wSet, altSet, false, d.rotulosDias);
   });
 
   // Linhas 2 e 3: Caminhão de solda e Trilheiros, um embaixo do outro, cada um na largura toda.
@@ -145,7 +145,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
   const topoLinha2 = topoGrade - altSet - 12;
   const caminhao = porTitulo('Caminhão de solda');
   const trilheiros = porTitulo('Trilheiros');
-  if (caminhao) desenharSetor(p, caminhao, M, topoLinha2, larguraTotal, altLinha);
+  if (caminhao) desenharSetor(p, caminhao, M, topoLinha2, larguraTotal, altLinha, false, d.rotulosDias);
   if (trilheiros) desenharSetor(p, trilheiros, M, topoLinha2 - altLinha - gapLinha, larguraTotal, altLinha);
 
   const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
