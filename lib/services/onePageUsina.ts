@@ -112,7 +112,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         rotulo: 'Trilheiros',
         cor: CORES_SETOR.trilheiros,
         dia: `${trilRel.ativos} trilheiros`,
-        mes: `${trilRel.descarregadas} de ${trilRel.totalBarras} barras`,
+        mes: `${trilRel.descarregadas}/${trilRel.totalBarras}`,
         grupo: 'Trilheiros',
       },
     ],
@@ -194,7 +194,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         titulo: 'Trilheiros',
         cor: CORES_SETOR.trilheiros,
         linhas: trilRel.equipes.flatMap((e) => [
-          { rotulo: `${e.trilheiro} · barras descarregadas`, dia: `${e.descarregadas} / ${e.total}`, mes: `${e.descarregadas} / ${e.total}` },
+          { rotulo: `${e.trilheiro} · barras descarregadas`, dia: `${e.descarregadasDia}`, mes: `${e.descarregadas} / ${e.total}` },
         ]).concat([
           { rotulo: 'Média de dias úteis na usina', dia: '—', mes: trilM.mediaDiasUteisNaUsina == null ? '—' : String(trilM.mediaDiasUteisNaUsina) },
         ]),
@@ -210,6 +210,7 @@ export interface EquipeTrilheiro {
   bo: string | null;
   total: number;
   descarregadas: number;
+  descarregadasDia: number;
   percentual: number | null;
   programacao: string | null;
   status: string;
@@ -228,16 +229,26 @@ export async function montarTrilheirosRelatorio(data: string): Promise<Trilheiro
   const diaMs = (iso: string) => Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)));
   const equipes: EquipeTrilheiro[] = await Promise.all(
     TRILHEIROS.map(async (t) => {
+      const dataRel = new Date(`${data}T00:00:00Z`);
+      // Ultimo dia lançado (com barras) ate a data do relatorio.
       const r = await prisma.trilheiroDia.findFirst({
-        where: { trilheiro: t, data: { lte: new Date(`${data}T00:00:00Z`) } },
+        where: { trilheiro: t, data: { lte: dataRel }, descarregadas: { not: null } },
         orderBy: { data: 'desc' },
       });
+      // Dia anterior do mesmo giro: a diferenca entre os dois e o que foi descarregado no dia.
+      const anterior = r
+        ? await prisma.trilheiroDia.findFirst({
+            where: { trilheiro: t, data: { lt: r.data }, descarregadas: { not: null } },
+            orderBy: { data: 'desc' },
+          })
+        : null;
       if (!r) {
-        return { trilheiro: t, giroDias: null, bo: null, total: 0, descarregadas: 0, percentual: null, programacao: null, status: 'Sem lançamento' };
+        return { trilheiro: t, giroDias: null, bo: null, total: 0, descarregadas: 0, descarregadasDia: 0, percentual: null, programacao: null, status: 'Sem lançamento' };
       }
       const bo = r.boEm ? r.boEm.toISOString().slice(0, 10) : null;
       const giroDias = bo ? Math.round((diaMs(data) - diaMs(bo)) / 86400000) : null;
       const descarregadas = r.descarregadas ?? 0;
+      const baseDoGiro = anterior && anterior.boEm?.getTime() === r.boEm?.getTime() ? anterior.descarregadas ?? 0 : 0;
       const total = r.total ?? BARRAS_POR_TRILHEIRO;
       return {
         trilheiro: t,
@@ -245,6 +256,7 @@ export async function montarTrilheirosRelatorio(data: string): Promise<Trilheiro
         bo,
         total,
         descarregadas,
+        descarregadasDia: Math.max(0, descarregadas - baseDoGiro),
         percentual: total > 0 ? Math.round((descarregadas / total) * 100) : null,
         programacao: r.programacao,
         status: 'Em execução',
