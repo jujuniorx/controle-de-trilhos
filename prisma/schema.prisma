@@ -509,6 +509,7 @@ model CaminhaoSoldaDia {
   inicioMacro1    String?
   terminoMacro9   String?
   perdaDiaria     Int?
+  observacao      String?
   atualizadoEm    DateTime      @updatedAt
 
   @@unique([data, caminhao])

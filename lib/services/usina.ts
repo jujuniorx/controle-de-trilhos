@@ -332,7 +332,7 @@ export async function caminhoesDaSemana(semana: string) {
     const caminhoes = Object.fromEntries(
       CAMINHOES_ATIVOS.map((c) => {
         const r = linhas.find((x) => iso(x.data) === d && x.caminhao === c);
-        return [c, { local: r?.local ?? null, producaoDiaria: r?.producaoDiaria ?? null, perdaDiaria: r?.perdaDiaria ?? null, inicioMacro1: r?.inicioMacro1 ?? null, terminoMacro9: r?.terminoMacro9 ?? null }];
+        return [c, { local: r?.local ?? null, producaoDiaria: r?.producaoDiaria ?? null, perdaDiaria: r?.perdaDiaria ?? null, inicioMacro1: r?.inicioMacro1 ?? null, terminoMacro9: r?.terminoMacro9 ?? null, observacao: r?.observacao ?? null }];
       }),
     );
     return { data: d, caminhoes };
@@ -342,7 +342,7 @@ export async function caminhoesDaSemana(semana: string) {
 export async function salvarCaminhao(
   data: string,
   caminhao: (typeof CAMINHOES_ATIVOS)[number],
-  v: { local: string | null; producaoDiaria: number | null; inicioMacro1: string | null; terminoMacro9: string | null; perdaDiaria: number | null },
+  v: { local: string | null; producaoDiaria: number | null; inicioMacro1: string | null; terminoMacro9: string | null; perdaDiaria: number | null; observacao?: string | null },
 ) {
   await prisma.caminhaoSoldaDia.upsert({
     where: { data_caminhao: { data: dataBanco(data), caminhao } },

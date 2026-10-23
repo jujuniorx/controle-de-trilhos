@@ -338,6 +338,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                         <th className="py-2">Local</th>
                         <th className="py-2">Início (macro 1)</th>
                         <th className="py-2">Término (macro 9)</th>
+                        <th className="py-2">Observação</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -358,6 +359,9 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                           </td>
                           <td className="py-2">
                             <input name={`termino_${c}_${d.data}`} defaultValue={d.caminhoes[c].terminoMacro9 ?? ''} className="h-11 w-24" placeholder="17:00" aria-label={`Término ${c} ${br(d.data)}`} />
+                          </td>
+                          <td className="py-2">
+                            <input name={`obs_${c}_${d.data}`} defaultValue={d.caminhoes[c].observacao ?? ''} className="h-11 w-64" aria-label={`Observação ${c} ${br(d.data)}`} />
                           </td>
                         </tr>
                       ))}

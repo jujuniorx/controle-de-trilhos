@@ -274,6 +274,7 @@ export async function salvarCaminhoesSemanaAction(_: ResultadoUsina | undefined,
         perdaDiaria,
         inicioMacro1: texto(formData.get(`inicio_${c}_${d.data}`), 10),
         terminoMacro9: texto(formData.get(`termino_${c}_${d.data}`), 10),
+        observacao: texto(formData.get(`obs_${c}_${d.data}`), 500),
       });
     }
   }
