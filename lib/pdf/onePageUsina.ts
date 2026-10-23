@@ -48,11 +48,11 @@ function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number,
   p.texto(s.titulo.toUpperCase(), x + 8, topo - 14, 8, 'negrito', BRANCO);
 
   // Tabela Dia | Mês. No cartão largo ela fica à esquerda e o gráfico à direita.
-  const xDia = largo ? x + 250 : x + w - 92;
-  const xMes = largo ? x + 320 : x + w - 10;
+  const xDia = largo ? x + 330 : x + w - 92;
+  const xMes = largo ? x + 420 : x + w - 10;
   let y = topo - 32;
   textoDireita(p, 'DIA', xDia, y, 6.5, 'negrito', CINZA);
-  textoDireita(p, 'MÊS', xMes, y, 6.5, 'negrito', CINZA);
+  textoDireita(p, 'SEMANA', xMes, y, 6.5, 'negrito', CINZA);
   y -= 6;
   p.linha(x + 8, y, xMes + 2, y, LINHA, 0.6);
   for (const linha of s.linhas) {
@@ -65,8 +65,8 @@ function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number,
   if (!s.grafico) return;
   if (largo) {
     // Gráfico à direita, na mesma altura da tabela
-    const xg = x + 360;
-    const wg = w - 372;
+    const xg = x + 470;
+    const wg = w - 482;
     let lx = xg;
     const yLegenda = topo - 46;
     for (const serie of s.grafico.series) {
@@ -75,11 +75,11 @@ function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number,
       lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
     }
     p.texto(s.grafico.titulo, xg, topo - 32, 6.5, 'negrito', CINZA);
-    desenharGrafico(p, s.grafico, xg, base + 14, wg, 40);
-    textoDireita(p, `Dias do mês: 1 a ${s.grafico.series[0]?.valores.length ?? 0} (embaixo)`, xg + wg, base + 3, 6, 'negrito', CINZA);
+    desenharGrafico(p, s.grafico, xg, base + 14, wg, Math.max(40, h - 60));
+    textoDireita(p, 'Segunda a sexta', xg + wg, base + 3, 6, 'negrito', CINZA);
     return;
   }
-  // Gráfico do mês, na parte de baixo do cartão
+  // Gráfico da semana, na parte de baixo do cartão (abaixo da tabela)
   const yLegenda = base + 12;
   let lx = x + 8;
   for (const serie of s.grafico.series) {
@@ -87,9 +87,9 @@ function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number,
     p.texto(serie.nome, lx + 9, yLegenda, 6.5, 'normal', CINZA);
     lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
   }
-  p.texto(s.grafico.titulo, x + 8, base + 90, 6.5, 'negrito', CINZA);
-  desenharGrafico(p, s.grafico, x + 8, base + 24, w - 16, 56);
-  textoDireita(p, `Dias do mês (1 a ${s.grafico.series[0]?.valores.length ?? 0})`, x + w - 8, base + 12, 6, 'negrito', CINZA);
+  p.texto(s.grafico.titulo, x + 8, base + 104, 6.5, 'negrito', CINZA);
+  desenharGrafico(p, s.grafico, x + 8, base + 24, w - 16, 70);
+  textoDireita(p, 'Segunda a sexta', x + w - 8, base + 12, 6, 'negrito', CINZA);
 }
 
 export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
@@ -103,9 +103,9 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
   textoDireita(p, faixaSemanaSegSex(d.data), L - M, H - 48, 15, 'negrito', TINTA);
   p.linha(M, H - 60, L - M, H - 60, [0.1, 0.12, 0.16], 1.2);
 
-  // Resumo: dia e mês separados em cada setor
+  // Resumo: dia e semana separados em cada setor
   const gap = 10;
-  const wRes = (L - 2 * M - 3 * gap) / 4;
+  const wRes = (L - 2 * M - (d.resumo.length - 1) * gap) / d.resumo.length;
   const topoRes = H - 70;
   const altRes = 56;
   d.resumo.forEach((r, i) => {
@@ -116,30 +116,41 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
     const meio = x + wRes / 2 + 4;
     p.texto('Do dia', x + 8, topoRes - 30, 6.5, 'normal', CINZA);
     p.texto(r.dia, x + 8, topoRes - 46, 11, 'negrito', TINTA);
-    p.texto('Do mês', meio, topoRes - 30, 6.5, 'normal', CINZA);
+    p.texto('Da semana', meio, topoRes - 30, 6.5, 'normal', CINZA);
     p.texto(r.mes, meio, topoRes - 46, 11, 'negrito', hex(r.cor));
   });
 
-  // Setores em grade de 3 colunas
+  // Página 1: setores em grade de 3 colunas.
   const colunas = 3;
   const gapC = 12;
   const wSet = (L - 2 * M - (colunas - 1) * gapC) / colunas;
-  const altSet = 170;
+  const altSet = 230;
   const topoGrade = topoRes - altRes - 16;
-  // Os três primeiros setores ficam em grade; Caminhão e Trilheiros vêm embaixo, um sobre o outro, na largura toda.
   d.setores.slice(0, colunas).forEach((s, i) => {
     const x = M + i * (wSet + gapC);
     desenharSetor(p, s, x, topoGrade, wSet, altSet);
-  });
-  const altLargo = 112;
-  const topoLargo = topoGrade - altSet - 12;
-  d.setores.slice(colunas).forEach((s, i) => {
-    const topo = topoLargo - i * (altLargo + 12);
-    desenharSetor(p, s, M, topo, L - 2 * M, altLargo, true);
   });
 
   const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
   p.texto(`Emitido em ${emitido}`, M, 18, 6.5, 'normal', CINZA);
 
-  return montarPdfVarias([p], `Relatório gerencial usina ${d.data}`, A4_PAISAGEM);
+  // Página 2 (quando houver): Caminhão e Trilheiros, um sobre o outro, na largura toda, com espaço para as linhas.
+  const restantes = d.setores.slice(colunas);
+  if (restantes.length === 0) return montarPdfVarias([p], `Relatório gerencial usina ${d.data}`, A4_PAISAGEM);
+  const p2 = new PaginaPdf();
+  p2.retangulo(0, 0, L, H, BRANCO);
+  p2.texto('CONTROLE DE TRILHOS', M, H - 26, 7.5, 'negrito', CINZA);
+  p2.texto('Relatório gerencial (continuação)', M, H - 50, 16, 'negrito', TINTA);
+  textoDireita(p2, 'SEMANA (SEGUNDA A SEXTA)', L - M, H - 26, 7, 'negrito', CINZA);
+  textoDireita(p2, faixaSemanaSegSex(d.data), L - M, H - 48, 15, 'negrito', TINTA);
+  p2.linha(M, H - 60, L - M, H - 60, [0.1, 0.12, 0.16], 1.2);
+  let topo = H - 74;
+  for (const s of restantes) {
+    const alt = s.titulo === 'Trilheiros' ? 250 : 170;
+    desenharSetor(p2, s, M, topo, L - 2 * M, alt, true);
+    topo -= alt + 12;
+  }
+  p2.texto(`Emitido em ${emitido}`, M, 18, 6.5, 'normal', CINZA);
+
+  return montarPdfVarias([p, p2], `Relatório gerencial usina ${d.data}`, A4_PAISAGEM);
 }
