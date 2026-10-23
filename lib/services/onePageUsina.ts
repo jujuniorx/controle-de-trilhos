@@ -177,9 +177,9 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         cor: CORES_SETOR.caminhao,
         linhas: camM.flatMap((c) => {
           const d = camD.find((x) => x.caminhao === c.caminhao);
+          // Uma linha por caminhao: produção / perda (em unidades), sem repetir o nome.
           return [
-            { rotulo: `${c.caminhao} · produção (UND)`, dia: String(d?.periodo.producao ?? 0), mes: String(c.mes.producao) },
-            { rotulo: `${c.caminhao} · perda (UND)`, dia: String(d?.periodo.perda ?? 0), mes: String(c.mes.perda) },
+            { rotulo: `${c.caminhao} (produção / perda)`, dia: `${d?.periodo.producao ?? 0} / ${d?.periodo.perda ?? 0}`, mes: `${c.mes.producao} / ${c.mes.perda}` },
           ];
         }),
         grafico: {
