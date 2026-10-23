@@ -25,7 +25,7 @@ import { PERIODOS, ehIsoValido, type Periodo } from '@/lib/usina/periodo';
 import { FormularioUsina } from '@/components/usina/FormularioUsina';
 import { EscalaGrade } from '@/components/usina/EscalaGrade';
 import { lerEscala, diasDaSemana } from '@/lib/usina/escala';
-import { montarEscalaDaSemana } from '@/lib/services/usina';
+import { montarEscalaDaSemana, estaleiroDiasDaSemana } from '@/lib/services/usina';
 import {
   salvarEstaleiroAction,
   salvarEstoqueTlsAction,
@@ -36,6 +36,7 @@ import {
   salvarCaminhaoAction,
   salvarGiroAction,
   salvarManutencaoTrilheiroAction,
+  salvarEstaleiroSemanaAction,
   apagarGiroAction,
   apagarManutencaoTrilheiroAction,
   zerarTrilheiroAction,
@@ -62,6 +63,13 @@ function Cartao({ rotulo, valor }: { rotulo: string; valor: string | number }) {
   );
 }
 
+const NOME_DIA = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
+function somarDiasPagina(iso: string, dias: number): string {
+  const d = new Date(`${iso}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + dias);
+  return d.toISOString().slice(0, 10);
+}
+
 export default async function UsinaPage({ searchParams }: { searchParams: Promise<{ periodo?: string; data?: string }> }) {
   const params = await searchParams;
   const periodo = periodoValido(params.periodo);
@@ -78,6 +86,8 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
   ]);
   const escalaSalva = lerEscala(est.escala);
   const escalaSemana = await montarEscalaDaSemana(est.semana);
+  const diasSemana = await estaleiroDiasDaSemana(est.semana);
+  const totalSemana = diasSemana.reduce((t, d) => ({ soldas: t.soldas + (d.soldas ?? 0), cortes: t.cortes + (d.cortes ?? 0) }), { soldas: 0, cortes: 0 });
   const escalaLegada = !escalaSalva && est.escala.trim() !== '';
 
   return (
@@ -132,6 +142,45 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           <Cartao rotulo="Tampões carregados" valor={est.carreta.tampoes} />
           <Cartao rotulo="Trilho novo (m)" valor={fmtMetros(est.carreta.trilhoNovoM)} />
           <Cartao rotulo="Sucata saída (t)" valor={fmtPeso(est.carreta.sucataT)} />
+        </div>
+
+        <div className="card space-y-3">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <p className="font-semibold">Semana de {br(est.semana)} a {br(somarDiasPagina(est.semana, 4))}</p>
+            <p className="text-sm text-ink-muted">Lance cada dia e salve tudo de uma vez.</p>
+          </div>
+          <FormularioUsina acao={salvarEstaleiroSemanaAction} rotuloBotao="Salvar a semana">
+            <input type="hidden" name="semana" value={est.semana} />
+            <div className="tbl-wrap">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-ink-muted">
+                    <th className="py-2">Dia</th>
+                    <th className="py-2 text-right">Soldas (UND)</th>
+                    <th className="py-2 text-right">Cortes (UND)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {diasSemana.map((d) => (
+                    <tr key={d.data} className="border-t border-line">
+                      <td className="py-2 font-medium">{NOME_DIA[diasSemana.indexOf(d)]} {br(d.data)}</td>
+                      <td className="py-2 text-right">
+                        <input name={`soldas_${d.data}`} inputMode="numeric" defaultValue={d.soldas ?? ''} className="h-11 w-28 text-right" aria-label={`Soldas ${br(d.data)}`} />
+                      </td>
+                      <td className="py-2 text-right">
+                        <input name={`cortes_${d.data}`} inputMode="numeric" defaultValue={d.cortes ?? ''} className="h-11 w-28 text-right" aria-label={`Cortes ${br(d.data)}`} />
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="border-t-2 border-line font-semibold">
+                    <td className="py-2">Total da semana</td>
+                    <td className="py-2 text-right font-mono">{totalSemana.soldas}</td>
+                    <td className="py-2 text-right font-mono">{totalSemana.cortes}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </FormularioUsina>
         </div>
 
         <div className="card space-y-3">

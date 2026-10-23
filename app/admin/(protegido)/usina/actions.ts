@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/services/requireAdmin';
-import { salvarEstaleiroDia, salvarEstoqueTls, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, type TipoTlsValor } from '@/lib/services/usina';
+import { salvarEstaleiroDia, estaleiroDiasDaSemana, salvarEstoqueTls, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, type TipoTlsValor } from '@/lib/services/usina';
 import { ITENS_ESCALA, escalaVazia, gravarEscala, statusValido, cfgDeObjeto } from '@/lib/usina/escala';
 import { salvarGeracao, salvarComposicao, salvarCaminhao, salvarGiro, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
@@ -260,4 +260,20 @@ export async function zerarTrilheiroAction(formData: FormData): Promise<void> {
   if (!TRILHEIROS.includes(trilheiro)) return;
   await zerarTrilheiro(trilheiro);
   atualizar();
+}
+
+/** Lança soldas e cortes da semana inteira (segunda a sexta) em uma só vez. */
+export async function salvarEstaleiroSemanaAction(_: ResultadoUsina | undefined, formData: FormData): Promise<ResultadoUsina> {
+  await requireAdmin();
+  const semana = dataDoForm(formData.get('semana'));
+  if (!semana) return { ok: false, erro: 'Semana inválida.' };
+  const dias = await estaleiroDiasDaSemana(semana);
+  for (const d of dias) {
+    const soldas = inteiro(formData.get(`soldas_${d.data}`));
+    const cortes = inteiro(formData.get(`cortes_${d.data}`));
+    if (soldas === 'invalido' || cortes === 'invalido') return { ok: false, erro: 'Use só números inteiros em soldas e cortes.' };
+    await salvarEstaleiroDia(d.data, soldas, cortes);
+  }
+  atualizar();
+  return { ok: true };
 }

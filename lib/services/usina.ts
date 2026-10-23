@@ -50,6 +50,17 @@ export async function estaleiroDoPeriodo(periodo: Periodo, data: string) {
   };
 }
 
+/** Segunda a sexta da semana, com soldas e cortes de cada dia (vazio quando ainda não lançado). */
+export async function estaleiroDiasDaSemana(semana: string) {
+  const fim = somarDias(semana, 4);
+  const linhas = await prisma.estaleiroDia.findMany({ where: { data: { gte: dataBanco(semana), lte: dataBanco(fim) } } });
+  return [0, 1, 2, 3, 4].map((i) => {
+    const d = somarDias(semana, i);
+    const r = linhas.find((x) => iso(x.data) === d);
+    return { data: d, soldas: r?.soldas ?? null, cortes: r?.cortes ?? null };
+  });
+}
+
 /** Sexta-feira da semana (dia padrão da manutenção). */
 export function addSextaFeira(semanaInicio: string): string {
   return somarDias(semanaInicio, 4);
