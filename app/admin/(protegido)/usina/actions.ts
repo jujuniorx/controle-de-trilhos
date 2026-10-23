@@ -288,10 +288,13 @@ export async function salvarTrilheirosSemanaAction(_: ResultadoUsina | undefined
   const semana = dataDoForm(formData.get('semana'));
   if (!semana) return { ok: false, erro: 'Semana inválida.' };
   const dias = await trilheirosDaSemana(semana);
-  // Um só Dia do B.O. para todos os trilheiros da semana.
-  const boRaw = String(formData.get('bo') ?? '').trim();
-  if (boRaw !== '' && !ehIsoValido(boRaw)) return { ok: false, erro: 'Data do B.O. inválida.' };
-  const boEm = boRaw === '' ? null : boRaw;
+  // Dia do B.O. de cada trilheiro (vale para os dias da semana dele).
+  const boPorTrilheiro = {} as Record<(typeof TRILHEIROS)[number], string | null>;
+  for (const t of TRILHEIROS) {
+    const raw = String(formData.get(`bo_${t}`) ?? '').trim();
+    if (raw !== '' && !ehIsoValido(raw)) return { ok: false, erro: `Data do B.O. de ${t} inválida.` };
+    boPorTrilheiro[t] = raw === '' ? null : raw;
+  }
 
   // Valida tudo antes de gravar.
   const lancamentos: { data: string; trilheiro: (typeof TRILHEIROS)[number]; v: { boEm: string | null; descarregadas: number | null; total: number | null; programacao: string | null; observacao: string | null } }[] = [];
@@ -307,7 +310,7 @@ export async function salvarTrilheirosSemanaAction(_: ResultadoUsina | undefined
         data: d.data,
         trilheiro: t,
         v: {
-          boEm,
+          boEm: boPorTrilheiro[t],
           descarregadas,
           total,
           programacao: texto(formData.get(`prog_${t}_${d.data}`), 40),

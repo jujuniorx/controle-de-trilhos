@@ -85,7 +85,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
   const caminhoesSemana = await caminhoesDaSemana(est.semana);
   const geracaoSemana = await geracaoDaSemana(est.semana);
   const trilheirosSemana = await trilheirosDaSemana(est.semana);
-  const boSemana = trilheirosSemana.flatMap((d) => Object.values(d.trilheiros)).find((t) => t.boEm)?.boEm ?? '';
+  const boSemana = Object.fromEntries(TRILHEIROS.map((t) => [t, trilheirosSemana.map((d) => d.trilheiros[t].boEm).find((b) => b) ?? '']));
   const totalSemana = diasSemana.reduce((t, d) => ({ soldas: t.soldas + (d.soldas ?? 0), cortes: t.cortes + (d.cortes ?? 0) }), { soldas: 0, cortes: 0 });
   const escalaLegada = !escalaSalva && est.escala.trim() !== '';
 
@@ -424,13 +424,15 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           </div>
           <FormularioUsina acao={salvarTrilheirosSemanaAction} rotuloBotao="Salvar a semana">
             <input type="hidden" name="semana" value={est.semana} />
-            <div className="field max-w-xs">
-              <label htmlFor="bo_semana">Dia do B.O. (vale para todos os trilheiros)</label>
-              <input id="bo_semana" type="date" name="bo" defaultValue={boSemana} className="h-11 w-full" />
-            </div>
             {TRILHEIROS.map((t) => (
               <div key={t} className="space-y-2">
-                <p className="text-sm font-semibold">{t}</p>
+                <div className="flex flex-wrap items-end gap-3">
+                  <p className="text-sm font-semibold">{t}</p>
+                  <div className="field max-w-xs">
+                    <label htmlFor={`bo_${t}`}>Dia do B.O. de {t}</label>
+                    <input id={`bo_${t}`} type="date" name={`bo_${t}`} defaultValue={boSemana[t] ?? ''} className="h-11 w-44" />
+                  </div>
+                </div>
                 <div className="tbl-wrap">
                   <table className="w-full text-sm">
                     <thead>
