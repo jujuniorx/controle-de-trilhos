@@ -87,8 +87,8 @@ function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number,
     p.texto(serie.nome, lx + 9, yLegenda, 6.5, 'normal', CINZA);
     lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
   }
-  p.texto(s.grafico.titulo, x + 8, base + 104, 6.5, 'negrito', CINZA);
-  desenharGrafico(p, s.grafico, x + 8, base + 24, w - 16, 70);
+  // Sem título próprio: a legenda já diz as séries, e o gráfico fica abaixo da tabela.
+  desenharGrafico(p, s.grafico, x + 8, base + 24, w - 16, 64);
   textoDireita(p, 'Segunda a sexta', x + w - 8, base + 12, 6, 'negrito', CINZA);
 }
 
@@ -124,7 +124,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
   const colunas = 3;
   const gapC = 12;
   const wSet = (L - 2 * M - (colunas - 1) * gapC) / colunas;
-  const altSet = 170;
+  const altSet = 200;
   const topoGrade = topoRes - altRes - 16;
   const porTitulo = (t: string) => d.setores.find((s) => s.titulo === t);
   const linha1 = d.setores.filter((s) => s.titulo !== 'Caminhão de solda' && s.titulo !== 'Trilheiros');
@@ -134,7 +134,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
 
   // Linha 2: Caminhão de solda e Trilheiros, lado a lado.
   const wMeio = (L - 2 * M - gapC) / 2;
-  const altLinha2 = 220;
+  const altLinha2 = 200;
   const topoLinha2 = topoGrade - altSet - 12;
   const caminhao = porTitulo('Caminhão de solda');
   const trilheiros = porTitulo('Trilheiros');
