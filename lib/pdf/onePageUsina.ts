@@ -145,7 +145,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
   const topoLinha2 = topoGrade - altSet - 12;
   const caminhao = porTitulo('Caminhão de solda');
   const trilheiros = porTitulo('Trilheiros');
-  if (caminhao) desenharSetor(p, caminhao, M, topoLinha2, larguraTotal, altLinha, false, d.rotulosDias);
+  if (caminhao) desenharSetor(p, caminhao, M, topoLinha2, larguraTotal, altLinha, true, d.rotulosDias);
   if (trilheiros) desenharSetor(p, trilheiros, M, topoLinha2 - altLinha - gapLinha, larguraTotal, altLinha);
 
   const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
