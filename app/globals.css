@@ -896,18 +896,21 @@ html[data-tema="escuro"] .grafico-area {
 /* Login / acesso: painel da marca + formulário */
 .entrada-tela {
   flex: 1; display: grid; grid-template-columns: 1fr; background: var(--background);
-  min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  /* svh (altura estável): dvh muda com o teclado e a barra de senhas do iPhone e faz a tela pular. */
+  min-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  min-height: calc(100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
 }
 .entrada-marca { position: relative; overflow: hidden; display: flex; align-items: flex-start; justify-content: center; min-height: 270px; padding: 30px 20px; color: #fff; background: linear-gradient(155deg, #0b1b31, #12315a 70%, #0f4c99); }
 .entrada-marca-conteudo { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; }
 .entrada-marca-nome { margin-top: 14px; font-family: var(--font-barlow-cond), sans-serif; font-size: 1.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; line-height: 1.05; animation: sobe-fade .7s ease-out .5s backwards; }
 .entrada-marca-frase { margin-top: 6px; color: #b9cde6; font-size: .9rem; animation: sobe-fade .7s ease-out .65s backwards; }
-.entrada-form { display: flex; align-items: center; justify-content: center; padding: 28px 20px; background: radial-gradient(55% 45% at 50% 42%, rgba(47, 111, 184, .16), transparent 72%), var(--background); }
+.entrada-form { display: flex; align-items: flex-start; justify-content: center; padding: 28px 20px; background: radial-gradient(55% 45% at 50% 42%, rgba(47, 111, 184, .16), transparent 72%), var(--background); }
 .entrada-form-caixa { display: flex; flex-direction: column; width: 100%; max-width: 380px; animation: sobe-fade .6s ease-out .25s backwards; }
 @media (min-width: 860px) {
   .entrada-tela { grid-template-columns: 1.1fr 1fr; }
   .entrada-marca { min-height: 0; padding: 14vh 48px 48px; }
   .entrada-marca-nome { font-size: 2.4rem; }
+  .entrada-form { align-items: center; }
 }
 
 /* Admin: boas-vindas e resumo */
