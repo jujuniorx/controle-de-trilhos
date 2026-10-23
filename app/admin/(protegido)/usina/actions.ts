@@ -268,7 +268,13 @@ export async function salvarCaminhoesSemanaAction(_: ResultadoUsina | undefined,
       const producaoDiaria = inteiro(formData.get(`producao_${c}_${d.data}`));
       const perdaDiaria = inteiro(formData.get(`perda_${c}_${d.data}`));
       if (producaoDiaria === 'invalido' || perdaDiaria === 'invalido') return { ok: false, erro: 'Use só números inteiros no caminhão.' };
-      await salvarCaminhao(d.data, c, { ...d.caminhoes[c], producaoDiaria, perdaDiaria });
+      await salvarCaminhao(d.data, c, {
+        local: texto(formData.get(`local_${c}_${d.data}`), 120),
+        producaoDiaria,
+        perdaDiaria,
+        inicioMacro1: texto(formData.get(`inicio_${c}_${d.data}`), 10),
+        terminoMacro9: texto(formData.get(`termino_${c}_${d.data}`), 10),
+      });
     }
   }
   atualizar();

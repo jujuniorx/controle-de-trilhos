@@ -2,7 +2,6 @@ import { Fragment } from 'react';
 import {
   estaleiroDoPeriodo,
   geracaoDoPeriodo,
-  caminhoesDoPeriodo,
   trilheirosDoPeriodo,
   ROTULO_TLS,
   TIPOS_TLS,
@@ -31,7 +30,6 @@ import {
   salvarEstoqueTlsAction,
   salvarManutencaoAction,
   salvarEscalaAction,
-  salvarCaminhaoAction,
   salvarGiroAction,
   salvarManutencaoTrilheiroAction,
   salvarEstaleiroSemanaAction,
@@ -79,10 +77,9 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
 
   const ciclosAbertos = await listarCiclosAbertos();
 
-  const [est, ger, cam, tril] = await Promise.all([
+  const [est, ger, tril] = await Promise.all([
     estaleiroDoPeriodo(periodo, data),
     geracaoDoPeriodo(periodo, data),
-    caminhoesDoPeriodo(periodo, data),
     trilheirosDoPeriodo(periodo, data),
   ]);
   const escalaSalva = lerEscala(est.escala);
@@ -328,61 +325,52 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           </div>
           <FormularioUsina acao={salvarCaminhoesSemanaAction} rotuloBotao="Salvar a semana">
             <input type="hidden" name="semana" value={est.semana} />
-            <div className="tbl-wrap">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-ink-muted">
-                    <th className="py-2">Dia</th>
-                    <th className="py-2 text-right">CW01 produção</th>
-                    <th className="py-2 text-right">CW01 perda</th>
-                    <th className="py-2 text-right">CW02 produção</th>
-                    <th className="py-2 text-right">CW02 perda</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {caminhoesSemana.map((d, i) => (
-                    <tr key={d.data} className="border-t border-line">
-                      <td className="py-2 font-medium">{NOME_DIA[i]} {br(d.data)}</td>
-                      {CAMINHOES_ATIVOS.map((c) => (
-                        <Fragment key={c}>
+            {CAMINHOES_ATIVOS.map((c) => (
+              <div key={c} className="space-y-2">
+                <p className="text-sm font-semibold">{c}</p>
+                <div className="tbl-wrap">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-ink-muted">
+                        <th className="py-2">Dia</th>
+                        <th className="py-2 text-right">Produção</th>
+                        <th className="py-2 text-right">Perda</th>
+                        <th className="py-2">Local</th>
+                        <th className="py-2">Início (macro 1)</th>
+                        <th className="py-2">Término (macro 9)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {caminhoesSemana.map((d, i) => (
+                        <tr key={d.data} className="border-t border-line">
+                          <td className="py-2 font-medium">{NOME_DIA[i]} {br(d.data)}</td>
                           <td className="py-2 text-right">
                             <input name={`producao_${c}_${d.data}`} inputMode="numeric" defaultValue={d.caminhoes[c].producaoDiaria ?? ''} className="h-11 w-24 text-right" aria-label={`Produção ${c} ${br(d.data)}`} />
                           </td>
                           <td className="py-2 text-right">
                             <input name={`perda_${c}_${d.data}`} inputMode="numeric" defaultValue={d.caminhoes[c].perdaDiaria ?? ''} className="h-11 w-24 text-right" aria-label={`Perda ${c} ${br(d.data)}`} />
                           </td>
-                        </Fragment>
+                          <td className="py-2">
+                            <input name={`local_${c}_${d.data}`} defaultValue={d.caminhoes[c].local ?? ''} className="h-11 w-36" aria-label={`Local ${c} ${br(d.data)}`} />
+                          </td>
+                          <td className="py-2">
+                            <input name={`inicio_${c}_${d.data}`} defaultValue={d.caminhoes[c].inicioMacro1 ?? ''} className="h-11 w-24" placeholder="07:00" aria-label={`Início ${c} ${br(d.data)}`} />
+                          </td>
+                          <td className="py-2">
+                            <input name={`termino_${c}_${d.data}`} defaultValue={d.caminhoes[c].terminoMacro9 ?? ''} className="h-11 w-24" placeholder="17:00" aria-label={`Término ${c} ${br(d.data)}`} />
+                          </td>
+                        </tr>
                       ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
           </FormularioUsina>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {cam.map((c) => (
-            <div className="card space-y-3" key={c.caminhao}>
-              <p className="font-semibold">{c.caminhao}</p>
-              <p className="text-sm">No período: produção {c.periodo.producao} · perda {c.periodo.perda}</p>
-              <p className="text-xs text-ink-muted">Acumulado do mês: produção {c.mes.producao} · perda {c.mes.perda} — Acumulado do ano: produção {c.ano.producao} · perda {c.ano.perda}</p>
-              <FormularioUsina acao={salvarCaminhaoAction}>
-                <SeletorDia valor={data} />
-                <input type="hidden" name="caminhao" value={c.caminhao} />
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="field"><label>Produção diária</label><input name="producaoDiaria" inputMode="numeric" defaultValue={c.lancamentoDia?.producaoDiaria ?? ''} className="h-11" /></div>
-                  <div className="field"><label>Perda diária</label><input name="perdaDiaria" inputMode="numeric" defaultValue={c.lancamentoDia?.perdaDiaria ?? ''} className="h-11" /></div>
-                  <div className="field"><label>Local</label><input name="local" defaultValue={c.lancamentoDia?.local ?? ''} className="h-11" /></div>
-                  <div className="field"><label>Início (macro 1)</label><input name="inicioMacro1" defaultValue={c.lancamentoDia?.inicioMacro1 ?? ''} className="h-11" placeholder="07:00" /></div>
-                  <div className="field"><label>Término (macro 9)</label><input name="terminoMacro9" defaultValue={c.lancamentoDia?.terminoMacro9 ?? ''} className="h-11" placeholder="17:00" /></div>
-                </div>
-              </FormularioUsina>
-            </div>
-          ))}
-          <div className="card space-y-2 opacity-70">
-            <p className="font-semibold">CW03</p>
-            <p className="text-sm text-ink-muted">Em breve.</p>
-          </div>
+        <div className="card space-y-2 opacity-70">
+          <p className="font-semibold">CW03</p>
+          <p className="text-sm text-ink-muted">Em breve.</p>
         </div>
       </section>
 
