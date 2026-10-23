@@ -5,11 +5,13 @@ import {
   trilheirosDoPeriodo,
   listarCiclosAbertos,
   TRILHEIROS,
+  COMPOSICOES,
+  rotuloComposicao,
 } from '@/lib/services/usina';
 import { seriesDaSemana } from '@/lib/services/usinaGraficos';
 import { prisma } from '@/lib/db';
 import { intervaloDoPeriodo } from '@/lib/usina/periodo';
-import { METROS_POR_UNIDADE, ROTULO_CIDADE, CIDADES_SERRA } from '@/lib/services/serra';
+import { METROS_POR_BARRA } from '@/lib/domain/informativo';
 import { fmtMetros, fmtPeso } from '@/lib/format';
 
 const soma = <T,>(lista: T[], f: (x: T) => number) => lista.reduce((a, x) => a + f(x), 0);
@@ -53,26 +55,26 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
     caminhoesDoPeriodo('semana', data),
     trilheirosDoPeriodo('dia', data),
     trilheirosDoPeriodo('semana', data),
-    prisma.recolhimentoSerra.findMany({
+    prisma.composicaoDia.findMany({
       where: { data: { gte: new Date(`${inicio}T00:00:00Z`), lte: new Date(`${fim}T00:00:00Z`) } },
-      select: { data: true, cidade: true, unidades: true },
+      select: { data: true, ativo: true, barras: true },
     }),
   ]);
 
-  // Serra: unidades × 10 m, por cidade, no dia e no mês; e uma série diária por cidade para o gráfico.
-  const serraDia = (cidade: string) =>
-    serraMes.filter((r) => r.cidade === cidade && iso(r.data) === data).reduce((t, r) => t + r.unidades * METROS_POR_UNIDADE, 0);
-  const serraMesM = (cidade: string) => serraMes.filter((r) => r.cidade === cidade).reduce((t, r) => t + r.unidades * METROS_POR_UNIDADE, 0);
-  const serraDiaSerie = (cidade: string) => {
+  // Serra (modelo do informativo): barras de W61 e W62 × 10,5 m, estimativa em metros.
+  const barrasDia = (ativo: string) => serraMes.filter((r) => r.ativo === ativo && iso(r.data) === data).reduce((t, r) => t + (r.barras ?? 0), 0);
+  const barrasSemana = (ativo: string) => serraMes.filter((r) => r.ativo === ativo).reduce((t, r) => t + (r.barras ?? 0), 0);
+  const metrosDeBarras = (b: number) => Math.round(b * METROS_POR_BARRA * 100) / 100;
+  const serraDiaSerie = (ativo: string) => {
     const valores = new Array<number>(dias).fill(0);
     for (const r of serraMes) {
       const i = Math.round((Date.parse(`${iso(r.data)}T00:00:00Z`) - Date.parse(`${inicio}T00:00:00Z`)) / 86400000);
-      if (r.cidade === cidade && i >= 0 && i < dias) valores[i] += r.unidades * METROS_POR_UNIDADE;
+      if (r.ativo === ativo && i >= 0 && i < dias) valores[i] += metrosDeBarras(r.barras ?? 0);
     }
     return valores;
   };
-  const serraTotalDia = CIDADES_SERRA.reduce((t, c) => t + serraDia(c), 0);
-  const serraTotalMes = CIDADES_SERRA.reduce((t, c) => t + serraMesM(c), 0);
+  const serraTotalDia = COMPOSICOES.reduce((t, a) => t + metrosDeBarras(barrasDia(a)), 0);
+  const serraTotalMes = COMPOSICOES.reduce((t, a) => t + metrosDeBarras(barrasSemana(a)), 0);
 
   const geraDia = (f: (l: (typeof gerD.porLider)[number]) => number) => soma(gerD.porLider, f);
   const geraMes = (f: (l: (typeof gerM.porLider)[number]) => number) => soma(gerM.porLider, f);
@@ -97,7 +99,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         mes: metros(geraMes((l) => l.mes.carregamentoM + l.mes.deixadaViaM)),
         grupo: 'Geração de trilho',
       },
-      { rotulo: 'Recolhimento serra', cor: CORES_SETOR.serra, dia: metros(serraTotalDia), mes: metros(serraTotalMes), grupo: 'Recolhimento serra' },
+      { rotulo: 'Recolhimento serra (estimado)', cor: CORES_SETOR.serra, dia: metros(serraTotalDia), mes: metros(serraTotalMes), grupo: 'Recolhimento serra' },
       ...['CW01', 'CW02'].map((cw, i) => ({
         rotulo: cw,
         cor: i === 0 ? CORES_SETOR.caminhao : '#84cc16',
@@ -154,15 +156,18 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         titulo: 'Recolhimento serra',
         cor: CORES_SETOR.serra,
         linhas: [
-          ...CIDADES_SERRA.map((c) => ({ rotulo: `${ROTULO_CIDADE[c]} · recolhido (m)`, dia: metros(serraDia(c)), mes: metros(serraMesM(c)) })),
-          { rotulo: 'Total recolhido (m)', dia: metros(serraTotalDia), mes: metros(serraTotalMes) },
+          ...COMPOSICOES.flatMap((a) => [
+            { rotulo: `${rotuloComposicao(a)} · barras`, dia: String(barrasDia(a)), mes: String(barrasSemana(a)) },
+            { rotulo: `${a} · metros estimados`, dia: metros(metrosDeBarras(barrasDia(a))), mes: metros(metrosDeBarras(barrasSemana(a))) },
+          ]),
+          { rotulo: 'Total estimado (m)', dia: metros(serraTotalDia), mes: metros(serraTotalMes) },
         ],
         grafico: {
-          titulo: 'Metros recolhidos por dia',
-          series: CIDADES_SERRA.map((c, i) => ({
-            nome: ROTULO_CIDADE[c],
+          titulo: 'Metros estimados por dia (barras × 10,5)',
+          series: COMPOSICOES.map((a, i) => ({
+            nome: a,
             cor: i === 0 ? '#7c3aed' : '#f59e0b',
-            valores: serraDiaSerie(c),
+            valores: serraDiaSerie(a),
           })),
         },
       },
