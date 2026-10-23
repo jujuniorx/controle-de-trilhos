@@ -291,7 +291,7 @@ export async function salvarGeracaoSemanaAction(_: ResultadoUsina | undefined, f
 
   // Valida tudo antes de gravar: se algo estiver errado, nada da semana é alterado.
   const dias = await geracaoDaSemana(semana);
-  const gravar: { data: string; lider: LiderValor; local: string | null; corteM: number | null; carretas: CarretaGeracaoValor[] }[] = [];
+  const gravar: { data: string; lider: LiderValor; local: string | null; corteM: number | null; observacao: string | null; carretas: CarretaGeracaoValor[] }[] = [];
   for (const d of dias) {
     for (const l of LIDERES) {
       const item = porDia[d.data]?.[l.valor];
@@ -310,12 +310,12 @@ export async function salvarGeracaoSemanaAction(_: ResultadoUsina | undefined, f
         const vazia = perfis.length === 0 && quantidade == null && carregamentoM == null && deixadaViaM == null;
         if (!vazia) carretas.push({ perfis, quantidade, carregamentoM, deixadaViaM });
       }
-      gravar.push({ data: d.data, lider: l.valor, local: texto(String(item.local ?? ''), 120), corteM, carretas });
+      gravar.push({ data: d.data, lider: l.valor, local: texto(String(item.local ?? ''), 120), corteM, observacao: texto(String(item.observacao ?? ''), 500), carretas });
     }
   }
 
   for (const g of gravar) {
-    await salvarGeracaoDia(g.data, g.lider, { local: g.local, corteM: g.corteM, carretas: g.carretas });
+    await salvarGeracaoDia(g.data, g.lider, { local: g.local, corteM: g.corteM, observacao: g.observacao, carretas: g.carretas });
   }
   atualizar();
   return { ok: true };

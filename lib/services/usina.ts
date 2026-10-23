@@ -206,6 +206,7 @@ export async function geracaoDaSemana(semana: string) {
           {
             local: r?.local ?? null,
             corteM: r?.corteM != null ? Number(r.corteM) : null,
+            observacao: r?.observacao ?? null,
             carretas: carretas.map((c) => ({
               perfis: c.perfis,
               quantidade: c.quantidade ?? null,
@@ -225,12 +226,11 @@ export async function geracaoDaSemana(semana: string) {
 
 /**
  * Grava o dia do líder na semana: local, corte e a lista de carretas (com perfis), que substitui a anterior.
- * A observação não é alterada aqui.
  */
 export async function salvarGeracaoDia(
   data: string,
   lider: LiderValor,
-  v: { local: string | null; corteM: number | null; carretas: CarretaGeracaoValor[] },
+  v: { local: string | null; corteM: number | null; observacao: string | null; carretas: CarretaGeracaoValor[] },
 ) {
   const { carretas, ...cabecalho } = v;
   await prisma.$transaction(async (tx) => {
