@@ -106,11 +106,10 @@ export function TrilheirosBloco({ t }: { t: TrilheirosRelatorio }) {
               <tr className="text-[11px] uppercase tracking-wide text-slate-500">
                 <th className="pb-1 text-left font-semibold">Trilheiro</th>
                 <th className="pb-1 text-right font-semibold">Giro (dias)</th>
-                <th className="pb-1 text-right font-semibold">Partida da usina</th>
-                <th className="pb-1 text-left font-semibold">Local atual</th>
+                <th className="pb-1 text-right font-semibold">B.O.</th>
                 <th className="pb-1 text-right font-semibold">Barras desc. / total</th>
                 <th className="pb-1 text-right font-semibold">% exec.</th>
-                <th className="pb-1 text-left font-semibold">Status</th>
+                <th className="pb-1 text-left font-semibold">Programação do dia</th>
               </tr>
             </thead>
             <tbody>
@@ -118,15 +117,10 @@ export function TrilheirosBloco({ t }: { t: TrilheirosRelatorio }) {
                 <tr key={e.trilheiro} className="border-t border-slate-100">
                   <td className="py-1.5 font-bold text-slate-900">{e.trilheiro}</td>
                   <td className="py-1.5 text-right tabular-nums">{e.giroDias ?? '—'}</td>
-                  <td className="py-1.5 text-right tabular-nums">{brData(e.partida)}</td>
-                  <td className="py-1.5">{e.local ?? '—'}</td>
-                  <td className="py-1.5 text-right font-medium tabular-nums">{e.descarregados} / {e.carregados}</td>
+                  <td className="py-1.5 text-right tabular-nums">{brData(e.bo)}</td>
+                  <td className="py-1.5 text-right font-medium tabular-nums">{e.descarregadas} / {e.total}</td>
                   <td className="py-1.5 text-right tabular-nums">{e.percentual == null ? '—' : `${e.percentual}%`}</td>
-                  <td className="py-1.5">
-                    <span className={`rounded px-2 py-0.5 text-[11px] font-semibold ${e.status === 'Sem giro' ? 'bg-slate-100 text-slate-500' : 'bg-amber-100 text-amber-800'}`}>
-                      {e.status}
-                    </span>
-                  </td>
+                  <td className="py-1.5">{e.programacao ?? e.status}</td>
                 </tr>
               ))}
             </tbody>

@@ -3,8 +3,8 @@ import {
   geracaoDoPeriodo,
   caminhoesDoPeriodo,
   trilheirosDoPeriodo,
-  listarCiclosAbertos,
   TRILHEIROS,
+  BARRAS_POR_TRILHEIRO,
   COMPOSICOES,
   rotuloComposicao,
 } from '@/lib/services/usina';
@@ -46,6 +46,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
   const { inicio, fim } = intervaloDoPeriodo('semana', data);
   const dias = serie.rotulos.length;
 
+  const trilRel = await montarTrilheirosRelatorio(data);
   const [estD, estM, gerD, gerM, camD, camM, trilD, trilM, serraMes] = await Promise.all([
     estaleiroDoPeriodo('dia', data),
     estaleiroDoPeriodo('semana', data),
@@ -110,8 +111,8 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       {
         rotulo: 'Trilheiros',
         cor: CORES_SETOR.trilheiros,
-        dia: `${trilD.giros.length} giros`,
-        mes: `${trilM.giros.length} giros`,
+        dia: `${trilRel.ativos} trilheiros`,
+        mes: `${trilRel.descarregadas} de ${trilRel.totalBarras} barras`,
         grupo: 'Trilheiros',
       },
     ],
@@ -192,13 +193,8 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       {
         titulo: 'Trilheiros',
         cor: CORES_SETOR.trilheiros,
-        linhas: TRILHEIROS.flatMap((t) => [
-          { rotulo: `${t} · giros`, dia: String(trilD.giros.filter((g) => g.trilheiro === t).length), mes: String(trilM.giros.filter((g) => g.trilheiro === t).length) },
-          {
-            rotulo: `${t} · TLS carregados`,
-            dia: `${soma(trilD.giros.filter((g) => g.trilheiro === t), (g) => g.carregados)} TLS`,
-            mes: `${soma(trilM.giros.filter((g) => g.trilheiro === t), (g) => g.carregados)} TLS`,
-          },
+        linhas: trilRel.equipes.flatMap((e) => [
+          { rotulo: `${e.trilheiro} · barras descarregadas`, dia: `${e.descarregadas} / ${e.total}`, mes: `${e.descarregadas} / ${e.total}` },
         ]).concat([
           { rotulo: 'Média de dias úteis na usina', dia: '—', mes: trilM.mediaDiasUteisNaUsina == null ? '—' : String(trilM.mediaDiasUteisNaUsina) },
         ]),
@@ -211,11 +207,11 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
 export interface EquipeTrilheiro {
   trilheiro: string;
   giroDias: number | null;
-  partida: string | null;
-  local: string | null;
-  carregados: number;
-  descarregados: number;
+  bo: string | null;
+  total: number;
+  descarregadas: number;
   percentual: number | null;
+  programacao: string | null;
   status: string;
 }
 
@@ -227,32 +223,37 @@ export interface TrilheirosRelatorio {
   equipes: EquipeTrilheiro[];
 }
 
-/** Situacao atual dos giros abertos: uma linha por equipe, com os indicadores de topo. */
+/** Situacao de cada trilheiro no dia: ultimo lancamento da tabela diaria ate a data do relatorio. */
 export async function montarTrilheirosRelatorio(data: string): Promise<TrilheirosRelatorio> {
-  const ciclos = await listarCiclosAbertos();
   const diaMs = (iso: string) => Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)));
-  const equipes: EquipeTrilheiro[] = TRILHEIROS.map((t, i) => {
-    const c = ciclos[i];
-    if (!c) {
-      return { trilheiro: t, giroDias: null, partida: null, local: null, carregados: 0, descarregados: 0, percentual: null, status: 'Sem giro' };
-    }
-    const partida = c.partidaEm ? c.partidaEm.toISOString().slice(0, 10) : null;
-    const giroDias = partida ? Math.round((diaMs(data) - diaMs(partida)) / 86400000) : null;
-    const percentual = c.carregados > 0 ? Math.round((c.descarregados / c.carregados) * 100) : null;
-    return {
-      trilheiro: t,
-      giroDias,
-      partida,
-      local: c.local,
-      carregados: c.carregados,
-      descarregados: c.descarregados,
-      percentual,
-      status: partida ? 'Em execução' : 'Aguardando partida',
-    };
-  });
-  const ativos = equipes.filter((e) => e.status !== 'Sem giro');
-  const totalBarras = soma(ativos, (e) => e.carregados);
-  const descarregadas = soma(ativos, (e) => e.descarregados);
+  const equipes: EquipeTrilheiro[] = await Promise.all(
+    TRILHEIROS.map(async (t) => {
+      const r = await prisma.trilheiroDia.findFirst({
+        where: { trilheiro: t, data: { lte: new Date(`${data}T00:00:00Z`) } },
+        orderBy: { data: 'desc' },
+      });
+      if (!r) {
+        return { trilheiro: t, giroDias: null, bo: null, total: 0, descarregadas: 0, percentual: null, programacao: null, status: 'Sem lançamento' };
+      }
+      const bo = r.boEm ? r.boEm.toISOString().slice(0, 10) : null;
+      const giroDias = bo ? Math.round((diaMs(data) - diaMs(bo)) / 86400000) : null;
+      const descarregadas = r.descarregadas ?? 0;
+      const total = r.total ?? BARRAS_POR_TRILHEIRO;
+      return {
+        trilheiro: t,
+        giroDias,
+        bo,
+        total,
+        descarregadas,
+        percentual: total > 0 ? Math.round((descarregadas / total) * 100) : null,
+        programacao: r.programacao,
+        status: 'Em execução',
+      };
+    }),
+  );
+  const ativos = equipes.filter((e) => e.status !== 'Sem lançamento');
+  const totalBarras = soma(ativos, (e) => e.total);
+  const descarregadas = soma(ativos, (e) => e.descarregadas);
   return {
     ativos: ativos.length,
     totalBarras,
