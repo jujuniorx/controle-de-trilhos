@@ -15,7 +15,7 @@ import {
   rotuloComposicao,
 } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
-import { CarretasGeracao } from '@/components/usina/CarretasGeracao';
+import { GeracaoSemana } from '@/components/usina/GeracaoSemana';
 import { CamposGiro, type CicloAberto } from '@/components/usina/CamposGiro';
 import { BotaoApagarRegistro } from '@/components/usina/BotaoApagarRegistro';
 import { SeletorDia } from '@/components/usina/SeletorDia';
@@ -33,7 +33,6 @@ import {
   salvarEstoqueTlsAction,
   salvarManutencaoAction,
   salvarEscalaAction,
-  salvarGeracaoAction,
   salvarComposicaoAction,
   salvarCaminhaoAction,
   salvarGiroAction,
@@ -261,75 +260,17 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         <div className="card space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <p className="font-semibold">Semana de {br(est.semana)} a {br(somarDiasPagina(est.semana, 4))}</p>
-            <p className="text-sm text-ink-muted">Digite o corte de cada dia e salve tudo de uma vez. Carregado, deixado e barras vêm das carretas lançadas no dia.</p>
+            <p className="text-sm text-ink-muted">Lance as carretas de cada dia com os perfis, e salve a semana de uma vez.</p>
           </div>
           <FormularioUsina acao={salvarGeracaoSemanaAction} rotuloBotao="Salvar a semana">
             <input type="hidden" name="semana" value={est.semana} />
-            {LIDERES.map((l) => (
-              <div key={l.valor} className="space-y-2">
-                <p className="text-sm font-semibold">{l.rotulo}</p>
-                <div className="tbl-wrap">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-left text-ink-muted">
-                        <th className="py-2">Dia</th>
-                        <th className="py-2 text-right">Corte (m)</th>
-                        <th className="py-2 text-right">Carregado (m)</th>
-                        <th className="py-2 text-right">Deixado na via (m)</th>
-                        <th className="py-2 text-right">Barras</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {geracaoSemana.map((d, i) => {
-                        const x = d.lideres[l.valor];
-                        return (
-                          <tr key={d.data} className="border-t border-line">
-                            <td className="py-2 font-medium">{NOME_DIA[i]} {br(d.data)}</td>
-                            <td className="py-2 text-right">
-                              <input name={`corte_${l.valor}_${d.data}`} inputMode="decimal" defaultValue={x.corteM != null ? String(x.corteM) : ''} className="h-11 w-24 text-right" aria-label={`Corte ${l.rotulo} ${br(d.data)}`} />
-                            </td>
-                            <td className="py-2 text-right">{fmtMetros(x.carregamentoM)}</td>
-                            <td className="py-2 text-right">{fmtMetros(x.deixadaViaM)}</td>
-                            <td className="py-2 text-right">{x.quantidade}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            ))}
+            <GeracaoSemana
+              dias={geracaoSemana.map((d, i) => ({ data: d.data, rotulo: `${NOME_DIA[i]} ${br(d.data)}`, lideres: d.lideres }))}
+              lideres={LIDERES}
+              opcoesPerfis={PERFIS}
+            />
           </FormularioUsina>
         </div>
-        {LIDERES.map((l) => {
-          const dia = ger.porLider.find((x) => x.valor === l.valor)?.lancamentoDia;
-          return (
-            <details className="card" key={l.valor}>
-              <summary className="cursor-pointer font-semibold">Lançar {l.rotulo} — {br(data)}</summary>
-              <div className="mt-3">
-                <FormularioUsina acao={salvarGeracaoAction}>
-                  <SeletorDia valor={data} />
-                  <input type="hidden" name="lider" value={l.valor} />
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    <div className="field"><label>Local</label><input name="local" defaultValue={dia?.local ?? ''} className="h-11" /></div>
-                    <div className="field"><label>Corte do dia (m)</label><input name="corteM" inputMode="decimal" defaultValue={dia?.corteM != null ? String(dia.corteM) : ''} className="h-11" /></div>
-                  </div>
-                  <p className="text-sm font-semibold">Carretas do dia</p>
-                  <CarretasGeracao
-                    opcoesPerfis={PERFIS}
-                    iniciais={(dia?.carretas ?? []).map((c) => ({
-                      perfis: c.perfis,
-                      quantidade: c.quantidade != null ? String(c.quantidade) : '',
-                      carregamentoM: c.carregamentoM != null ? String(c.carregamentoM) : '',
-                      deixadaViaM: c.deixadaViaM != null ? String(c.deixadaViaM) : '',
-                    }))}
-                  />
-                  <div className="field"><label>Observação</label><textarea name="observacao" rows={2} defaultValue={dia?.observacao ?? ''} className="w-full" /></div>
-                </FormularioUsina>
-              </div>
-            </details>
-          );
-        })}
       </section>
 
       {/* ── Recolhimento serra ─────────────────────────────────────── */}

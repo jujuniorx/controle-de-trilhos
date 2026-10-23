@@ -183,11 +183,54 @@ export interface CarretaGeracaoValor {
   deixadaViaM: number | null;
 }
 
-/** Grava o dia do líder: cabeçalho (local, corte, observação) e a lista de carretas, que substitui a anterior. */
-export async function salvarGeracao(
+/**
+ * Geração da semana (segunda a sexta): por dia e por líder, o corte digitado e os totais
+ * das carretas (carregado, deixado na via e barras). Os totais não são digitados.
+ */
+export async function geracaoDaSemana(semana: string) {
+  const fim = somarDias(semana, 4);
+  const linhas = await prisma.geracaoDia.findMany({
+    where: { data: { gte: dataBanco(semana), lte: dataBanco(fim) } },
+    include: { carretas: { orderBy: { ordem: 'asc' } } },
+  });
+  return [0, 1, 2, 3, 4].map((i) => {
+    const d = somarDias(semana, i);
+    const lideres = Object.fromEntries(
+      LIDERES.map((l) => {
+        const r = linhas.find((x) => iso(x.data) === d && x.lider === l.valor);
+        const carretas = r?.carretas ?? [];
+        const soma = (f: (c: (typeof carretas)[number]) => unknown) => carretas.reduce((acc, c) => acc + Number(f(c) ?? 0), 0);
+        // Valores vão para a tela como números simples (Decimal do Prisma não serializa).
+        return [
+          l.valor,
+          {
+            local: r?.local ?? null,
+            corteM: r?.corteM != null ? Number(r.corteM) : null,
+            carretas: carretas.map((c) => ({
+              perfis: c.perfis,
+              quantidade: c.quantidade ?? null,
+              carregamentoM: c.carregamentoM != null ? Number(c.carregamentoM) : null,
+              deixadaViaM: c.deixadaViaM != null ? Number(c.deixadaViaM) : null,
+            })),
+            carregamentoM: round2(soma((c) => c.carregamentoM)),
+            deixadaViaM: round2(soma((c) => c.deixadaViaM)),
+            quantidade: soma((c) => c.quantidade),
+          },
+        ];
+      }),
+    );
+    return { data: d, lideres };
+  });
+}
+
+/**
+ * Grava o dia do líder na semana: local, corte e a lista de carretas (com perfis), que substitui a anterior.
+ * A observação não é alterada aqui.
+ */
+export async function salvarGeracaoDia(
   data: string,
   lider: LiderValor,
-  v: { local: string | null; corteM: number | null; observacao: string | null; carretas: CarretaGeracaoValor[] },
+  v: { local: string | null; corteM: number | null; carretas: CarretaGeracaoValor[] },
 ) {
   const { carretas, ...cabecalho } = v;
   await prisma.$transaction(async (tx) => {
@@ -202,47 +245,6 @@ export async function salvarGeracao(
         data: carretas.map((c, i) => ({ geracaoDiaId: dia.id, ordem: i, ...c })),
       });
     }
-  });
-}
-
-/**
- * Geração da semana (segunda a sexta): por dia e por líder, o corte digitado e os totais
- * das carretas (carregado, deixado na via e barras). Os totais não são digitados.
- */
-export async function geracaoDaSemana(semana: string) {
-  const fim = somarDias(semana, 4);
-  const linhas = await prisma.geracaoDia.findMany({
-    where: { data: { gte: dataBanco(semana), lte: dataBanco(fim) } },
-    include: { carretas: true },
-  });
-  return [0, 1, 2, 3, 4].map((i) => {
-    const d = somarDias(semana, i);
-    const lideres = Object.fromEntries(
-      LIDERES.map((l) => {
-        const r = linhas.find((x) => iso(x.data) === d && x.lider === l.valor);
-        const carretas = r?.carretas ?? [];
-        const soma = (f: (c: (typeof carretas)[number]) => unknown) => carretas.reduce((acc, c) => acc + Number(f(c) ?? 0), 0);
-        return [
-          l.valor,
-          {
-            corteM: r?.corteM ?? null,
-            carregamentoM: round2(soma((c) => c.carregamentoM)),
-            deixadaViaM: round2(soma((c) => c.deixadaViaM)),
-            quantidade: soma((c) => c.quantidade),
-          },
-        ];
-      }),
-    );
-    return { data: d, lideres };
-  });
-}
-
-/** Grava só o corte do dia do líder. Local, observação e carretas ficam como estão. */
-export async function salvarCorteGeracao(data: string, lider: LiderValor, corteM: number | null) {
-  await prisma.geracaoDia.upsert({
-    where: { data_lider: { data: dataBanco(data), lider } },
-    update: { corteM },
-    create: { data: dataBanco(data), lider, corteM },
   });
 }
 

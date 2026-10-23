@@ -2,9 +2,9 @@
 
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/services/requireAdmin';
-import { salvarEstaleiroDia, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, geracaoDaSemana, salvarCorteGeracao, salvarEstoqueTls, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, type TipoTlsValor } from '@/lib/services/usina';
+import { salvarEstaleiroDia, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, geracaoDaSemana, salvarGeracaoDia, salvarEstoqueTls, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, type TipoTlsValor } from '@/lib/services/usina';
 import { ITENS_ESCALA, escalaVazia, gravarEscala, statusValido, cfgDeObjeto } from '@/lib/usina/escala';
-import { salvarGeracao, salvarComposicao, salvarCaminhao, salvarGiro, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
+import { salvarComposicao, salvarCaminhao, salvarGiro, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
 import { ehIsoValido } from '@/lib/usina/periodo';
 
@@ -114,46 +114,6 @@ function texto(v: FormDataEntryValue | null, max = 300): string | null {
 }
 
 const erroNumero = { ok: false, erro: 'Use só números (use vírgula nos decimais).' };
-
-export async function salvarGeracaoAction(_: ResultadoUsina | undefined, formData: FormData): Promise<ResultadoUsina> {
-  await requireAdmin();
-  const data = dataDoForm(formData.get('data'));
-  const lider = String(formData.get('lider') ?? '') as LiderValor;
-  if (!data) return { ok: false, erro: 'Data inválida.' };
-  if (!LIDERES.some((l) => l.valor === lider)) return { ok: false, erro: 'Líder inválido.' };
-  const corteM = decimal(formData.get('corteM'));
-  if (corteM === 'invalido') return erroNumero;
-
-  // Carretas chegam como JSON (lista editável na tela): perfis múltiplos + números por carreta.
-  let brutas: unknown;
-  try {
-    brutas = JSON.parse(String(formData.get('carretas') ?? '[]'));
-  } catch {
-    return { ok: false, erro: 'Não foi possível ler as carretas. Atualize a página e tente de novo.' };
-  }
-  if (!Array.isArray(brutas)) return { ok: false, erro: 'Não foi possível ler as carretas.' };
-
-  const carretas: CarretaGeracaoValor[] = [];
-  for (const item of brutas as Array<Record<string, unknown>>) {
-    const perfis = Array.isArray(item.perfis) ? item.perfis.map(String) : [];
-    if (perfis.some((p) => !(PERFIS as readonly string[]).includes(p))) return { ok: false, erro: 'Perfil inválido em uma carreta.' };
-    const quantidade = inteiro(String(item.quantidade ?? ''));
-    const carregamentoM = decimal(String(item.carregamentoM ?? ''));
-    const deixadaViaM = decimal(String(item.deixadaViaM ?? ''));
-    if (quantidade === 'invalido' || carregamentoM === 'invalido' || deixadaViaM === 'invalido') return erroNumero;
-    const vazia = perfis.length === 0 && quantidade == null && carregamentoM == null && deixadaViaM == null;
-    if (!vazia) carretas.push({ perfis, quantidade, carregamentoM, deixadaViaM });
-  }
-
-  await salvarGeracao(data, lider, {
-    local: texto(formData.get('local'), 120),
-    corteM,
-    observacao: texto(formData.get('observacao'), 500),
-    carretas,
-  });
-  atualizar();
-  return { ok: true };
-}
 
 export async function salvarComposicaoAction(_: ResultadoUsina | undefined, formData: FormData): Promise<ResultadoUsina> {
   await requireAdmin();
@@ -314,18 +274,48 @@ export async function salvarCaminhoesSemanaAction(_: ResultadoUsina | undefined,
   return { ok: true };
 }
 
-/** Lança o corte de cada líder na semana inteira. Carretas, local e observação não mudam aqui. */
+/** Lança a geração da semana inteira: corte, local e as carretas (com perfis) de cada líder em cada dia. */
 export async function salvarGeracaoSemanaAction(_: ResultadoUsina | undefined, formData: FormData): Promise<ResultadoUsina> {
   await requireAdmin();
   const semana = dataDoForm(formData.get('semana'));
   if (!semana) return { ok: false, erro: 'Semana inválida.' };
+
+  let brutos: unknown;
+  try {
+    brutos = JSON.parse(String(formData.get('dados') ?? '{}'));
+  } catch {
+    return { ok: false, erro: 'Não foi possível ler a geração. Atualize a página e tente de novo.' };
+  }
+  if (!brutos || typeof brutos !== 'object') return { ok: false, erro: 'Não foi possível ler a geração.' };
+  const porDia = brutos as Record<string, Record<string, Record<string, unknown>>>;
+
+  // Valida tudo antes de gravar: se algo estiver errado, nada da semana é alterado.
   const dias = await geracaoDaSemana(semana);
+  const gravar: { data: string; lider: LiderValor; local: string | null; corteM: number | null; carretas: CarretaGeracaoValor[] }[] = [];
   for (const d of dias) {
     for (const l of LIDERES) {
-      const corteM = decimal(formData.get(`corte_${l.valor}_${d.data}`));
+      const item = porDia[d.data]?.[l.valor];
+      if (!item) continue;
+      const corteM = decimal(String(item.corte ?? ''));
       if (corteM === 'invalido') return erroNumero;
-      await salvarCorteGeracao(d.data, l.valor, corteM);
+      const brutas = Array.isArray(item.carretas) ? (item.carretas as Array<Record<string, unknown>>) : [];
+      const carretas: CarretaGeracaoValor[] = [];
+      for (const c of brutas) {
+        const perfis = Array.isArray(c.perfis) ? c.perfis.map(String) : [];
+        if (perfis.some((p) => !(PERFIS as readonly string[]).includes(p))) return { ok: false, erro: 'Perfil inválido em uma carreta.' };
+        const quantidade = inteiro(String(c.quantidade ?? ''));
+        const carregamentoM = decimal(String(c.carregamentoM ?? ''));
+        const deixadaViaM = decimal(String(c.deixadaViaM ?? ''));
+        if (quantidade === 'invalido' || carregamentoM === 'invalido' || deixadaViaM === 'invalido') return erroNumero;
+        const vazia = perfis.length === 0 && quantidade == null && carregamentoM == null && deixadaViaM == null;
+        if (!vazia) carretas.push({ perfis, quantidade, carregamentoM, deixadaViaM });
+      }
+      gravar.push({ data: d.data, lider: l.valor, local: texto(String(item.local ?? ''), 120), corteM, carretas });
     }
+  }
+
+  for (const g of gravar) {
+    await salvarGeracaoDia(g.data, g.lider, { local: g.local, corteM: g.corteM, carretas: g.carretas });
   }
   atualizar();
   return { ok: true };
