@@ -6,7 +6,7 @@ import {
   listarCiclosAbertos,
   TRILHEIROS,
 } from '@/lib/services/usina';
-import { seriesDoMes } from '@/lib/services/usinaGraficos';
+import { seriesDaSemana } from '@/lib/services/usinaGraficos';
 import { prisma } from '@/lib/db';
 import { intervaloDoPeriodo } from '@/lib/usina/periodo';
 import { METROS_POR_UNIDADE, ROTULO_CIDADE, CIDADES_SERRA } from '@/lib/services/serra';
@@ -32,19 +32,19 @@ export const CORES_SETOR = { estaleiro: '#2563eb', geracao: '#059669', serra: '#
 
 /** Mesmos números do relatório gerencial da usina, em forma simples para a tela e para o PDF. */
 export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio> {
-  const serie = await seriesDoMes(data);
-  const { inicio, fim } = intervaloDoPeriodo('mes', data);
+  const serie = await seriesDaSemana(data);
+  const { inicio, fim } = intervaloDoPeriodo('semana', data);
   const dias = serie.rotulos.length;
 
   const [estD, estM, gerD, gerM, camD, camM, trilD, trilM, serraMes] = await Promise.all([
     estaleiroDoPeriodo('dia', data),
-    estaleiroDoPeriodo('mes', data),
+    estaleiroDoPeriodo('semana', data),
     geracaoDoPeriodo('dia', data),
-    geracaoDoPeriodo('mes', data),
+    geracaoDoPeriodo('semana', data),
     caminhoesDoPeriodo('dia', data),
-    caminhoesDoPeriodo('mes', data),
+    caminhoesDoPeriodo('semana', data),
     trilheirosDoPeriodo('dia', data),
-    trilheirosDoPeriodo('mes', data),
+    trilheirosDoPeriodo('semana', data),
     prisma.recolhimentoSerra.findMany({
       where: { data: { gte: new Date(`${inicio}T00:00:00Z`), lte: new Date(`${fim}T00:00:00Z`) } },
       select: { data: true, cidade: true, unidades: true },
@@ -57,7 +57,10 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
   const serraMesM = (cidade: string) => serraMes.filter((r) => r.cidade === cidade).reduce((t, r) => t + r.unidades * METROS_POR_UNIDADE, 0);
   const serraDiaSerie = (cidade: string) => {
     const valores = new Array<number>(dias).fill(0);
-    for (const r of serraMes) if (r.cidade === cidade) valores[Number(iso(r.data).slice(8, 10)) - 1] += r.unidades * METROS_POR_UNIDADE;
+    for (const r of serraMes) {
+      const i = Math.round((Date.parse(`${iso(r.data)}T00:00:00Z`) - Date.parse(`${inicio}T00:00:00Z`)) / 86400000);
+      if (r.cidade === cidade && i >= 0 && i < dias) valores[i] += r.unidades * METROS_POR_UNIDADE;
+    }
     return valores;
   };
   const serraTotalDia = CIDADES_SERRA.reduce((t, c) => t + serraDia(c), 0);

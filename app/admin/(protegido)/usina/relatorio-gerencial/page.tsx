@@ -42,7 +42,7 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
           ))}
         </div>
 
-        <p className="text-xs text-slate-500">Cada setor mostra o valor do dia e o acumulado do mês, com o gráfico dos dias do mês.</p>
+        <p className="text-xs text-slate-500">Cada setor mostra o valor do dia e o acumulado da semana (segunda a sexta), com o gráfico desses dias.</p>
         <div className="grid gap-4">
           {dados.setores.filter((s) => s.titulo !== 'Trilheiros').map((s) => (
             <Setor key={s.titulo} s={s} rotulosDias={dados.rotulosDias} largo />

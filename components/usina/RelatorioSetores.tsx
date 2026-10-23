@@ -1,7 +1,7 @@
 import { GraficoBarras } from '@/components/usina/GraficoBarras';
 import type { SetorRelatorio, TrilheirosRelatorio } from '@/lib/services/onePageUsina';
 
-/** Um setor: cabeçalho colorido, tabela Dia | Mês e o gráfico dos dias do mês. */
+/** Um setor: cabeçalho colorido, tabela Dia | Semana e o gráfico de segunda a sexta. */
 export function Setor({ s, rotulosDias, largo = false }: { s: SetorRelatorio; rotulosDias: string[]; largo?: boolean }) {
   const tabela = (
     <table className="w-full border-collapse text-[13px]">
@@ -9,7 +9,7 @@ export function Setor({ s, rotulosDias, largo = false }: { s: SetorRelatorio; ro
         <tr className="text-[11px] uppercase tracking-wide text-slate-500">
           <th className="pb-1 text-left font-semibold"> </th>
           <th className="pb-1 text-right font-semibold">Dia</th>
-          <th className="pb-1 text-right font-semibold">Mês</th>
+          <th className="pb-1 text-right font-semibold">Semana</th>
         </tr>
       </thead>
       <tbody>
@@ -30,7 +30,7 @@ export function Setor({ s, rotulosDias, largo = false }: { s: SetorRelatorio; ro
         rotulos={rotulosDias}
         series={s.grafico.series.map((x) => ({ nome: x.nome, cor: x.cor, valores: x.valores }))}
       />
-      <p className="mt-1 text-right text-[11px] font-semibold text-slate-500">Dias do mês: 1 a {rotulosDias.length} (embaixo)</p>
+      <p className="mt-1 text-right text-[11px] font-semibold text-slate-500">Semana de segunda a sexta</p>
     </div>
   ) : (
     <p className="py-6 text-center text-xs text-slate-400">Sem gráfico diário para este setor.</p>
@@ -55,7 +55,7 @@ export function Setor({ s, rotulosDias, largo = false }: { s: SetorRelatorio; ro
   );
 }
 
-/** Indicador de setor: o valor do dia e o do mês em blocos separados. */
+/** Indicador de setor: o valor do dia e o da semana em blocos separados. */
 export function Resumo({ rotulo, cor, dia, mes }: { rotulo: string; cor: string; dia: string; mes: string }) {
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-3" style={{ borderTop: `3px solid ${cor}` }}>
@@ -66,7 +66,7 @@ export function Resumo({ rotulo, cor, dia, mes }: { rotulo: string; cor: string;
           <p className="text-base font-bold tabular-nums text-slate-900">{dia}</p>
         </div>
         <div className="rounded-md p-2" style={{ background: `${cor}14` }}>
-          <p className="text-[10px] uppercase tracking-wide text-slate-500">Do mês</p>
+          <p className="text-[10px] uppercase tracking-wide text-slate-500">Da semana</p>
           <p className="text-base font-bold tabular-nums" style={{ color: cor }}>{mes}</p>
         </div>
       </div>
