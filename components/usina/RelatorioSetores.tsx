@@ -1,7 +1,7 @@
 import { GraficoBarras } from '@/components/usina/GraficoBarras';
 import type { SetorRelatorio, TrilheirosRelatorio, EquipeGeracaoRelatorio } from '@/lib/services/onePageUsina';
 
-/** Um setor: cabeçalho colorido, tabela Dia | Semana e o gráfico de segunda a sexta. */
+/** Um setor: cabeçalho colorido, tabela Dia | Semana e o gráfico de segunda a quinta. */
 export function Setor({ s, rotulosDias, largo = false }: { s: SetorRelatorio; rotulosDias: string[]; largo?: boolean }) {
   const tabela = (
     <table className="w-full border-collapse text-[13px]">
@@ -30,7 +30,7 @@ export function Setor({ s, rotulosDias, largo = false }: { s: SetorRelatorio; ro
         rotulos={rotulosDias}
         series={s.grafico.series.map((x) => ({ nome: x.nome, cor: x.cor, valores: x.valores }))}
       />
-      <p className="mt-1 text-right text-[11px] font-semibold text-slate-500">Semana de segunda a sexta</p>
+      <p className="mt-1 text-right text-[11px] font-semibold text-slate-500">Semana de segunda a quinta</p>
     </div>
   ) : (
     <p className="py-6 text-center text-xs text-slate-400">Sem gráfico diário para este setor.</p>
@@ -181,7 +181,7 @@ export function EquipesGeracao({ equipes, cor }: { equipes: EquipeGeracaoRelator
             ))}
           </tbody>
         </table>
-        <p className="mt-2 text-right text-[11px] font-semibold text-slate-500">Semana de segunda a sexta</p>
+        <p className="mt-2 text-right text-[11px] font-semibold text-slate-500">Semana de segunda a quinta</p>
       </div>
     </section>
   );

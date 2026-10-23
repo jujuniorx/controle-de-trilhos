@@ -1,4 +1,5 @@
-// Períodos do Relatório da usina: dia, semana (segunda a domingo) e mês. Datas 'AAAA-MM-DD', sem fuso.
+// Períodos do Relatório da usina: dia, semana (segunda a quinta) e mês. Datas 'AAAA-MM-DD', sem fuso.
+// A sexta não entra: o que foi feito na sexta só se sabe na segunda seguinte.
 import { somarDias } from '@/lib/usina/diasUteis';
 
 export type Periodo = 'dia' | 'semana' | 'mes';
@@ -24,7 +25,7 @@ export function intervaloDoPeriodo(periodo: Periodo, data: string): { inicio: st
   if (periodo === 'dia') return { inicio: data, fim: data };
   if (periodo === 'semana') {
     const inicio = inicioDaSemana(data);
-    return { inicio, fim: somarDias(inicio, 6) };
+    return { inicio, fim: somarDias(inicio, 3) };
   }
   const [ano, mes] = data.split('-').map(Number);
   const ultimo = new Date(Date.UTC(ano, mes, 0)).getUTCDate();
@@ -32,10 +33,10 @@ export function intervaloDoPeriodo(periodo: Periodo, data: string): { inicio: st
   return { inicio: `${ano}-${mm}-01`, fim: `${ano}-${mm}-${String(ultimo).padStart(2, '0')}` };
 }
 
-/** Faixa da semana da data, segunda a sexta, no formato dd/mm a dd/mm/aaaa. */
+/** Faixa da semana da data, segunda a quinta, no formato dd/mm a dd/mm/aaaa. */
 export function faixaSemanaSegSex(iso: string): string {
   const inicio = inicioDaSemana(iso);
-  const fim = somarDias(inicio, 4);
+  const fim = somarDias(inicio, 3);
   const br = (x: string) => x.split('-').reverse().join('/');
   return `${br(inicio).slice(0, 5)} a ${br(fim)}`;
 }

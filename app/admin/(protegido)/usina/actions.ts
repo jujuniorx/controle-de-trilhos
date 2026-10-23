@@ -222,7 +222,7 @@ export async function zerarTrilheiroAction(formData: FormData): Promise<void> {
   atualizar();
 }
 
-/** Lança soldas e cortes da semana inteira (segunda a sexta) em uma só vez. */
+/** Lança soldas e cortes da semana inteira (segunda a quinta) em uma só vez. */
 export async function salvarEstaleiroSemanaAction(_: ResultadoUsina | undefined, formData: FormData): Promise<ResultadoUsina> {
   await requireAdmin();
   const semana = dataDoForm(formData.get('semana'));

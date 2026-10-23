@@ -7,12 +7,12 @@ const dataBanco = (s: string) => new Date(`${s}T00:00:00Z`);
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 const num = (v: unknown) => (v == null ? 0 : Number(v));
 
-const NOMES_DIA = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'];
+const NOMES_DIA = ['Seg', 'Ter', 'Qua', 'Qui'];
 
-/** Série de segunda a sexta da semana da data (sábado e domingo ficam fora do gráfico). */
+/** Série de segunda a quinta da semana da data (sexta, sábado e domingo ficam fora do gráfico). */
 export async function seriesDaSemana(data: string) {
   const inicio = inicioDaSemana(data);
-  const fim = somarDias(inicio, 4);
+  const fim = somarDias(inicio, 3);
   const dias = NOMES_DIA.length;
   const rotulos = NOMES_DIA.map((n, i) => `${n} ${somarDias(inicio, i).slice(8, 10)}`);
   const indice = (d: Date) => {

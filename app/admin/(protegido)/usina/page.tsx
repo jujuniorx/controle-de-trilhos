@@ -49,7 +49,7 @@ function hojeIso(): string {
   return new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString().slice(0, 10); // horário de Brasília
 }
 
-// A usina é lançada e relatada por semana (segunda a sexta): o período é sempre semana.
+// A usina é lançada e relatada por semana (segunda a quinta): o período é sempre semana.
 function periodoValido(_v: string | undefined): Periodo {
   return 'semana';
 }
@@ -96,7 +96,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
       <header className="page-header">
         <div>
           <h1 className="page-title">Relatório da usina</h1>
-          <p className="text-sm text-ink-muted">Números da semana, de segunda a sexta. Escolha qualquer dia da semana.</p>
+          <p className="text-sm text-ink-muted">Números da semana, de segunda a quinta. Escolha qualquer dia da semana.</p>
         </div>
       </header>
 
@@ -106,7 +106,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           <input id="data" name="data" type="date" defaultValue={data} className="h-11" />
         </div>
         <button type="submit" className="btn btn-ghost h-11">Ver semana</button>
-        <p className="w-full text-sm text-ink-muted">Semana de {faixaSemanaSegSex(data)} (segunda a sexta)</p>
+        <p className="w-full text-sm text-ink-muted">Semana de {faixaSemanaSegSex(data)} (segunda a quinta)</p>
       </form>
 
       <nav aria-label="Setores" className="flex flex-wrap items-center gap-2 border-b border-line pb-3 text-sm">
@@ -139,7 +139,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
 
         <div className="card space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <p className="font-semibold">Semana de {br(est.semana)} a {br(somarDiasPagina(est.semana, 4))}</p>
+            <p className="font-semibold">Semana de {br(est.semana)} a {br(somarDiasPagina(est.semana, 3))}</p>
             <p className="text-sm text-ink-muted">Lance cada dia e salve tudo de uma vez.</p>
           </div>
           <FormularioUsina acao={salvarEstaleiroSemanaAction} rotuloBotao="Salvar a semana">
@@ -252,7 +252,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         </div>
         <div className="card space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <p className="font-semibold">Semana de {br(est.semana)} a {br(somarDiasPagina(est.semana, 4))}</p>
+            <p className="font-semibold">Semana de {br(est.semana)} a {br(somarDiasPagina(est.semana, 3))}</p>
             <p className="text-sm text-ink-muted">Lance as carretas de cada dia com os perfis, e salve a semana de uma vez.</p>
           </div>
           <FormularioUsina acao={salvarGeracaoSemanaAction} rotuloBotao="Salvar a semana">
@@ -271,7 +271,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         <h2 id="composicoes" className="section-title scroll-mt-24">Recolhimento serra</h2>
         <div className="card space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <p className="font-semibold">Semana de {br(est.semana)} a {br(somarDiasPagina(est.semana, 4))}</p>
+            <p className="font-semibold">Semana de {br(est.semana)} a {br(somarDiasPagina(est.semana, 3))}</p>
             <p className="text-sm text-ink-muted">Lance cada dia e salve tudo de uma vez.</p>
           </div>
           <FormularioUsina acao={salvarSerraSemanaAction} rotuloBotao="Salvar a semana">
@@ -320,7 +320,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         <h2 id="caminhao" className="section-title scroll-mt-24">Caminhão de solda</h2>
         <div className="card space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <p className="font-semibold">Semana de {br(est.semana)} a {br(somarDiasPagina(est.semana, 4))}</p>
+            <p className="font-semibold">Semana de {br(est.semana)} a {br(somarDiasPagina(est.semana, 3))}</p>
             <p className="text-sm text-ink-muted">Lance cada dia e salve tudo de uma vez.</p>
           </div>
           <FormularioUsina acao={salvarCaminhoesSemanaAction} rotuloBotao="Salvar a semana">
