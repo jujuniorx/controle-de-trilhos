@@ -1,5 +1,5 @@
 import { GraficoBarras } from '@/components/usina/GraficoBarras';
-import type { SetorRelatorio, TrilheirosRelatorio } from '@/lib/services/onePageUsina';
+import type { SetorRelatorio, TrilheirosRelatorio, EquipeGeracaoRelatorio } from '@/lib/services/onePageUsina';
 
 /** Um setor: cabeçalho colorido, tabela Dia | Semana e o gráfico de segunda a sexta. */
 export function Setor({ s, rotulosDias, largo = false }: { s: SetorRelatorio; rotulosDias: string[]; largo?: boolean }) {
@@ -132,6 +132,56 @@ export function TrilheirosBloco({ t }: { t: TrilheirosRelatorio }) {
             </tbody>
           </table>
         </div>
+      </div>
+    </section>
+  );
+}
+
+const fmtM = (v: number) => `${v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m`;
+
+/** Geração por equipe: o que cada líder produziu no dia e na semana. */
+export function EquipesGeracao({ equipes, cor }: { equipes: EquipeGeracaoRelatorio[]; cor: string }) {
+  return (
+    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white break-inside-avoid">
+      <header className="px-4 py-2.5 text-white" style={{ background: cor }}>
+        <span className="text-sm font-bold uppercase tracking-wide">Geração por equipe</span>
+      </header>
+      <div className="overflow-x-auto p-4">
+        <table className="w-full border-collapse text-[13px]">
+          <thead>
+            <tr className="text-[11px] uppercase tracking-wide text-slate-500">
+              <th className="pb-1 text-left font-semibold">Equipe</th>
+              <th className="pb-1 text-right font-semibold">Corte</th>
+              <th className="pb-1 text-right font-semibold">Carregado</th>
+              <th className="pb-1 text-right font-semibold">Deixado na via</th>
+              <th className="pb-1 text-right font-semibold">Barras</th>
+            </tr>
+          </thead>
+          <tbody>
+            {equipes.map((e) => (
+              <tr key={e.rotulo} className="border-t border-slate-100">
+                <td className="py-2 font-semibold text-slate-900">{e.rotulo}</td>
+                <td className="py-2 text-right tabular-nums">
+                  <span className="font-bold" style={{ color: cor }}>{fmtM(e.semana.corteM)}</span>
+                  <span className="block text-[11px] text-slate-500">dia {fmtM(e.dia.corteM)}</span>
+                </td>
+                <td className="py-2 text-right tabular-nums">
+                  <span className="font-bold" style={{ color: cor }}>{fmtM(e.semana.carregamentoM)}</span>
+                  <span className="block text-[11px] text-slate-500">dia {fmtM(e.dia.carregamentoM)}</span>
+                </td>
+                <td className="py-2 text-right tabular-nums">
+                  <span className="font-bold" style={{ color: cor }}>{fmtM(e.semana.deixadaViaM)}</span>
+                  <span className="block text-[11px] text-slate-500">dia {fmtM(e.dia.deixadaViaM)}</span>
+                </td>
+                <td className="py-2 text-right tabular-nums">
+                  <span className="font-bold" style={{ color: cor }}>{e.semana.quantidade}</span>
+                  <span className="block text-[11px] text-slate-500">dia {e.dia.quantidade}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="mt-2 text-right text-[11px] font-semibold text-slate-500">Semana de segunda a sexta</p>
       </div>
     </section>
   );

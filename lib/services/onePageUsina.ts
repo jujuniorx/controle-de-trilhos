@@ -20,11 +20,19 @@ export interface LinhaRelatorio { rotulo: string; dia: string; mes: string }
 export interface GraficoRelatorio { titulo: string; series: { nome: string; cor: string; valores: number[] }[] }
 export interface SetorRelatorio { titulo: string; cor: string; linhas: LinhaRelatorio[]; grafico: GraficoRelatorio | null }
 
+/** Produção de uma equipe de geração: o dia e a semana. */
+export interface EquipeGeracaoRelatorio {
+  rotulo: string;
+  dia: { corteM: number; carregamentoM: number; deixadaViaM: number; quantidade: number };
+  semana: { corteM: number; carregamentoM: number; deixadaViaM: number; quantidade: number };
+}
+
 export interface DadosRelatorio {
   data: string;
   rotulosDias: string[];
   resumo: { rotulo: string; cor: string; dia: string; mes: string; grupo: string }[];
   setores: SetorRelatorio[];
+  equipesGeracao: EquipeGeracaoRelatorio[];
 }
 
 /** Cores fixas por setor (cabeçalho) e uma cor distinta para cada série dentro do setor. */
@@ -72,6 +80,14 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
   return {
     data,
     rotulosDias: serie.rotulos,
+    equipesGeracao: gerM.porLider.map((l) => {
+      const d = gerD.porLider.find((x) => x.valor === l.valor)?.periodo;
+      return {
+        rotulo: l.rotulo,
+        dia: { corteM: d?.corteM ?? 0, carregamentoM: d?.carregamentoM ?? 0, deixadaViaM: d?.deixadaViaM ?? 0, quantidade: d?.quantidade ?? 0 },
+        semana: { corteM: l.periodo.corteM, carregamentoM: l.periodo.carregamentoM, deixadaViaM: l.periodo.deixadaViaM, quantidade: l.periodo.quantidade },
+      };
+    }),
     resumo: [
       { rotulo: 'Estaleiro de solda', cor: CORES_SETOR.estaleiro, dia: `${estD.totais.soldas} UND`, mes: `${estM.totais.soldas} UND`, grupo: 'Estaleiro de solda' },
       {

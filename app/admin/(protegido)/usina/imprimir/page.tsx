@@ -1,5 +1,5 @@
-import { montarDadosRelatorio, montarTrilheirosRelatorio } from '@/lib/services/onePageUsina';
-import { Setor, Resumo, TrilheirosBloco } from '@/components/usina/RelatorioSetores';
+import { montarDadosRelatorio, montarTrilheirosRelatorio, CORES_SETOR } from '@/lib/services/onePageUsina';
+import { Setor, Resumo, TrilheirosBloco, EquipesGeracao } from '@/components/usina/RelatorioSetores';
 import { ehIsoValido, faixaSemanaSegSex } from '@/lib/usina/periodo';
 import { ImprimirBotao } from '@/components/usina/ImprimirBotao';
 
@@ -97,6 +97,7 @@ export default async function ImprimirUsina({
             ))}
           </div>
         )}
+        {(setor === 'todos' || setor === 'geracao') && <EquipesGeracao equipes={dados.equipesGeracao} cor={CORES_SETOR.geracao} />}
         {mostraTril && <TrilheirosBloco t={tril} />}
       </article>
     </main>
