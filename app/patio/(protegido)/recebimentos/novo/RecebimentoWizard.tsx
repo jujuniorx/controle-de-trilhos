@@ -233,6 +233,8 @@ export function RecebimentoWizard({
   const [mostrarCarreta2, setMostrarCarreta2] = useState(false);
   const [grupos, setGrupos] = useState<GrupoLocal[]>([]);
   const [activeGrupoId, setActiveGrupoId] = useState<string | null>(null);
+  // Jacaré: 4 medidas (m) formam uma peça. Sempre SC3 de peso; conta 1 unidade.
+  const [medidasJacare, setMedidasJacare] = useState<string[]>(['', '', '', '']);
   const [draft, setDraft] = useState({
     quantidade: '1',
     comprimento: '',
@@ -348,8 +350,33 @@ export function RecebimentoWizard({
     setStep(3);
   }
 
+  function adicionarJacare() {
+    if (!grupoAtivo) return;
+    const valores: number[] = [];
+    for (const texto of medidasJacare) {
+      const r = parseComprimento(texto);
+      if (r.erro || r.valor == null) {
+        setDraft((d) => ({ ...d, erro: 'Preencha as 4 medidas do jacaré, por exemplo 9,80.' }));
+        return;
+      }
+      valores.push(r.valor);
+    }
+    const total = Math.round(valores.reduce((a, b) => a + b, 0) * 100) / 100;
+    const medicao: MedicaoLocal = {
+      clientId: novoUuid(),
+      modo: 'INDIVIDUAL',
+      quantidade: 1,
+      comprimento: total,
+      classificacaoSC: 'JACARE',
+    };
+    atualizarGrupo(grupoAtivo.clientId, { medicoes: [...grupoAtivo.medicoes, medicao] });
+    setMedidasJacare(['', '', '', '']);
+    setDraft({ quantidade: '1', comprimento: '', sc: '', scManual: false, erro: '' });
+  }
+
   function adicionarMedicao() {
     if (!grupoAtivo) return;
+    if (grupoAtivo.tipoMaterial === 'SUCATA' && draft.sc === 'JACARE') return adicionarJacare();
     const r = parseComprimento(draft.comprimento);
     if (r.erro || r.valor == null) {
       setDraft((d) => ({ ...d, erro: r.erro ?? '' }));
@@ -724,6 +751,7 @@ export function RecebimentoWizard({
                 }}
               />
             )}
+            {!(grupoAtivo.tipoMaterial === 'SUCATA' && draft.sc === 'JACARE') && (
             <input
               aria-label="Comprimento"
               className="h-11 flex-1 min-w-[160px]"
@@ -747,6 +775,32 @@ export function RecebimentoWizard({
                 }
               }}
             />
+            )}
+            {grupoAtivo.tipoMaterial === 'SUCATA' && draft.sc === 'JACARE' && (
+              <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4">
+                {medidasJacare.map((valor, i) => (
+                  <input
+                    key={i}
+                    aria-label={`Medida ${i + 1} do jacaré`}
+                    className="h-11"
+                    placeholder={`Medida ${i + 1} (m)`}
+                    inputMode="numeric"
+                    value={valor}
+                    onChange={(e) => {
+                      const texto = formatarComprimento(e.target.value);
+                      setMedidasJacare((atual) => atual.map((x, j) => (j === i ? texto : x)));
+                      setDraft((d) => ({ ...d, erro: '' }));
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        adicionarMedicao();
+                      }
+                    }}
+                  />
+                ))}
+              </div>
+            )}
             {grupoAtivo.tipoMaterial === 'SUCATA' && (
               <select
                 aria-label="Classificação SC"
@@ -770,8 +824,10 @@ export function RecebimentoWizard({
             {grupoAtivo.medicoes.map((m, i) => (
               <div key={m.clientId} className="medicao-row px-3">
                 <span>
-                  {i + 1}. {m.quantidade > 1 ? `${m.quantidade} × ${m.comprimento.toFixed(2)} m` : `${m.comprimento.toFixed(2)} m`}
-                  {m.classificacaoSC ? ` — ${m.classificacaoSC}` : ''}
+                  {i + 1}. {m.classificacaoSC === 'JACARE'
+                    ? `Jacaré (4 medidas) · ${m.comprimento.toFixed(2)} m · 1 unidade`
+                    : m.quantidade > 1 ? `${m.quantidade} × ${m.comprimento.toFixed(2)} m` : `${m.comprimento.toFixed(2)} m`}
+                  {m.classificacaoSC && m.classificacaoSC !== 'JACARE' ? ` — ${m.classificacaoSC}` : ''}
                 </span>
                 <button className="text-bad" onClick={() => removerMedicao(grupoAtivo.clientId, m.clientId)}>
                   Remover

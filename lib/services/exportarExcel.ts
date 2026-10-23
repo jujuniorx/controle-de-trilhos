@@ -62,7 +62,9 @@ function unicos(valores: (string | null | undefined)[]): string[] {
 }
 
 function metrosPorSC(medicoes: Medicao[], sc: 'SC1' | 'SC2' | 'SC3' | 'DIVERSOS' | 'JACARE'): number | null {
-  const soma = medicoes.filter((m) => m.classificacaoSC === sc).reduce((acc, m) => acc + Number(m.metros), 0);
+  // Jacaré é sempre sucata 3: entra na coluna SC-3 junto com as medidas SC3.
+  const criterio = (c: string | null) => (sc === 'SC3' ? c === 'SC3' || c === 'JACARE' : c === sc);
+  const soma = medicoes.filter((m) => criterio(m.classificacaoSC)).reduce((acc, m) => acc + Number(m.metros), 0);
   return soma > 0 ? arredondar2(soma) : null;
 }
 
