@@ -86,6 +86,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
   const caminhoesSemana = await caminhoesDaSemana(est.semana);
   const geracaoSemana = await geracaoDaSemana(est.semana);
   const trilheirosSemana = await trilheirosDaSemana(est.semana);
+  const boSemana = trilheirosSemana.flatMap((d) => Object.values(d.trilheiros)).find((t) => t.boEm)?.boEm ?? '';
   const totalSemana = diasSemana.reduce((t, d) => ({ soldas: t.soldas + (d.soldas ?? 0), cortes: t.cortes + (d.cortes ?? 0) }), { soldas: 0, cortes: 0 });
   const escalaLegada = !escalaSalva && est.escala.trim() !== '';
 
@@ -424,6 +425,10 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           </div>
           <FormularioUsina acao={salvarTrilheirosSemanaAction} rotuloBotao="Salvar a semana">
             <input type="hidden" name="semana" value={est.semana} />
+            <div className="field max-w-xs">
+              <label htmlFor="bo_semana">Dia do B.O. (vale para todos os trilheiros)</label>
+              <input id="bo_semana" type="date" name="bo" defaultValue={boSemana} className="h-11 w-full" />
+            </div>
             {TRILHEIROS.map((t) => (
               <div key={t} className="space-y-2">
                 <p className="text-sm font-semibold">{t}</p>
@@ -432,7 +437,6 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                     <thead>
                       <tr className="text-left text-ink-muted">
                         <th className="py-2">Dia</th>
-                        <th className="py-2">Dia do B.O.</th>
                         <th className="py-2 text-right">Descarregadas (de {BARRAS_POR_TRILHEIRO})</th>
                         <th className="py-2">Programação do dia</th>
                         <th className="py-2">Observação</th>
@@ -442,9 +446,6 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                       {trilheirosSemana.map((d, i) => (
                         <tr key={d.data} className="border-t border-line">
                           <td className="py-2 font-medium">{NOME_DIA[i]} {br(d.data)}</td>
-                          <td className="py-2">
-                            <input type="date" name={`bo_${t}_${d.data}`} defaultValue={d.trilheiros[t].boEm ?? ''} className="h-11 w-40" aria-label={`Dia do B.O. ${t} ${br(d.data)}`} />
-                          </td>
                           <td className="py-2 text-right">
                             <input name={`desc_${t}_${d.data}`} inputMode="numeric" defaultValue={d.trilheiros[t].descarregadas ?? ''} className="h-11 w-24 text-right" aria-label={`Descarregadas ${t} ${br(d.data)}`} />
                           </td>
