@@ -111,7 +111,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       {
         rotulo: 'Trilheiros',
         cor: CORES_SETOR.trilheiros,
-        dia: `${trilRel.ativos} trilheiros`,
+        dia: String(soma(trilRel.equipes, (e) => e.descarregadasDia)),
         mes: `${trilRel.descarregadas}/${trilRel.totalBarras}`,
         grupo: 'Trilheiros',
       },
