@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import {
   estaleiroDoPeriodo,
   geracaoDoPeriodo,
@@ -26,7 +27,7 @@ import { ehIsoValido, faixaSemanaSegSex, type Periodo } from '@/lib/usina/period
 import { FormularioUsina } from '@/components/usina/FormularioUsina';
 import { EscalaGrade } from '@/components/usina/EscalaGrade';
 import { lerEscala, diasDaSemana } from '@/lib/usina/escala';
-import { montarEscalaDaSemana, estaleiroDiasDaSemana } from '@/lib/services/usina';
+import { montarEscalaDaSemana, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana } from '@/lib/services/usina';
 import {
   salvarEstaleiroAction,
   salvarEstoqueTlsAction,
@@ -38,6 +39,8 @@ import {
   salvarGiroAction,
   salvarManutencaoTrilheiroAction,
   salvarEstaleiroSemanaAction,
+  salvarSerraSemanaAction,
+  salvarCaminhoesSemanaAction,
   apagarGiroAction,
   apagarManutencaoTrilheiroAction,
   zerarTrilheiroAction,
@@ -89,6 +92,8 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
   const escalaSalva = lerEscala(est.escala);
   const escalaSemana = await montarEscalaDaSemana(est.semana);
   const diasSemana = await estaleiroDiasDaSemana(est.semana);
+  const serraSemana = await composicoesDaSemana(est.semana);
+  const caminhoesSemana = await caminhoesDaSemana(est.semana);
   const totalSemana = diasSemana.reduce((t, d) => ({ soldas: t.soldas + (d.soldas ?? 0), cortes: t.cortes + (d.cortes ?? 0) }), { soldas: 0, cortes: 0 });
   const escalaLegada = !escalaSalva && est.escala.trim() !== '';
 
@@ -285,6 +290,45 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
       {/* ── Recolhimento serra ─────────────────────────────────────── */}
       <section className="space-y-4" aria-labelledby="composicoes">
         <h2 id="composicoes" className="section-title scroll-mt-24">Recolhimento serra</h2>
+        <div className="card space-y-3">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <p className="font-semibold">Semana de {br(est.semana)} a {br(somarDiasPagina(est.semana, 4))}</p>
+            <p className="text-sm text-ink-muted">Lance cada dia e salve tudo de uma vez.</p>
+          </div>
+          <FormularioUsina acao={salvarSerraSemanaAction} rotuloBotao="Salvar a semana">
+            <input type="hidden" name="semana" value={est.semana} />
+            <div className="tbl-wrap">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-ink-muted">
+                    <th className="py-2">Dia</th>
+                    <th className="py-2 text-right">W61 barras</th>
+                    <th className="py-2 text-right">W61 jacarés</th>
+                    <th className="py-2 text-right">W62 barras</th>
+                    <th className="py-2 text-right">W62 jacarés</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {serraSemana.map((d, i) => (
+                    <tr key={d.data} className="border-t border-line">
+                      <td className="py-2 font-medium">{NOME_DIA[i]} {br(d.data)}</td>
+                      {COMPOSICOES.map((a) => (
+                        <Fragment key={a}>
+                          <td className="py-2 text-right">
+                            <input name={`barras_${a}_${d.data}`} inputMode="numeric" defaultValue={d.ativos[a].barras ?? ''} className="h-11 w-24 text-right" aria-label={`Barras ${a} ${br(d.data)}`} />
+                          </td>
+                          <td className="py-2 text-right">
+                            <input name={`jacares_${a}_${d.data}`} inputMode="numeric" defaultValue={d.ativos[a].jacares ?? ''} className="h-11 w-24 text-right" aria-label={`Jacarés ${a} ${br(d.data)}`} />
+                          </td>
+                        </Fragment>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </FormularioUsina>
+        </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {comp.map((c) => (
             <div className="card space-y-3" key={c.ativo}>
@@ -310,6 +354,45 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
       {/* ── Caminhão de solda ──────────────────────────────────────── */}
       <section className="space-y-4" aria-labelledby="caminhao">
         <h2 id="caminhao" className="section-title scroll-mt-24">Caminhão de solda</h2>
+        <div className="card space-y-3">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <p className="font-semibold">Semana de {br(est.semana)} a {br(somarDiasPagina(est.semana, 4))}</p>
+            <p className="text-sm text-ink-muted">Lance cada dia e salve tudo de uma vez.</p>
+          </div>
+          <FormularioUsina acao={salvarCaminhoesSemanaAction} rotuloBotao="Salvar a semana">
+            <input type="hidden" name="semana" value={est.semana} />
+            <div className="tbl-wrap">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-ink-muted">
+                    <th className="py-2">Dia</th>
+                    <th className="py-2 text-right">CW01 produção</th>
+                    <th className="py-2 text-right">CW01 perda</th>
+                    <th className="py-2 text-right">CW02 produção</th>
+                    <th className="py-2 text-right">CW02 perda</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {caminhoesSemana.map((d, i) => (
+                    <tr key={d.data} className="border-t border-line">
+                      <td className="py-2 font-medium">{NOME_DIA[i]} {br(d.data)}</td>
+                      {CAMINHOES_ATIVOS.map((c) => (
+                        <Fragment key={c}>
+                          <td className="py-2 text-right">
+                            <input name={`producao_${c}_${d.data}`} inputMode="numeric" defaultValue={d.caminhoes[c].producaoDiaria ?? ''} className="h-11 w-24 text-right" aria-label={`Produção ${c} ${br(d.data)}`} />
+                          </td>
+                          <td className="py-2 text-right">
+                            <input name={`perda_${c}_${d.data}`} inputMode="numeric" defaultValue={d.caminhoes[c].perdaDiaria ?? ''} className="h-11 w-24 text-right" aria-label={`Perda ${c} ${br(d.data)}`} />
+                          </td>
+                        </Fragment>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </FormularioUsina>
+        </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {cam.map((c) => (
             <div className="card space-y-3" key={c.caminhao}>

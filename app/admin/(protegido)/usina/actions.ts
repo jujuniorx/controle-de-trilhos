@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/services/requireAdmin';
-import { salvarEstaleiroDia, estaleiroDiasDaSemana, salvarEstoqueTls, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, type TipoTlsValor } from '@/lib/services/usina';
+import { salvarEstaleiroDia, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, salvarEstoqueTls, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, type TipoTlsValor } from '@/lib/services/usina';
 import { ITENS_ESCALA, escalaVazia, gravarEscala, statusValido, cfgDeObjeto } from '@/lib/usina/escala';
 import { salvarGeracao, salvarComposicao, salvarCaminhao, salvarGiro, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
@@ -273,6 +273,42 @@ export async function salvarEstaleiroSemanaAction(_: ResultadoUsina | undefined,
     const cortes = inteiro(formData.get(`cortes_${d.data}`));
     if (soldas === 'invalido' || cortes === 'invalido') return { ok: false, erro: 'Use só números inteiros em soldas e cortes.' };
     await salvarEstaleiroDia(d.data, soldas, cortes);
+  }
+  atualizar();
+  return { ok: true };
+}
+
+/** Lança barras e jacarés da serra (W61 e W62) da semana inteira. */
+export async function salvarSerraSemanaAction(_: ResultadoUsina | undefined, formData: FormData): Promise<ResultadoUsina> {
+  await requireAdmin();
+  const semana = dataDoForm(formData.get('semana'));
+  if (!semana) return { ok: false, erro: 'Semana inválida.' };
+  const dias = await composicoesDaSemana(semana);
+  for (const d of dias) {
+    for (const ativo of COMPOSICOES) {
+      const barras = inteiro(formData.get(`barras_${ativo}_${d.data}`));
+      const jacares = inteiro(formData.get(`jacares_${ativo}_${d.data}`));
+      if (barras === 'invalido' || jacares === 'invalido') return { ok: false, erro: 'Use só números inteiros na serra.' };
+      await salvarComposicao(d.data, ativo, barras, jacares, d.ativos[ativo].observacao);
+    }
+  }
+  atualizar();
+  return { ok: true };
+}
+
+/** Lança produção e perda dos caminhões da semana inteira. */
+export async function salvarCaminhoesSemanaAction(_: ResultadoUsina | undefined, formData: FormData): Promise<ResultadoUsina> {
+  await requireAdmin();
+  const semana = dataDoForm(formData.get('semana'));
+  if (!semana) return { ok: false, erro: 'Semana inválida.' };
+  const dias = await caminhoesDaSemana(semana);
+  for (const d of dias) {
+    for (const c of CAMINHOES_ATIVOS) {
+      const producaoDiaria = inteiro(formData.get(`producao_${c}_${d.data}`));
+      const perdaDiaria = inteiro(formData.get(`perda_${c}_${d.data}`));
+      if (producaoDiaria === 'invalido' || perdaDiaria === 'invalido') return { ok: false, erro: 'Use só números inteiros no caminhão.' };
+      await salvarCaminhao(d.data, c, { ...d.caminhoes[c], producaoDiaria, perdaDiaria });
+    }
   }
   atualizar();
   return { ok: true };

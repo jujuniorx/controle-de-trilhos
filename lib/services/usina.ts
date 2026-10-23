@@ -264,6 +264,38 @@ export async function caminhoesDoPeriodo(periodo: Periodo, data: string) {
   }));
 }
 
+/** Serra da semana (segunda a sexta): barras, jacarés e observação de cada composição, por dia. */
+export async function composicoesDaSemana(semana: string) {
+  const fim = somarDias(semana, 4);
+  const linhas = await prisma.composicaoDia.findMany({ where: { data: { gte: dataBanco(semana), lte: dataBanco(fim) } } });
+  return [0, 1, 2, 3, 4].map((i) => {
+    const d = somarDias(semana, i);
+    const ativos = Object.fromEntries(
+      COMPOSICOES.map((a) => {
+        const r = linhas.find((x) => iso(x.data) === d && x.ativo === a);
+        return [a, { barras: r?.barras ?? null, jacares: r?.jacares ?? null, observacao: r?.observacao ?? null }];
+      }),
+    );
+    return { data: d, ativos };
+  });
+}
+
+/** Caminhões da semana (segunda a sexta): produção e perda de cada caminhão, por dia, com o resto do registro preservado. */
+export async function caminhoesDaSemana(semana: string) {
+  const fim = somarDias(semana, 4);
+  const linhas = await prisma.caminhaoSoldaDia.findMany({ where: { data: { gte: dataBanco(semana), lte: dataBanco(fim) } } });
+  return [0, 1, 2, 3, 4].map((i) => {
+    const d = somarDias(semana, i);
+    const caminhoes = Object.fromEntries(
+      CAMINHOES_ATIVOS.map((c) => {
+        const r = linhas.find((x) => iso(x.data) === d && x.caminhao === c);
+        return [c, { local: r?.local ?? null, producaoDiaria: r?.producaoDiaria ?? null, perdaDiaria: r?.perdaDiaria ?? null, inicioMacro1: r?.inicioMacro1 ?? null, terminoMacro9: r?.terminoMacro9 ?? null }];
+      }),
+    );
+    return { data: d, caminhoes };
+  });
+}
+
 export async function salvarCaminhao(
   data: string,
   caminhao: (typeof CAMINHOES_ATIVOS)[number],
