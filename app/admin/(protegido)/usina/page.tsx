@@ -17,6 +17,7 @@ import { PERFIS } from '@/lib/validation/recebimento';
 import { CarretasGeracao } from '@/components/usina/CarretasGeracao';
 import { CamposGiro, type CicloAberto } from '@/components/usina/CamposGiro';
 import { BotaoApagarRegistro } from '@/components/usina/BotaoApagarRegistro';
+import { SeletorDia } from '@/components/usina/SeletorDia';
 import { IconeImprimir } from '@/components/icones/Icones';
 
 const SETORES: [string, string][] = [['estaleiro', 'Estaleiro'], ['geracao', 'Geração'], ['composicoes', 'Recolhimento serra'], ['caminhao', 'Caminhão de solda'], ['trilheiros', 'Trilheiros']];
@@ -179,9 +180,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         <div className="card space-y-3">
           <p className="font-semibold">Produção de {br(data)}</p>
           <FormularioUsina acao={salvarEstaleiroAction}>
-            <label className="field max-w-xs">Dia
-              <input name="data" type="date" defaultValue={data} className="h-11" />
-            </label>
+            <SeletorDia valor={data} />
             <div className="grid grid-cols-2 gap-3">
               <div className="field">
                 <label htmlFor="soldas">Quantidade de soldas</label>
@@ -198,9 +197,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         <div className="card space-y-3">
           <p className="font-semibold">Estoque de TLS em {br(data)}</p>
           <FormularioUsina acao={salvarEstoqueTlsAction}>
-            <label className="field max-w-xs">Dia
-              <input name="data" type="date" defaultValue={data} className="h-11" />
-            </label>
+            <SeletorDia valor={data} />
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {TIPOS_TLS.map((t) => (
                 <div className="field" key={t}>
@@ -261,9 +258,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
               <summary className="cursor-pointer font-semibold">Lançar {l.rotulo} — {br(data)}</summary>
               <div className="mt-3">
                 <FormularioUsina acao={salvarGeracaoAction}>
-                  <label className="field max-w-xs">Dia
-                    <input name="data" type="date" defaultValue={data} className="h-11" />
-                  </label>
+                  <SeletorDia valor={data} />
                   <input type="hidden" name="lider" value={l.valor} />
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                     <div className="field"><label>Local</label><input name="local" defaultValue={dia?.local ?? ''} className="h-11" /></div>
@@ -296,9 +291,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
               <p className="font-semibold">{rotuloComposicao(c.ativo)}</p>
               <p className="text-sm">No período: {c.barras} barras · {c.jacares} jacarés</p>
               <FormularioUsina acao={salvarComposicaoAction}>
-                <label className="field max-w-xs">Dia
-                  <input name="data" type="date" defaultValue={data} className="h-11" />
-                </label>
+                <SeletorDia valor={data} />
                 <input type="hidden" name="ativo" value={c.ativo} />
                 <div className="grid grid-cols-2 gap-3">
                   <div className="field"><label>Barras em {br(data)}</label><input name="barras" inputMode="numeric" defaultValue={c.lancamentoDia?.barras ?? ''} className="h-11" /></div>
@@ -324,9 +317,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
               <p className="text-sm">No período: produção {c.periodo.producao} · perda {c.periodo.perda}</p>
               <p className="text-xs text-ink-muted">Acumulado do mês: produção {c.mes.producao} · perda {c.mes.perda} — Acumulado do ano: produção {c.ano.producao} · perda {c.ano.perda}</p>
               <FormularioUsina acao={salvarCaminhaoAction}>
-                <label className="field max-w-xs">Dia
-                  <input name="data" type="date" defaultValue={data} className="h-11" />
-                </label>
+                <SeletorDia valor={data} />
                 <input type="hidden" name="caminhao" value={c.caminhao} />
                 <div className="grid grid-cols-2 gap-3">
                   <div className="field"><label>Produção diária</label><input name="producaoDiaria" inputMode="numeric" defaultValue={c.lancamentoDia?.producaoDiaria ?? ''} className="h-11" /></div>
