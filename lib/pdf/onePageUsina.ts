@@ -105,7 +105,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
   // Cabeçalho
   p.texto('CONTROLE DE TRILHOS', M, H - 26, 7.5, 'negrito', CINZA);
   p.texto('Relatório gerencial', M, H - 50, 20, 'negrito', TINTA);
-  textoDireita(p, 'SEMANA (SEGUNDA A SEXTA)', L - M, H - 26, 7, 'negrito', CINZA);
+  textoDireita(p, 'SEMANA (SEGUNDA A QUINTA)', L - M, H - 26, 7, 'negrito', CINZA);
   textoDireita(p, faixaSemanaSegSex(d.data), L - M, H - 48, 15, 'negrito', TINTA);
   p.linha(M, H - 60, L - M, H - 60, [0.1, 0.12, 0.16], 1.2);
 

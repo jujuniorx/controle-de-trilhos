@@ -111,8 +111,8 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       {
         rotulo: 'Trilheiros',
         cor: CORES_SETOR.trilheiros,
-        dia: String(soma(trilRel.equipes, (e) => e.descarregadasDia)),
-        mes: `${trilRel.descarregadas}/${trilRel.totalBarras}`,
+        dia: `${soma(trilRel.equipes, (e) => e.descarregadasDia)} barras`,
+        mes: `${trilRel.descarregadas} de ${trilRel.totalBarras}`,
         grupo: 'Trilheiros',
       },
     ],
@@ -196,7 +196,6 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         linhas: trilRel.equipes.flatMap((e) => [
           { rotulo: `${e.trilheiro} · barras descarregadas`, dia: `${e.descarregadasDia}`, mes: `${e.descarregadas} / ${e.total}` },
         ]).concat([
-          { rotulo: 'Média de dias úteis na usina', dia: '—', mes: trilM.mediaDiasUteisNaUsina == null ? '—' : String(trilM.mediaDiasUteisNaUsina) },
         ]),
         grafico: null,
       },
