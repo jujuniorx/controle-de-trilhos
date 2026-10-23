@@ -205,6 +205,47 @@ export async function salvarGeracao(
   });
 }
 
+/**
+ * Geração da semana (segunda a sexta): por dia e por líder, o corte digitado e os totais
+ * das carretas (carregado, deixado na via e barras). Os totais não são digitados.
+ */
+export async function geracaoDaSemana(semana: string) {
+  const fim = somarDias(semana, 4);
+  const linhas = await prisma.geracaoDia.findMany({
+    where: { data: { gte: dataBanco(semana), lte: dataBanco(fim) } },
+    include: { carretas: true },
+  });
+  return [0, 1, 2, 3, 4].map((i) => {
+    const d = somarDias(semana, i);
+    const lideres = Object.fromEntries(
+      LIDERES.map((l) => {
+        const r = linhas.find((x) => iso(x.data) === d && x.lider === l.valor);
+        const carretas = r?.carretas ?? [];
+        const soma = (f: (c: (typeof carretas)[number]) => unknown) => carretas.reduce((acc, c) => acc + Number(f(c) ?? 0), 0);
+        return [
+          l.valor,
+          {
+            corteM: r?.corteM ?? null,
+            carregamentoM: round2(soma((c) => c.carregamentoM)),
+            deixadaViaM: round2(soma((c) => c.deixadaViaM)),
+            quantidade: soma((c) => c.quantidade),
+          },
+        ];
+      }),
+    );
+    return { data: d, lideres };
+  });
+}
+
+/** Grava só o corte do dia do líder. Local, observação e carretas ficam como estão. */
+export async function salvarCorteGeracao(data: string, lider: LiderValor, corteM: number | null) {
+  await prisma.geracaoDia.upsert({
+    where: { data_lider: { data: dataBanco(data), lider } },
+    update: { corteM },
+    create: { data: dataBanco(data), lider, corteM },
+  });
+}
+
 // ─── Composições ativas (W61 e W62) ───────────────────────────────────────────
 export const COMPOSICOES = ['W61', 'W62'] as const;
 // Cada composição tem rota fixa: W61 sempre Evangelista, W62 sempre Paratinga.

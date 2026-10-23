@@ -27,7 +27,7 @@ import { ehIsoValido, faixaSemanaSegSex, type Periodo } from '@/lib/usina/period
 import { FormularioUsina } from '@/components/usina/FormularioUsina';
 import { EscalaGrade } from '@/components/usina/EscalaGrade';
 import { lerEscala, diasDaSemana } from '@/lib/usina/escala';
-import { montarEscalaDaSemana, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana } from '@/lib/services/usina';
+import { montarEscalaDaSemana, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, geracaoDaSemana } from '@/lib/services/usina';
 import {
   salvarEstaleiroAction,
   salvarEstoqueTlsAction,
@@ -41,6 +41,7 @@ import {
   salvarEstaleiroSemanaAction,
   salvarSerraSemanaAction,
   salvarCaminhoesSemanaAction,
+  salvarGeracaoSemanaAction,
   apagarGiroAction,
   apagarManutencaoTrilheiroAction,
   zerarTrilheiroAction,
@@ -94,6 +95,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
   const diasSemana = await estaleiroDiasDaSemana(est.semana);
   const serraSemana = await composicoesDaSemana(est.semana);
   const caminhoesSemana = await caminhoesDaSemana(est.semana);
+  const geracaoSemana = await geracaoDaSemana(est.semana);
   const totalSemana = diasSemana.reduce((t, d) => ({ soldas: t.soldas + (d.soldas ?? 0), cortes: t.cortes + (d.cortes ?? 0) }), { soldas: 0, cortes: 0 });
   const escalaLegada = !escalaSalva && est.escala.trim() !== '';
 
@@ -255,6 +257,49 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
               </p>
             </div>
           ))}
+        </div>
+        <div className="card space-y-3">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <p className="font-semibold">Semana de {br(est.semana)} a {br(somarDiasPagina(est.semana, 4))}</p>
+            <p className="text-sm text-ink-muted">Digite o corte de cada dia e salve tudo de uma vez. Carregado, deixado e barras vêm das carretas lançadas no dia.</p>
+          </div>
+          <FormularioUsina acao={salvarGeracaoSemanaAction} rotuloBotao="Salvar a semana">
+            <input type="hidden" name="semana" value={est.semana} />
+            {LIDERES.map((l) => (
+              <div key={l.valor} className="space-y-2">
+                <p className="text-sm font-semibold">{l.rotulo}</p>
+                <div className="tbl-wrap">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-ink-muted">
+                        <th className="py-2">Dia</th>
+                        <th className="py-2 text-right">Corte (m)</th>
+                        <th className="py-2 text-right">Carregado (m)</th>
+                        <th className="py-2 text-right">Deixado na via (m)</th>
+                        <th className="py-2 text-right">Barras</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {geracaoSemana.map((d, i) => {
+                        const x = d.lideres[l.valor];
+                        return (
+                          <tr key={d.data} className="border-t border-line">
+                            <td className="py-2 font-medium">{NOME_DIA[i]} {br(d.data)}</td>
+                            <td className="py-2 text-right">
+                              <input name={`corte_${l.valor}_${d.data}`} inputMode="decimal" defaultValue={x.corteM != null ? String(x.corteM) : ''} className="h-11 w-24 text-right" aria-label={`Corte ${l.rotulo} ${br(d.data)}`} />
+                            </td>
+                            <td className="py-2 text-right">{fmtMetros(x.carregamentoM)}</td>
+                            <td className="py-2 text-right">{fmtMetros(x.deixadaViaM)}</td>
+                            <td className="py-2 text-right">{x.quantidade}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+          </FormularioUsina>
         </div>
         {LIDERES.map((l) => {
           const dia = ger.porLider.find((x) => x.valor === l.valor)?.lancamentoDia;

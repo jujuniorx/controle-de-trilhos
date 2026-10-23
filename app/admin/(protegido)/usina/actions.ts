@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/services/requireAdmin';
-import { salvarEstaleiroDia, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, salvarEstoqueTls, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, type TipoTlsValor } from '@/lib/services/usina';
+import { salvarEstaleiroDia, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, geracaoDaSemana, salvarCorteGeracao, salvarEstoqueTls, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, type TipoTlsValor } from '@/lib/services/usina';
 import { ITENS_ESCALA, escalaVazia, gravarEscala, statusValido, cfgDeObjeto } from '@/lib/usina/escala';
 import { salvarGeracao, salvarComposicao, salvarCaminhao, salvarGiro, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
@@ -308,6 +308,23 @@ export async function salvarCaminhoesSemanaAction(_: ResultadoUsina | undefined,
       const perdaDiaria = inteiro(formData.get(`perda_${c}_${d.data}`));
       if (producaoDiaria === 'invalido' || perdaDiaria === 'invalido') return { ok: false, erro: 'Use só números inteiros no caminhão.' };
       await salvarCaminhao(d.data, c, { ...d.caminhoes[c], producaoDiaria, perdaDiaria });
+    }
+  }
+  atualizar();
+  return { ok: true };
+}
+
+/** Lança o corte de cada líder na semana inteira. Carretas, local e observação não mudam aqui. */
+export async function salvarGeracaoSemanaAction(_: ResultadoUsina | undefined, formData: FormData): Promise<ResultadoUsina> {
+  await requireAdmin();
+  const semana = dataDoForm(formData.get('semana'));
+  if (!semana) return { ok: false, erro: 'Semana inválida.' };
+  const dias = await geracaoDaSemana(semana);
+  for (const d of dias) {
+    for (const l of LIDERES) {
+      const corteM = decimal(formData.get(`corte_${l.valor}_${d.data}`));
+      if (corteM === 'invalido') return erroNumero;
+      await salvarCorteGeracao(d.data, l.valor, corteM);
     }
   }
   atualizar();
