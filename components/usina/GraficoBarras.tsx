@@ -53,7 +53,7 @@ export function GraficoBarras({
                 </rect>
               );
             })}
-            {(i % (rotulos.length > 20 ? 5 : 2) === 0 || i === rotulos.length - 1) && (
+            {(rotulos.length <= 10 || i % (rotulos.length > 20 ? 5 : 2) === 0 || i === rotulos.length - 1) && (
               <text x={margemEsq + i * grupo + grupo / 2} y={altura - 6} textAnchor="middle" fontSize="11" fill="#555">
                 {r}
               </text>
