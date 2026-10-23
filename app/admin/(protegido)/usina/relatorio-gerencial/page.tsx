@@ -1,6 +1,7 @@
 import { montarDadosRelatorio, montarTrilheirosRelatorio } from '@/lib/services/onePageUsina';
 import { Setor, Resumo, TrilheirosBloco } from '@/components/usina/RelatorioSetores';
 import { ehIsoValido, faixaSemanaSegSex } from '@/lib/usina/periodo';
+import { BotaoCompartilharPdf } from '@/components/usina/BotaoCompartilharPdf';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +16,7 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
   return (
     <main className="mx-auto max-w-6xl space-y-4 p-4">
       <div className="flex flex-wrap items-center gap-3">
-        <a className="btn btn-primary h-11" href={`/api/usina/relatorio-gerencial/pdf?data=${data}`} >Abrir PDF</a>
+        <BotaoCompartilharPdf url={`/api/usina/relatorio-gerencial/pdf?data=${data}`} nomeArquivo={`relatorio-gerencial-usina-${data}.pdf`} titulo={`Relatório da usina ${br(data)}`} />
         <a className="btn btn-ghost h-11" href={`/admin/usina?data=${data}`}>Voltar</a>
         <form action="" className="flex items-center gap-2 text-sm">
           <label htmlFor="data">Dia</label>
