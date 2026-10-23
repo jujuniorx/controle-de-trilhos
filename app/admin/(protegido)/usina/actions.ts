@@ -249,7 +249,8 @@ export async function salvarSerraSemanaAction(_: ResultadoUsina | undefined, for
       const barras = inteiro(formData.get(`barras_${ativo}_${d.data}`));
       const jacares = inteiro(formData.get(`jacares_${ativo}_${d.data}`));
       if (barras === 'invalido' || jacares === 'invalido') return { ok: false, erro: 'Use só números inteiros na serra.' };
-      await salvarComposicao(d.data, ativo, barras, jacares, d.ativos[ativo].observacao);
+      const observacao = texto(formData.get(`obs_${ativo}_${d.data}`), 500);
+      await salvarComposicao(d.data, ativo, barras, jacares, observacao);
     }
   }
   atualizar();

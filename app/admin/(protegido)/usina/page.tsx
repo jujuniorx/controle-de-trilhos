@@ -2,7 +2,6 @@ import { Fragment } from 'react';
 import {
   estaleiroDoPeriodo,
   geracaoDoPeriodo,
-  composicoesDoPeriodo,
   caminhoesDoPeriodo,
   trilheirosDoPeriodo,
   ROTULO_TLS,
@@ -12,7 +11,6 @@ import {
   CAMINHOES_ATIVOS,
   TRILHEIROS,
   listarCiclosAbertos,
-  rotuloComposicao,
 } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
 import { GeracaoSemana } from '@/components/usina/GeracaoSemana';
@@ -33,7 +31,6 @@ import {
   salvarEstoqueTlsAction,
   salvarManutencaoAction,
   salvarEscalaAction,
-  salvarComposicaoAction,
   salvarCaminhaoAction,
   salvarGiroAction,
   salvarManutencaoTrilheiroAction,
@@ -82,10 +79,9 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
 
   const ciclosAbertos = await listarCiclosAbertos();
 
-  const [est, ger, comp, cam, tril] = await Promise.all([
+  const [est, ger, cam, tril] = await Promise.all([
     estaleiroDoPeriodo(periodo, data),
     geracaoDoPeriodo(periodo, data),
-    composicoesDoPeriodo(periodo, data),
     caminhoesDoPeriodo(periodo, data),
     trilheirosDoPeriodo(periodo, data),
   ]);
@@ -290,8 +286,10 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                     <th className="py-2">Dia</th>
                     <th className="py-2 text-right">W61 barras</th>
                     <th className="py-2 text-right">W61 jacarés</th>
+                    <th className="py-2">W61 observação</th>
                     <th className="py-2 text-right">W62 barras</th>
                     <th className="py-2 text-right">W62 jacarés</th>
+                    <th className="py-2">W62 observação</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -306,6 +304,9 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                           <td className="py-2 text-right">
                             <input name={`jacares_${a}_${d.data}`} inputMode="numeric" defaultValue={d.ativos[a].jacares ?? ''} className="h-11 w-24 text-right" aria-label={`Jacarés ${a} ${br(d.data)}`} />
                           </td>
+                          <td className="py-2">
+                            <input name={`obs_${a}_${d.data}`} defaultValue={d.ativos[a].observacao ?? ''} className="h-11 w-64" aria-label={`Observação ${a} ${br(d.data)}`} />
+                          </td>
                         </Fragment>
                       ))}
                     </tr>
@@ -314,26 +315,6 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
               </table>
             </div>
           </FormularioUsina>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {comp.map((c) => (
-            <div className="card space-y-3" key={c.ativo}>
-              <p className="font-semibold">{rotuloComposicao(c.ativo)}</p>
-              <p className="text-sm">No período: {c.barras} barras · {c.jacares} jacarés</p>
-              <FormularioUsina acao={salvarComposicaoAction}>
-                <SeletorDia valor={data} />
-                <input type="hidden" name="ativo" value={c.ativo} />
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="field"><label>Barras em {br(data)}</label><input name="barras" inputMode="numeric" defaultValue={c.lancamentoDia?.barras ?? ''} className="h-11" /></div>
-                  <div className="field"><label>Jacarés em {br(data)}</label><input name="jacares" inputMode="numeric" defaultValue={c.lancamentoDia?.jacares ?? ''} className="h-11" /></div>
-                </div>
-                <div className="field">
-                  <label>Observação</label>
-                  <input name="observacao" defaultValue={c.lancamentoDia?.observacao ?? ''} className="h-11" />
-                </div>
-              </FormularioUsina>
-            </div>
-          ))}
         </div>
       </section>
 
