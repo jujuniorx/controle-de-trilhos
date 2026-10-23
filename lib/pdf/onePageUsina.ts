@@ -1,5 +1,6 @@
 import { PaginaPdf, A4_PAISAGEM, montarPdfVarias, larguraTexto } from '@/lib/pdf/simples';
 import type { DadosRelatorio, GraficoRelatorio, SetorRelatorio } from '@/lib/services/onePageUsina';
+import { faixaSemanaSegSex } from '@/lib/usina/periodo';
 
 type Cor = [number, number, number];
 
@@ -17,7 +18,6 @@ const L = A4_PAISAGEM.largura; // 842
 const H = A4_PAISAGEM.altura; // 595
 const M = 36;
 
-const dataBr = (iso: string) => iso.split('-').reverse().join('/');
 
 /** Texto alinhado à direita, com a borda direita em `xDireita`. */
 function textoDireita(p: PaginaPdf, texto: string, xDireita: number, y: number, tamanho: number, fonte: 'normal' | 'negrito', c: Cor) {
@@ -99,8 +99,8 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
   // Cabeçalho
   p.texto('CONTROLE DE TRILHOS', M, H - 26, 7.5, 'negrito', CINZA);
   p.texto('Relatório gerencial', M, H - 50, 20, 'negrito', TINTA);
-  textoDireita(p, 'DIA DE REFERÊNCIA', L - M, H - 26, 7, 'negrito', CINZA);
-  textoDireita(p, dataBr(d.data), L - M, H - 48, 15, 'negrito', TINTA);
+  textoDireita(p, 'SEMANA (SEGUNDA A SEXTA)', L - M, H - 26, 7, 'negrito', CINZA);
+  textoDireita(p, faixaSemanaSegSex(d.data), L - M, H - 48, 15, 'negrito', TINTA);
   p.linha(M, H - 60, L - M, H - 60, [0.1, 0.12, 0.16], 1.2);
 
   // Resumo: dia e mês separados em cada setor

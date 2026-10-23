@@ -1,6 +1,6 @@
 import { montarDadosRelatorio, montarTrilheirosRelatorio } from '@/lib/services/onePageUsina';
 import { Setor, Resumo, TrilheirosBloco } from '@/components/usina/RelatorioSetores';
-import { ehIsoValido } from '@/lib/usina/periodo';
+import { ehIsoValido, faixaSemanaSegSex } from '@/lib/usina/periodo';
 import { ImprimirBotao } from '@/components/usina/ImprimirBotao';
 
 export const dynamic = 'force-dynamic';
@@ -69,8 +69,8 @@ export default async function ImprimirUsina({
             <h1 className="text-2xl font-extrabold tracking-tight">{titulo}</h1>
           </div>
           <div className="text-right">
-            <p className="text-[11px] uppercase tracking-wide text-slate-500">Dia de referência</p>
-            <p className="text-lg font-bold tabular-nums">{br(data)}</p>
+            <p className="text-[11px] uppercase tracking-wide text-slate-500">Semana (segunda a sexta)</p>
+            <p className="text-lg font-bold tabular-nums">{faixaSemanaSegSex(data)}</p>
           </div>
         </header>
 

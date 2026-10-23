@@ -31,3 +31,11 @@ export function intervaloDoPeriodo(periodo: Periodo, data: string): { inicio: st
   const mm = String(mes).padStart(2, '0');
   return { inicio: `${ano}-${mm}-01`, fim: `${ano}-${mm}-${String(ultimo).padStart(2, '0')}` };
 }
+
+/** Faixa da semana da data, segunda a sexta, no formato dd/mm a dd/mm/aaaa. */
+export function faixaSemanaSegSex(iso: string): string {
+  const inicio = inicioDaSemana(iso);
+  const fim = somarDias(inicio, 4);
+  const br = (x: string) => x.split('-').reverse().join('/');
+  return `${br(inicio).slice(0, 5)} a ${br(fim)}`;
+}
