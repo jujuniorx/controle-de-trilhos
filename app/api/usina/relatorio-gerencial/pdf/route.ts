@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   return new NextResponse(new Uint8Array(pdf), {
     headers: {
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="relatorio-gerencial-usina-${data}.pdf"`,
+      'Content-Disposition': `inline; filename="relatorio-gerencial-usina-${data}.pdf"`,
       'Cache-Control': 'private, no-store',
     },
   });

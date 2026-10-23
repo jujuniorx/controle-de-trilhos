@@ -15,7 +15,7 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
   return (
     <main className="mx-auto max-w-6xl space-y-4 p-4">
       <div className="flex flex-wrap items-center gap-3">
-        <a className="btn btn-primary h-11" href={`/api/usina/relatorio-gerencial/pdf?data=${data}`}>Baixar PDF</a>
+        <a className="btn btn-primary h-11" href={`/api/usina/relatorio-gerencial/pdf?data=${data}`} target="_blank" rel="noopener">Abrir PDF</a>
         <a className="btn btn-ghost h-11" href={`/admin/usina?data=${data}`}>Voltar</a>
         <form action="" className="flex items-center gap-2 text-sm">
           <label htmlFor="data">Dia</label>
