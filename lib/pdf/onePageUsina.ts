@@ -124,7 +124,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
   const colunas = 3;
   const gapC = 12;
   const wSet = (L - 2 * M - (colunas - 1) * gapC) / colunas;
-  const altSet = 200;
+  const altSet = 190;
   const topoGrade = topoRes - altRes - 16;
   const porTitulo = (t: string) => d.setores.find((s) => s.titulo === t);
   const linha1 = d.setores.filter((s) => s.titulo !== 'Caminhão de solda' && s.titulo !== 'Trilheiros');
@@ -132,14 +132,15 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
     desenharSetor(p, s, M + i * (wSet + gapC), topoGrade, wSet, altSet);
   });
 
-  // Linha 2: Caminhão de solda e Trilheiros, lado a lado.
-  const wMeio = (L - 2 * M - gapC) / 2;
-  const altLinha2 = 200;
+  // Linhas 2 e 3: Caminhão de solda e Trilheiros, um embaixo do outro, cada um na largura toda.
+  const larguraTotal = L - 2 * M;
+  const altLinha = 100;
+  const gapLinha = 8;
   const topoLinha2 = topoGrade - altSet - 12;
   const caminhao = porTitulo('Caminhão de solda');
   const trilheiros = porTitulo('Trilheiros');
-  if (caminhao) desenharSetor(p, caminhao, M, topoLinha2, wMeio, altLinha2);
-  if (trilheiros) desenharSetor(p, trilheiros, M + wMeio + gapC, topoLinha2, wMeio, altLinha2);
+  if (caminhao) desenharSetor(p, caminhao, M, topoLinha2, larguraTotal, altLinha);
+  if (trilheiros) desenharSetor(p, trilheiros, M, topoLinha2 - altLinha - gapLinha, larguraTotal, altLinha);
 
   const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
   p.texto(`Emitido em ${emitido}`, M, 18, 6.5, 'normal', CINZA);
