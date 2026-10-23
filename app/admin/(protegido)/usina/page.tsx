@@ -21,7 +21,7 @@ import { IconeImprimir } from '@/components/icones/Icones';
 
 const SETORES: [string, string][] = [['estaleiro', 'Estaleiro'], ['geracao', 'Geração'], ['composicoes', 'Recolhimento serra'], ['caminhao', 'Caminhão de solda'], ['trilheiros', 'Trilheiros']];
 import { fmtMetros, fmtPeso } from '@/lib/format';
-import { PERIODOS, ehIsoValido, type Periodo } from '@/lib/usina/periodo';
+import { ehIsoValido, faixaSemanaSegSex, type Periodo } from '@/lib/usina/periodo';
 import { FormularioUsina } from '@/components/usina/FormularioUsina';
 import { EscalaGrade } from '@/components/usina/EscalaGrade';
 import { lerEscala, diasDaSemana } from '@/lib/usina/escala';
@@ -50,8 +50,9 @@ function hojeIso(): string {
   return new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString().slice(0, 10); // horário de Brasília
 }
 
-function periodoValido(v: string | undefined): Periodo {
-  return v === 'semana' || v === 'mes' ? v : 'dia';
+// A usina é lançada e relatada por semana (segunda a sexta): o período é sempre semana.
+function periodoValido(_v: string | undefined): Periodo {
+  return 'semana';
 }
 
 function Cartao({ rotulo, valor }: { rotulo: string; valor: string | number }) {
@@ -95,25 +96,17 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
       <header className="page-header">
         <div>
           <h1 className="page-title">Relatório da usina</h1>
-          <p className="text-sm text-ink-muted">Escolha o período para ver os números. Os lançamentos são feitos em cada setor, na data de referência.</p>
+          <p className="text-sm text-ink-muted">Números da semana, de segunda a sexta. Escolha qualquer dia da semana.</p>
         </div>
       </header>
 
       <form method="get" className="card flex flex-wrap items-end gap-3">
         <div className="field">
-          <label htmlFor="periodo">Período</label>
-          <select id="periodo" name="periodo" defaultValue={periodo} className="h-11">
-            {PERIODOS.map((p) => (
-              <option key={p.valor} value={p.valor}>{p.rotulo}</option>
-            ))}
-          </select>
-        </div>
-        <div className="field">
-          <label htmlFor="data">Data de referência</label>
+          <label htmlFor="data">Qualquer dia da semana</label>
           <input id="data" name="data" type="date" defaultValue={data} className="h-11" />
         </div>
-        <button type="submit" className="btn btn-ghost h-11">Ver</button>
-        <p className="w-full text-sm text-ink-muted">Mostrando: {br(est.inicio)}{est.inicio !== est.fim ? ` a ${br(est.fim)}` : ''}</p>
+        <button type="submit" className="btn btn-ghost h-11">Ver semana</button>
+        <p className="w-full text-sm text-ink-muted">Semana de {faixaSemanaSegSex(data)} (segunda a sexta)</p>
       </form>
 
       <nav aria-label="Setores" className="flex flex-wrap items-center gap-2 border-b border-line pb-3 text-sm">
@@ -126,7 +119,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           </summary>
           <div className="absolute right-0 z-10 mt-2 flex min-w-48 flex-col gap-1 rounded-lg border border-line bg-surface p-2 shadow-lg">
             {SETORES.map(([valor, rotulo]) => (
-              <a key={valor} className="rounded px-3 py-2 hover:bg-surface-2" href={`/admin/usina/imprimir?periodo=${periodo}&data=${data}&setor=${valor}`}>{rotulo}</a>
+              <a key={valor} className="rounded px-3 py-2 hover:bg-surface-2" href={`/admin/usina/imprimir?data=${data}&setor=${valor}`}>{rotulo}</a>
             ))}
             <a className="rounded px-3 py-2 font-semibold hover:bg-surface-2" href={`/admin/usina/relatorio-gerencial?data=${data}`}>Relatório gerencial</a>
           </div>
