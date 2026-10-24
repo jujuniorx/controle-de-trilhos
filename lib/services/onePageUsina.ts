@@ -2,7 +2,6 @@ import {
   estaleiroDoPeriodo,
   geracaoDoPeriodo,
   caminhoesDoPeriodo,
-  trilheirosDoPeriodo,
   TRILHEIROS,
   BARRAS_POR_TRILHEIRO,
   COMPOSICOES,
@@ -47,15 +46,13 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
   const dias = serie.rotulos.length;
 
   const trilRel = await montarTrilheirosRelatorio(data);
-  const [estD, estM, gerD, gerM, camD, camM, trilD, trilM, serraMes] = await Promise.all([
+  const [estD, estM, gerD, gerM, camD, camM, serraMes] = await Promise.all([
     estaleiroDoPeriodo('dia', data),
     estaleiroDoPeriodo('semana', data),
     geracaoDoPeriodo('dia', data),
     geracaoDoPeriodo('semana', data),
     caminhoesDoPeriodo('dia', data),
     caminhoesDoPeriodo('semana', data),
-    trilheirosDoPeriodo('dia', data),
-    trilheirosDoPeriodo('semana', data),
     prisma.composicaoDia.findMany({
       where: { data: { gte: new Date(`${inicio}T00:00:00Z`), lte: new Date(`${fim}T00:00:00Z`) } },
       select: { data: true, ativo: true, barras: true },
@@ -193,10 +190,11 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       {
         titulo: 'Trilheiros',
         cor: CORES_SETOR.trilheiros,
-        linhas: trilRel.equipes.flatMap((e) => [
-          { rotulo: `${e.trilheiro} · barras descarregadas`, dia: `${e.descarregadasDia}`, mes: `${e.descarregadas} / ${e.total}` },
-        ]).concat([
-        ]),
+        linhas: trilRel.equipes.map((e) => ({
+          rotulo: `${e.trilheiro} · B.O. ${e.bo ? e.bo.split('-').reverse().join('/') : '—'} · ${e.giroDias ?? '—'} dias de giro`,
+          dia: `+${e.descarregadasDia}`,
+          mes: `${e.descarregadas} / ${e.total}`,
+        })),
         grafico: null,
       },
     ],
