@@ -9,10 +9,13 @@ const hex = (h: string): Cor => {
   return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
 };
 const BRANCO: Cor = [1, 1, 1];
-const FUNDO_CARTAO: Cor = [0.97, 0.98, 0.99];
 const LINHA: Cor = [0.86, 0.88, 0.91];
 const TINTA: Cor = [0.1, 0.12, 0.16];
 const CINZA: Cor = [0.42, 0.45, 0.5];
+const NAVY: Cor = hex('#0b1b31');
+const AZUL: Cor = hex('#2f6fb8');
+const ZEBRA: Cor = [0.955, 0.965, 0.975];
+const SOMBRA: Cor = [0.9, 0.92, 0.945];
 
 const L = A4_PAISAGEM.largura; // 842
 const H = A4_PAISAGEM.altura; // 595
@@ -49,8 +52,10 @@ function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yBase: nu
 
 function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = []) {
   const base = topo - h;
-  p.retangulo(x, base, w, h, FUNDO_CARTAO);
-  p.retangulo(x, topo - 20, w, 20, hex(s.cor));
+  p.arredondado(x + 1.2, base - 1.4, w, h, 9, SOMBRA);
+  p.arredondado(x, base, w, h, 9, BRANCO, LINHA);
+  p.arredondado(x, topo - 22, w, 22, 9, hex(s.cor));
+  p.retangulo(x, topo - 22, w, 8, hex(s.cor));
   p.texto(s.titulo.toUpperCase(), x + 8, topo - 14, 8, 'negrito', BRANCO);
 
   // Tabela Dia | Mês. No cartão largo ela fica à esquerda e o gráfico à direita.
@@ -61,12 +66,13 @@ function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number,
   textoDireita(p, 'SEMANA', xMes, y, 6.5, 'negrito', CINZA);
   y -= 6;
   p.linha(x + 8, y, xMes + 2, y, LINHA, 0.6);
-  for (const linha of s.linhas) {
+  s.linhas.forEach((linha, i) => {
     y -= 12;
+    if (i % 2 === 1) p.retangulo(x + 4, y - 3.5, w - 8, 12, ZEBRA);
     p.texto(linha.rotulo, x + 8, y, 8, 'normal', TINTA);
     textoDireita(p, linha.dia, xDia, y, 8, 'negrito', TINTA);
     textoDireita(p, linha.mes, xMes, y, 8, 'negrito', hex(s.cor));
-  }
+  });
 
   if (!s.grafico) return;
   if (largo) {
@@ -101,13 +107,19 @@ function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number,
 export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
   const p = new PaginaPdf();
   p.retangulo(0, 0, L, H, BRANCO);
+  // Faixa de marca no topo
+  p.retangulo(0, H - 5, L, 5, NAVY);
+  p.retangulo(0, H - 5, L * 0.35, 5, AZUL);
 
   // Cabeçalho
-  p.texto('CONTROLE DE TRILHOS', M, H - 26, 7.5, 'negrito', CINZA);
-  p.texto('Relatório gerencial', M, H - 50, 20, 'negrito', TINTA);
-  textoDireita(p, 'SEMANA (SEGUNDA A QUINTA)', L - M, H - 26, 7, 'negrito', CINZA);
-  textoDireita(p, faixaSemanaSegSex(d.data), L - M, H - 48, 15, 'negrito', TINTA);
-  p.linha(M, H - 60, L - M, H - 60, [0.1, 0.12, 0.16], 1.2);
+  p.texto('CONTROLE DE TRILHOS', M, H - 26, 7.5, 'negrito', AZUL);
+  p.texto('Relatório gerencial', M, H - 52, 21, 'negrito', TINTA);
+  const semana = faixaSemanaSegSex(d.data);
+  const wPilula = larguraTexto(semana, 10, 'negrito') + 26;
+  p.arredondado(L - M - wPilula, H - 54, wPilula, 22, 11, hex('#e9f1fb'));
+  textoDireita(p, semana, L - M - 13, H - 47, 10, 'negrito', NAVY);
+  textoDireita(p, 'SEGUNDA A QUINTA', L - M, H - 26, 7, 'negrito', CINZA);
+  p.linha(M, H - 62, L - M, H - 62, LINHA, 0.8);
 
   // Resumo: dia e semana separados em cada setor
   const gap = 10;
@@ -116,14 +128,15 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
   const altRes = 56;
   d.resumo.forEach((r, i) => {
     const x = M + i * (wRes + gap);
-    p.retangulo(x, topoRes - altRes, wRes, altRes, FUNDO_CARTAO);
-    p.retangulo(x, topoRes - 3, wRes, 3, hex(r.cor));
-    p.texto(r.rotulo.toUpperCase(), x + 8, topoRes - 17, 7, 'negrito', TINTA);
+    p.arredondado(x + 1, topoRes - altRes - 1.2, wRes, altRes, 9, SOMBRA);
+    p.arredondado(x, topoRes - altRes, wRes, altRes, 9, BRANCO, LINHA);
+    p.arredondado(x + 8, topoRes - 15, 6, 6, 3, hex(r.cor));
+    p.texto(r.rotulo.toUpperCase(), x + 18, topoRes - 14, 7, 'negrito', TINTA);
     const meio = x + wRes / 2 + 4;
     p.texto('Do dia', x + 8, topoRes - 30, 6.5, 'normal', CINZA);
-    p.texto(r.dia, x + 8, topoRes - 46, 11, 'negrito', TINTA);
+    p.texto(r.dia, x + 8, topoRes - 46, 10, 'negrito', TINTA);
     p.texto('Da semana', meio, topoRes - 30, 6.5, 'normal', CINZA);
-    p.texto(r.mes, meio, topoRes - 46, 11, 'negrito', hex(r.cor));
+    p.texto(r.mes, meio, topoRes - 46, 10, 'negrito', hex(r.cor));
   });
 
   // Linha 1: Estaleiro, Geração e Recolhimento serra, lado a lado.
@@ -149,7 +162,9 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
   if (trilheiros) desenharSetor(p, trilheiros, M, topoLinha2 - altLinha - gapLinha, larguraTotal, altLinha);
 
   const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+  p.linha(M, 30, L - M, 30, LINHA, 0.6);
   p.texto(`Emitido em ${emitido}`, M, 18, 6.5, 'normal', CINZA);
+  textoDireita(p, 'Controle de Trilhos · Usina', L - M, 18, 6.5, 'negrito', CINZA);
 
   return montarPdfVarias([p], `Relatório gerencial usina ${d.data}`, A4_PAISAGEM);
 }

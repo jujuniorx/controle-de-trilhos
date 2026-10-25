@@ -45,6 +45,30 @@ export class PaginaPdf {
     return this;
   }
 
+  /**
+   * Retângulo de cantos arredondados (x, y = canto inferior esquerdo). Com `borda`, desenha
+   * contorno fino por cima do preenchimento.
+   */
+  arredondado(x: number, y: number, largura: number, altura: number, raio: number, preenchimento: Cor, borda?: Cor): this {
+    const r = Math.min(raio, largura / 2, altura / 2);
+    const k = 0.5523 * r;
+    const f = num;
+    const path = [
+      `${f(x + r)} ${f(y)} m`,
+      `${f(x + largura - r)} ${f(y)} l`,
+      `${f(x + largura - r + k)} ${f(y)} ${f(x + largura)} ${f(y + r - k)} ${f(x + largura)} ${f(y + r)} c`,
+      `${f(x + largura)} ${f(y + altura - r)} l`,
+      `${f(x + largura)} ${f(y + altura - r + k)} ${f(x + largura - r + k)} ${f(y + altura)} ${f(x + largura - r)} ${f(y + altura)} c`,
+      `${f(x + r)} ${f(y + altura)} l`,
+      `${f(x + r - k)} ${f(y + altura)} ${f(x)} ${f(y + altura - r + k)} ${f(x)} ${f(y + altura - r)} c`,
+      `${f(x)} ${f(y + r)} l`,
+      `${f(x)} ${f(y + r - k)} ${f(x + r - k)} ${f(y)} ${f(x + r)} ${f(y)} c h`,
+    ].join(' ');
+    const borda2 = borda ? `${cor(borda)} RG 0.6 w ` : '';
+    this.operacoes.push(`${cor(preenchimento)} rg ${borda2}${path} ${borda ? 'B' : 'f'}`);
+    return this;
+  }
+
   linha(x1: number, y1: number, x2: number, y2: number, traco: Cor = [0.8, 0.82, 0.85], espessura = 0.7): this {
     this.operacoes.push(`${cor(traco)} RG ${num(espessura)} w ${num(x1)} ${num(y1)} m ${num(x2)} ${num(y2)} l S`);
     return this;
