@@ -66,7 +66,7 @@ export function PreCadastroForm() {
       </p>
 
       <div className="field">
-        <label htmlFor="tipoRemetido">Tipo de remetido (opcional — o Administrativo completa depois)</label>
+        <label htmlFor="tipoRemetido">Tipo de carga (opcional — o Administrativo completa depois)</label>
         <select id="tipoRemetido" name="tipoRemetido" className="h-11" defaultValue="">
           <option value="">Não sei / completar depois</option>
           {TIPOS_REMETIDO.map((t) => (

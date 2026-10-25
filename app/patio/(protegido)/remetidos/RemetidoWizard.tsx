@@ -450,7 +450,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
 
     setEnviando(false);
     if (!resultado.ok) {
-      setErroFinal(resultado.erro ?? 'Não foi possível salvar o remetido.');
+      setErroFinal(resultado.erro ?? 'Não foi possível salvar a carga.');
       return;
     }
     // Limpar rascunho ao confirmar com sucesso
@@ -479,13 +479,13 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
       )}
       {temIdentificacao && (
         <section className="card space-y-3">
-          <h2 className="card-title !mb-0">Identificação do remetido</h2>
+          <h2 className="card-title !mb-0">Identificação da carga</h2>
           {props.modo === 'novo' && (
             <p className="text-sm text-ink-muted">Sem pré-cadastro — preencha o que normalmente vem do Administrativo.</p>
           )}
           <div className="field">
             <label htmlFor="f-tipo-remetido">
-              Tipo de remetido{props.modo === 'novo' ? ' (opcional — o Administrativo pode completar depois)' : ''}
+              Tipo de carga{props.modo === 'novo' ? ' (opcional — o Administrativo pode completar depois)' : ''}
             </label>
             <select
               id="f-tipo-remetido"
@@ -822,7 +822,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
       <button className="btn btn-primary btn-lg h-12" disabled={enviando} onClick={confirmar}>
         {enviando
           ? { novo: 'Lançando...', confirmar: 'Confirmando...', editar: 'Salvando...' }[props.modo]
-          : { novo: 'Lançar remetido', confirmar: 'Confirmar chegada e salvar', editar: 'Salvar alterações' }[props.modo]}
+          : { novo: 'Lançar carga', confirmar: 'Confirmar chegada e salvar', editar: 'Salvar alterações' }[props.modo]}
       </button>
     </div>
   );

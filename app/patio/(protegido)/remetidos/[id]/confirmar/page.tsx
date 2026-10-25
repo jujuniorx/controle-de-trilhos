@@ -21,7 +21,7 @@ export default async function ConfirmarRemetidoPage({ params }: { params: Promis
 
   return (
     <main className="mx-auto max-w-md lg:max-w-none p-4">
-      <h1 className="font-condensed text-lg font-bold uppercase tracking-wide text-ink">Confirmar remetido — {normalizarLocal(remetido.destino) || remetido.reservaPedido}</h1>
+      <h1 className="font-condensed text-lg font-bold uppercase tracking-wide text-ink">Confirmar carga — {normalizarLocal(remetido.destino) || remetido.reservaPedido}</h1>
       <p className="mt-1 text-sm text-ink-muted">
         {TIPO_REMETIDO_LABEL[remetido.remetidoDetalhe?.tipoRemetido ?? ''] ?? '—'} · Destino: {normalizarLocal(remetido.destino)}
       </p>

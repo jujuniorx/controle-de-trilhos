@@ -12,7 +12,7 @@ export function NovoRemetido() {
 
   return (
     <>
-      <div className="mt-4 grid grid-cols-2 gap-2" role="group" aria-label="Como cadastrar o remetido">
+      <div className="mt-4 grid grid-cols-2 gap-2" role="group" aria-label="Como cadastrar a carga">
         <button
           type="button"
           aria-pressed={modo === 'aguardando'}

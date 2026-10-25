@@ -10,7 +10,7 @@ import { chavePublicaPush } from '@/lib/services/push';
 import { estadoPortaria } from '@/lib/domain/portaria';
 
 const MENSAGEM_SALVO: Record<string, string> = {
-  cadastro: 'Remetido cadastrado!',
+  cadastro: 'Carga cadastrada!',
   carregamento: 'Carregamento registrado!',
 };
 
@@ -39,10 +39,10 @@ export default async function RemetidosAguardandoPage({
     <main className="mx-auto max-w-md lg:max-w-none p-6">
       <AvisoSucesso mensagem={mensagem} />
       <AtualizarAuto />
-      <h1 className="font-condensed text-xl font-bold uppercase tracking-wide text-ink">Remetidos</h1>
+      <h1 className="font-condensed text-xl font-bold uppercase tracking-wide text-ink">Cargas</h1>
 
       <Link href="/patio/remetidos/novo" className="btn btn-primary mt-4 h-12">
-        + Novo remetido
+        + Nova carga
       </Link>
 
       <h2 className="mt-6 font-condensed text-base font-bold uppercase tracking-wide text-ink">Aguardando chegada</h2>
@@ -54,7 +54,7 @@ export default async function RemetidosAguardandoPage({
         <PreCadastrosPendentes />
         {remetidos.map((r) => (
           <Link key={r.id} href={`/patio/remetidos/${r.id}/confirmar`} className="card block transition hover:brightness-110">
-            <p className="font-medium text-ink">{normalizarLocal(r.destino) || 'Remetido'}</p>
+            <p className="font-medium text-ink">{normalizarLocal(r.destino) || 'Carga'}</p>
             <p className="text-sm text-ink-muted">
               {TIPO_REMETIDO_LABEL[r.remetidoDetalhe?.tipoRemetido ?? ''] ?? '—'}
               {r.reservaPedido ? ` · Reserva ${r.reservaPedido}` : ''}
@@ -67,7 +67,7 @@ export default async function RemetidosAguardandoPage({
           </Link>
         ))}
         {remetidos.length === 0 && (
-          <EstadoVazio titulo="Nenhum remetido aguardando chegada" texto="Quando cadastrar um, ele aparece aqui." />
+          <EstadoVazio titulo="Nenhuma carga aguardando chegada" texto="Quando cadastrar uma, ela aparece aqui." />
         )}
       </div>
       <AtivarAvisos chavePublica={chavePublicaPush()} titulo="Aviso de carreta na Portaria" descricao="Receba um aviso neste tablet quando a Portaria registrar a chegada de uma carreta ou de um caminhão." />

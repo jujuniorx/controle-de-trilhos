@@ -155,7 +155,7 @@ const MSG_PELO_MENOS_UMA_PLACA =
 
 function validarDados(d: Dados) {
   const erros: Partial<Record<keyof Dados, string>> = {};
-  if (!d.data) erros.data = 'Informe a data do recebimento.';
+  if (!d.data) erros.data = 'Informe a data da descarga.';
   if (d.numeroDocumento && !NF_REGEX.test(d.numeroDocumento)) erros.numeroDocumento = MSG_NF_INVALIDA;
   if (!d.origem.trim()) erros.origem = 'Informe a origem do material.';
   // Nenhuma placa é individualmente obrigatória — a regra é "pelo menos uma das três".
@@ -468,7 +468,7 @@ export function RecebimentoWizard({
       await salvarRecebimentoLocal(parsed.data);
     } catch {
       setEnviando(false);
-      setErroFinal('Não foi possível salvar o recebimento neste dispositivo. Tente novamente.');
+      setErroFinal('Não foi possível salvar a descarga neste dispositivo. Tente novamente.');
       return;
     }
 
@@ -500,7 +500,7 @@ export function RecebimentoWizard({
 
   return (
     <main className="mx-auto max-w-xl lg:max-w-none p-6">
-      <h1 className="font-condensed text-xl font-bold uppercase tracking-wide text-ink">Novo recebimento — Caminhão</h1>
+      <h1 className="font-condensed text-xl font-bold uppercase tracking-wide text-ink">Nova descarga — Caminhão</h1>
       <div className="mb-6 mt-3">
         <ProgressoEtapas etapa={step} total={4} />
       </div>

@@ -128,7 +128,7 @@ export default async function PatioHomePage() {
               <Link href={`/patio/recebimentos/novo?chegada=${c.id}`} className="block transition hover:brightness-110">
                 <p className="font-medium text-ink">{c.ordemDia ? `Caminhão nº ${c.ordemDia} — ` : ''}{c.placaCarreta || c.placaCavalo || 'Caminhão'}{c.origem ? ` — ${c.origem}` : ''}</p>
                 <p className="text-sm text-ink-muted">
-                  {[c.transportadora, c.materialPrevisto].filter(Boolean).join(' · ') || 'Toque para registrar o recebimento'}
+                  {[c.transportadora, c.materialPrevisto].filter(Boolean).join(' · ') || 'Toque para registrar a descarga'}
                 </p>
                 {c.observacao && <p className="mt-1 text-sm text-warn">Portaria: {c.observacao}</p>}
                 <span className="mt-1 flex flex-wrap gap-2">
@@ -151,7 +151,7 @@ export default async function PatioHomePage() {
       <div className="acoes-patio">
         <Link href="/patio/recebimentos/novo" className="acao-patio acao-patio-principal" style={atraso(0)}>
           <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7" /><circle cx="7" cy="18" r="1.6" /><circle cx="17" cy="18" r="1.6" /></svg>
-          <strong>Novo recebimento</strong>
+          <strong>Nova descarga</strong>
           <span>Caminhão chegando com trilhos para o pátio.</span>
         </Link>
         <Link href="/patio/remetidos" className="acao-patio" style={atraso(1)}>
@@ -161,7 +161,7 @@ export default async function PatioHomePage() {
             </em>
           )}
           <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 17H10V8h11zM10 11H6l-3 3v3h7" /><circle cx="6" cy="18" r="1.6" /><circle cx="16" cy="18" r="1.6" /></svg>
-          <strong>Remetidos</strong>
+          <strong>Cargas</strong>
           <span>Cadastrar saída (aguardando chegada ou lançar agora) e confirmar carregamentos.</span>
         </Link>
       </div>
