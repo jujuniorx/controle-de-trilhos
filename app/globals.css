@@ -1377,3 +1377,12 @@ html[data-tema="claro"] .home-entrada .via-neblina { background: linear-gradient
 html[data-tema="claro"] .home-entrada .via-lastro { fill: #c9d6e6; }
 html[data-tema="claro"] .home-entrada .via-trilho-topo { fill: #ffffff; }
 html[data-tema="claro"] .home-entrada .via-trilho-corpo { fill: #7d8fa8; }
+
+/* ── Celular: tamanhos um degrau menores (tablet e PC continuam como estão) ── */
+@media (max-width: 639px) {
+  .text-3xl { font-size: 1.6rem; line-height: 1.15; }
+  .text-2xl { font-size: 1.3rem; line-height: 1.2; }
+  .page-title { font-size: 1.25rem; }
+  .btn { min-height: 44px; padding: 0 16px; font-size: .95rem; }
+  .card { padding: 14px; }
+}
