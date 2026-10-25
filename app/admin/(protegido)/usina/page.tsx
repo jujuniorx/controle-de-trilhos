@@ -15,6 +15,8 @@ import { GeracaoSemana } from '@/components/usina/GeracaoSemana';
 import { BotaoApagarRegistro } from '@/components/usina/BotaoApagarRegistro';
 import { SeletorDia } from '@/components/usina/SeletorDia';
 import { IconeImprimir } from '@/components/icones/Icones';
+import { CabecalhoSemana } from '@/components/usina/CabecalhoSemana';
+import { br, somarDiasPagina } from '@/lib/usina/formatoData';
 
 const SETORES: [string, string][] = [['estaleiro', 'Estaleiro'], ['geracao', 'Geração'], ['composicoes', 'Recolhimento serra'], ['caminhao', 'Caminhão de solda'], ['trilheiros', 'Trilheiros']];
 import { fmtMetros, fmtPeso } from '@/lib/format';
@@ -40,7 +42,6 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-const br = (iso: string) => iso.split('-').reverse().join('/');
 
 function hojeIso(): string {
   return new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString().slice(0, 10); // horário de Brasília
@@ -61,11 +62,6 @@ function Cartao({ rotulo, valor }: { rotulo: string; valor: string | number }) {
 }
 
 const NOME_DIA = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
-function somarDiasPagina(iso: string, dias: number): string {
-  const d = new Date(`${iso}T12:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + dias);
-  return d.toISOString().slice(0, 10);
-}
 
 export default async function UsinaPage({ searchParams }: { searchParams: Promise<{ periodo?: string; data?: string }> }) {
   const params = await searchParams;
@@ -136,10 +132,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         </div>
 
         <div className="card space-y-3">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <p className="font-semibold">Semana de {br(est.semana)} a {br(somarDiasPagina(est.semana, 3))}</p>
-            <p className="text-sm text-ink-muted">Lance cada dia e salve tudo de uma vez.</p>
-          </div>
+          <CabecalhoSemana semana={est.semana} ajuda="Lance cada dia e salve tudo de uma vez." />
           <FormularioUsina acao={salvarEstaleiroSemanaAction} rotuloBotao="Salvar a semana">
             <input type="hidden" name="semana" value={est.semana} />
             <div className="tbl-wrap">
@@ -249,10 +242,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           ))}
         </div>
         <div className="card space-y-3">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <p className="font-semibold">Semana de {br(est.semana)} a {br(somarDiasPagina(est.semana, 3))}</p>
-            <p className="text-sm text-ink-muted">Lance as carretas de cada dia com os perfis, e salve a semana de uma vez.</p>
-          </div>
+          <CabecalhoSemana semana={est.semana} ajuda="Lance as carretas de cada dia com os perfis, e salve a semana de uma vez." />
           <FormularioUsina acao={salvarGeracaoSemanaAction} rotuloBotao="Salvar a semana">
             <input type="hidden" name="semana" value={est.semana} />
             <GeracaoSemana
@@ -268,10 +258,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
       <section className="space-y-4" aria-labelledby="composicoes">
         <h2 id="composicoes" className="section-title scroll-mt-24">Recolhimento serra</h2>
         <div className="card space-y-3">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <p className="font-semibold">Semana de {br(est.semana)} a {br(somarDiasPagina(est.semana, 3))}</p>
-            <p className="text-sm text-ink-muted">Lance cada dia e salve tudo de uma vez.</p>
-          </div>
+          <CabecalhoSemana semana={est.semana} ajuda="Lance cada dia e salve tudo de uma vez." />
           <FormularioUsina acao={salvarSerraSemanaAction} rotuloBotao="Salvar a semana">
             <input type="hidden" name="semana" value={est.semana} />
             <div className="tbl-wrap">
@@ -317,10 +304,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
       <section className="space-y-4" aria-labelledby="caminhao">
         <h2 id="caminhao" className="section-title scroll-mt-24">Caminhão de solda</h2>
         <div className="card space-y-3">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <p className="font-semibold">Semana de {br(est.semana)} a {br(somarDiasPagina(est.semana, 3))}</p>
-            <p className="text-sm text-ink-muted">Lance cada dia e salve tudo de uma vez.</p>
-          </div>
+          <CabecalhoSemana semana={est.semana} ajuda="Lance cada dia e salve tudo de uma vez." />
           <FormularioUsina acao={salvarCaminhoesSemanaAction} rotuloBotao="Salvar a semana">
             <input type="hidden" name="semana" value={est.semana} />
             {CAMINHOES_ATIVOS.map((c) => (
@@ -385,43 +369,48 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           <Cartao rotulo="Manutenções no período" valor={tril.manutencoes.length} />
         </div>
 
-        <div className="card overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-ink-muted">
-                <th>Trilheiro</th><th>B.O.</th><th>Chegada</th><th>Partida</th><th>Retorno</th><th>Perfis</th><th>Carregados</th><th>Descarregados</th><th>Saldo</th><th>Local</th><th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {tril.giros.map((g) => (
-                <tr key={g.id} className="border-t border-line">
-                  <td className="font-mono">{g.trilheiro}</td>
-                  <td>{g.boEm ? br(g.boEm.toISOString().slice(0, 10)) : '—'}</td>
-                  <td>{g.chegadaUsinaEm ? br(g.chegadaUsinaEm.toISOString().slice(0, 10)) : '—'}</td>
-                  <td>{g.partidaEm ? br(g.partidaEm.toISOString().slice(0, 10)) : '—'}</td>
-                  <td>{g.retornoEm ? br(g.retornoEm.toISOString().slice(0, 10)) : '—'}</td>
-                  <td>{g.perfis.length > 0 ? g.perfis.map((p) => ROTULO_TLS[p]).join(', ') : g.perfil ? ROTULO_TLS[g.perfil] : '—'}</td>
-                  <td>{g.carregados}</td>
-                  <td>{g.descarregados}</td>
-                  <td className="font-mono">{g.carregados - g.descarregados}</td>
-                  <td>{g.local ?? '—'}</td>
-                  <td className="text-right">
-                    <BotaoApagarRegistro acao={apagarGiroAction} campos={{ id: g.id }} />
-                  </td>
+        {tril.giros.length > 0 && (
+          <details className="card">
+            <summary className="cursor-pointer font-semibold">Histórico de giros antigos ({tril.giros.length})</summary>
+            <p className="mt-2 text-sm text-ink-muted">Lançamentos do sistema anterior. Não são usados no relatório atual.</p>
+            <div className="mt-3">
+          <div className="card overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-ink-muted">
+                  <th>Trilheiro</th><th>B.O.</th><th>Chegada</th><th>Partida</th><th>Retorno</th><th>Perfis</th><th>Carregados</th><th>Descarregados</th><th>Saldo</th><th>Local</th><th></th>
                 </tr>
-              ))}
-              {tril.giros.length === 0 && (
-                <tr><td colSpan={11} className="py-3 text-ink-muted">Nenhum giro neste período.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {tril.giros.map((g) => (
+                  <tr key={g.id} className="border-t border-line">
+                    <td className="font-mono">{g.trilheiro}</td>
+                    <td>{g.boEm ? br(g.boEm.toISOString().slice(0, 10)) : '—'}</td>
+                    <td>{g.chegadaUsinaEm ? br(g.chegadaUsinaEm.toISOString().slice(0, 10)) : '—'}</td>
+                    <td>{g.partidaEm ? br(g.partidaEm.toISOString().slice(0, 10)) : '—'}</td>
+                    <td>{g.retornoEm ? br(g.retornoEm.toISOString().slice(0, 10)) : '—'}</td>
+                    <td>{g.perfis.length > 0 ? g.perfis.map((p) => ROTULO_TLS[p]).join(', ') : g.perfil ? ROTULO_TLS[g.perfil] : '—'}</td>
+                    <td>{g.carregados}</td>
+                    <td>{g.descarregados}</td>
+                    <td className="font-mono">{g.carregados - g.descarregados}</td>
+                    <td>{g.local ?? '—'}</td>
+                    <td className="text-right">
+                      <BotaoApagarRegistro acao={apagarGiroAction} campos={{ id: g.id }} />
+                    </td>
+                  </tr>
+                ))}
+                {tril.giros.length === 0 && (
+                  <tr><td colSpan={11} className="py-3 text-ink-muted">Nenhum giro neste período.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+            </div>
+          </details>
+        )}
 
         <div className="card space-y-3">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <p className="font-semibold">Semana de {br(est.semana)} a {br(somarDiasPagina(est.semana, 3))}</p>
-            <p className="text-sm text-ink-muted">Preencha o total de barras do giro e quantas já foram descarregadas. Salve tudo de uma vez.</p>
-          </div>
+          <CabecalhoSemana semana={est.semana} ajuda="Preencha o total de barras do giro e quantas já foram descarregadas. Salve tudo de uma vez." />
           <FormularioUsina acao={salvarTrilheirosSemanaAction} rotuloBotao="Salvar a semana">
             <input type="hidden" name="semana" value={est.semana} />
             {TRILHEIROS.map((t) => (

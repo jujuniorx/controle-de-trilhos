@@ -10,6 +10,10 @@ import { AlternarTema } from '@/components/ui/AlternarTema';
 import { BotaoSair } from '@/components/admin/BotaoSair';
 import { GestosApp } from '@/components/ui/GestosApp';
 import { BarraAbas, type Aba } from '@/components/ui/BarraAbas';
+import { SwipeAdmin } from './SwipeAdmin';
+
+/** Seções das abas da barra de baixo, na ordem em que o deslizar passa de uma para outra. */
+const ROTAS_SWIPE = ['/admin', '/admin/relatorios', '/admin/portaria', '/admin/usina'];
 
 const tracos = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.9, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
 
@@ -37,6 +41,16 @@ const ICONES_NAV = {
       <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5" />
     </svg>
   ),
+  portaria: (
+    <svg width="24" height="24" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
+      <path d="M3 7h11v9H3zM14 10h4l3 3v3h-7M7 18.5a1.5 1.5 0 1 0 0-.01M17 18.5a1.5 1.5 0 1 0 0-.01" />
+    </svg>
+  ),
+  usina: (
+    <svg width="24" height="24" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
+      <path d="M3 21V10l6 4V10l6 4V6h6v15zM7 21v-3M11 21v-3M15 21v-3" />
+    </svg>
+  ),
   usuarios: (
     <svg width="24" height="24" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
       <circle cx="9" cy="8" r="3.5" />
@@ -45,25 +59,24 @@ const ICONES_NAV = {
   ),
 };
 
-function abasDoAdmin(dono: boolean): Aba[] {
-  const abas: Aba[] = [
+function abasDoAdmin(): Aba[] {
+  // Cinco vagas na barra: as seções do dia a dia; o resto (Informativo, Visão geral, Usuários...) fica em Mais.
+  return [
     { href: '/admin', rotulo: 'Pendências', icone: ICONES_NAV.inicio },
     { href: '/admin/relatorios', rotulo: 'Relatórios', icone: ICONES_NAV.relatorios },
-    { href: '/admin/informativo', rotulo: 'Informativo', icone: ICONES_NAV.informativo },
+    { href: '/admin/portaria', rotulo: 'Portaria', icone: ICONES_NAV.portaria },
+    { href: '/admin/usina', rotulo: 'Usina', icone: ICONES_NAV.usina },
+    {
+      rotulo: 'Mais',
+      icone: (
+        <svg width="24" height="24" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
+          <circle cx="5" cy="12" r="1.2" />
+          <circle cx="12" cy="12" r="1.2" />
+          <circle cx="19" cy="12" r="1.2" />
+        </svg>
+      ),
+    },
   ];
-  // Cinco vagas na barra: a Visão geral entra para o dono; Usuários e demais ficam em Mais.
-  if (dono) abas.push({ href: '/admin/dono', rotulo: 'Visão geral', icone: ICONES_NAV.visao });
-  abas.push({
-    rotulo: 'Mais',
-    icone: (
-      <svg width="24" height="24" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
-        <circle cx="5" cy="12" r="1.2" />
-        <circle cx="12" cy="12" r="1.2" />
-        <circle cx="19" cy="12" r="1.2" />
-      </svg>
-    ),
-  });
-  return abas;
 }
 
 function iniciaisDe(nome: string): string {
@@ -125,9 +138,11 @@ export function AdminShell({ nome, ehDono = false, children }: { nome: string; e
         </header>
         <InstalarApp />
         {ehDono && <MenuExcluir />}
-        <main className="min-w-0 flex-1">{children}</main>
+        <main className="min-w-0 flex-1">
+          <SwipeAdmin rotas={ROTAS_SWIPE}>{children}</SwipeAdmin>
+        </main>
       </div>
-      <BarraAbas abas={abasDoAdmin(ehDono)} raiz="/admin" />
+      <BarraAbas abas={abasDoAdmin()} raiz="/admin" />
     </div>
   );
 }
