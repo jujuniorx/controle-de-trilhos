@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react';
 import { BotaoInstalar } from '@/components/InstalarApp';
 import { FundoTrilhos } from '@/components/ui/FundoTrilhos';
 import { LogoAnimada } from '@/components/ui/LogoAnimada';
+import { AlternarTema } from '@/components/ui/AlternarTema';
 
 const atraso = (n: number) => ({ '--i': n }) as CSSProperties;
 
@@ -37,6 +38,7 @@ export default function Home() {
   return (
     <main className="home-entrada">
       <FundoTrilhos />
+      <AlternarTema padrao="escuro" className="home-tema" />
       <div className="home-conteudo">
         <LogoAnimada size={84} />
         <h1 className="home-titulo">Controle de Trilhos</h1>

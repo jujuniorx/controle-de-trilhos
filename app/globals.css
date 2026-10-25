@@ -1350,3 +1350,30 @@ a.card:hover { transform: translateY(-2px); }
 .pend-resumo .stat-tile:nth-child(2) { animation-delay: .08s; }
 .pend-tile-alerta { border-color: color-mix(in srgb, var(--warn) 45%, var(--line)); }
 @media (prefers-reduced-motion: reduce) { .pend-resumo .stat-tile { animation: none !important; } }
+
+/* ── Tela inicial: segue o tema escolhido (claro/escuro), com o botão de trocar ── */
+.home-entrada { --h-texto: #e8edf2; --h-muted: #9fb2c8; --h-card: rgba(10, 20, 34, .72); --h-borda: rgba(255, 255, 255, .14); --h-botao: #c9d6e8; }
+.home-entrada .home-tema { position: absolute; z-index: 2; top: max(14px, env(safe-area-inset-top, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); width: 40px; height: 40px; color: var(--h-botao); background: var(--h-card); border-color: var(--h-borda); }
+html[data-tema="claro"] .home-entrada {
+  --h-texto: #13202f; --h-muted: #4a5b70; --h-card: rgba(255, 255, 255, .88); --h-borda: rgba(19, 32, 47, .12); --h-botao: #2c3e55;
+  background: linear-gradient(160deg, #f7f9fc 0%, #e3ebf4 62%); color: var(--h-texto);
+}
+html[data-tema="claro"] .home-entrada .home-titulo { color: var(--h-texto); }
+html[data-tema="claro"] .home-entrada .home-frase, html[data-tema="claro"] .home-entrada .entrada-card-texto small { color: var(--h-muted); }
+html[data-tema="claro"] .home-entrada .entrada-card { color: var(--h-texto); background: var(--h-card); border-color: var(--h-borda); box-shadow: 0 6px 20px rgba(19, 32, 47, .08); }
+html[data-tema="claro"] .home-entrada .entrada-card:hover { background: #fff; border-color: #2f6fb8; box-shadow: 0 12px 32px rgba(15, 95, 204, .18); }
+html[data-tema="claro"] .home-entrada .entrada-card-seta { color: #1f5fb0; }
+html[data-tema="claro"] .home-entrada .home-conteudo::before { background: radial-gradient(closest-side, rgba(243, 246, 250, .92) 35%, transparent); }
+html[data-tema="claro"] .home-entrada .home-instalar { background: var(--h-card); }
+html[data-tema="claro"] .home-entrada .home-privacidade { color: var(--h-muted); background: rgba(255, 255, 255, .8); }
+html[data-tema="claro"] .home-entrada .home-privacidade:hover { color: var(--h-texto); }
+html[data-tema="claro"] .home-entrada .fundo-trilhos-brilho {
+  background:
+    linear-gradient(to bottom, transparent calc(var(--horizonte, 44%) - 16%), rgba(120, 160, 210, .16) var(--horizonte, 44%), transparent calc(var(--horizonte, 44%) + 6%)),
+    radial-gradient(70% 45% at var(--fuga-x, 57%) var(--horizonte, 46%), rgba(150, 195, 240, .38), transparent 70%);
+}
+html[data-tema="claro"] .home-entrada .fundo-trilhos-via { background: linear-gradient(to bottom, transparent 0, rgba(214, 224, 236, .55) 16%, rgba(190, 204, 222, .95) 100%); }
+html[data-tema="claro"] .home-entrada .via-neblina { background: linear-gradient(to bottom, rgba(120, 165, 220, .18), transparent); }
+html[data-tema="claro"] .home-entrada .via-lastro { fill: #c9d6e6; }
+html[data-tema="claro"] .home-entrada .via-trilho-topo { fill: #ffffff; }
+html[data-tema="claro"] .home-entrada .via-trilho-corpo { fill: #7d8fa8; }
