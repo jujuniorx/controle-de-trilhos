@@ -1386,3 +1386,22 @@ html[data-tema="claro"] .home-entrada .via-trilho-corpo { fill: #7d8fa8; }
   .btn { min-height: 44px; padding: 0 16px; font-size: .95rem; }
   .card { padding: 14px; }
 }
+
+/* ── Administrativo: entradas em cascata e retorno visual de toque (só sem "reduzir movimento") ── */
+@media (prefers-reduced-motion: no-preference) {
+  .area-admin main .card,
+  .area-admin main .stat-tile {
+    animation: admin-sobe .5s cubic-bezier(.2, .8, .2, 1) backwards;
+  }
+  .area-admin main .card:nth-child(2), .area-admin main .stat-tile:nth-child(2) { animation-delay: .06s; }
+  .area-admin main .card:nth-child(3), .area-admin main .stat-tile:nth-child(3) { animation-delay: .12s; }
+  .area-admin main .card:nth-child(4), .area-admin main .stat-tile:nth-child(4) { animation-delay: .18s; }
+  .area-admin main .card:nth-child(n+5), .area-admin main .stat-tile:nth-child(n+5) { animation-delay: .24s; }
+  .area-admin .btn:active { transform: scale(.97); transition: transform .12s ease; }
+  .area-admin .aba-icone, .area-admin .nav-icone { transition: transform .25s cubic-bezier(.3, 1.4, .5, 1); }
+  .area-admin .ct-sidebar-nav a:hover .nav-icone { transform: translateX(2px); }
+}
+@keyframes admin-sobe {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
