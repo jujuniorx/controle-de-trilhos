@@ -30,6 +30,15 @@ const TITULO_SETOR: Record<SetorPdf, string> = {
   trilheiros: 'Trilheiros',
 };
 
+const SETOR_DA_OBSERVACAO: Partial<Record<SetorPdf, string>> = {
+  estaleiro: 'estaleiro',
+  geracao: 'geracao',
+  composicoes: 'serra',
+  caminhao: 'caminhao',
+};
+
+const NOME_DIA_SEMANA = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
 const TITULO_RELATORIO: Record<SetorPdf, string> = {
   estaleiro: 'Relatório do estaleiro de solda',
   geracao: 'Relatório da geração de trilho',
@@ -83,7 +92,28 @@ export function gerarSetorUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio,
     topoCorpo = topoCards - altRes - 16;
   }
 
-  const alturaDisponivel = topoCorpo - 44;
+  const chaveSetor = SETOR_DA_OBSERVACAO[setor];
+  const obsLinhas = chaveSetor
+    ? Object.entries(d.observacoes)
+        .filter(([chave, texto]) => chave.endsWith(`|${chaveSetor}`) && texto)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([chave, texto]) => {
+          const dataIso = chave.split('|')[0]!;
+          const dia = NOME_DIA_SEMANA[new Date(`${dataIso}T12:00:00Z`).getUTCDay()];
+          return `${dia} ${brDaIso(dataIso)}: ${texto}`;
+        })
+    : [];
+  // Caixa de observações no pé da folha, quando o setor tem alguma observação na semana.
+  const altObs = obsLinhas.length > 0 ? Math.min(40 + obsLinhas.length * 11, 130) : 0;
+  const alturaDisponivel = topoCorpo - 44 - altObs - (altObs > 0 ? 10 : 0);
+  if (altObs > 0) {
+    const topoObs = 44 + altObs;
+    p.arredondado(M, topoObs - altObs, L - 2 * M, altObs, 9, BRANCO, LINHA);
+    p.texto('OBSERVAÇÕES DA SEMANA', M + 10, topoObs - 14, 7, 'negrito', CINZA);
+    obsLinhas.slice(0, Math.floor((altObs - 22) / 11)).forEach((linha, i) => {
+      p.texto(linha, M + 10, topoObs - 28 - i * 11, 8, 'normal', TINTA);
+    });
+  }
   if (setor === 'trilheiros') {
     const altTril = Math.min(alturaDisponivel, 60 + Math.max(1, tril.equipes.length) * 40 + 12);
     desenharTrilheiros(p, tril, M, topoCorpo, L - 2 * M, altTril);

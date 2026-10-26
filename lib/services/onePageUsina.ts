@@ -10,6 +10,8 @@ import {
 import { seriesDaSemana } from '@/lib/services/usinaGraficos';
 import { prisma } from '@/lib/db';
 import { intervaloDoPeriodo } from '@/lib/usina/periodo';
+import { observacoesDoPeriodo } from '@/lib/services/observacaoSetor';
+import { somarDias } from '@/lib/usina/diasUteis';
 import { METROS_POR_BARRA } from '@/lib/domain/informativo';
 import { fmtMetros, fmtPeso } from '@/lib/format';
 
@@ -34,6 +36,8 @@ export interface DadosRelatorio {
   resumo: { rotulo: string; cor: string; dia: string; semana: string; mes: string; grupo: string }[];
   setores: SetorRelatorio[];
   equipesGeracao: EquipeGeracaoRelatorio[];
+  /** Observação de cada setor por dia, da segunda a domingo da semana: chave "AAAA-MM-DD|setor". */
+  observacoes: Record<string, string>;
 }
 
 /** Cores fixas por setor (cabeçalho) e uma cor distinta para cada série dentro do setor. */
@@ -85,8 +89,11 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
   const geraDia = (f: (l: (typeof gerD.porLider)[number]) => number) => soma(gerD.porLider, f);
   const geraSem = (f: (l: (typeof gerS.porLider)[number]) => number) => soma(gerS.porLider, f);
 
+  const observacoes = await observacoesDoPeriodo(inicio, somarDias(inicio, 6));
+
   return {
     data,
+    observacoes,
     rotulosDias: serie.rotulos,
     equipesGeracao: gerS.porLider.map((l) => {
       const d = gerD.porLider.find((x) => x.valor === l.valor)?.periodo;
