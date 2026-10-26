@@ -57,7 +57,7 @@ export async function estaleiroDiasDaSemana(semana: string) {
   return [0, 1, 2, 3].map((i) => {
     const d = somarDias(semana, i);
     const r = linhas.find((x) => iso(x.data) === d);
-    return { data: d, soldas: r?.soldas ?? null, cortes: r?.cortes ?? null };
+    return { data: d, soldas: r?.soldas ?? null, cortes: r?.cortes ?? null, observacao: r?.observacao ?? null };
   });
 }
 
@@ -93,11 +93,12 @@ function round2(n: number) {
   return Math.round(n * 100) / 100;
 }
 
-export async function salvarEstaleiroDia(data: string, soldas: number | null, cortes: number | null) {
+export async function salvarEstaleiroDia(data: string, soldas: number | null, cortes: number | null, observacao?: string | null) {
   await prisma.estaleiroDia.upsert({
     where: { data: dataBanco(data) },
-    update: { soldas, cortes },
-    create: { data: dataBanco(data), soldas, cortes },
+    // Sem observação informada, mantém a que já estava salva.
+    update: observacao === undefined ? { soldas, cortes } : { soldas, cortes, observacao },
+    create: { data: dataBanco(data), soldas, cortes, observacao: observacao ?? null },
   });
 }
 

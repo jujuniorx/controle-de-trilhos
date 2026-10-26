@@ -232,7 +232,8 @@ export async function salvarEstaleiroSemanaAction(_: ResultadoUsina | undefined,
     const soldas = inteiro(formData.get(`soldas_${d.data}`));
     const cortes = inteiro(formData.get(`cortes_${d.data}`));
     if (soldas === 'invalido' || cortes === 'invalido') return { ok: false, erro: 'Use só números inteiros em soldas e cortes.' };
-    await salvarEstaleiroDia(d.data, soldas, cortes);
+    const observacao = texto(formData.get(`obs_est_${d.data}`));
+    await salvarEstaleiroDia(d.data, soldas, cortes, observacao);
   }
   atualizar();
   return { ok: true };

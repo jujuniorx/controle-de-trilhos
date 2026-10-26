@@ -386,6 +386,7 @@ model EstaleiroDia {
   data      DateTime @unique @db.Date
   soldas    Int?
   cortes    Int?
+  observacao String?
   atualizadoEm DateTime @updatedAt
 }
 
