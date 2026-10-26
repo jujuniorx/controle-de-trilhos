@@ -240,8 +240,12 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
       </section>
 
       {/* ── Geração de trilho ──────────────────────────────────────── */}
-      <section className="space-y-4" aria-labelledby="geracao">
-        <h2 id="geracao" className="section-title scroll-mt-24">Geração de trilho</h2>
+      <details open className="group space-y-4" aria-labelledby="geracao">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 scroll-mt-24">
+          <h2 id="geracao" className="section-title !mb-0">Geração de trilho</h2>
+          <span className="text-sm text-ink-muted group-open:hidden">Mostrar</span>
+          <span className="hidden text-sm text-ink-muted group-open:inline">Minimizar</span>
+        </summary>
         <div className="grid gap-3 sm:grid-cols-3">
           {ger.porLider.map((l) => (
             <div className="card space-y-2" key={l.valor}>
@@ -266,7 +270,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                       <ObservacoesDoSetor setor="geracao" dias={diasObservacao} obs={observacoesSemana} />
           </FormularioUsina>
         </div>
-      </section>
+      </details>
 
       {/* ── Recolhimento serra ─────────────────────────────────────── */}
       <section className="space-y-4" aria-labelledby="composicoes">
