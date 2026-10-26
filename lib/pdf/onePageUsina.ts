@@ -28,6 +28,24 @@ export function textoDireita(p: PaginaPdf, texto: string, xDireita: number, y: n
   p.texto(texto, xDireita - larguraTexto(texto, tamanho, fonte), y, tamanho, fonte, c);
 }
 
+/** Valor alinhado à direita com partes separadas por ' / ', cada parte na sua cor (ex.: W61 e W62). */
+function valorDireitaComCores(p: PaginaPdf, valor: string, cores: string[] | undefined, xDireita: number, y: number, tamanho: number, fonte: 'normal' | 'negrito', corPadrao: Cor) {
+  const partes = valor.split(' / ');
+  if (!cores || partes.length !== cores.length) {
+    textoDireita(p, valor, xDireita, y, tamanho, fonte, corPadrao);
+    return;
+  }
+  let x = xDireita;
+  for (let i = partes.length - 1; i >= 0; i--) {
+    textoDireita(p, partes[i]!, x, y, tamanho, fonte, hex(cores[i]!));
+    x -= larguraTexto(partes[i]!, tamanho, fonte);
+    if (i > 0) {
+      textoDireita(p, ' / ', x, y, tamanho, fonte, CINZA);
+      x -= larguraTexto(' / ', tamanho, fonte);
+    }
+  }
+}
+
 /** Gráfico de barras por dia: uma barra por série e por dia, na área (x, yBase) até (x+w, yBase+altura). */
 export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yBase: number, w: number, altura: number, rotulos: string[] = []) {
   const n = Math.max(1, ...g.series.map((s) => s.valores.length));
@@ -79,10 +97,10 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
     if (i % 2 === 1) p.retangulo(x + 4, y - 4, w - 8, altLinhaSetor, ZEBRA);
     p.texto(linha.rotulo, x + 8, y, 8, 'normal', TINTA);
     if (!mensal) {
-      textoDireita(p, linha.dia, xDia, y, 9, 'negrito', TINTA);
-      textoDireita(p, linha.semana, xSem, y, 9, 'negrito', TINTA);
+      valorDireitaComCores(p, linha.dia, linha.cores, xDia, y, 9, 'negrito', TINTA);
+      valorDireitaComCores(p, linha.semana, linha.cores, xSem, y, 9, 'negrito', TINTA);
     }
-    textoDireita(p, linha.mes, xMes, y, 9, 'negrito', hex(s.cor));
+    valorDireitaComCores(p, linha.mes, linha.cores, xMes, y, 9, 'negrito', hex(s.cor));
   });
 
   // No mensal o gráfico diário sai: o cartão mostra só os totais do mês.

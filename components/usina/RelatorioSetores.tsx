@@ -2,6 +2,22 @@ import { GraficoBarras } from '@/components/usina/GraficoBarras';
 import type { SetorRelatorio, TrilheirosRelatorio, EquipeGeracaoRelatorio } from '@/lib/services/onePageUsina';
 
 /** Um setor: cabeçalho colorido, tabela Dia | Semana e o gráfico de segunda a domingo. */
+/** Valor com partes separadas por ' / ', cada parte na sua cor (ex.: W61 e W62 com cores diferentes). */
+function ValorComCores({ valor, cores, corPadrao }: { valor: string; cores?: string[]; corPadrao: string }) {
+  const partes = valor.split(' / ');
+  if (!cores || partes.length !== cores.length) return <span style={{ color: corPadrao }}>{valor}</span>;
+  return (
+    <>
+      {partes.map((p, i) => (
+        <span key={i}>
+          {i > 0 && <span className="text-slate-400"> / </span>}
+          <span style={{ color: cores[i] }}>{p}</span>
+        </span>
+      ))}
+    </>
+  );
+}
+
 export function Setor({ s, rotulosDias, largo = false, mensal = false }: { s: SetorRelatorio; rotulosDias: string[]; largo?: boolean; mensal?: boolean }) {
   const tabela = (
     <table className="w-full border-collapse text-[13px]">
@@ -17,9 +33,9 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false }: { s: Se
         {s.linhas.map((l) => (
           <tr key={l.rotulo} className="border-t border-slate-100">
             <td className="py-1 text-slate-700">{l.rotulo}</td>
-            {!mensal && <td className="py-1 text-right font-medium tabular-nums text-slate-900">{l.dia}</td>}
-            {!mensal && <td className="py-1 text-right font-medium tabular-nums text-slate-900">{l.semana}</td>}
-            <td className="py-1 text-right font-bold tabular-nums" style={{ color: s.cor }}>{l.mes}</td>
+            {!mensal && <td className="py-1 text-right font-medium tabular-nums text-slate-900"><ValorComCores valor={l.dia} cores={l.cores} corPadrao="#0f172a" /></td>}
+            {!mensal && <td className="py-1 text-right font-medium tabular-nums text-slate-900"><ValorComCores valor={l.semana} cores={l.cores} corPadrao="#0f172a" /></td>}
+            <td className="py-1 text-right font-bold tabular-nums"><ValorComCores valor={l.mes} cores={l.cores} corPadrao={s.cor} /></td>
           </tr>
         ))}
       </tbody>

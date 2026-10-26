@@ -20,7 +20,8 @@ const metros = (v: number) => `${fmtMetros(v)} m`;
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
 /** Valores de cada dia da semana (segunda a domingo), quando existem; usados no PDF diário. */
-export interface LinhaRelatorio { rotulo: string; dia: string; semana: string; mes: string; porDia?: string[] }
+/** cores: uma cor por parte do valor separada por ' / ' (ex.: W61 e W62), para cada parte aparecer na cor da sua composição. */
+export interface LinhaRelatorio { rotulo: string; dia: string; semana: string; mes: string; porDia?: string[]; cores?: string[] }
 export interface GraficoRelatorio { titulo: string; series: { nome: string; cor: string; valores: number[] }[] }
 /** Grade de produção por dia (um valor por dia da semana), para setores em que o número do dia importa mais que o gráfico. */
 export interface GradeRelatorio { colunas: string[]; linhas: { rotulo: string; valores: number[] }[] }
@@ -85,6 +86,8 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
     }
     return valores;
   };
+  // Cor de cada composição da serra: a mesma usada no gráfico (W61 roxo, W62 âmbar).
+  const COR_COMPOSICAO = COMPOSICOES.map((_, i) => (i === 0 ? '#7c3aed' : '#f59e0b'));
   const serraTotalDia = COMPOSICOES.reduce((t, a) => t + metrosDeBarras(barrasDia(a)), 0);
   const serraTotalSemana = COMPOSICOES.reduce((t, a) => t + metrosDeBarras(barrasSemana(a)), 0);
   const serraTotalMes = COMPOSICOES.reduce((t, a) => t + metrosDeBarras(barrasMes(a)), 0);
@@ -188,8 +191,8 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         cor: CORES_SETOR.serra,
         linhas: [
           // Uma linha por medida, com as composições na mesma célula (W61 / W62): a tabela não cresce com novas composições.
-          { rotulo: `Barras (${COMPOSICOES.join(' e ')}), nessa ordem`, dia: COMPOSICOES.map((a) => barrasDia(a)).join(' / '), semana: COMPOSICOES.map((a) => barrasSemana(a)).join(' / '), mes: COMPOSICOES.map((a) => barrasMes(a)).join(' / '), porDia: Array.from({ length: dias }, (_, i) => COMPOSICOES.map((a) => serraDiaSerie(a)[i] ? Math.round(serraDiaSerie(a)[i]! / METROS_POR_BARRA) : 0).join(' / ')) },
-          { rotulo: `Metros estimados (${COMPOSICOES.join(' e ')}), nessa ordem`, dia: COMPOSICOES.map((a) => fmtMetros(metrosDeBarras(barrasDia(a)))).join(' / '), semana: COMPOSICOES.map((a) => fmtMetros(metrosDeBarras(barrasSemana(a)))).join(' / '), mes: COMPOSICOES.map((a) => fmtMetros(metrosDeBarras(barrasMes(a)))).join(' / '), porDia: Array.from({ length: dias }, (_, i) => COMPOSICOES.map((a) => fmtMetros(serraDiaSerie(a)[i] ?? 0)).join(' / ')) },
+          { rotulo: `Barras (${COMPOSICOES.join(' e ')}), nessa ordem`, dia: COMPOSICOES.map((a) => barrasDia(a)).join(' / '), semana: COMPOSICOES.map((a) => barrasSemana(a)).join(' / '), mes: COMPOSICOES.map((a) => barrasMes(a)).join(' / '), porDia: Array.from({ length: dias }, (_, i) => COMPOSICOES.map((a) => serraDiaSerie(a)[i] ? Math.round(serraDiaSerie(a)[i]! / METROS_POR_BARRA) : 0).join(' / ')), cores: COR_COMPOSICAO },
+          { rotulo: `Metros estimados (${COMPOSICOES.join(' e ')}), nessa ordem`, dia: COMPOSICOES.map((a) => fmtMetros(metrosDeBarras(barrasDia(a)))).join(' / '), semana: COMPOSICOES.map((a) => fmtMetros(metrosDeBarras(barrasSemana(a)))).join(' / '), mes: COMPOSICOES.map((a) => fmtMetros(metrosDeBarras(barrasMes(a)))).join(' / '), porDia: Array.from({ length: dias }, (_, i) => COMPOSICOES.map((a) => fmtMetros(serraDiaSerie(a)[i] ?? 0)).join(' / ')), cores: COR_COMPOSICAO },
           { rotulo: 'Total estimado (m)', dia: metros(serraTotalDia), semana: metros(serraTotalSemana), mes: metros(serraTotalMes) },
         ],
         grafico: {
