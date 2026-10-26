@@ -35,7 +35,8 @@ export default async function ImprimirUsina({
   searchParams: Promise<{ data?: string; setor?: string; modo?: string }>;
 }) {
   const params = await searchParams;
-  const modo = modoValido(params.modo);
+  // O mensal é só do relatório gerencial; aqui, qualquer formato que não seja diário vira semanal.
+  const modo = modoValido(params.modo) === 'diario' ? 'diario' : 'semanal';
   const data = ehIsoValido(params.data) ? params.data : new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
   const setor: ChaveSetor = (SETORES as readonly string[]).includes(params.setor ?? '') ? (params.setor as ChaveSetor) : 'todos';
 
@@ -92,7 +93,7 @@ export default async function ImprimirUsina({
         {resumo.length > 0 && (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {resumo.map((r) => (
-              <Resumo key={r.rotulo} rotulo={r.rotulo} cor={r.cor} dia={r.dia} mes={r.mes} />
+              <Resumo key={r.rotulo} rotulo={r.rotulo} cor={r.cor} dia={r.dia} semana={r.semana} mes={r.mes} />
             ))}
           </div>
         )}

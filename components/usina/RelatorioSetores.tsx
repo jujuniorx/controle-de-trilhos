@@ -2,14 +2,14 @@ import { GraficoBarras } from '@/components/usina/GraficoBarras';
 import type { SetorRelatorio, TrilheirosRelatorio, EquipeGeracaoRelatorio } from '@/lib/services/onePageUsina';
 
 /** Um setor: cabeçalho colorido, tabela Dia | Semana e o gráfico de segunda a domingo. */
-export function Setor({ s, rotulosDias, largo = false }: { s: SetorRelatorio; rotulosDias: string[]; largo?: boolean }) {
+export function Setor({ s, rotulosDias, largo = false, mensal = false }: { s: SetorRelatorio; rotulosDias: string[]; largo?: boolean; mensal?: boolean }) {
   const tabela = (
     <table className="w-full border-collapse text-[13px]">
       <thead>
         <tr className="text-[11px] uppercase tracking-wide text-slate-500">
           <th className="pb-1 text-left font-semibold"> </th>
-          <th className="pb-1 text-right font-semibold">Dia</th>
-          <th className="pb-1 text-right font-semibold">Semana</th>
+          {!mensal && <th className="pb-1 text-right font-semibold">Dia</th>}
+          {!mensal && <th className="pb-1 text-right font-semibold">Semana</th>}
           <th className="pb-1 text-right font-semibold">No mês</th>
         </tr>
       </thead>
@@ -17,8 +17,8 @@ export function Setor({ s, rotulosDias, largo = false }: { s: SetorRelatorio; ro
         {s.linhas.map((l) => (
           <tr key={l.rotulo} className="border-t border-slate-100">
             <td className="py-1 text-slate-700">{l.rotulo}</td>
-            <td className="py-1 text-right font-medium tabular-nums text-slate-900">{l.dia}</td>
-            <td className="py-1 text-right font-medium tabular-nums text-slate-900">{l.semana}</td>
+            {!mensal && <td className="py-1 text-right font-medium tabular-nums text-slate-900">{l.dia}</td>}
+            {!mensal && <td className="py-1 text-right font-medium tabular-nums text-slate-900">{l.semana}</td>}
             <td className="py-1 text-right font-bold tabular-nums" style={{ color: s.cor }}>{l.mes}</td>
           </tr>
         ))}
@@ -26,7 +26,7 @@ export function Setor({ s, rotulosDias, largo = false }: { s: SetorRelatorio; ro
     </table>
   );
   // Gráfico diário do setor; sem gráfico, mostra a grade de números quando existir.
-  const grafico = s.grafico ? (
+  const grafico = mensal ? null : s.grafico ? (
 
     <div>
       <GraficoBarras
@@ -81,7 +81,16 @@ export function Setor({ s, rotulosDias, largo = false }: { s: SetorRelatorio; ro
 }
 
 /** Indicador de setor: o valor do dia e o da semana em blocos separados. */
-export function Resumo({ rotulo, cor, dia, mes }: { rotulo: string; cor: string; dia: string; mes: string }) {
+export function Resumo({ rotulo, cor, dia, semana, mes, mensal = false }: { rotulo: string; cor: string; dia: string; semana: string; mes: string; mensal?: boolean }) {
+  if (mensal) {
+    return (
+      <div className="rounded-lg border border-slate-200 bg-white p-3" style={{ borderTop: `3px solid ${cor}` }}>
+        <p className="text-[11px] font-bold uppercase tracking-wide text-slate-600">{rotulo}</p>
+        <p className="mt-2 text-[10px] uppercase tracking-wide text-slate-500">No mês</p>
+        <p className="text-xl font-bold tabular-nums" style={{ color: cor }}>{mes}</p>
+      </div>
+    );
+  }
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-3" style={{ borderTop: `3px solid ${cor}` }}>
       <p className="text-[11px] font-bold uppercase tracking-wide text-slate-600">{rotulo}</p>
@@ -92,7 +101,7 @@ export function Resumo({ rotulo, cor, dia, mes }: { rotulo: string; cor: string;
         </div>
         <div className="rounded-md p-2" style={{ background: `${cor}14` }}>
           <p className="text-[10px] uppercase tracking-wide text-slate-500">Da semana</p>
-          <p className="text-base font-bold tabular-nums" style={{ color: cor }}>{mes}</p>
+          <p className="text-base font-bold tabular-nums" style={{ color: cor }}>{semana}</p>
         </div>
       </div>
     </div>

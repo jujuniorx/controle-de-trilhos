@@ -1,6 +1,6 @@
 import { PaginaPdf, A4_PAISAGEM, montarPdfVarias, larguraTexto } from '@/lib/pdf/simples';
 import type { DadosRelatorio, GraficoRelatorio, SetorRelatorio, TrilheirosRelatorio } from '@/lib/services/onePageUsina';
-import { faixaSemanaSegSex } from '@/lib/usina/periodo';
+import { faixaSemanaSegSex, mesAte } from '@/lib/usina/periodo';
 import { desenharTrilheiros } from '@/lib/pdf/tabelaTrilheiros';
 
 type Cor = [number, number, number];
@@ -51,7 +51,7 @@ export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yB
   });
 }
 
-export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = []) {
+export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = [], mensal = false) {
   const base = topo - h;
   p.arredondado(x + 1.2, base - 1.4, w, h, 9, SOMBRA);
   p.arredondado(x, base, w, h, 9, BRANCO, LINHA);
@@ -64,8 +64,10 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   const xSem = xMes - 66;
   const xDia = xSem - 66;
   let y = topo - 32;
-  textoDireita(p, 'DIA', xDia, y, 6.5, 'negrito', CINZA);
-  textoDireita(p, 'SEMANA', xSem, y, 6.5, 'negrito', CINZA);
+  if (!mensal) {
+    textoDireita(p, 'DIA', xDia, y, 6.5, 'negrito', CINZA);
+    textoDireita(p, 'SEMANA', xSem, y, 6.5, 'negrito', CINZA);
+  }
   textoDireita(p, 'NO MÊS', xMes, y, 6.5, 'negrito', CINZA);
   y -= 6;
   p.linha(x + 8, y, xMes + 2, y, LINHA, 0.6);
@@ -76,8 +78,10 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
     y -= altLinhaSetor;
     if (i % 2 === 1) p.retangulo(x + 4, y - 4, w - 8, altLinhaSetor, ZEBRA);
     p.texto(linha.rotulo, x + 8, y, 8, 'normal', TINTA);
-    textoDireita(p, linha.dia, xDia, y, 9, 'negrito', TINTA);
-    textoDireita(p, linha.semana, xSem, y, 9, 'negrito', TINTA);
+    if (!mensal) {
+      textoDireita(p, linha.dia, xDia, y, 9, 'negrito', TINTA);
+      textoDireita(p, linha.semana, xSem, y, 9, 'negrito', TINTA);
+    }
     textoDireita(p, linha.mes, xMes, y, 9, 'negrito', hex(s.cor));
   });
 
@@ -111,7 +115,8 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   textoDireita(p, 'Segunda a domingo', x + w - 8, base + 4, 6, 'negrito', CINZA);
 }
 
-export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio): Buffer {
+export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 'semanal' | 'mensal' = 'semanal'): Buffer {
+  const mensal = modo === 'mensal';
   const p = new PaginaPdf();
   p.retangulo(0, 0, L, H, BRANCO);
   // Faixa de marca no topo
@@ -121,11 +126,11 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   // Cabeçalho
   p.texto('CONTROLE DE TRILHOS', M, H - 26, 7.5, 'negrito', AZUL);
   p.texto('Relatório gerencial', M, H - 52, 21, 'negrito', TINTA);
-  const semana = faixaSemanaSegSex(d.data);
+  const semana = mensal ? `Mês até ${mesAte(d.data).split(' a ')[1]}` : faixaSemanaSegSex(d.data);
   const wPilula = larguraTexto(semana, 10, 'negrito') + 26;
   p.arredondado(L - M - wPilula, H - 54, wPilula, 22, 11, hex('#e9f1fb'));
   textoDireita(p, semana, L - M - 13, H - 47, 10, 'negrito', NAVY);
-  textoDireita(p, 'SEGUNDA A DOMINGO', L - M, H - 26, 7, 'negrito', CINZA);
+  textoDireita(p, mensal ? 'MENSAL' : 'SEGUNDA A DOMINGO', L - M, H - 26, 7, 'negrito', CINZA);
   p.linha(M, H - 62, L - M, H - 62, LINHA, 0.8);
 
   // Resumo: dia e semana separados em cada setor
@@ -140,6 +145,11 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
     p.arredondado(x + 8, topoRes - 15, 6, 6, 3, hex(r.cor));
     p.texto(r.rotulo.toUpperCase(), x + 18, topoRes - 14, 7, 'negrito', TINTA);
     const meio = x + wRes / 2 + 4;
+    if (mensal) {
+      p.texto('No mês', x + 8, topoRes - 30, 6.5, 'normal', CINZA);
+      p.texto(r.mes, x + 8, topoRes - 46, 14, 'negrito', hex(r.cor));
+      return;
+    }
     p.texto('Do dia', x + 8, topoRes - 30, 6.5, 'normal', CINZA);
     p.texto(r.dia, x + 8, topoRes - 44, 9, 'negrito', TINTA);
     p.texto('Da semana', meio, topoRes - 30, 6.5, 'normal', CINZA);
@@ -157,7 +167,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const porTitulo = (t: string) => d.setores.find((s) => s.titulo === t);
   const linha1 = d.setores.filter((s) => s.titulo !== 'Caminhão de solda' && s.titulo !== 'Trilheiros');
   linha1.slice(0, colunas).forEach((s, i) => {
-    desenharSetor(p, s, M + i * (wSet + gapC), topoGrade, wSet, altSet, false, d.rotulosDias);
+    desenharSetor(p, s, M + i * (wSet + gapC), topoGrade, wSet, altSet, false, d.rotulosDias, mensal);
   });
 
   // Linhas 2 e 3: Caminhão de solda e Trilheiros, um embaixo do outro, cada um na largura toda.
@@ -166,7 +176,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const gapLinha = 6;
   const topoLinha2 = topoGrade - altSet - 12;
   const caminhao = porTitulo('Caminhão de solda');
-  if (caminhao) desenharSetor(p, caminhao, M, topoLinha2, larguraTotal, altCaminhao, true, d.rotulosDias);
+  if (caminhao) desenharSetor(p, caminhao, M, topoLinha2, larguraTotal, altCaminhao, true, d.rotulosDias, mensal);
   // Trilheiros: a mesma tabela do PDF por setor, em versão compacta.
   const altTrilheiros = Math.max(90, 46 + Math.max(1, tril.equipes.length) * 28 + 6);
   desenharTrilheiros(p, tril, M, topoLinha2 - altCaminhao - gapLinha, larguraTotal, altTrilheiros, true);

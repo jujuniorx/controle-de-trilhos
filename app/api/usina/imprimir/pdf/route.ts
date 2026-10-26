@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ erro: 'Setor inválido.' }, { status: 400 });
   }
   const [dados, tril] = await Promise.all([montarDadosRelatorio(data), montarTrilheirosRelatorio(data)]);
-  const pdf = gerarSetorUsinaPdf(dados, tril, setor as SetorPdf, modoValido(params.get('modo') ?? undefined));
+  const pdf = gerarSetorUsinaPdf(dados, tril, setor as SetorPdf, (modoValido(params.get('modo') ?? undefined) === 'diario' ? 'diario' : 'semanal'));
   return new NextResponse(new Uint8Array(pdf), {
     headers: {
       'Content-Type': 'application/pdf',

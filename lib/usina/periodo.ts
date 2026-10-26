@@ -42,14 +42,21 @@ export function faixaSemanaSegSex(iso: string): string {
 }
 
 /** Formato do relatório: semanal (uma tabela com a semana) ou diário (um número por dia). */
-export type ModoRelatorio = 'semanal' | 'diario';
+export type ModoRelatorio = 'semanal' | 'diario' | 'mensal';
 
 export function modoValido(v: string | undefined): ModoRelatorio {
-  return v === 'diario' ? 'diario' : 'semanal';
+  return v === 'diario' ? 'diario' : v === 'mensal' ? 'mensal' : 'semanal';
+}
+
+/** Mês da data até o próprio dia (mesmo critério da coluna No mês), no formato dd/mm/aaaa. */
+export function mesAte(data: string): string {
+  const [ano, mes] = data.split('-');
+  return `01/${mes}/${ano} a ${data.split('-').reverse().join('/')}`;
 }
 
 /** Rótulo do período no topo do relatório: a semana, ou o dia escolhido quando o formato é diário. */
 export function rotuloPeriodo(data: string, modo: ModoRelatorio): { titulo: string; valor: string } {
+  if (modo === 'mensal') return { titulo: 'Mês', valor: mesAte(data) };
   if (modo === 'diario') {
     const nome = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][new Date(`${data}T12:00:00Z`).getUTCDay()];
     return { titulo: 'Dia', valor: `${nome}, ${data.split('-').reverse().join('/')}` };
@@ -58,9 +65,11 @@ export function rotuloPeriodo(data: string, modo: ModoRelatorio): { titulo: stri
 }
 
 /** Seletor semanal/diário: dois links que trocam o formato mantendo o dia e o setor. */
-export function linksModo(base: string, modoAtual: ModoRelatorio, params: Record<string, string>): { modo: ModoRelatorio; rotulo: string; href: string; ativo: boolean }[] {
-  return (['semanal', 'diario'] as const).map((modo) => {
+export function linksModo(base: string, modoAtual: ModoRelatorio, params: Record<string, string>, comMensal = false): { modo: ModoRelatorio; rotulo: string; href: string; ativo: boolean }[] {
+  const modos: ModoRelatorio[] = comMensal ? ['semanal', 'diario', 'mensal'] : ['semanal', 'diario'];
+  const rotulos: Record<ModoRelatorio, string> = { semanal: 'Semanal', diario: 'Diário', mensal: 'Mensal' };
+  return modos.map((modo) => {
     const qs = new URLSearchParams({ ...params, modo }).toString();
-    return { modo, rotulo: modo === 'semanal' ? 'Semanal' : 'Diário', href: `${base}?${qs}`, ativo: modo === modoAtual };
+    return { modo, rotulo: rotulos[modo], href: `${base}?${qs}`, ativo: modo === modoAtual };
   });
 }

@@ -18,7 +18,7 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
     <main className="mx-auto max-w-6xl space-y-4 p-4">
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex overflow-hidden rounded-lg border border-line" role="group" aria-label="Formato do relatório">
-          {linksModo('/admin/usina/relatorio-gerencial', modo, { data }).map((l) => (
+          {linksModo('/admin/usina/relatorio-gerencial', modo, { data }, true).map((l) => (
             <a key={l.modo} href={l.href} aria-current={l.ativo ? 'true' : undefined} className={`h-11 px-4 leading-[2.75rem] text-sm font-semibold ${l.ativo ? 'bg-slate-900 text-white' : 'bg-surface text-ink-muted'}`}>{l.rotulo}</a>
           ))}
         </div>
@@ -45,14 +45,14 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {dados.resumo.map((r) => (
-            <Resumo key={r.rotulo} rotulo={r.rotulo} cor={r.cor} dia={r.dia} mes={r.mes} />
+            <Resumo key={r.rotulo} rotulo={r.rotulo} cor={r.cor} dia={r.dia} semana={r.semana} mes={r.mes} mensal={modo === 'mensal'} />
           ))}
         </div>
 
         <p className="text-xs text-slate-500">Cada setor mostra o valor do dia e o acumulado da semana (segunda a domingo), com o gráfico desses dias.</p>
         <div className="grid gap-4">
           {dados.setores.filter((s) => s.titulo !== 'Trilheiros').map((s) => (
-            <Setor key={s.titulo} s={s} rotulosDias={dados.rotulosDias} largo />
+            <Setor key={s.titulo} s={s} rotulosDias={dados.rotulosDias} largo mensal={modo === 'mensal'} />
           ))}
         </div>
         <TrilheirosBloco t={tril} />

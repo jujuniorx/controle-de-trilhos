@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   const pedido = request.nextUrl.searchParams.get('data') ?? undefined;
   const data = ehIsoValido(pedido) ? pedido : hojeSP();
   const [dados, tril] = await Promise.all([montarDadosRelatorio(data), montarTrilheirosRelatorio(data)]);
-  const pdf = modoValido(request.nextUrl.searchParams.get('modo') ?? undefined) === 'diario' ? gerarGerencialDiarioPdf(dados, tril) : gerarOnePageUsinaPdf(dados, tril);
+  const pdf = modoValido(request.nextUrl.searchParams.get('modo') ?? undefined) === 'diario' ? gerarGerencialDiarioPdf(dados, tril) : gerarOnePageUsinaPdf(dados, tril, modoValido(request.nextUrl.searchParams.get('modo') ?? undefined) === 'mensal' ? 'mensal' : 'semanal');
   return new NextResponse(new Uint8Array(pdf), {
     headers: {
       'Content-Type': 'application/pdf',
