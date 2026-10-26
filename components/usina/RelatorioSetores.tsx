@@ -179,16 +179,18 @@ export function Resumo({ rotulo, cor, dia, semana, mes, mensal = false }: { rotu
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-3" style={{ borderTop: `3px solid ${cor}` }}>
       <p className="text-[11px] font-bold uppercase tracking-wide text-slate-600">{rotulo}</p>
-      <div className="mt-2 grid grid-cols-2 gap-2">
-        <div className="rounded-md bg-slate-50 p-2">
-          <p className="text-[10px] uppercase tracking-wide text-slate-500">Do dia</p>
-          <p className="text-base font-bold tabular-nums text-slate-900">{dia}</p>
-        </div>
-        <div className="rounded-md p-2" style={{ background: `${cor}14` }}>
-          <p className="text-[10px] uppercase tracking-wide text-slate-500">Da semana</p>
-          <p className="text-base font-bold tabular-nums" style={{ color: cor }}>{semana}</p>
-        </div>
-      </div>
+      <dl className="mt-2 divide-y divide-slate-100 text-sm">
+        {[
+          { rotulo: 'Do dia', valor: dia, cor: '#0f172a' },
+          { rotulo: 'Da semana', valor: semana, cor },
+          { rotulo: 'No mês', valor: mes, cor },
+        ].map((l) => (
+          <div key={l.rotulo} className="flex items-baseline justify-between gap-2 py-1">
+            <dt className="text-[11px] uppercase tracking-wide text-slate-500">{l.rotulo}</dt>
+            <dd className="font-bold tabular-nums" style={{ color: l.cor }}>{l.valor}</dd>
+          </div>
+        ))}
+      </dl>
     </div>
   );
 }
