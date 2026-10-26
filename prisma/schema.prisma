@@ -493,6 +493,8 @@ model TrilheiroDia {
   data          DateTime     @db.Date
   trilheiro     TrilheiroCod
   boEm          DateTime?    @db.Date
+  partidaEm     DateTime?    @db.Date
+  local         String?
   descarregadas Int?
   total         Int?
   programacao   String?
