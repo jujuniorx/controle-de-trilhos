@@ -176,7 +176,6 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                     <th className="py-2">Dia</th>
                     <th className="py-2 text-right">Soldas (UND)</th>
                     <th className="py-2 text-right">Cortes (UND)</th>
-                    <th className="py-2 pl-3">Observação</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -188,9 +187,6 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                       </td>
                       <td className="py-2 text-right">
                         <input name={`cortes_${d.data}`} inputMode="numeric" defaultValue={d.cortes ?? ''} className="h-11 w-28 text-right" aria-label={`Cortes ${br(d.data)}`} />
-                      </td>
-                      <td className="py-2 pl-3">
-                        <input name={`obs_est_${d.data}`} defaultValue={d.observacao ?? ''} maxLength={300} className="h-11 w-full min-w-40" aria-label={`Observação do estaleiro ${br(d.data)}`} />
                       </td>
                     </tr>
                   ))}
