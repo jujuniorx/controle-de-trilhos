@@ -31,16 +31,7 @@ export interface MedidaSerra { barras: number; metros: number }
 export interface LinhaSerra { ativo: string; cor: string; dia: MedidaSerra; semana: MedidaSerra; mes: MedidaSerra }
 /** Tabela da serra: uma linha por composição e um total, com Dia, Semana e Mês (barras e metros). */
 export interface SerraRelatorio { linhas: LinhaSerra[]; total: { dia: MedidaSerra; semana: MedidaSerra; mes: MedidaSerra } }
-/** Um caminhão de solda: produção e perda do dia, da semana e do mês. */
-export interface CaminhaoRelatorio {
-  nome: string;
-  cor: string;
-  dia: { producao: number; perda: number };
-  semana: { producao: number; perda: number };
-  mes: { producao: number; perda: number };
-}
-
-export interface SetorRelatorio { titulo: string; cor: string; linhas: LinhaRelatorio[]; grafico: GraficoRelatorio | null; grade?: GradeRelatorio; serra?: SerraRelatorio; caminhao?: CaminhaoRelatorio[] }
+export interface SetorRelatorio { titulo: string; cor: string; linhas: LinhaRelatorio[]; grafico: GraficoRelatorio | null; grade?: GradeRelatorio; serra?: SerraRelatorio }
 
 /** Produção de uma equipe de geração: o dia e a semana. */
 export interface EquipeGeracaoRelatorio {
@@ -245,13 +236,6 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
             porDia: ((serie.caminhao as Record<string, number[]>)[c.caminhao] ?? []).map(String),
           };
         }),
-        caminhao: camS.map((c, i) => ({
-          nome: c.caminhao,
-          cor: i === 0 ? CORES_SETOR.caminhao : '#84cc16',
-          dia: { producao: camD.find((x) => x.caminhao === c.caminhao)?.periodo.producao ?? 0, perda: camD.find((x) => x.caminhao === c.caminhao)?.periodo.perda ?? 0 },
-          semana: { producao: c.periodo.producao, perda: c.periodo.perda },
-          mes: { producao: c.mes.producao, perda: c.mes.perda },
-        })),
         grade: {
           colunas: serie.rotulos,
           linhas: [

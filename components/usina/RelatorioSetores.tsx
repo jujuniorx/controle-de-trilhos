@@ -88,65 +88,6 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false }: { s: Se
       </section>
     );
   }
-  if (s.caminhao) {
-    const colunas: { rotulo: string; chave: 'dia' | 'semana' | 'mes' }[] = mensal
-      ? [{ rotulo: 'No mês', chave: 'mes' }]
-      : [
-          { rotulo: 'Dia', chave: 'dia' },
-          { rotulo: 'Semana', chave: 'semana' },
-          { rotulo: 'No mês', chave: 'mes' },
-        ];
-    const cartoes = (
-      <div className="space-y-3">
-        {s.caminhao.map((c) => (
-          <div key={c.nome} className="overflow-hidden rounded-lg border border-slate-200">
-            <div className="flex items-center gap-2 px-3 py-1.5" style={{ background: `${c.cor}14` }}>
-              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: c.cor }} />
-              <span className="text-sm font-bold text-slate-800">{c.nome}</span>
-              <span className="text-[11px] text-slate-500">produção / perda</span>
-            </div>
-            <div className={`grid divide-x divide-slate-100 ${colunas.length === 3 ? 'grid-cols-3' : 'grid-cols-1'}`}>
-              {colunas.map((col) => {
-                const v = c[col.chave];
-                const total = v.producao + v.perda;
-                const pctPerda = total > 0 ? Math.round((v.perda / total) * 100) : null;
-                return (
-                  <div key={col.rotulo} className="px-3 py-2">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{col.rotulo}</p>
-                    <p className="mt-0.5 text-xl font-bold tabular-nums" style={{ color: c.cor }}>
-                      {v.producao}
-                      <span className="ml-1 text-xs font-medium text-slate-400">und</span>
-                    </p>
-                    <p className="text-[11px] tabular-nums text-slate-500">
-                      perda {v.perda}
-                      {pctPerda !== null && <span className={pctPerda >= 20 ? ' font-semibold text-rose-600' : ''}> ({pctPerda}%)</span>}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-    return (
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white break-inside-avoid">
-        <header className="px-4 py-2.5 text-white" style={{ background: s.cor }}>
-          <span className="text-sm font-bold uppercase tracking-wide">{s.titulo}</span>
-        </header>
-        <div className={largo && !mensal ? 'grid items-start gap-6 p-4 lg:grid-cols-2' : 'space-y-3 p-4'}>
-          {cartoes}
-          {!mensal && s.grafico && (
-            <GraficoBarras
-              titulo={s.grafico.titulo}
-              rotulos={rotulosDias}
-              series={s.grafico.series.map((x) => ({ nome: x.nome, cor: x.cor, valores: x.valores }))}
-            />
-          )}
-        </div>
-      </section>
-    );
-  }
   const tabela = (
     <table className="w-full border-collapse text-[13px]">
       <thead>
