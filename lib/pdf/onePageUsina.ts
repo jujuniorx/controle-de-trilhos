@@ -128,6 +128,17 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   const xMes = largo ? x + 440 : x + w - 8;
   const xSem = xMes - 66;
   const xDia = xSem - 66;
+  // Caixa em volta das colunas de números (Dia | Semana | No mês), com a coluna No mês levemente destacada.
+  if (!mensal) {
+    const alturaDaLinha = largo ? 16 : 13;
+    const fimLinhas = topo - 38 - s.linhas.length * alturaDaLinha - 5;
+    const bxEsq = xDia - 33;
+    const bxDir = xMes + 6;
+    p.arredondado(bxEsq, fimLinhas, bxDir - bxEsq, topo - 26 - fimLinhas, 4, BRANCO, LINHA);
+    p.retangulo((xSem + xMes) / 2, fimLinhas + 1, bxDir - (xSem + xMes) / 2 - 1, topo - 27 - fimLinhas, hex('#f1f5f9'));
+    p.linha((xDia + xSem) / 2, topo - 26, (xDia + xSem) / 2, fimLinhas, LINHA, 0.5);
+    p.linha((xSem + xMes) / 2, topo - 26, (xSem + xMes) / 2, fimLinhas, LINHA, 0.5);
+  }
   let y = topo - 32;
   if (!mensal) {
     textoDireita(p, 'DIA', xDia, y, 6.5, 'negrito', CINZA);
