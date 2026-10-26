@@ -153,13 +153,14 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
 
   // Linhas 2 e 3: Caminhão de solda e Trilheiros, um embaixo do outro, cada um na largura toda.
   const larguraTotal = L - 2 * M;
-  const altLinha = 100;
+  const altCaminhao = 86;
+  const altTrilheiros = 80;
   const gapLinha = 8;
   const topoLinha2 = topoGrade - altSet - 12;
   const caminhao = porTitulo('Caminhão de solda');
   const trilheiros = porTitulo('Trilheiros');
-  if (caminhao) desenharSetor(p, caminhao, M, topoLinha2, larguraTotal, altLinha, true, d.rotulosDias);
-  if (trilheiros) desenharSetor(p, trilheiros, M, topoLinha2 - altLinha - gapLinha, larguraTotal, altLinha);
+  if (caminhao) desenharSetor(p, caminhao, M, topoLinha2, larguraTotal, altCaminhao, true, d.rotulosDias);
+  if (trilheiros) desenharSetor(p, trilheiros, M, topoLinha2 - altCaminhao - gapLinha, larguraTotal, altTrilheiros);
 
   const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
   p.linha(M, 30, L - M, 30, LINHA, 0.6);
