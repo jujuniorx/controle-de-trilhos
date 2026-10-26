@@ -164,6 +164,11 @@ export default async function PatioHomePage() {
           <strong>Cargas</strong>
           <span>Cadastrar saída (aguardando chegada ou lançar agora) e confirmar carregamentos.</span>
         </Link>
+        <Link href="/patio/saidas" className="acao-patio" style={atraso(2)}>
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 3H4v5M4 3l6 6M15 21h5v-5M20 21l-6-6" /><path d="M4 14v5h5M20 10V5h-5" /></svg>
+          <strong>Carretas que já saíram</strong>
+          <span>Cargas e descargas que a Portaria registrou como saída. Busque por placa, cidade ou motorista.</span>
+        </Link>
       </div>
 
       <AtivarAvisos chavePublica={chavePublicaPush()} titulo="Aviso de chegada na Portaria" descricao="Receba um aviso neste tablet quando a Portaria registrar a chegada de uma carreta ou de um caminhão." />

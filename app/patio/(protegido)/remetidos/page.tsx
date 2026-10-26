@@ -45,10 +45,6 @@ export default async function RemetidosAguardandoPage({
         + Nova carga
       </Link>
 
-      <Link href="/patio/remetidos/saidas" className="btn mt-2 h-12">
-        Carretas que já saíram
-      </Link>
-
       <h2 className="mt-6 font-condensed text-base font-bold uppercase tracking-wide text-ink">Aguardando chegada</h2>
       <p className="mt-1 text-sm text-ink-muted">
         Toque num deles quando o caminhão chegar para confirmar o carregamento.
