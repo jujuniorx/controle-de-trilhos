@@ -55,7 +55,7 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
           {dados.setores.filter((s) => s.titulo !== 'Trilheiros').map((s) => (
             <div key={s.titulo}>
               <Setor s={s} rotulosDias={dados.rotulosDias} largo mensal={modo === 'mensal'} />
-              {modo !== 'mensal' && <ObservacoesSetorRelatorio titulo={s.titulo} observacoes={dados.observacoes} />}
+              {modo === 'diario' && <ObservacoesSetorRelatorio titulo={s.titulo} observacoes={dados.observacoes} />}
             </div>
           ))}
         </div>

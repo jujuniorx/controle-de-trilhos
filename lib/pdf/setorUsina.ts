@@ -108,7 +108,8 @@ export function gerarSetorUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio,
   }
 
   const chaveSetor = SETOR_DA_OBSERVACAO[setor];
-  const obsLinhas = chaveSetor
+  // Observações só no diário: na semana elas não aparecem.
+  const obsLinhas = chaveSetor && modo === 'diario'
     ? Object.entries(d.observacoes)
         .filter(([chave, texto]) => chave.endsWith(`|${chaveSetor}`) && texto)
         .sort(([a], [b]) => a.localeCompare(b))

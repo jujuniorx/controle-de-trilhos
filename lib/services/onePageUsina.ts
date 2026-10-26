@@ -53,6 +53,9 @@ export interface DadosRelatorio {
 /** Cores fixas por setor (cabeçalho) e uma cor distinta para cada série dentro do setor. */
 export const CORES_SETOR = { estaleiro: '#2563eb', geracao: '#059669', serra: '#be123c', caminhao: '#ea580c', trilheiros: '#0891b2' };
 
+/** Nome de cada caminhão de solda no relatório: equipe / caminhão, como na escala. */
+export const ROTULO_CAMINHAO: Record<string, string> = { CW01: 'E17 / CW01', CW02: 'E18 / CW02' };
+
 /** Mesmos números do relatório gerencial da usina, em forma simples para a tela e para o PDF. */
 export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio> {
   const serie = await seriesDaSemana(data);
@@ -141,7 +144,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         grupo: 'Recolhimento serra',
       },
       ...['CW01', 'CW02'].map((cw, i) => ({
-        rotulo: cw,
+        rotulo: ROTULO_CAMINHAO[cw] ?? cw,
         cor: i === 0 ? CORES_SETOR.caminhao : '#84cc16',
         dia: `${camD.find((c) => c.caminhao === cw)?.periodo.producao ?? 0} UND`,
         semana: `${camS.find((c) => c.caminhao === cw)?.periodo.producao ?? 0} UND`,
@@ -226,28 +229,38 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       {
         titulo: 'Caminhão de solda',
         cor: CORES_SETOR.caminhao,
-        linhas: camS.map((c) => {
+        // Mesmo formato do estaleiro: Solda (UND) e Corte (UND) por caminhão, com Dia, Semana e No mês.
+        linhas: camS.flatMap((c) => {
           const d = camD.find((x) => x.caminhao === c.caminhao);
-          return {
-            rotulo: `${c.caminhao} (produção / perda)`,
-            dia: `${d?.periodo.producao ?? 0} / ${d?.periodo.perda ?? 0}`,
-            semana: `${c.periodo.producao} / ${c.periodo.perda}`,
-            mes: `${c.mes.producao} / ${c.mes.perda}`,
-            porDia: ((serie.caminhao as Record<string, number[]>)[c.caminhao] ?? []).map(String),
-          };
+          const nome = ROTULO_CAMINHAO[c.caminhao] ?? c.caminhao;
+          return [
+            {
+              rotulo: `${nome} · Solda (UND)`,
+              dia: String(d?.periodo.producao ?? 0),
+              semana: String(c.periodo.producao),
+              mes: String(c.mes.producao),
+              porDia: ((serie.caminhao as Record<string, number[]>)[c.caminhao] ?? []).map(String),
+            },
+            {
+              rotulo: `${nome} · Corte (UND)`,
+              dia: String(d?.periodo.perda ?? 0),
+              semana: String(c.periodo.perda),
+              mes: String(c.mes.perda),
+            },
+          ];
         }),
         grade: {
           colunas: serie.rotulos,
           linhas: [
-            { rotulo: 'CW01', valores: serie.caminhao.CW01 ?? [] },
-            { rotulo: 'CW02', valores: serie.caminhao.CW02 ?? [] },
+            { rotulo: ROTULO_CAMINHAO.CW01, valores: serie.caminhao.CW01 ?? [] },
+            { rotulo: ROTULO_CAMINHAO.CW02, valores: serie.caminhao.CW02 ?? [] },
           ],
         },
         grafico: {
-          titulo: 'Produção por dia',
+          titulo: 'Solda por dia',
           series: [
-            { nome: 'CW01', cor: '#ea580c', valores: serie.caminhao.CW01 ?? [] },
-            { nome: 'CW02', cor: '#84cc16', valores: serie.caminhao.CW02 ?? [] },
+            { nome: ROTULO_CAMINHAO.CW01, cor: '#ea580c', valores: serie.caminhao.CW01 ?? [] },
+            { nome: ROTULO_CAMINHAO.CW02, cor: '#84cc16', valores: serie.caminhao.CW02 ?? [] },
           ],
         },
       },
