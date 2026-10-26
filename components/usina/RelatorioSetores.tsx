@@ -101,30 +101,42 @@ export function TrilheirosBloco({ t }: { t: TrilheirosRelatorio }) {
           ))}
         </div>
         <div className="overflow-x-auto print:overflow-visible">
-          <table className="w-full min-w-[760px] border-collapse text-[13px] print:min-w-0 print:text-[9px]">
+          <table className="w-full min-w-[720px] table-fixed border-collapse text-[13px] print:min-w-0 print:text-[9px]">
+            <colgroup>
+              <col className="w-[9%]" />
+              <col className="w-[11%]" />
+              <col className="w-[9%]" />
+              <col className="w-[11%]" />
+              <col className="w-[9%]" />
+              <col className="w-[8%]" />
+              <col className="w-[11%]" />
+              <col className="w-[32%]" />
+            </colgroup>
             <thead>
-              <tr className="text-[11px] uppercase tracking-wide text-slate-500">
-                <th className="pb-2 px-2 leading-tight align-bottom text-left font-semibold">Trilheiro</th>
-                <th className="pb-2 px-2 leading-tight align-bottom text-right font-semibold">B.O.</th>
-                <th className="pb-2 px-2 leading-tight align-bottom text-right font-semibold">Dias desde B.O.</th>
-                <th className="pb-2 px-2 leading-tight align-bottom text-right font-semibold">Partida</th>
-                <th className="pb-2 px-2 leading-tight align-bottom text-right font-semibold">Dias desde partida</th>
-                <th className="pb-2 px-2 leading-tight align-bottom text-left font-semibold">Local</th>
-                <th className="pb-2 px-2 leading-tight align-bottom text-right font-semibold">Barras desc. / total</th>
-                <th className="pb-2 px-2 leading-tight align-bottom text-left font-semibold">Observação</th>
+              <tr className="border-b-2 border-slate-200 text-[10px] uppercase tracking-wide text-slate-500">
+                <th className="pb-2 text-left font-semibold">Trilheiro</th>
+                <th className="pb-2 text-center font-semibold">B.O.</th>
+                <th className="pb-2 text-center font-semibold leading-tight">Dias<br />desde B.O.</th>
+                <th className="pb-2 text-center font-semibold">Partida</th>
+                <th className="pb-2 text-center font-semibold leading-tight">Dias<br />desde partida</th>
+                <th className="pb-2 text-center font-semibold">Local</th>
+                <th className="pb-2 text-center font-semibold leading-tight">Barras<br />desc. / total</th>
+                <th className="pb-2 text-left font-semibold">Observação</th>
               </tr>
             </thead>
             <tbody>
-              {t.equipes.map((e) => (
-                <tr key={e.trilheiro} className="border-t border-slate-100">
-                  <td className="py-2 px-2 align-top font-bold text-slate-900">{e.trilheiro}</td>
-                  <td className="py-2 px-2 align-top text-right tabular-nums">{brData(e.bo)}</td>
-                  <td className="py-2 px-2 align-top text-right tabular-nums">{e.giroDias ?? '—'}</td>
-                  <td className="py-2 px-2 align-top text-right tabular-nums">{brData(e.partida)}</td>
-                  <td className="py-2 px-2 align-top text-right tabular-nums">{e.diasDesdePartida ?? '—'}</td>
-                  <td className="py-2 px-2 align-top font-medium">{e.local ?? '—'}</td>
-                  <td className="py-2 px-2 align-top text-right font-medium tabular-nums">{e.descarregadas} / {e.total}</td>
-                  <td className="py-2 px-2 align-top min-w-[160px] whitespace-normal text-slate-600 print:min-w-0">{e.observacao ?? ''}</td>
+              {t.equipes.map((e, i) => (
+                <tr key={e.trilheiro} className={`align-top ${i % 2 === 1 ? 'bg-slate-50' : ''}`}>
+                  <td className="py-2.5 pl-2 font-bold text-slate-900">{e.trilheiro}</td>
+                  <td className="py-2.5 text-center tabular-nums">{brData(e.bo)}</td>
+                  <td className="py-2.5 text-center font-semibold tabular-nums">{e.giroDias ?? '—'}</td>
+                  <td className="py-2.5 text-center tabular-nums">{brData(e.partida)}</td>
+                  <td className="py-2.5 text-center font-semibold tabular-nums">{e.diasDesdePartida ?? '—'}</td>
+                  <td className="py-2.5 text-center">
+                    {e.local ? <span className="inline-block rounded-md bg-slate-900 px-2 py-0.5 text-[11px] font-bold text-white">{e.local}</span> : '—'}
+                  </td>
+                  <td className="py-2.5 text-center font-bold tabular-nums">{e.descarregadas} / {e.total}</td>
+                  <td className="py-2.5 pr-2 text-[12px] leading-snug text-slate-600">{e.observacao ?? ''}</td>
                 </tr>
               ))}
             </tbody>
