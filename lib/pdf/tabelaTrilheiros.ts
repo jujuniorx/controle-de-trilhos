@@ -56,7 +56,8 @@ export function desenharTrilheiros(p: PaginaPdf, t: TrilheirosRelatorio, x: numb
     if (e.local) {
       // Etiqueta do local: texto centralizado na horizontal e na vertical.
       const tamanho = 8;
-      const largura = larguraTexto(e.local, tamanho, 'negrito') + 12;
+      // Largura fixa mínima: todas as etiquetas ficam do mesmo tamanho, e a diferença de fonte do visualizador não desloca o texto.
+      const largura = Math.max(larguraTexto(e.local, tamanho, 'negrito') + 12, 34);
       const alturaEtiqueta = 13;
       const yEtiqueta = y - 3;
       p.arredondado(x + col.local, yEtiqueta, largura, alturaEtiqueta, 6, NAVY);
