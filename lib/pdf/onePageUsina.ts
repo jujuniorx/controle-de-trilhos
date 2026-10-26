@@ -91,7 +91,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
       lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
     }
     p.texto(s.grafico.titulo, xg, topo - 32, 6.5, 'negrito', CINZA);
-    desenharGrafico(p, s.grafico, xg, base + 22, wg, Math.max(40, h - 66), rotulos);
+    desenharGrafico(p, s.grafico, xg, base + 22, wg, Math.max(48, h - 36), rotulos);
     textoDireita(p, 'Segunda a quinta', xg + wg, base + 3, 6, 'negrito', CINZA);
     return;
   }
