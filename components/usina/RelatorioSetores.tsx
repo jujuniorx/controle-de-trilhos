@@ -30,7 +30,6 @@ export function Setor({ s, rotulosDias, largo = false }: { s: SetorRelatorio; ro
         rotulos={rotulosDias}
         series={s.grafico.series.map((x) => ({ nome: x.nome, cor: x.cor, valores: x.valores }))}
       />
-      <p className="mt-1 text-right text-[11px] font-semibold text-slate-500">Semana de segunda a domingo</p>
     </div>
   ) : (
     <p className="py-6 text-center text-xs text-slate-400">Sem gráfico diário para este setor.</p>
@@ -191,7 +190,6 @@ export function EquipesGeracao({ equipes, cor }: { equipes: EquipeGeracaoRelator
             ))}
           </tbody>
         </table>
-        <p className="mt-2 text-right text-[11px] font-semibold text-slate-500">Semana de segunda a domingo</p>
       </div>
     </section>
   );
