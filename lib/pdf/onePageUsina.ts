@@ -1,5 +1,5 @@
 import { PaginaPdf, A4_PAISAGEM, montarPdfVarias, larguraTexto } from '@/lib/pdf/simples';
-import type { DadosRelatorio, GraficoRelatorio, SetorRelatorio, TrilheirosRelatorio } from '@/lib/services/onePageUsina';
+import type { DadosRelatorio, GraficoRelatorio, SerraRelatorio, SetorRelatorio, TrilheirosRelatorio } from '@/lib/services/onePageUsina';
 import { faixaSemanaSegSex, mesAte } from '@/lib/usina/periodo';
 import { desenharTrilheiros } from '@/lib/pdf/tabelaTrilheiros';
 
@@ -46,6 +46,46 @@ function valorDireitaComCores(p: PaginaPdf, valor: string, cores: string[] | und
   }
 }
 
+/** Tabela da serra: W61 e W62 nas linhas; Dia, Semana e Mês com barras e metros, cada composição na sua cor. */
+function desenharTabelaSerra(p: PaginaPdf, serra: SerraRelatorio, x: number, topo: number, w: number) {
+  const colunaRotulo = 42;
+  const colW = (w - colunaRotulo - 12) / 6;
+  // Borda direita de cada coluna (barras e metros de Dia, Semana e Mês).
+  const fim = (c: number) => x + colunaRotulo + (c + 1) * colW - 4;
+  const grupos: { rotulo: string; chave: 'dia' | 'semana' | 'mes' }[] = [
+    { rotulo: 'DIA', chave: 'dia' },
+    { rotulo: 'SEMANA', chave: 'semana' },
+    { rotulo: 'NO MÊS', chave: 'mes' },
+  ];
+  let y = topo - 32;
+  grupos.forEach((g, gi) => textoDireita(p, g.rotulo, fim(gi * 2 + 1), y, 6.5, 'negrito', CINZA));
+  y -= 9;
+  grupos.forEach((_, gi) => {
+    textoDireita(p, 'Barras', fim(gi * 2), y, 6, 'negrito', CINZA);
+    textoDireita(p, 'Metros', fim(gi * 2 + 1), y, 6, 'negrito', CINZA);
+  });
+  y -= 5;
+  p.linha(x + 8, y, x + w - 8, y, LINHA, 0.6);
+  const medidas = (m: { barras: number; metros: number }, gi: number, cor: Cor) => {
+    textoDireita(p, String(m.barras), fim(gi * 2), y, 8.5, 'negrito', cor);
+    textoDireita(p, fmtMetrosPdf(m.metros), fim(gi * 2 + 1), y, 8.5, 'negrito', cor);
+  };
+  serra.linhas.forEach((l, i) => {
+    y -= 11;
+    if (i % 2 === 1) p.retangulo(x + 4, y - 3, w - 8, 11, ZEBRA);
+    p.texto(l.ativo, x + 8, y, 8, 'negrito', hex(l.cor));
+    grupos.forEach((g, gi) => medidas(l[g.chave], gi, hex(l.cor)));
+  });
+  y -= 11;
+  p.texto('Total', x + 8, y, 8, 'negrito', TINTA);
+  grupos.forEach((g, gi) => medidas(serra.total[g.chave], gi, TINTA));
+}
+
+function fmtMetrosPdf(v: number): string {
+  // Sem casas decimais: a tabela do cartão é estreita e os metros inteiros bastam para leitura.
+  return v.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+}
+
 /** Gráfico de barras por dia: uma barra por série e por dia, na área (x, yBase) até (x+w, yBase+altura). */
 export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yBase: number, w: number, altura: number, rotulos: string[] = []) {
   const n = Math.max(1, ...g.series.map((s) => s.valores.length));
@@ -76,6 +116,14 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   p.arredondado(x, topo - 22, w, 22, 9, hex(s.cor));
   p.retangulo(x, topo - 22, w, 8, hex(s.cor));
   p.texto(s.titulo.toUpperCase(), x + 8, topo - 14, 8, 'negrito', BRANCO);
+  if (s.serra) {
+    desenharTabelaSerra(p, s.serra, x, topo, w);
+    if (s.grafico) {
+      desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 22, rotulos);
+      textoDireita(p, 'Segunda a domingo', x + w - 8, base + 4, 6, 'negrito', CINZA);
+    }
+    return;
+  }
 
   // Tabela Dia | Semana | No mês. No cartão largo ela fica à esquerda e o gráfico à direita.
   const xMes = largo ? x + 440 : x + w - 8;

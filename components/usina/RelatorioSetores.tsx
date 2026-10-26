@@ -1,5 +1,7 @@
+import { Fragment } from 'react';
 import { GraficoBarras } from '@/components/usina/GraficoBarras';
-import type { SetorRelatorio, TrilheirosRelatorio, EquipeGeracaoRelatorio } from '@/lib/services/onePageUsina';
+import type { SetorRelatorio, TrilheirosRelatorio, EquipeGeracaoRelatorio, SerraRelatorio, MedidaSerra } from '@/lib/services/onePageUsina';
+import { fmtMetros } from '@/lib/format';
 
 /** Um setor: cabeçalho colorido, tabela Dia | Semana e o gráfico de segunda a domingo. */
 /** Valor com partes separadas por ' / ', cada parte na sua cor (ex.: W61 e W62 com cores diferentes). */
@@ -18,7 +20,74 @@ function ValorComCores({ valor, cores, corPadrao }: { valor: string; cores?: str
   );
 }
 
+/** Tabela da serra: W61 e W62 nas linhas, com Dia, Semana e Mês em barras e metros, cada composição na sua cor. */
+function TabelaSerra({ serra }: { serra: SerraRelatorio }) {
+  const grupos = [
+    { rotulo: 'Dia', chave: 'dia' as const },
+    { rotulo: 'Semana', chave: 'semana' as const },
+    { rotulo: 'No mês', chave: 'mes' as const },
+  ];
+  const celula = (m: MedidaSerra) => (
+    <>
+      <td className="py-1 text-right font-semibold tabular-nums">{m.barras}</td>
+      <td className="py-1 text-right font-semibold tabular-nums">{fmtMetros(m.metros)}</td>
+    </>
+  );
+  return (
+    <table className="w-full border-collapse text-[13px]">
+      <thead>
+        <tr className="text-[11px] uppercase tracking-wide text-slate-500">
+          <th className="pb-1 text-left font-semibold"> </th>
+          {grupos.map((g) => (
+            <th key={g.rotulo} colSpan={2} className="pb-1 text-center font-semibold">{g.rotulo}</th>
+          ))}
+        </tr>
+        <tr className="text-[10px] uppercase tracking-wide text-slate-500">
+          <th className="pb-1 text-left font-semibold"> </th>
+          {grupos.map((g) => (
+            <Fragment key={g.rotulo}>
+              <th className="pb-1 text-right font-semibold">Barras</th>
+              <th className="pb-1 text-right font-semibold">Metros</th>
+            </Fragment>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {serra.linhas.map((l) => (
+          <tr key={l.ativo} className="border-t border-slate-100">
+            <td className="py-1 font-bold" style={{ color: l.cor }}>{l.ativo}</td>
+            {grupos.map((g) => <Fragment key={g.rotulo}>{celula(l[g.chave])}</Fragment>)}
+          </tr>
+        ))}
+        <tr className="border-t-2 border-slate-200">
+          <td className="py-1 font-bold text-slate-900">Total</td>
+          {grupos.map((g) => <Fragment key={g.rotulo}>{celula(serra.total[g.chave])}</Fragment>)}
+        </tr>
+      </tbody>
+    </table>
+  );
+}
+
 export function Setor({ s, rotulosDias, largo = false, mensal = false }: { s: SetorRelatorio; rotulosDias: string[]; largo?: boolean; mensal?: boolean }) {
+  if (s.serra) {
+    return (
+      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white break-inside-avoid">
+        <header className="px-4 py-2.5 text-white" style={{ background: s.cor }}>
+          <span className="text-sm font-bold uppercase tracking-wide">{s.titulo}</span>
+        </header>
+        <div className="space-y-3 p-4">
+          <TabelaSerra serra={s.serra} />
+          {s.grafico && (
+            <GraficoBarras
+              titulo={s.grafico.titulo}
+              rotulos={rotulosDias}
+              series={s.grafico.series.map((x) => ({ nome: x.nome, cor: x.cor, valores: x.valores }))}
+            />
+          )}
+        </div>
+      </section>
+    );
+  }
   const tabela = (
     <table className="w-full border-collapse text-[13px]">
       <thead>

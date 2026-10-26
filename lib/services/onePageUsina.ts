@@ -25,7 +25,13 @@ export interface LinhaRelatorio { rotulo: string; dia: string; semana: string; m
 export interface GraficoRelatorio { titulo: string; series: { nome: string; cor: string; valores: number[] }[] }
 /** Grade de produção por dia (um valor por dia da semana), para setores em que o número do dia importa mais que o gráfico. */
 export interface GradeRelatorio { colunas: string[]; linhas: { rotulo: string; valores: number[] }[] }
-export interface SetorRelatorio { titulo: string; cor: string; linhas: LinhaRelatorio[]; grafico: GraficoRelatorio | null; grade?: GradeRelatorio }
+/** Barras e metros de uma medida (dia, semana ou mês). */
+export interface MedidaSerra { barras: number; metros: number }
+/** Uma composição da serra (W61, W62): barras e metros em cada período. */
+export interface LinhaSerra { ativo: string; cor: string; dia: MedidaSerra; semana: MedidaSerra; mes: MedidaSerra }
+/** Tabela da serra: uma linha por composição e um total, com Dia, Semana e Mês (barras e metros). */
+export interface SerraRelatorio { linhas: LinhaSerra[]; total: { dia: MedidaSerra; semana: MedidaSerra; mes: MedidaSerra } }
+export interface SetorRelatorio { titulo: string; cor: string; linhas: LinhaRelatorio[]; grafico: GraficoRelatorio | null; grade?: GradeRelatorio; serra?: SerraRelatorio }
 
 /** Produção de uma equipe de geração: o dia e a semana. */
 export interface EquipeGeracaoRelatorio {
@@ -189,6 +195,20 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       {
         titulo: 'Recolhimento serra',
         cor: CORES_SETOR.serra,
+        serra: {
+          linhas: COMPOSICOES.map((a, i) => ({
+            ativo: a,
+            cor: i === 0 ? '#7c3aed' : '#f59e0b',
+            dia: { barras: barrasDia(a), metros: metrosDeBarras(barrasDia(a)) },
+            semana: { barras: barrasSemana(a), metros: metrosDeBarras(barrasSemana(a)) },
+            mes: { barras: barrasMes(a), metros: metrosDeBarras(barrasMes(a)) },
+          })),
+          total: {
+            dia: { barras: COMPOSICOES.reduce((t, a) => t + barrasDia(a), 0), metros: serraTotalDia },
+            semana: { barras: COMPOSICOES.reduce((t, a) => t + barrasSemana(a), 0), metros: serraTotalSemana },
+            mes: { barras: COMPOSICOES.reduce((t, a) => t + barrasMes(a), 0), metros: serraTotalMes },
+          },
+        },
         linhas: [
           // Uma linha por medida, com as composições na mesma célula (W61 / W62): a tabela não cresce com novas composições.
           { rotulo: `Barras (${COMPOSICOES.join(' e ')}), nessa ordem`, dia: COMPOSICOES.map((a) => barrasDia(a)).join(' / '), semana: COMPOSICOES.map((a) => barrasSemana(a)).join(' / '), mes: COMPOSICOES.map((a) => barrasMes(a)).join(' / '), porDia: Array.from({ length: dias }, (_, i) => COMPOSICOES.map((a) => serraDiaSerie(a)[i] ? Math.round(serraDiaSerie(a)[i]! / METROS_POR_BARRA) : 0).join(' / ')), cores: COR_COMPOSICAO },
