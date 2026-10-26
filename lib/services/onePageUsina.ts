@@ -134,7 +134,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         cor: CORES_SETOR.trilheiros,
         dia: `${soma(trilRel.equipes, (e) => e.descarregadasDia)} barras`,
         semana: `${trilRel.descarregadas} de ${trilRel.totalBarras}`,
-        mes: '—',
+        mes: `${trilRel.descarregadasMes} barras`,
         grupo: 'Trilheiros',
       },
     ],
@@ -256,7 +256,37 @@ export interface TrilheirosRelatorio {
   totalBarras: number;
   descarregadas: number;
   progresso: number | null;
+  /** Barras descarregadas no mês corrente até a data do relatório (soma dos dias de cada giro). */
+  descarregadasMes: number;
   equipes: EquipeTrilheiro[];
+}
+
+/** Barras descarregadas por trilheiro do dia 1 do mês até a data, somando o que saiu em cada dia do giro. */
+async function descarregadasNoMes(data: string): Promise<number> {
+  const inicioMes = `${data.slice(0, 8)}01`;
+  const totais = await Promise.all(
+    TRILHEIROS.map(async (t) => {
+      const [antes, dias] = await Promise.all([
+        prisma.trilheiroDia.findFirst({
+          where: { trilheiro: t, data: { lt: new Date(`${inicioMes}T00:00:00Z`) }, descarregadas: { not: null } },
+          orderBy: { data: 'desc' },
+        }),
+        prisma.trilheiroDia.findMany({
+          where: { trilheiro: t, data: { gte: new Date(`${inicioMes}T00:00:00Z`), lte: new Date(`${data}T00:00:00Z`) }, descarregadas: { not: null } },
+          orderBy: { data: 'asc' },
+        }),
+      ]);
+      let anterior = antes;
+      let soma = 0;
+      for (const r of dias) {
+        const base = anterior && anterior.boEm?.getTime() === r.boEm?.getTime() ? anterior.descarregadas ?? 0 : 0;
+        soma += Math.max(0, (r.descarregadas ?? 0) - base);
+        anterior = r;
+      }
+      return soma;
+    }),
+  );
+  return totais.reduce((a, b) => a + b, 0);
 }
 
 /** Situacao de cada trilheiro no dia: ultimo lancamento da tabela diaria ate a data do relatorio. */
@@ -322,6 +352,7 @@ export async function montarTrilheirosRelatorio(data: string): Promise<Trilheiro
     totalBarras,
     descarregadas,
     progresso: totalBarras > 0 ? Math.round((descarregadas / totalBarras) * 100) : null,
+    descarregadasMes: await descarregadasNoMes(data),
     equipes,
   };
 }

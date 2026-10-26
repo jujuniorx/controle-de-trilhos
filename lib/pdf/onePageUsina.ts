@@ -104,7 +104,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
     lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
   }
   // Sem título próprio: a legenda já diz as séries, e o gráfico fica abaixo da tabela.
-  desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 40, rotulos);
+  desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 28, rotulos);
   textoDireita(p, 'Segunda a quinta', x + w - 8, base + 12, 6, 'negrito', CINZA);
 }
 
@@ -149,7 +149,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const colunas = 3;
   const gapC = 12;
   const wSet = (L - 2 * M - (colunas - 1) * gapC) / colunas;
-  const altSet = 180;
+  const altSet = 166;
   const topoGrade = topoRes - altRes - 16;
   const porTitulo = (t: string) => d.setores.find((s) => s.titulo === t);
   const linha1 = d.setores.filter((s) => s.titulo !== 'Caminhão de solda' && s.titulo !== 'Trilheiros');
@@ -159,7 +159,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
 
   // Linhas 2 e 3: Caminhão de solda e Trilheiros, um embaixo do outro, cada um na largura toda.
   const larguraTotal = L - 2 * M;
-  const altCaminhao = 74;
+  const altCaminhao = 92;
   const gapLinha = 6;
   const topoLinha2 = topoGrade - altSet - 12;
   const caminhao = porTitulo('Caminhão de solda');
