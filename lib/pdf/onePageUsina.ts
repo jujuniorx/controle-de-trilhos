@@ -149,6 +149,12 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
     }
     valorDireitaComCores(p, linha.mes, linha.cores, xMes, y, 9, 'negrito', hex(s.cor));
   });
+  // Risco separando Dia | Semana | No mês, do cabeçalho até a última linha.
+  if (!mensal) {
+    const yFinal = y - 5;
+    p.linha((xDia + xSem) / 2, topo - 26, (xDia + xSem) / 2, yFinal, LINHA, 0.5);
+    p.linha((xSem + xMes) / 2, topo - 26, (xSem + xMes) / 2, yFinal, LINHA, 0.5);
+  }
 
   // No mensal o gráfico diário sai: o cartão mostra só os totais do mês.
   if (!s.grafico || mensal) return;
