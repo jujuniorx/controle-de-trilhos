@@ -4,7 +4,7 @@
 // Onde o aparelho nao compartilha arquivo, baixa o PDF.
 import { useState } from 'react';
 
-export function BotaoCompartilharPdf({ url, nomeArquivo, titulo }: { url: string; nomeArquivo: string; titulo: string }) {
+export function BotaoCompartilharPdf({ url, nomeArquivo, titulo, rotulo = 'Compartilhar PDF' }: { url: string; nomeArquivo: string; titulo: string; rotulo?: string }) {
   const [ocupado, setOcupado] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -42,7 +42,7 @@ export function BotaoCompartilharPdf({ url, nomeArquivo, titulo }: { url: string
   return (
     <div className="flex flex-wrap items-center gap-2">
       <button type="button" onClick={compartilhar} disabled={ocupado} className="btn btn-primary h-11">
-        {ocupado ? 'Preparando PDF…' : 'Compartilhar PDF'}
+        {ocupado ? 'Preparando PDF…' : rotulo}
       </button>
       {erro && <span className="text-sm text-bad">{erro}</span>}
     </div>

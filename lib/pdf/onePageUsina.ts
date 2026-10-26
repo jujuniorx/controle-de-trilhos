@@ -4,31 +4,31 @@ import { faixaSemanaSegSex } from '@/lib/usina/periodo';
 
 type Cor = [number, number, number];
 
-const hex = (h: string): Cor => {
+export const hex = (h: string): Cor => {
   const n = parseInt(h.slice(1), 16);
   return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
 };
-const BRANCO: Cor = [1, 1, 1];
-const LINHA: Cor = [0.86, 0.88, 0.91];
-const TINTA: Cor = [0.1, 0.12, 0.16];
-const CINZA: Cor = [0.42, 0.45, 0.5];
-const NAVY: Cor = hex('#0b1b31');
-const AZUL: Cor = hex('#2f6fb8');
-const ZEBRA: Cor = [0.955, 0.965, 0.975];
-const SOMBRA: Cor = [0.9, 0.92, 0.945];
+export const BRANCO: Cor = [1, 1, 1];
+export const LINHA: Cor = [0.86, 0.88, 0.91];
+export const TINTA: Cor = [0.1, 0.12, 0.16];
+export const CINZA: Cor = [0.42, 0.45, 0.5];
+export const NAVY: Cor = hex('#0b1b31');
+export const AZUL: Cor = hex('#2f6fb8');
+export const ZEBRA: Cor = [0.955, 0.965, 0.975];
+export const SOMBRA: Cor = [0.9, 0.92, 0.945];
 
-const L = A4_PAISAGEM.largura; // 842
-const H = A4_PAISAGEM.altura; // 595
-const M = 36;
+export const L = A4_PAISAGEM.largura; // 842
+export const H = A4_PAISAGEM.altura; // 595
+export const M = 36;
 
 
 /** Texto alinhado à direita, com a borda direita em `xDireita`. */
-function textoDireita(p: PaginaPdf, texto: string, xDireita: number, y: number, tamanho: number, fonte: 'normal' | 'negrito', c: Cor) {
+export function textoDireita(p: PaginaPdf, texto: string, xDireita: number, y: number, tamanho: number, fonte: 'normal' | 'negrito', c: Cor) {
   p.texto(texto, xDireita - larguraTexto(texto, tamanho, fonte), y, tamanho, fonte, c);
 }
 
 /** Gráfico de barras por dia: uma barra por série e por dia, na área (x, yBase) até (x+w, yBase+altura). */
-function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yBase: number, w: number, altura: number, rotulos: string[] = []) {
+export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yBase: number, w: number, altura: number, rotulos: string[] = []) {
   const n = Math.max(1, ...g.series.map((s) => s.valores.length));
   const topo = Math.max(1, ...g.series.flatMap((s) => s.valores));
   const gw = w / n;
@@ -50,7 +50,7 @@ function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yBase: nu
   });
 }
 
-function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = []) {
+export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = []) {
   const base = topo - h;
   p.arredondado(x + 1.2, base - 1.4, w, h, 9, SOMBRA);
   p.arredondado(x, base, w, h, 9, BRANCO, LINHA);

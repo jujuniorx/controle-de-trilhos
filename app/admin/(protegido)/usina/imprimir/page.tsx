@@ -2,6 +2,7 @@ import { montarDadosRelatorio, montarTrilheirosRelatorio, CORES_SETOR } from '@/
 import { Setor, Resumo, TrilheirosBloco, EquipesGeracao } from '@/components/usina/RelatorioSetores';
 import { ehIsoValido, faixaSemanaSegSex } from '@/lib/usina/periodo';
 import { ImprimirBotao } from '@/components/usina/ImprimirBotao';
+import { BotaoCompartilharPdf } from '@/components/usina/BotaoCompartilharPdf';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,7 +58,15 @@ export default async function ImprimirUsina({
       `}</style>
 
       <div className="sem-impressao flex flex-wrap items-center gap-3">
-        <ImprimirBotao />
+        {setor !== 'todos' && (
+          <BotaoCompartilharPdf
+            url={`/api/usina/imprimir/pdf?data=${data}&setor=${setor}`}
+            nomeArquivo={`${setor}-usina-${data}.pdf`}
+            titulo={titulo}
+            rotulo="Baixar PDF"
+          />
+        )}
+        <ImprimirBotao rotulo="Imprimir" />
         <a className="btn btn-ghost h-11" href={`/admin/usina?data=${data}`}>Voltar</a>
         <a className="btn btn-ghost h-11" href={`/admin/usina/relatorio-gerencial?data=${data}`}>Relatório gerencial</a>
       </div>
