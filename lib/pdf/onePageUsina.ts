@@ -179,6 +179,25 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 22, rotulos);
 }
 
+/** Cartão do topo (Do dia, Da semana, No mês) em três linhas iguais: rótulo à esquerda, valor à direita. */
+export function desenharResumoCartao(p: PaginaPdf, r: { rotulo: string; cor: string; dia: string; semana: string; mes: string }, x: number, topo: number, w: number, altura: number) {
+  p.arredondado(x + 1, topo - altura - 1.2, w, altura, 9, SOMBRA);
+  p.arredondado(x, topo - altura, w, altura, 9, BRANCO, LINHA);
+  p.arredondado(x + 8, topo - 15, 6, 6, 3, hex(r.cor));
+  p.texto(r.rotulo.toUpperCase(), x + 18, topo - 14, 7, 'negrito', TINTA);
+  const linhas: [string, string, ReturnType<typeof hex>][] = [
+    ['Do dia', r.dia, TINTA],
+    ['Da semana', r.semana, hex(r.cor)],
+    ['No mês', r.mes, hex(r.cor)],
+  ];
+  linhas.forEach(([rot, val, cor], k) => {
+    const yLinha = topo - 27 - k * 13;
+    if (k > 0) p.linha(x + 8, yLinha + 9, x + w - 8, yLinha + 9, LINHA, 0.4);
+    p.texto(rot, x + 8, yLinha, 7, 'normal', CINZA);
+    textoDireita(p, val, x + w - 8, yLinha, 8.5, 'negrito', cor);
+  });
+}
+
 export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 'semanal' | 'mensal' = 'semanal'): Buffer {
   const mensal = modo === 'mensal';
   const p = new PaginaPdf();
@@ -214,7 +233,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
       return;
     }
     // Três linhas iguais: rótulo à esquerda, valor à direita, mesmo tamanho e a mesma ordem em todos os cartões.
-    const linhasRes: [string, string, string][] = [
+    const linhasRes: [string, string, ReturnType<typeof hex>][] = [
       ['Do dia', r.dia, TINTA],
       ['Da semana', r.semana, hex(r.cor)],
       ['No mês', r.mes, hex(r.cor)],

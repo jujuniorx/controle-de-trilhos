@@ -12,6 +12,7 @@ import {
   SOMBRA,
   TINTA,
   ZEBRA,
+  desenharResumoCartao,
   desenharSetor,
   hex,
   textoDireita,
@@ -102,20 +103,7 @@ export function gerarSetorUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio,
     const wRes = (L - 2 * M - (cards.length - 1) * gap) / cards.length;
     const topoCards = H - 70;
     const altRes = 64;
-    cards.forEach((r, i) => {
-      const x = M + i * (wRes + gap);
-      p.arredondado(x + 1, topoCards - altRes - 1.2, wRes, altRes, 9, SOMBRA);
-      p.arredondado(x, topoCards - altRes, wRes, altRes, 9, BRANCO, LINHA);
-      p.arredondado(x + 8, topoCards - 15, 6, 6, 3, hex(r.cor));
-      p.texto(r.rotulo.toUpperCase(), x + 18, topoCards - 14, 7, 'negrito', TINTA);
-      const meio = x + wRes / 2 + 4;
-      p.texto('Do dia', x + 8, topoCards - 30, 6.5, 'normal', CINZA);
-      p.texto(r.dia, x + 8, topoCards - 46, 10, 'negrito', TINTA);
-      p.texto('Da semana', meio, topoCards - 30, 6.5, 'normal', CINZA);
-      p.texto(r.semana, meio, topoCards - 46, 10, 'negrito', hex(r.cor));
-      p.texto('No mês', x + 8, topoCards - 55, 6.5, 'normal', CINZA);
-      p.texto(r.mes, x + 42, topoCards - 55, 8, 'negrito', hex(r.cor));
-    });
+    cards.forEach((r, i) => desenharResumoCartao(p, r, M + i * (wRes + gap), topoCards, wRes, altRes));
     topoCorpo = topoCards - altRes - 16;
   }
 
@@ -192,20 +180,7 @@ export function gerarGerencialDiarioPdf(d: DadosRelatorio, tril: TrilheirosRelat
   const wRes = (L - 2 * M - (d.resumo.length - 1) * gap) / d.resumo.length;
   const topoRes = H - 70;
   const altRes = 64;
-  d.resumo.forEach((r, i) => {
-    const x = M + i * (wRes + gap);
-    p1.arredondado(x + 1, topoRes - altRes - 1.2, wRes, altRes, 9, SOMBRA);
-    p1.arredondado(x, topoRes - altRes, wRes, altRes, 9, BRANCO, LINHA);
-    p1.arredondado(x + 8, topoRes - 15, 6, 6, 3, hex(r.cor));
-    p1.texto(r.rotulo.toUpperCase(), x + 18, topoRes - 14, 7, 'negrito', TINTA);
-    const meio = x + wRes / 2 + 4;
-    p1.texto('Do dia', x + 8, topoRes - 30, 6.5, 'normal', CINZA);
-    p1.texto(r.dia, x + 8, topoRes - 44, 9, 'negrito', TINTA);
-    p1.texto('Da semana', meio, topoRes - 30, 6.5, 'normal', CINZA);
-    p1.texto(r.semana, meio, topoRes - 44, 9, 'negrito', hex(r.cor));
-    p1.texto('No mês', x + 8, topoRes - 55, 6.5, 'normal', CINZA);
-    p1.texto(r.mes, x + 42, topoRes - 55, 8, 'negrito', hex(r.cor));
-  });
+  d.resumo.forEach((r, i) => desenharResumoCartao(p1, r, M + i * (wRes + gap), topoRes, wRes, altRes));
   const obs = Object.entries(d.observacoes ?? {})
     .filter(([, texto]) => texto)
     .sort(([a], [b]) => a.localeCompare(b))
