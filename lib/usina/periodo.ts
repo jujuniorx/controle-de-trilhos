@@ -48,6 +48,15 @@ export function modoValido(v: string | undefined): ModoRelatorio {
   return v === 'diario' ? 'diario' : 'semanal';
 }
 
+/** Rótulo do período no topo do relatório: a semana, ou o dia escolhido quando o formato é diário. */
+export function rotuloPeriodo(data: string, modo: ModoRelatorio): { titulo: string; valor: string } {
+  if (modo === 'diario') {
+    const nome = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][new Date(`${data}T12:00:00Z`).getUTCDay()];
+    return { titulo: 'Dia', valor: `${nome}, ${data.split('-').reverse().join('/')}` };
+  }
+  return { titulo: 'Semana (segunda a domingo)', valor: faixaSemanaSegSex(data) };
+}
+
 /** Seletor semanal/diário: dois links que trocam o formato mantendo o dia e o setor. */
 export function linksModo(base: string, modoAtual: ModoRelatorio, params: Record<string, string>): { modo: ModoRelatorio; rotulo: string; href: string; ativo: boolean }[] {
   return (['semanal', 'diario'] as const).map((modo) => {

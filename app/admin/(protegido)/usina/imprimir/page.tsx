@@ -1,6 +1,6 @@
 import { montarDadosRelatorio, montarTrilheirosRelatorio, CORES_SETOR } from '@/lib/services/onePageUsina';
 import { Setor, Resumo, TrilheirosBloco, EquipesGeracao } from '@/components/usina/RelatorioSetores';
-import { ehIsoValido, faixaSemanaSegSex, modoValido, linksModo } from '@/lib/usina/periodo';
+import { ehIsoValido, modoValido, linksModo, rotuloPeriodo } from '@/lib/usina/periodo';
 import { ImprimirBotao } from '@/components/usina/ImprimirBotao';
 import { BotaoCompartilharPdf } from '@/components/usina/BotaoCompartilharPdf';
 
@@ -84,8 +84,8 @@ export default async function ImprimirUsina({
             <h1 className="text-2xl font-extrabold tracking-tight">{titulo}</h1>
           </div>
           <div className="text-right">
-            <p className="text-[11px] uppercase tracking-wide text-slate-500">Semana (segunda a domingo)</p>
-            <p className="text-lg font-bold tabular-nums">{faixaSemanaSegSex(data)}</p>
+            <p className="text-[11px] uppercase tracking-wide text-slate-500">{rotuloPeriodo(data, modo).titulo}</p>
+            <p className="text-lg font-bold tabular-nums">{rotuloPeriodo(data, modo).valor}</p>
           </div>
         </header>
 
