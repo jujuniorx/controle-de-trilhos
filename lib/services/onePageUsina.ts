@@ -188,12 +188,12 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         cor: CORES_SETOR.serra,
         linhas: [
           // Uma linha por medida, com as composições na mesma célula (W61 / W62): a tabela não cresce com novas composições.
-          { rotulo: `Barras (${COMPOSICOES.join(' / ')})`, dia: COMPOSICOES.map((a) => barrasDia(a)).join(' / '), semana: COMPOSICOES.map((a) => barrasSemana(a)).join(' / '), mes: COMPOSICOES.map((a) => barrasMes(a)).join(' / '), porDia: Array.from({ length: dias }, (_, i) => COMPOSICOES.map((a) => serraDiaSerie(a)[i] ? Math.round(serraDiaSerie(a)[i]! / METROS_POR_BARRA) : 0).join(' / ')) },
-          { rotulo: `Metros estimados (${COMPOSICOES.join(' / ')})`, dia: COMPOSICOES.map((a) => fmtMetros(metrosDeBarras(barrasDia(a)))).join(' / '), semana: COMPOSICOES.map((a) => fmtMetros(metrosDeBarras(barrasSemana(a)))).join(' / '), mes: COMPOSICOES.map((a) => fmtMetros(metrosDeBarras(barrasMes(a)))).join(' / '), porDia: Array.from({ length: dias }, (_, i) => COMPOSICOES.map((a) => fmtMetros(serraDiaSerie(a)[i] ?? 0)).join(' / ')) },
+          { rotulo: `Barras (${COMPOSICOES.join(' e ')}), nessa ordem`, dia: COMPOSICOES.map((a) => barrasDia(a)).join(' / '), semana: COMPOSICOES.map((a) => barrasSemana(a)).join(' / '), mes: COMPOSICOES.map((a) => barrasMes(a)).join(' / '), porDia: Array.from({ length: dias }, (_, i) => COMPOSICOES.map((a) => serraDiaSerie(a)[i] ? Math.round(serraDiaSerie(a)[i]! / METROS_POR_BARRA) : 0).join(' / ')) },
+          { rotulo: `Metros estimados (${COMPOSICOES.join(' e ')}), nessa ordem`, dia: COMPOSICOES.map((a) => fmtMetros(metrosDeBarras(barrasDia(a)))).join(' / '), semana: COMPOSICOES.map((a) => fmtMetros(metrosDeBarras(barrasSemana(a)))).join(' / '), mes: COMPOSICOES.map((a) => fmtMetros(metrosDeBarras(barrasMes(a)))).join(' / '), porDia: Array.from({ length: dias }, (_, i) => COMPOSICOES.map((a) => fmtMetros(serraDiaSerie(a)[i] ?? 0)).join(' / ')) },
           { rotulo: 'Total estimado (m)', dia: metros(serraTotalDia), semana: metros(serraTotalSemana), mes: metros(serraTotalMes) },
         ],
         grafico: {
-          titulo: 'Metros estimados por dia (barras × 10,5)',
+          titulo: 'Metros por dia: W61 e W62 (barras × 10,5 m)',
           series: COMPOSICOES.map((a, i) => ({
             nome: a,
             cor: i === 0 ? '#7c3aed' : '#f59e0b',
