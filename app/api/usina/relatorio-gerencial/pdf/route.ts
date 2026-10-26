@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
   const [dados, tril] = await Promise.all([montarDadosRelatorio(data), montarTrilheirosRelatorio(data)]);
   const modo = modoValido(request.nextUrl.searchParams.get('modo') ?? undefined);
   const colunas = colunasValidas(request.nextUrl.searchParams.getAll('col'));
-  const pdf = modo === 'diario' ? gerarGerencialDiarioPdf(dados, tril) : gerarOnePageUsinaPdf(dados, tril, modo === 'mensal' ? 'mensal' : 'semanal', colunas);
+  const pdf = modo === 'diario' ? gerarGerencialDiarioPdf(dados, tril, colunas) : gerarOnePageUsinaPdf(dados, tril, modo === 'mensal' ? 'mensal' : 'semanal', colunas);
   return new NextResponse(new Uint8Array(pdf), {
     headers: {
       'Content-Type': 'application/pdf',

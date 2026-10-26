@@ -1,7 +1,9 @@
 import { ObservacoesSetorRelatorio } from '@/components/usina/ObservacoesSetorRelatorio';
 import { montarDadosRelatorio, montarTrilheirosRelatorio, CORES_SETOR } from '@/lib/services/onePageUsina';
 import { Setor, Resumo, TrilheirosBloco, EquipesGeracao } from '@/components/usina/RelatorioSetores';
-import { ehIsoValido, modoValido, linksModo, rotuloPeriodo } from '@/lib/usina/periodo';
+import { ehIsoValido, modoValido, linksModo, rotuloPeriodo, colunasValidas, TODAS_COLUNAS, type Coluna } from '@/lib/usina/periodo';
+
+const NOME_COLUNA_IMPRIMIR: Record<Coluna, string> = { dia: 'Dia', semana: 'Semana', mes: 'No mês' };
 import { ImprimirBotao } from '@/components/usina/ImprimirBotao';
 import { BotaoCompartilharPdf } from '@/components/usina/BotaoCompartilharPdf';
 
@@ -33,11 +35,12 @@ const br = (iso: string) => iso.split('-').reverse().join('/');
 export default async function ImprimirUsina({
   searchParams,
 }: {
-  searchParams: Promise<{ data?: string; setor?: string; modo?: string }>;
+  searchParams: Promise<{ data?: string; setor?: string; modo?: string; col?: string | string[] }>;
 }) {
   const params = await searchParams;
   // O mensal é só do relatório gerencial; aqui, qualquer formato que não seja diário vira semanal.
   const modo = modoValido(params.modo) === 'diario' ? 'diario' : 'semanal';
+  const colunas = colunasValidas(params.col);
   const data = ehIsoValido(params.data) ? params.data : new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
   const setor: ChaveSetor = (SETORES as readonly string[]).includes(params.setor ?? '') ? (params.setor as ChaveSetor) : 'todos';
 
@@ -63,7 +66,7 @@ export default async function ImprimirUsina({
       <div className="sem-impressao flex flex-wrap items-center gap-3">
         {setor !== 'todos' && (
           <BotaoCompartilharPdf
-            url={`/api/usina/imprimir/pdf?data=${data}&setor=${setor}&modo=${modo}`}
+            url={`/api/usina/imprimir/pdf?data=${data}&setor=${setor}&modo=${modo}&col=${colunas.join(',')}`}
             nomeArquivo={`${setor}-usina-${data}.pdf`}
             titulo={titulo}
             rotulo="Baixar PDF"
@@ -74,6 +77,18 @@ export default async function ImprimirUsina({
             <a key={l.modo} href={l.href} aria-current={l.ativo ? 'true' : undefined} className={`h-11 px-4 leading-[2.75rem] text-sm font-semibold ${l.ativo ? 'bg-slate-900 text-white' : 'bg-surface text-ink-muted'}`}>{l.rotulo}</a>
           ))}
         </div>
+        <form action="" method="get" className="flex flex-wrap items-center gap-2 text-sm" aria-label="Colunas do relatório">
+          <input type="hidden" name="data" value={data} />
+          <input type="hidden" name="setor" value={setor} />
+          <input type="hidden" name="modo" value={modo} />
+          {TODAS_COLUNAS.map((c) => (
+            <label key={c} className="flex h-11 items-center gap-2 rounded-lg border border-line px-3">
+              <input type="checkbox" name="col" value={c} defaultChecked={colunas.includes(c)} />
+              {NOME_COLUNA_IMPRIMIR[c]}
+            </label>
+          ))}
+          <button className="btn btn-ghost h-11" type="submit">Aplicar colunas</button>
+        </form>
         <ImprimirBotao rotulo="Imprimir" />
         <a className="btn btn-ghost h-11" href={`/admin/usina?data=${data}`}>Voltar</a>
         <a className="btn btn-ghost h-11" href={`/admin/usina/relatorio-gerencial?data=${data}`}>Relatório gerencial</a>
@@ -94,7 +109,7 @@ export default async function ImprimirUsina({
         {resumo.length > 0 && (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {resumo.map((r) => (
-              <Resumo key={r.rotulo} rotulo={r.rotulo} cor={r.cor} dia={r.dia} semana={r.semana} mes={r.mes} linhas={r.linhas} />
+              <Resumo key={r.rotulo} rotulo={r.rotulo} cor={r.cor} dia={r.dia} semana={r.semana} mes={r.mes} linhas={r.linhas} colunas={colunas} />
             ))}
           </div>
         )}
@@ -104,7 +119,7 @@ export default async function ImprimirUsina({
             <div className="grid gap-4">
               {setores.map((s) => (
                 <div key={s.titulo}>
-                  <Setor s={s} rotulosDias={dados.rotulosDias} largo />
+                  <Setor s={s} rotulosDias={dados.rotulosDias} largo colunas={colunas} />
                   <ObservacoesSetorRelatorio titulo={s.titulo} observacoes={dados.observacoes} />
                 </div>
               ))}
@@ -114,7 +129,7 @@ export default async function ImprimirUsina({
           <div className="grid gap-4">
             {setores.map((s) => (
               <div key={s.titulo}>
-                <Setor s={s} rotulosDias={dados.rotulosDias} largo />
+                <Setor s={s} rotulosDias={dados.rotulosDias} largo colunas={colunas} />
                 <ObservacoesSetorRelatorio titulo={s.titulo} observacoes={dados.observacoes} />
               </div>
             ))}

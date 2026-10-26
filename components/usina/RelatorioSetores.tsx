@@ -24,12 +24,12 @@ function ValorComCores({ valor, cores, corPadrao }: { valor: string; cores?: str
 }
 
 /** Tabela da serra: W61 e W62 nas linhas, com Dia, Semana e Mês em barras e metros, cada composição na sua cor. */
-function TabelaSerra({ serra }: { serra: SerraRelatorio }) {
+function TabelaSerra({ serra, colunas = TODAS }: { serra: SerraRelatorio; colunas?: Coluna[] }) {
   const grupos = [
     { rotulo: 'Dia', chave: 'dia' as const },
     { rotulo: 'Semana', chave: 'semana' as const },
     { rotulo: 'No mês', chave: 'mes' as const },
-  ];
+  ].filter((g) => colunas.includes(g.chave));
   const celula = (m: MedidaSerra) => (
     <>
       <td className="py-1 text-right font-semibold tabular-nums">{m.barras}</td>
@@ -82,7 +82,7 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
           <span className="text-sm font-bold uppercase tracking-wide">{s.titulo}</span>
         </header>
         <div className={largo ? 'grid items-start gap-6 p-4 lg:grid-cols-2' : 'space-y-3 p-4'}>
-          <TabelaSerra serra={s.serra} />
+          <TabelaSerra serra={s.serra} colunas={mensal ? ['mes'] : colunas} />
           {s.grafico && (
             <GraficoBarras
               titulo={s.grafico.titulo}

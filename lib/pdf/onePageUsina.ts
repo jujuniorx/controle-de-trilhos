@@ -48,28 +48,29 @@ function valorDireitaComCores(p: PaginaPdf, valor: string, cores: string[] | und
 }
 
 /** Tabela da serra: W61 e W62 nas linhas; Dia, Semana e Mês com barras e metros, cada composição na sua cor. */
-function desenharTabelaSerra(p: PaginaPdf, serra: SerraRelatorio, x: number, topo: number, w: number) {
+function desenharTabelaSerra(p: PaginaPdf, serra: SerraRelatorio, x: number, topo: number, w: number, colunas: Coluna[] = TODAS_COLUNAS) {
   const colunaRotulo = 42;
   const colW = (w - colunaRotulo - 12) / 6;
-  // Borda direita de cada coluna (barras e metros de Dia, Semana e Mês).
-  const fim = (c: number) => x + colunaRotulo + (c + 1) * colW - 4;
+  // Borda direita de cada coluna (barras e metros de Dia, Semana e Mês), encostadas à direita.
   const grupos: { rotulo: string; chave: 'dia' | 'semana' | 'mes' }[] = [
     { rotulo: 'DIA', chave: 'dia' },
     { rotulo: 'SEMANA', chave: 'semana' },
     { rotulo: 'NO MÊS', chave: 'mes' },
-  ];
+  ].filter((g) => colunas.includes(g.chave));
+  const fim = (c: number) => x + colunaRotulo + (c + 1) * colW - 4;
+  const fimG = (gi: number, sub: 0 | 1) => fim(6 - 2 * grupos.length + gi * 2 + sub);
   let y = topo - 32;
-  grupos.forEach((g, gi) => textoDireita(p, g.rotulo, fim(gi * 2 + 1), y, 6.5, 'negrito', CINZA));
+  grupos.forEach((g, gi) => textoDireita(p, g.rotulo, fimG(gi, 1), y, 6.5, 'negrito', CINZA));
   y -= 9;
   grupos.forEach((_, gi) => {
-    textoDireita(p, 'Barras', fim(gi * 2), y, 6, 'negrito', CINZA);
-    textoDireita(p, 'Metros', fim(gi * 2 + 1), y, 6, 'negrito', CINZA);
+    textoDireita(p, 'Barras', fimG(gi, 0), y, 6, 'negrito', CINZA);
+    textoDireita(p, 'Metros', fimG(gi, 1), y, 6, 'negrito', CINZA);
   });
   y -= 5;
   p.linha(x + 8, y, x + w - 8, y, LINHA, 0.6);
   const medidas = (m: { barras: number; metros: number }, gi: number, cor: Cor) => {
-    textoDireita(p, String(m.barras), fim(gi * 2), y, 8.5, 'negrito', cor);
-    textoDireita(p, fmtMetrosPdf(m.metros), fim(gi * 2 + 1), y, 8.5, 'negrito', cor);
+    textoDireita(p, String(m.barras), fimG(gi, 0), y, 8.5, 'negrito', cor);
+    textoDireita(p, fmtMetrosPdf(m.metros), fimG(gi, 1), y, 8.5, 'negrito', cor);
   };
   serra.linhas.forEach((l, i) => {
     y -= 11;
@@ -118,7 +119,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   p.retangulo(x, topo - 22, w, 8, hex(s.cor));
   p.texto(s.titulo.toUpperCase(), x + 8, topo - 14, 8, 'negrito', BRANCO);
   if (s.serra) {
-    desenharTabelaSerra(p, s.serra, x, topo, w);
+    desenharTabelaSerra(p, s.serra, x, topo, w, mensal ? ['mes'] : colunas);
     if (s.grafico) {
       desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 22, rotulos);
     }
@@ -189,12 +190,12 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
 }
 
 /** Cartão do topo (Do dia, Da semana, No mês) em três linhas iguais: rótulo à esquerda, valor à direita. */
-export function desenharResumoCartao(p: PaginaPdf, r: { rotulo: string; cor: string; dia: string; semana: string; mes: string; linhas?: { rotulo: string; valor: string }[] }, x: number, topo: number, w: number, altura: number) {
+export function desenharResumoCartao(p: PaginaPdf, r: { rotulo: string; cor: string; dia: string; semana: string; mes: string; linhas?: { rotulo: string; valor: string }[] }, x: number, topo: number, w: number, altura: number, colunas: Coluna[] = TODAS_COLUNAS) {
   p.arredondado(x + 1, topo - altura - 1.2, w, altura, 9, SOMBRA);
   p.arredondado(x, topo - altura, w, altura, 9, BRANCO, LINHA);
   p.arredondado(x + 8, topo - 15, 6, 6, 3, hex(r.cor));
   p.texto(r.rotulo.toUpperCase(), x + 18, topo - 14, 7, 'negrito', TINTA);
-  desenharLinhasResumo(p, r, x, topo, w);
+  desenharLinhasResumo(p, r, x, topo, w, colunas);
 }
 
 /** Linhas de um cartão do topo: as três padrão (Do dia, Da semana, No mês) ou as linhas próprias do cartão (trilheiros). */
