@@ -189,10 +189,9 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         titulo: 'Recolhimento serra',
         cor: CORES_SETOR.serra,
         linhas: [
-          ...COMPOSICOES.flatMap((a) => [
-            { rotulo: `${rotuloComposicao(a)} · barras`, dia: String(barrasDia(a)), semana: String(barrasSemana(a)), mes: String(barrasMes(a)) },
-            { rotulo: `${a} · metros estimados`, dia: metros(metrosDeBarras(barrasDia(a))), semana: metros(metrosDeBarras(barrasSemana(a))), mes: metros(metrosDeBarras(barrasMes(a))), porDia: serraDiaSerie(a).map((v) => fmtMetros(v)) },
-          ]),
+          // Uma linha por medida, com as composições na mesma célula (W61 / W62): a tabela não cresce com novas composições.
+          { rotulo: `Barras (${COMPOSICOES.join(' / ')})`, dia: COMPOSICOES.map((a) => barrasDia(a)).join(' / '), semana: COMPOSICOES.map((a) => barrasSemana(a)).join(' / '), mes: COMPOSICOES.map((a) => barrasMes(a)).join(' / '), porDia: Array.from({ length: dias }, (_, i) => COMPOSICOES.map((a) => serraDiaSerie(a)[i] ? Math.round(serraDiaSerie(a)[i]! / METROS_POR_BARRA) : 0).join(' / ')) },
+          { rotulo: `Metros estimados (${COMPOSICOES.join(' / ')})`, dia: COMPOSICOES.map((a) => fmtMetros(metrosDeBarras(barrasDia(a)))).join(' / '), semana: COMPOSICOES.map((a) => fmtMetros(metrosDeBarras(barrasSemana(a)))).join(' / '), mes: COMPOSICOES.map((a) => fmtMetros(metrosDeBarras(barrasMes(a)))).join(' / '), porDia: Array.from({ length: dias }, (_, i) => COMPOSICOES.map((a) => fmtMetros(serraDiaSerie(a)[i] ?? 0)).join(' / ')) },
           { rotulo: 'Total estimado (m)', dia: metros(serraTotalDia), semana: metros(serraTotalSemana), mes: metros(serraTotalMes) },
         ],
         grafico: {
