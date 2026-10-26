@@ -6,6 +6,7 @@ import { AtualizarAuto } from '@/components/AtualizarAuto';
 import { EstadoVazio } from '@/components/ui/EstadoVazio';
 import { ContadorAnimado } from '@/components/ui/ContadorAnimado';
 import { AtivarAvisos } from '@/components/patio/AtivarAvisos';
+import { LembretesSaidaPortaria } from './LembretesSaidaPortaria';
 import { chavePublicaPush } from '@/lib/services/push';
 import { CartaoPortaria } from './CartaoPortaria';
 import { NovoEnvioPortaria } from './NovoEnvioPortaria';
@@ -83,6 +84,7 @@ export default async function PortariaPage() {
           ))}
         </div>
       )}
+      <LembretesSaidaPortaria />
       <AtivarAvisos chavePublica={chavePublicaPush()} titulo="Avisos do Pátio" descricao="Receba um aviso neste aparelho quando o Pátio liberar uma carreta ou terminar de descarregar um caminhão." />
     </div>
   );

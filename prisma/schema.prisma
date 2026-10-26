@@ -176,6 +176,9 @@ model Movimentacao {
   chegadaPortariaPor String?
   saidaPortariaEm DateTime?
   saidaPortariaPor String?
+  // Lembretes à Portaria de saída pendente (depois que o Pátio libera): quantos já foram e quando foi o último.
+  lembretesSaidaEnviados Int       @default(0)
+  ultimoLembreteSaidaEm  DateTime?
   // Observação escrita pela Portaria para o Pátio.
   observacaoPortaria String?
 

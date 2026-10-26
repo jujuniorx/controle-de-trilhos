@@ -7,6 +7,7 @@ import { revogarSessao } from '@/lib/services/auth';
 import { requirePortaria } from '@/lib/services/requirePortaria';
 import { apagarCarretaPelaPortaria, confirmarSaidaCarreta, criarEnvioPelaPortaria, desfazerSaidaCarreta, registrarChegadaCarreta, salvarDadosPortaria } from '@/lib/services/portaria';
 import { ErroRegraNegocio } from '@/lib/services/errors';
+import { enviarLembretesSaidaPendente } from '@/lib/services/lembretesSaida';
 import { dadosPortariaSchema, novoEnvioPortariaSchema } from '@/lib/validation/portaria';
 
 export interface ResultadoPortaria {
@@ -117,4 +118,10 @@ export async function desfazerSaidaAction(id: string): Promise<ResultadoPortaria
     console.error('[portaria] falha ao desfazer saída', e);
     return { ok: false, erro: 'Não foi possível concluir. Tente de novo.' };
   }
+}
+
+/** Chamada pela tela da Portaria enquanto está aberta: manda os lembretes de saída pendente. */
+export async function verificarLembretesSaidaAction(): Promise<void> {
+  await requirePortaria();
+  await enviarLembretesSaidaPendente();
 }
