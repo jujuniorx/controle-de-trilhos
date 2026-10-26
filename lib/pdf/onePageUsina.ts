@@ -69,13 +69,14 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   textoDireita(p, 'NO MÊS', xMes, y, 6.5, 'negrito', CINZA);
   y -= 6;
   p.linha(x + 8, y, xMes + 2, y, LINHA, 0.6);
+  // Linhas no mesmo padrão da tabela de trilheiros: mais altas, números em negrito e faixas zebradas.
   s.linhas.forEach((linha, i) => {
-    y -= 12;
-    if (i % 2 === 1) p.retangulo(x + 4, y - 3.5, w - 8, 12, ZEBRA);
-    p.texto(linha.rotulo, x + 8, y, 7.5, 'normal', TINTA);
-    textoDireita(p, linha.dia, xDia, y, 8, 'negrito', TINTA);
-    textoDireita(p, linha.semana, xSem, y, 8, 'negrito', TINTA);
-    textoDireita(p, linha.mes, xMes, y, 8, 'negrito', hex(s.cor));
+    y -= 16;
+    if (i % 2 === 1) p.retangulo(x + 4, y - 5, w - 8, 16, ZEBRA);
+    p.texto(linha.rotulo, x + 8, y, 8, 'normal', TINTA);
+    textoDireita(p, linha.dia, xDia, y, 9, 'negrito', TINTA);
+    textoDireita(p, linha.semana, xSem, y, 9, 'negrito', TINTA);
+    textoDireita(p, linha.mes, xMes, y, 9, 'negrito', hex(s.cor));
   });
 
   if (s.grade && largo) {
