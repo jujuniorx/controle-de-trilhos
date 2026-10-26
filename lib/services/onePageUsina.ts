@@ -189,10 +189,10 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         titulo: 'Estaleiro de solda',
         cor: CORES_SETOR.estaleiro,
         linhas: [
-          { rotulo: 'Soldas', dia: `${estD.totais.soldas} und`, semana: `${estS.totais.soldas} und`, mes: `${estM.totais.soldas} und`, porDia: serie.estaleiro.soldas.map(String) },
-          { rotulo: 'Cortes', dia: `${estD.totais.cortes} und`, semana: `${estS.totais.cortes} und`, mes: `${estM.totais.cortes} und`, porDia: serie.estaleiro.cortes.map(String) },
-          { rotulo: 'Tampões', dia: metros(estD.carreta.tampoesM), semana: metros(estS.carreta.tampoesM), mes: metros(estM.carreta.tampoesM) },
-          { rotulo: 'Trilho novo', dia: metros(estD.carreta.trilhoNovoM), semana: metros(estS.carreta.trilhoNovoM), mes: metros(estM.carreta.trilhoNovoM) },
+          { rotulo: 'Soldas (und)', dia: `${estD.totais.soldas}`, semana: `${estS.totais.soldas}`, mes: `${estM.totais.soldas}`, porDia: serie.estaleiro.soldas.map(String) },
+          { rotulo: 'Cortes (und)', dia: `${estD.totais.cortes}`, semana: `${estS.totais.cortes}`, mes: `${estM.totais.cortes}`, porDia: serie.estaleiro.cortes.map(String) },
+          { rotulo: 'Tampões (m)', dia: fmtMetros(estD.carreta.tampoesM), semana: fmtMetros(estS.carreta.tampoesM), mes: fmtMetros(estM.carreta.tampoesM) },
+          { rotulo: 'Trilho novo (m)', dia: fmtMetros(estD.carreta.trilhoNovoM), semana: fmtMetros(estS.carreta.trilhoNovoM), mes: fmtMetros(estM.carreta.trilhoNovoM) },
         ],
         grafico: {
           titulo: 'Soldas e cortes por dia',
@@ -206,9 +206,9 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         titulo: 'Geração de trilho',
         cor: CORES_SETOR.geracao,
         linhas: [
-          { rotulo: 'Carregado', dia: metros(geraDia((l) => l.periodo.carregamentoM)), semana: metros(geraSem((l) => l.periodo.carregamentoM)), mes: metros(geraSem((l) => l.mes.carregamentoM)), porDia: serie.geracao.carregado.map((v) => fmtMetros(v)) },
-          { rotulo: 'Na via', dia: metros(geraDia((l) => l.periodo.deixadaViaM)), semana: metros(geraSem((l) => l.periodo.deixadaViaM)), mes: metros(geraSem((l) => l.mes.deixadaViaM)), porDia: serie.geracao.deixado.map((v) => fmtMetros(v)) },
-          { rotulo: 'Barras', dia: `${geraDia((l) => l.periodo.quantidade)} und`, semana: `${geraSem((l) => l.periodo.quantidade)} und`, mes: `${geraSem((l) => l.mes.quantidade)} und` },
+          { rotulo: 'Carregado (m)', dia: fmtMetros(geraDia((l) => l.periodo.carregamentoM)), semana: fmtMetros(geraSem((l) => l.periodo.carregamentoM)), mes: fmtMetros(geraSem((l) => l.mes.carregamentoM)), porDia: serie.geracao.carregado.map((v) => fmtMetros(v)) },
+          { rotulo: 'Na via (m)', dia: fmtMetros(geraDia((l) => l.periodo.deixadaViaM)), semana: fmtMetros(geraSem((l) => l.periodo.deixadaViaM)), mes: fmtMetros(geraSem((l) => l.mes.deixadaViaM)), porDia: serie.geracao.deixado.map((v) => fmtMetros(v)) },
+          { rotulo: 'Barras (und)', dia: `${geraDia((l) => l.periodo.quantidade)}`, semana: `${geraSem((l) => l.periodo.quantidade)}`, mes: `${geraSem((l) => l.mes.quantidade)}` },
         ],
         grafico: {
           titulo: 'Metros por dia',
@@ -269,17 +269,17 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
           const nome = ROTULO_CAMINHAO[c.caminhao] ?? c.caminhao;
           return [
             {
-              rotulo: `${nome} · Solda`,
-              dia: `${d?.periodo.producao ?? 0} und`,
-              semana: `${c.periodo.producao} und`,
-              mes: `${c.mes.producao} und`,
+              rotulo: `${nome} · Solda (und)`,
+              dia: `${d?.periodo.producao ?? 0}`,
+              semana: `${c.periodo.producao}`,
+              mes: `${c.mes.producao}`,
               porDia: ((serie.caminhao as Record<string, number[]>)[c.caminhao] ?? []).map(String),
             },
             {
-              rotulo: `${nome} · Corte`,
-              dia: `${d?.periodo.perda ?? 0} und`,
-              semana: `${c.periodo.perda} und`,
-              mes: `${c.mes.perda} und`,
+              rotulo: `${nome} · Corte (und)`,
+              dia: `${d?.periodo.perda ?? 0}`,
+              semana: `${c.periodo.perda}`,
+              mes: `${c.mes.perda}`,
             },
           ];
         }),
