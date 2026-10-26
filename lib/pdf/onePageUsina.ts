@@ -70,30 +70,17 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   y -= 6;
   p.linha(x + 8, y, xMes + 2, y, LINHA, 0.6);
   // Linhas no mesmo padrão da tabela de trilheiros: mais altas, números em negrito e faixas zebradas.
+  // Nos cartões largos a linha é mais alta (padrão do trilheiro); no gerencial, mais compacta para caber na folha.
+  const altLinhaSetor = largo ? 16 : 13;
   s.linhas.forEach((linha, i) => {
-    y -= 16;
-    if (i % 2 === 1) p.retangulo(x + 4, y - 5, w - 8, 16, ZEBRA);
+    y -= altLinhaSetor;
+    if (i % 2 === 1) p.retangulo(x + 4, y - 4, w - 8, altLinhaSetor, ZEBRA);
     p.texto(linha.rotulo, x + 8, y, 8, 'normal', TINTA);
     textoDireita(p, linha.dia, xDia, y, 9, 'negrito', TINTA);
     textoDireita(p, linha.semana, xSem, y, 9, 'negrito', TINTA);
     textoDireita(p, linha.mes, xMes, y, 9, 'negrito', hex(s.cor));
   });
 
-  if (s.grade && largo) {
-    // Produção de cada caminhão em cada dia da semana (números, no lugar do gráfico).
-    const xg = x + 470;
-    const wg = w - 482;
-    const colW = wg / Math.max(1, s.grade.colunas.length);
-    s.grade.colunas.forEach((rot, i) => textoDireita(p, rot, xg + (i + 1) * colW - 4, topo - 32, 6.5, 'negrito', CINZA));
-    s.grade.linhas.forEach((linha, li) => {
-      const yL = topo - 46 - li * 14;
-      p.texto(linha.rotulo, xg, yL, 7.5, 'negrito', TINTA);
-      linha.valores.forEach((v, i) => textoDireita(p, String(v), xg + (i + 1) * colW - 4, yL, 8, 'normal', hex(s.cor)));
-    });
-    p.linha(xg, topo - 36, xg + wg, topo - 36, LINHA, 0.6);
-    textoDireita(p, 'Produção por dia', xg + wg, base + 3, 6, 'negrito', CINZA);
-    return;
-  }
   if (!s.grafico) return;
   if (largo) {
     // Gráfico à direita, na mesma altura da tabela
@@ -112,7 +99,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
     return;
   }
   // Gráfico da semana, na parte de baixo do cartão (abaixo da tabela)
-  const yLegenda = base + 12;
+  const yLegenda = base + 4;
   let lx = x + 8;
   for (const serie of s.grafico.series) {
     p.retangulo(lx, yLegenda, 6, 6, hex(serie.cor));
@@ -120,8 +107,8 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
     lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
   }
   // Sem título próprio: a legenda já diz as séries, e o gráfico fica abaixo da tabela.
-  desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 28, rotulos);
-  textoDireita(p, 'Segunda a domingo', x + w - 8, base + 12, 6, 'negrito', CINZA);
+  desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 22, rotulos);
+  textoDireita(p, 'Segunda a domingo', x + w - 8, base + 4, 6, 'negrito', CINZA);
 }
 
 export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio): Buffer {

@@ -25,8 +25,17 @@ export function Setor({ s, rotulosDias, largo = false }: { s: SetorRelatorio; ro
       </tbody>
     </table>
   );
-  // Quando o setor tem grade diária (caminhão), mostra os números de cada dia em vez do gráfico.
-  const grafico = s.grade ? (
+  // Gráfico diário do setor; sem gráfico, mostra a grade de números quando existir.
+  const grafico = s.grafico ? (
+
+    <div>
+      <GraficoBarras
+        titulo={s.grafico.titulo}
+        rotulos={rotulosDias}
+        series={s.grafico.series.map((x) => ({ nome: x.nome, cor: x.cor, valores: x.valores }))}
+      />
+    </div>
+  ) : s.grade ? (
     <table className="w-full border-collapse text-[12px]">
       <thead>
         <tr className="text-[10px] uppercase tracking-wide text-slate-500">
@@ -47,15 +56,8 @@ export function Setor({ s, rotulosDias, largo = false }: { s: SetorRelatorio; ro
         ))}
       </tbody>
     </table>
-  ) : s.grafico ? (
-    <div>
-      <GraficoBarras
-        titulo={s.grafico.titulo}
-        rotulos={rotulosDias}
-        series={s.grafico.series.map((x) => ({ nome: x.nome, cor: x.cor, valores: x.valores }))}
-      />
-    </div>
   ) : (
+
     <p className="py-6 text-center text-xs text-slate-400">Sem gráfico diário para este setor.</p>
   );
   return (
