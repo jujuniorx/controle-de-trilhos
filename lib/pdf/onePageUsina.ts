@@ -164,7 +164,8 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
       lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
     }
     p.texto(s.grafico.titulo, xg, topo - 32, 6.5, 'negrito', CINZA);
-    desenharGrafico(p, s.grafico, xg, base + 22, wg, Math.max(48, h - 36), rotulos);
+    // A área do gráfico termina abaixo da legenda (topo - 46): a barra mais alta nunca invade o cabeçalho do cartão.
+    desenharGrafico(p, s.grafico, xg, base + 22, wg, Math.max(40, h - 74), rotulos);
     return;
   }
   // Gráfico da semana, na parte de baixo do cartão (abaixo da tabela)
