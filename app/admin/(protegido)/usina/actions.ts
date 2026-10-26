@@ -7,7 +7,7 @@ import { ITENS_ESCALA, escalaVazia, gravarEscala, statusValido, cfgDeObjeto } fr
 import { salvarComposicao, salvarCaminhao, salvarGiro, trilheirosDaSemana, salvarTrilheiroDia, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
 import { ehIsoValido } from '@/lib/usina/periodo';
-import { SETORES_OBSERVACAO, salvarObservacaoSetor } from '@/lib/services/observacaoSetor';
+import { salvarObservacaoSetor } from '@/lib/services/observacaoSetor';
 import { somarDias } from '@/lib/usina/diasUteis';
 
 export interface ResultadoUsina {
@@ -21,6 +21,14 @@ function inteiro(v: FormDataEntryValue | null): number | null | 'invalido' {
   if (s === '') return null;
   if (!/^\d{1,6}$/.test(s)) return 'invalido';
   return Number(s);
+}
+
+/** Observação do dia por setor (segunda a domingo), enviada junto com o formulário do próprio setor. */
+async function salvarObservacoesDoSetor(formData: FormData, semana: string, setor: string) {
+  for (let i = 0; i < 7; i++) {
+    const d = somarDias(semana, i);
+    await salvarObservacaoSetor(d, setor, texto(formData.get(`obsdia_${setor}_${d}`), 500));
+  }
 }
 
 function dataDoForm(v: FormDataEntryValue | null): string | null {
@@ -225,20 +233,6 @@ export async function zerarTrilheiroAction(formData: FormData): Promise<void> {
 }
 
 /** Grava a observação de cada setor, dia a dia, da semana inteira (segunda a domingo). */
-export async function salvarObservacoesSetoresAction(_: ResultadoUsina | undefined, formData: FormData): Promise<ResultadoUsina> {
-  await requireAdmin();
-  const semana = dataDoForm(formData.get('semana'));
-  if (!semana) return { ok: false, erro: 'Semana inválida.' };
-  for (let i = 0; i < 7; i++) {
-    const d = somarDias(semana, i);
-    for (const s of SETORES_OBSERVACAO) {
-      await salvarObservacaoSetor(d, s.valor, texto(formData.get(`obs_${s.valor}_${d}`), 500));
-    }
-  }
-  atualizar();
-  return { ok: true };
-}
-
 /** Lança soldas e cortes da semana inteira (segunda a quinta) em uma só vez. */
 export async function salvarEstaleiroSemanaAction(_: ResultadoUsina | undefined, formData: FormData): Promise<ResultadoUsina> {
   await requireAdmin();
@@ -251,6 +245,7 @@ export async function salvarEstaleiroSemanaAction(_: ResultadoUsina | undefined,
     if (soldas === 'invalido' || cortes === 'invalido') return { ok: false, erro: 'Use só números inteiros em soldas e cortes.' };
     await salvarEstaleiroDia(d.data, soldas, cortes);
   }
+  await salvarObservacoesDoSetor(formData, semana, 'estaleiro');
   atualizar();
   return { ok: true };
 }
@@ -270,6 +265,7 @@ export async function salvarSerraSemanaAction(_: ResultadoUsina | undefined, for
       await salvarComposicao(d.data, ativo, barras, jacares, observacao);
     }
   }
+  await salvarObservacoesDoSetor(formData, semana, 'serra');
   atualizar();
   return { ok: true };
 }
@@ -295,6 +291,7 @@ export async function salvarCaminhoesSemanaAction(_: ResultadoUsina | undefined,
       });
     }
   }
+  await salvarObservacoesDoSetor(formData, semana, 'caminhao');
   atualizar();
   return { ok: true };
 }
@@ -395,6 +392,7 @@ export async function salvarGeracaoSemanaAction(_: ResultadoUsina | undefined, f
   for (const g of gravar) {
     await salvarGeracaoDia(g.data, g.lider, { local: g.local, corteM: g.corteM, observacao: g.observacao, carretas: g.carretas });
   }
+  await salvarObservacoesDoSetor(formData, semana, 'geracao');
   atualizar();
   return { ok: true };
 }

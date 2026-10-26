@@ -22,7 +22,8 @@ const SETORES: [string, string][] = [['estaleiro', 'Estaleiro'], ['geracao', 'Ge
 import { fmtMetros, fmtPeso } from '@/lib/format';
 import { ehIsoValido, faixaSemanaSegSex, type Periodo } from '@/lib/usina/periodo';
 import { FormularioUsina } from '@/components/usina/FormularioUsina';
-import { SETORES_OBSERVACAO, observacoesDoPeriodo } from '@/lib/services/observacaoSetor';
+import { observacoesDoPeriodo } from '@/lib/services/observacaoSetor';
+import { ObservacoesDoSetor } from '@/components/usina/ObservacoesDoSetor';
 import { salvarObservacoesSetoresAction } from './actions';
 import { EscalaGrade } from '@/components/usina/EscalaGrade';
 import { lerEscala, diasDaSemana } from '@/lib/usina/escala';
@@ -89,6 +90,10 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
   const boSemana = Object.fromEntries(TRILHEIROS.map((t) => [t, primeiroDaSemana(t, 'boEm')]));
   const partidaSemana = Object.fromEntries(TRILHEIROS.map((t) => [t, primeiroDaSemana(t, 'partidaEm')]));
   const localSemana = Object.fromEntries(TRILHEIROS.map((t) => [t, primeiroDaSemana(t, 'local')]));
+  const diasObservacao = Array.from({ length: 7 }, (_, i) => {
+    const data = somarDiasPagina(est.semana, i);
+    return { data, rotulo: `${['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'][i]} ${br(data)}` };
+  });
   const obsSemana = Object.fromEntries(TRILHEIROS.map((t) => [t, primeiroDaSemana(t, 'observacao')]));
   const totalSemana = diasSemana.reduce((t, d) => ({ soldas: t.soldas + (d.soldas ?? 0), cortes: t.cortes + (d.cortes ?? 0) }), { soldas: 0, cortes: 0 });
   const escalaLegada = !escalaSalva && est.escala.trim() !== '';
@@ -127,32 +132,6 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           </div>
         </details>
       </nav>
-
-      {/* ── Observações do dia, por setor (aparecem no relatório diário) ── */}
-      <section className="space-y-4" aria-labelledby="observacoes">
-        <h2 id="observacoes" className="section-title scroll-mt-24">Observações do dia</h2>
-        <div className="card space-y-4">
-          <CabecalhoSemana semana={est.semana} ajuda="Uma observação por setor e por dia: o que justifica a produção (falta de energia, parada, extra). Segunda a domingo." />
-          <FormularioUsina acao={salvarObservacoesSetoresAction} rotuloBotao="Salvar observações">
-            <input type="hidden" name="semana" value={est.semana} />
-            <div className="space-y-4">
-              {Array.from({ length: 7 }, (_, i) => somarDiasPagina(est.semana, i)).map((d, i) => (
-                <div key={d} className="space-y-2 border-t border-line pt-3 first:border-t-0 first:pt-0">
-                  <p className="font-medium">{['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'][i]} {br(d)}</p>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {SETORES_OBSERVACAO.map((s) => (
-                      <label key={s.valor} className="field">
-                        <span className="text-sm text-ink-muted">{s.rotulo}</span>
-                        <input name={`obs_${s.valor}_${d}`} defaultValue={observacoesSemana[`${d}|${s.valor}`] ?? ''} maxLength={500} className="h-11" aria-label={`${s.rotulo} ${br(d)}`} />
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </FormularioUsina>
-        </div>
-      </section>
 
       {/* ── Estaleiro de solda ─────────────────────────────────────── */}
       <section className="space-y-4" aria-labelledby="estaleiro">
@@ -198,6 +177,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                 </tbody>
               </table>
             </div>
+                      <ObservacoesDoSetor setor="estaleiro" dias={diasObservacao} obs={observacoesSemana} />
           </FormularioUsina>
         </div>
 
@@ -284,6 +264,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
               lideres={LIDERES}
               opcoesPerfis={PERFIS}
             />
+                      <ObservacoesDoSetor setor="geracao" dias={diasObservacao} obs={observacoesSemana} />
           </FormularioUsina>
         </div>
       </section>
@@ -330,6 +311,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                 </tbody>
               </table>
             </div>
+                      <ObservacoesDoSetor setor="serra" dias={diasObservacao} obs={observacoesSemana} />
           </FormularioUsina>
         </div>
       </section>
@@ -386,6 +368,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                 </div>
               </div>
             ))}
+                      <ObservacoesDoSetor setor="caminhao" dias={diasObservacao} obs={observacoesSemana} />
           </FormularioUsina>
         </div>
         <div className="card space-y-2 opacity-70">
