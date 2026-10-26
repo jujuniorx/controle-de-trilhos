@@ -52,11 +52,12 @@ function desenharTabelaSerra(p: PaginaPdf, serra: SerraRelatorio, x: number, top
   const colunaRotulo = 42;
   const colW = (w - colunaRotulo - 12) / 6;
   // Borda direita de cada coluna (barras e metros de Dia, Semana e Mês), encostadas à direita.
-  const grupos: { rotulo: string; chave: 'dia' | 'semana' | 'mes' }[] = [
+  const todosGrupos: { rotulo: string; chave: 'dia' | 'semana' | 'mes' }[] = [
     { rotulo: 'DIA', chave: 'dia' },
     { rotulo: 'SEMANA', chave: 'semana' },
     { rotulo: 'NO MÊS', chave: 'mes' },
-  ].filter((g) => colunas.includes(g.chave));
+  ];
+  const grupos = todosGrupos.filter((g) => colunas.includes(g.chave));
   const fim = (c: number) => x + colunaRotulo + (c + 1) * colW - 4;
   const fimG = (gi: number, sub: 0 | 1) => fim(6 - 2 * grupos.length + gi * 2 + sub);
   let y = topo - 32;
