@@ -120,7 +120,6 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
     desenharTabelaSerra(p, s.serra, x, topo, w);
     if (s.grafico) {
       desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 22, rotulos);
-      textoDireita(p, 'Segunda a domingo', x + w - 8, base + 4, 6, 'negrito', CINZA);
     }
     return;
   }
@@ -166,7 +165,6 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
     }
     p.texto(s.grafico.titulo, xg, topo - 32, 6.5, 'negrito', CINZA);
     desenharGrafico(p, s.grafico, xg, base + 22, wg, Math.max(48, h - 36), rotulos);
-    textoDireita(p, 'Segunda a domingo', xg + wg, base + 3, 6, 'negrito', CINZA);
     return;
   }
   // Gráfico da semana, na parte de baixo do cartão (abaixo da tabela)
@@ -179,7 +177,6 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   }
   // Sem título próprio: a legenda já diz as séries, e o gráfico fica abaixo da tabela.
   desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 22, rotulos);
-  textoDireita(p, 'Segunda a domingo', x + w - 8, base + 4, 6, 'negrito', CINZA);
 }
 
 export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 'semanal' | 'mensal' = 'semanal'): Buffer {
