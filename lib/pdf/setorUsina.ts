@@ -64,7 +64,7 @@ export function gerarSetorUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio,
   const wPilula = larguraTexto(semana, 10, 'negrito') + 26;
   p.arredondado(L - M - wPilula, H - 54, wPilula, 22, 11, hex('#e9f1fb'));
   textoDireita(p, semana, L - M - 13, H - 47, 10, 'negrito', NAVY);
-  textoDireita(p, 'SEGUNDA A QUINTA', L - M, H - 26, 7, 'negrito', CINZA);
+  textoDireita(p, 'SEGUNDA A DOMINGO', L - M, H - 26, 7, 'negrito', CINZA);
   p.linha(M, H - 62, L - M, H - 62, LINHA, 0.8);
 
   // Cartões de resumo deste setor (dia e semana)

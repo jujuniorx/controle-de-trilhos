@@ -92,7 +92,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
     }
     p.texto(s.grafico.titulo, xg, topo - 32, 6.5, 'negrito', CINZA);
     desenharGrafico(p, s.grafico, xg, base + 22, wg, Math.max(48, h - 36), rotulos);
-    textoDireita(p, 'Segunda a quinta', xg + wg, base + 3, 6, 'negrito', CINZA);
+    textoDireita(p, 'Segunda a domingo', xg + wg, base + 3, 6, 'negrito', CINZA);
     return;
   }
   // Gráfico da semana, na parte de baixo do cartão (abaixo da tabela)
@@ -105,7 +105,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   }
   // Sem título próprio: a legenda já diz as séries, e o gráfico fica abaixo da tabela.
   desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 28, rotulos);
-  textoDireita(p, 'Segunda a quinta', x + w - 8, base + 12, 6, 'negrito', CINZA);
+  textoDireita(p, 'Segunda a domingo', x + w - 8, base + 12, 6, 'negrito', CINZA);
 }
 
 export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio): Buffer {
@@ -122,7 +122,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const wPilula = larguraTexto(semana, 10, 'negrito') + 26;
   p.arredondado(L - M - wPilula, H - 54, wPilula, 22, 11, hex('#e9f1fb'));
   textoDireita(p, semana, L - M - 13, H - 47, 10, 'negrito', NAVY);
-  textoDireita(p, 'SEGUNDA A QUINTA', L - M, H - 26, 7, 'negrito', CINZA);
+  textoDireita(p, 'SEGUNDA A DOMINGO', L - M, H - 26, 7, 'negrito', CINZA);
   p.linha(M, H - 62, L - M, H - 62, LINHA, 0.8);
 
   // Resumo: dia e semana separados em cada setor
