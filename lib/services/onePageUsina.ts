@@ -191,7 +191,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         titulo: 'Trilheiros',
         cor: CORES_SETOR.trilheiros,
         linhas: trilRel.equipes.map((e) => ({
-          rotulo: `${e.trilheiro} · B.O. ${e.bo ? e.bo.split('-').reverse().join('/') : '—'} · ${e.giroDias ?? '—'} dias de giro`,
+          rotulo: `${e.trilheiro} · B.O. ${brDaIso(e.bo)} (${e.giroDias ?? '—'} dias) · Partida ${brDaIso(e.partida)} (${e.diasDesdePartida ?? '—'} dias) · ${e.local ?? '—'}`,
           dia: `+${e.descarregadasDia}`,
           mes: `${e.descarregadas} / ${e.total}`,
         })),
@@ -203,14 +203,24 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
 
 export interface EquipeTrilheiro {
   trilheiro: string;
+  /** Dias corridos desde o B.O. até a data do relatório. */
   giroDias: number | null;
   bo: string | null;
+  /** Data em que o trilheiro saiu da usina. */
+  partida: string | null;
+  /** Dias corridos desde a partida até a data do relatório. */
+  diasDesdePartida: number | null;
+  local: string | null;
+  observacao: string | null;
   total: number;
   descarregadas: number;
   descarregadasDia: number;
-  percentual: number | null;
-  programacao: string | null;
   status: string;
+}
+
+/** AAAA-MM-DD para DD/MM/AAAA (ou traço, se vazio). */
+function brDaIso(iso: string | null): string {
+  return iso ? iso.split('-').reverse().join('/') : '—';
 }
 
 export interface TrilheirosRelatorio {
@@ -240,10 +250,24 @@ export async function montarTrilheirosRelatorio(data: string): Promise<Trilheiro
           })
         : null;
       if (!r) {
-        return { trilheiro: t, giroDias: null, bo: null, total: 0, descarregadas: 0, descarregadasDia: 0, percentual: null, programacao: null, status: 'Sem lançamento' };
+        return {
+          trilheiro: t,
+          giroDias: null,
+          bo: null,
+          partida: null,
+          diasDesdePartida: null,
+          local: null,
+          observacao: null,
+          total: 0,
+          descarregadas: 0,
+          descarregadasDia: 0,
+          status: 'Sem lançamento',
+        };
       }
       const bo = r.boEm ? r.boEm.toISOString().slice(0, 10) : null;
       const giroDias = bo ? Math.round((diaMs(data) - diaMs(bo)) / 86400000) : null;
+      const partida = r.partidaEm ? r.partidaEm.toISOString().slice(0, 10) : null;
+      const diasDesdePartida = partida ? Math.round((diaMs(data) - diaMs(partida)) / 86400000) : null;
       const descarregadas = r.descarregadas ?? 0;
       const baseDoGiro = anterior && anterior.boEm?.getTime() === r.boEm?.getTime() ? anterior.descarregadas ?? 0 : 0;
       const total = r.total ?? BARRAS_POR_TRILHEIRO;
@@ -251,11 +275,13 @@ export async function montarTrilheirosRelatorio(data: string): Promise<Trilheiro
         trilheiro: t,
         giroDias,
         bo,
+        partida,
+        diasDesdePartida,
+        local: r.local ?? null,
+        observacao: r.observacao ?? null,
         total,
         descarregadas,
         descarregadasDia: Math.max(0, descarregadas - baseDoGiro),
-        percentual: total > 0 ? Math.round((descarregadas / total) * 100) : null,
-        programacao: r.programacao,
         status: 'Em execução',
       };
     }),

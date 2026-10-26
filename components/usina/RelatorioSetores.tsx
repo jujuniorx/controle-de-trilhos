@@ -105,22 +105,26 @@ export function TrilheirosBloco({ t }: { t: TrilheirosRelatorio }) {
             <thead>
               <tr className="text-[11px] uppercase tracking-wide text-slate-500">
                 <th className="pb-1 text-left font-semibold">Trilheiro</th>
-                <th className="pb-1 text-right font-semibold">Giro (dias)</th>
                 <th className="pb-1 text-right font-semibold">B.O.</th>
+                <th className="pb-1 text-right font-semibold">Dias desde B.O.</th>
+                <th className="pb-1 text-right font-semibold">Partida</th>
+                <th className="pb-1 text-right font-semibold">Dias desde partida</th>
+                <th className="pb-1 text-left font-semibold">Local</th>
                 <th className="pb-1 text-right font-semibold">Barras desc. / total</th>
-                <th className="pb-1 text-right font-semibold">% exec.</th>
-                <th className="pb-1 text-left font-semibold">Programação do dia</th>
+                <th className="pb-1 text-left font-semibold">Observação</th>
               </tr>
             </thead>
             <tbody>
               {t.equipes.map((e) => (
                 <tr key={e.trilheiro} className="border-t border-slate-100">
                   <td className="py-1.5 font-bold text-slate-900">{e.trilheiro}</td>
-                  <td className="py-1.5 text-right tabular-nums">{e.giroDias ?? '—'}</td>
                   <td className="py-1.5 text-right tabular-nums">{brData(e.bo)}</td>
+                  <td className="py-1.5 text-right tabular-nums">{e.giroDias ?? '—'}</td>
+                  <td className="py-1.5 text-right tabular-nums">{brData(e.partida)}</td>
+                  <td className="py-1.5 text-right tabular-nums">{e.diasDesdePartida ?? '—'}</td>
+                  <td className="py-1.5 font-medium">{e.local ?? '—'}</td>
                   <td className="py-1.5 text-right font-medium tabular-nums">{e.descarregadas} / {e.total}</td>
-                  <td className="py-1.5 text-right tabular-nums">{e.percentual == null ? '—' : `${e.percentual}%`}</td>
-                  <td className="py-1.5">{e.programacao ?? e.status}</td>
+                  <td className="py-1.5 text-slate-600">{e.observacao ?? ''}</td>
                 </tr>
               ))}
             </tbody>

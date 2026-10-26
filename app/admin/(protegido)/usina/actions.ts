@@ -288,16 +288,23 @@ export async function salvarTrilheirosSemanaAction(_: ResultadoUsina | undefined
   const semana = dataDoForm(formData.get('semana'));
   if (!semana) return { ok: false, erro: 'Semana inválida.' };
   const dias = await trilheirosDaSemana(semana);
-  // Dia do B.O. de cada trilheiro (vale para os dias da semana dele).
-  const boPorTrilheiro = {} as Record<(typeof TRILHEIROS)[number], string | null>;
+  // B.O., partida, local e observação: uma informação por trilheiro (vale para os dias da semana dele).
+  const porTrilheiro = {} as Record<(typeof TRILHEIROS)[number], { bo: string | null; partida: string | null; local: string | null; observacao: string | null }>;
   for (const t of TRILHEIROS) {
-    const raw = String(formData.get(`bo_${t}`) ?? '').trim();
-    if (raw !== '' && !ehIsoValido(raw)) return { ok: false, erro: `Data do B.O. de ${t} inválida.` };
-    boPorTrilheiro[t] = raw === '' ? null : raw;
+    const bo = String(formData.get(`bo_${t}`) ?? '').trim();
+    const partida = String(formData.get(`partida_${t}`) ?? '').trim();
+    if (bo !== '' && !ehIsoValido(bo)) return { ok: false, erro: `Data do B.O. de ${t} inválida.` };
+    if (partida !== '' && !ehIsoValido(partida)) return { ok: false, erro: `Data de partida de ${t} inválida.` };
+    porTrilheiro[t] = {
+      bo: bo === '' ? null : bo,
+      partida: partida === '' ? null : partida,
+      local: texto(formData.get(`local_${t}`), 60),
+      observacao: texto(formData.get(`obs_${t}`), 500),
+    };
   }
 
   // Valida tudo antes de gravar.
-  const lancamentos: { data: string; trilheiro: (typeof TRILHEIROS)[number]; v: { boEm: string | null; descarregadas: number | null; total: number | null; programacao: string | null; observacao: string | null } }[] = [];
+  const lancamentos: { data: string; trilheiro: (typeof TRILHEIROS)[number]; v: { boEm: string | null; partidaEm: string | null; local: string | null; descarregadas: number | null; total: number | null; programacao: string | null; observacao: string | null } }[] = [];
   for (const d of dias) {
     for (const t of TRILHEIROS) {
       const descarregadas = inteiro(formData.get(`desc_${t}_${d.data}`));
@@ -306,15 +313,19 @@ export async function salvarTrilheirosSemanaAction(_: ResultadoUsina | undefined
       if (total !== null && descarregadas !== null && descarregadas > total) {
         return { ok: false, erro: `${t}: descarregadas não pode ser maior que o total do giro.` };
       }
+      const info = porTrilheiro[t];
       lancamentos.push({
         data: d.data,
         trilheiro: t,
         v: {
-          boEm: boPorTrilheiro[t],
+          boEm: info.bo,
+          partidaEm: info.partida,
+          local: info.local,
           descarregadas,
           total,
-          programacao: texto(formData.get(`prog_${t}_${d.data}`), 40),
-          observacao: texto(formData.get(`obs_${t}_${d.data}`), 500),
+          // A programação do dia não é mais lançada aqui: mantém o que já estava salvo.
+          programacao: d.trilheiros[t].programacao,
+          observacao: info.observacao,
         },
       });
     }

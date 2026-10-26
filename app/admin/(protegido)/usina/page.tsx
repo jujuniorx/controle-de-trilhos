@@ -81,7 +81,12 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
   const caminhoesSemana = await caminhoesDaSemana(est.semana);
   const geracaoSemana = await geracaoDaSemana(est.semana);
   const trilheirosSemana = await trilheirosDaSemana(est.semana);
-  const boSemana = Object.fromEntries(TRILHEIROS.map((t) => [t, trilheirosSemana.map((d) => d.trilheiros[t].boEm).find((b) => b) ?? '']));
+  const primeiroDaSemana = (t: (typeof TRILHEIROS)[number], campo: 'boEm' | 'partidaEm' | 'local' | 'observacao') =>
+    trilheirosSemana.map((d) => d.trilheiros[t][campo]).find((v) => v) ?? '';
+  const boSemana = Object.fromEntries(TRILHEIROS.map((t) => [t, primeiroDaSemana(t, 'boEm')]));
+  const partidaSemana = Object.fromEntries(TRILHEIROS.map((t) => [t, primeiroDaSemana(t, 'partidaEm')]));
+  const localSemana = Object.fromEntries(TRILHEIROS.map((t) => [t, primeiroDaSemana(t, 'local')]));
+  const obsSemana = Object.fromEntries(TRILHEIROS.map((t) => [t, primeiroDaSemana(t, 'observacao')]));
   const totalSemana = diasSemana.reduce((t, d) => ({ soldas: t.soldas + (d.soldas ?? 0), cortes: t.cortes + (d.cortes ?? 0) }), { soldas: 0, cortes: 0 });
   const escalaLegada = !escalaSalva && est.escala.trim() !== '';
 
@@ -410,16 +415,28 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         )}
 
         <div className="card space-y-3">
-          <CabecalhoSemana semana={est.semana} ajuda="Preencha o total de barras do giro e quantas já foram descarregadas. Salve tudo de uma vez." />
+          <CabecalhoSemana semana={est.semana} ajuda="Preencha o B.O., a partida, o local e a observação de cada trilheiro. Depois, as barras de cada dia." />
           <FormularioUsina acao={salvarTrilheirosSemanaAction} rotuloBotao="Salvar a semana">
             <input type="hidden" name="semana" value={est.semana} />
             {TRILHEIROS.map((t) => (
-              <div key={t} className="space-y-2">
-                <div className="flex flex-wrap items-end gap-3">
-                  <p className="text-sm font-semibold">{t}</p>
-                  <div className="field max-w-xs">
-                    <label htmlFor={`bo_${t}`}>Dia do B.O. de {t}</label>
-                    <input id={`bo_${t}`} type="date" name={`bo_${t}`} defaultValue={boSemana[t] ?? ''} className="h-11 w-44" />
+              <div key={t} className="space-y-2 rounded-lg border border-line p-3">
+                <p className="text-sm font-semibold">{t}</p>
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                  <div className="field">
+                    <label htmlFor={`bo_${t}`}>Data do B.O.</label>
+                    <input id={`bo_${t}`} type="date" name={`bo_${t}`} defaultValue={boSemana[t] ?? ''} className="h-11" />
+                  </div>
+                  <div className="field">
+                    <label htmlFor={`partida_${t}`}>Partida da usina</label>
+                    <input id={`partida_${t}`} type="date" name={`partida_${t}`} defaultValue={partidaSemana[t] ?? ''} className="h-11" />
+                  </div>
+                  <div className="field">
+                    <label htmlFor={`local_${t}`}>Local atual</label>
+                    <input id={`local_${t}`} name={`local_${t}`} defaultValue={localSemana[t] ?? ''} className="h-11" placeholder="Ex.: EFH" />
+                  </div>
+                  <div className="field">
+                    <label htmlFor={`obs_${t}`}>Observação</label>
+                    <input id={`obs_${t}`} name={`obs_${t}`} defaultValue={obsSemana[t] ?? ''} className="h-11" />
                   </div>
                 </div>
                 <div className="tbl-wrap">
@@ -429,8 +446,6 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                         <th className="py-2">Dia</th>
                         <th className="py-2 text-right">Total do giro</th>
                         <th className="py-2 text-right">Descarregadas</th>
-                        <th className="py-2">Programação do dia</th>
-                        <th className="py-2">Observação</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -442,12 +457,6 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                           </td>
                           <td className="py-2 text-right">
                             <input name={`desc_${t}_${d.data}`} inputMode="numeric" defaultValue={d.trilheiros[t].descarregadas ?? ''} className="h-11 w-24 text-right" aria-label={`Descarregadas ${t} ${br(d.data)}`} />
-                          </td>
-                          <td className="py-2">
-                            <input name={`prog_${t}_${d.data}`} defaultValue={d.trilheiros[t].programacao ?? ''} className="h-11 w-28" placeholder="D" aria-label={`Programação ${t} ${br(d.data)}`} />
-                          </td>
-                          <td className="py-2">
-                            <input name={`obs_${t}_${d.data}`} defaultValue={d.trilheiros[t].observacao ?? ''} className="h-11 w-64" aria-label={`Observação ${t} ${br(d.data)}`} />
                           </td>
                         </tr>
                       ))}
