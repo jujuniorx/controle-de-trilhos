@@ -39,9 +39,18 @@ export function desenharCaminhoes(
   p.texto('CAMINHÃO DE SOLDA', x + 10, topo - 14, 8, 'negrito', BRANCO);
 
   // Colunas: números alinhados à direita (borda direita de cada coluna).
-  const col = mensal
-    ? { nome: 10, soldaMes: 200, corteMes: 320, local: 420, obs: 520 }
-    : { nome: 10, soldaDia: 200, soldaSem: 268, soldaMes: 336, corteDia: 410, corteSem: 478, corteMes: 546, local: 600, obs: 690 };
+  // Mensal usa só o No mês, então as colunas Dia e Semana ficam fora e as demais se aproximam.
+  const col = {
+    nome: 10,
+    soldaDia: 200,
+    soldaSem: 268,
+    soldaMes: mensal ? 200 : 336,
+    corteDia: 410,
+    corteSem: 478,
+    corteMes: mensal ? 320 : 546,
+    local: mensal ? 420 : 600,
+    obs: mensal ? 520 : 690,
+  };
   const yGrupo = topo - 34;
   const yCabecalho = topo - 44;
   const dir = (texto: string, xDireita: number, y: number, tamanho: number, fonte: 'normal' | 'negrito', c: Cor) =>
