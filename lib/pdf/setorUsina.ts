@@ -11,11 +11,12 @@ import {
   NAVY,
   SOMBRA,
   TINTA,
+  ZEBRA,
   desenharSetor,
   hex,
   textoDireita,
 } from '@/lib/pdf/onePageUsina';
-import type { DadosRelatorio, TrilheirosRelatorio } from '@/lib/services/onePageUsina';
+import type { DadosRelatorio, LinhaRelatorio, TrilheirosRelatorio } from '@/lib/services/onePageUsina';
 import { faixaSemanaSegSex } from '@/lib/usina/periodo';
 
 /** Setores que têm PDF próprio (o "todos" é o relatório gerencial). */
@@ -52,7 +53,33 @@ function brDaIso(iso: string | null): string {
 }
 
 /** PDF de um setor da usina (uma folha A4 paisagem), no mesmo estilo do relatório gerencial. */
-export function gerarSetorUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio, setor: SetorPdf): Buffer {
+/** Grade diária: uma linha por campo, uma coluna por dia (segunda a domingo) e as colunas de semana e mês. */
+function desenharGradeDiaria(p: PaginaPdf, linhas: LinhaRelatorio[], cor: string, rotulosDias: string[], x: number, topo: number, w: number) {
+  const colLabel = 200;
+  const colSemMes = 80;
+  const colDia = (w - colLabel - 2 * colSemMes) / Math.max(1, rotulosDias.length);
+  const xDia = (i: number) => x + colLabel + i * colDia;
+  const xSem = x + colLabel + rotulosDias.length * colDia + colSemMes;
+  const xMes = x + w - 8;
+  const yCab = topo - 14;
+  p.arredondado(x, topo - 22, w, 22, 9, hex(cor));
+  p.retangulo(x, topo - 22, w, 8, hex(cor));
+  rotulosDias.forEach((r, i) => textoDireita(p, r.toUpperCase(), xDia(i + 1) - 6, yCab, 6.5, 'negrito', BRANCO));
+  textoDireita(p, 'SEMANA', xSem, yCab, 6.5, 'negrito', BRANCO);
+  textoDireita(p, 'NO MÊS', xMes, yCab, 6.5, 'negrito', BRANCO);
+  p.texto('CAMPO', x + 10, yCab, 6.5, 'negrito', BRANCO);
+  let y = topo - 36;
+  linhas.forEach((linha, i) => {
+    y -= 20;
+    if (i % 2 === 1) p.retangulo(x + 4, y - 6, w - 8, 20, ZEBRA);
+    p.texto(linha.rotulo, x + 10, y, 8, 'normal', TINTA);
+    (linha.porDia ?? []).slice(0, rotulosDias.length).forEach((v, j) => textoDireita(p, v, xDia(j + 1) - 6, y, 8, 'negrito', TINTA));
+    textoDireita(p, linha.semana, xSem, y, 9, 'negrito', TINTA);
+    textoDireita(p, linha.mes, xMes, y, 9, 'negrito', hex(cor));
+  });
+}
+
+export function gerarSetorUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio, setor: SetorPdf, modo: 'semanal' | 'diario' = 'semanal'): Buffer {
   const p = new PaginaPdf();
   p.retangulo(0, 0, L, H, BRANCO);
   p.retangulo(0, H - 5, L, 5, NAVY);
@@ -117,6 +144,9 @@ export function gerarSetorUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio,
   if (setor === 'trilheiros') {
     const altTril = Math.min(alturaDisponivel, 60 + Math.max(1, tril.equipes.length) * 40 + 12);
     desenharTrilheiros(p, tril, M, topoCorpo, L - 2 * M, altTril);
+  } else if (modo === 'diario') {
+    const s = d.setores.find((x) => x.titulo === TITULO_SETOR[setor]);
+    if (s) desenharGradeDiaria(p, s.linhas, s.cor, d.rotulosDias, M, topoCorpo, L - 2 * M);
   } else {
     const s = d.setores.find((x) => x.titulo === TITULO_SETOR[setor]);
     if (s) desenharSetor(p, s, M, topoCorpo, L - 2 * M, Math.min(alturaDisponivel, 340), true, d.rotulosDias);

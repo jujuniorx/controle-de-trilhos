@@ -19,7 +19,8 @@ const soma = <T,>(lista: T[], f: (x: T) => number) => lista.reduce((a, x) => a +
 const metros = (v: number) => `${fmtMetros(v)} m`;
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
-export interface LinhaRelatorio { rotulo: string; dia: string; semana: string; mes: string }
+/** Valores de cada dia da semana (segunda a domingo), quando existem; usados no PDF diário. */
+export interface LinhaRelatorio { rotulo: string; dia: string; semana: string; mes: string; porDia?: string[] }
 export interface GraficoRelatorio { titulo: string; series: { nome: string; cor: string; valores: number[] }[] }
 /** Grade de produção por dia (um valor por dia da semana), para setores em que o número do dia importa mais que o gráfico. */
 export interface GradeRelatorio { colunas: string[]; linhas: { rotulo: string; valores: number[] }[] }
@@ -152,8 +153,8 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         titulo: 'Estaleiro de solda',
         cor: CORES_SETOR.estaleiro,
         linhas: [
-          { rotulo: 'Soldas (UND)', dia: String(estD.totais.soldas), semana: String(estS.totais.soldas), mes: String(estM.totais.soldas) },
-          { rotulo: 'Cortes (UND)', dia: String(estD.totais.cortes), semana: String(estS.totais.cortes), mes: String(estM.totais.cortes) },
+          { rotulo: 'Soldas (UND)', dia: String(estD.totais.soldas), semana: String(estS.totais.soldas), mes: String(estM.totais.soldas), porDia: serie.estaleiro.soldas.map(String) },
+          { rotulo: 'Cortes (UND)', dia: String(estD.totais.cortes), semana: String(estS.totais.cortes), mes: String(estM.totais.cortes), porDia: serie.estaleiro.cortes.map(String) },
           { rotulo: 'Tampões carregados (UND)', dia: String(estD.carreta.tampoes), semana: String(estS.carreta.tampoes), mes: String(estM.carreta.tampoes) },
           { rotulo: 'Trilho novo carregado (m)', dia: metros(estD.carreta.trilhoNovoM), semana: metros(estS.carreta.trilhoNovoM), mes: metros(estM.carreta.trilhoNovoM) },
           { rotulo: 'Sucata saída (t)', dia: `${fmtPeso(estD.carreta.sucataT)} t`, semana: `${fmtPeso(estS.carreta.sucataT)} t`, mes: `${fmtPeso(estM.carreta.sucataT)} t` },
@@ -170,9 +171,9 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         titulo: 'Geração de trilho',
         cor: CORES_SETOR.geracao,
         linhas: [
-          { rotulo: 'Corte (m)', dia: metros(geraDia((l) => l.periodo.corteM)), semana: metros(geraSem((l) => l.periodo.corteM)), mes: metros(geraSem((l) => l.mes.corteM)) },
-          { rotulo: 'Carregado (m)', dia: metros(geraDia((l) => l.periodo.carregamentoM)), semana: metros(geraSem((l) => l.periodo.carregamentoM)), mes: metros(geraSem((l) => l.mes.carregamentoM)) },
-          { rotulo: 'Deixado na via (m)', dia: metros(geraDia((l) => l.periodo.deixadaViaM)), semana: metros(geraSem((l) => l.periodo.deixadaViaM)), mes: metros(geraSem((l) => l.mes.deixadaViaM)) },
+          { rotulo: 'Corte (m)', dia: metros(geraDia((l) => l.periodo.corteM)), semana: metros(geraSem((l) => l.periodo.corteM)), mes: metros(geraSem((l) => l.mes.corteM)), porDia: serie.geracao.corte.map((v) => fmtMetros(v)) },
+          { rotulo: 'Carregado (m)', dia: metros(geraDia((l) => l.periodo.carregamentoM)), semana: metros(geraSem((l) => l.periodo.carregamentoM)), mes: metros(geraSem((l) => l.mes.carregamentoM)), porDia: serie.geracao.carregado.map((v) => fmtMetros(v)) },
+          { rotulo: 'Deixado na via (m)', dia: metros(geraDia((l) => l.periodo.deixadaViaM)), semana: metros(geraSem((l) => l.periodo.deixadaViaM)), mes: metros(geraSem((l) => l.mes.deixadaViaM)), porDia: serie.geracao.deixado.map((v) => fmtMetros(v)) },
           { rotulo: 'Barras (UND)', dia: String(geraDia((l) => l.periodo.quantidade)), semana: String(geraSem((l) => l.periodo.quantidade)), mes: String(geraSem((l) => l.mes.quantidade)) },
         ],
         grafico: {
@@ -190,7 +191,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         linhas: [
           ...COMPOSICOES.flatMap((a) => [
             { rotulo: `${rotuloComposicao(a)} · barras`, dia: String(barrasDia(a)), semana: String(barrasSemana(a)), mes: String(barrasMes(a)) },
-            { rotulo: `${a} · metros estimados`, dia: metros(metrosDeBarras(barrasDia(a))), semana: metros(metrosDeBarras(barrasSemana(a))), mes: metros(metrosDeBarras(barrasMes(a))) },
+            { rotulo: `${a} · metros estimados`, dia: metros(metrosDeBarras(barrasDia(a))), semana: metros(metrosDeBarras(barrasSemana(a))), mes: metros(metrosDeBarras(barrasMes(a))), porDia: serraDiaSerie(a).map((v) => fmtMetros(v)) },
           ]),
           { rotulo: 'Total estimado (m)', dia: metros(serraTotalDia), semana: metros(serraTotalSemana), mes: metros(serraTotalMes) },
         ],
@@ -213,6 +214,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
             dia: `${d?.periodo.producao ?? 0} / ${d?.periodo.perda ?? 0}`,
             semana: `${c.periodo.producao} / ${c.periodo.perda}`,
             mes: `${c.mes.producao} / ${c.mes.perda}`,
+            porDia: ((serie.caminhao as Record<string, number[]>)[c.caminhao] ?? []).map(String),
           };
         }),
         grade: {
