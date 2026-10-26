@@ -23,7 +23,10 @@ export function GraficoBarras({
   const margemEsq = 36;
   const margemInf = 22;
   const areaL = largura - margemEsq - 6;
-  const areaA = altura - margemInf - 10;
+  // Folga no topo para o valor da barra mais alta não ser cortado.
+  const topoArea = 26;
+  const areaA = altura - margemInf - topoArea;
+  const fmt = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: n >= 100 ? 0 : 1 });
   // Escala com marcas inteiras e sem repetir o mesmo número (ex.: 0, 1 em vez de 1, 1, 0).
   const maiorValor = Math.max(0, ...series.flatMap((s) => s.valores));
   const max = Math.max(1, Math.ceil(maiorValor));
@@ -31,7 +34,7 @@ export function GraficoBarras({
   const marcas = Array.from({ length: Math.floor(max / passo) + 1 }, (_, i) => i * passo);
   const grupo = areaL / rotulos.length;
   const barra = Math.max(1, (grupo * 0.8) / Math.max(1, series.length));
-  const yDe = (v: number) => areaA - (v / max) * areaA + 10;
+  const yDe = (v: number) => topoArea + areaA - (v / max) * areaA;
   const mostraValor = rotulos.length <= 10 && series.length <= 2;
 
   return (
@@ -42,7 +45,7 @@ export function GraficoBarras({
           <g key={m}>
             <line x1={margemEsq} x2={largura - 6} y1={yDe(m)} y2={yDe(m)} stroke="#0001" />
             <text x={margemEsq - 4} y={yDe(m) + 3} textAnchor="end" fontSize="11" fill="#555">
-              {m}
+              {fmt(m)}
             </text>
           </g>
         ))}
@@ -54,12 +57,12 @@ export function GraficoBarras({
               const y = yDe(v);
               return (
                 <g key={s.nome}>
-                  <rect x={x} y={y} width={Math.max(0.5, barra - 0.5)} height={Math.max(0, areaA + 10 - y)} rx={2} fill={s.cor}>
-                    <title>{`${r} · ${s.nome}: ${v}${unidade}`}</title>
+                  <rect x={x} y={y} width={Math.max(0.5, barra - 0.5)} height={Math.max(0, topoArea + areaA - y)} rx={2} fill={s.cor}>
+                    <title>{`${r} · ${s.nome}: ${fmt(v)}${unidade}`}</title>
                   </rect>
                   {mostraValor && v > 0 && (
                     <text x={x + (barra - 0.5) / 2} y={y - 4} textAnchor="middle" fontSize="11" fontWeight="600" fill={s.cor}>
-                      {v}
+                      {fmt(v)}
                     </text>
                   )}
                 </g>
