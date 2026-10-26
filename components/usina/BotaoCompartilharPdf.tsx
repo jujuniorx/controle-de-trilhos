@@ -17,10 +17,12 @@ export function BotaoCompartilharPdf({ url, nomeArquivo, titulo }: { url: string
       const blob = await resposta.blob();
       const arquivo = new File([blob], nomeArquivo, { type: 'application/pdf' });
       const nav = navigator as Navigator & { canShare?: (dados: ShareData) => boolean };
-      if (nav.share && nav.canShare?.({ files: [arquivo] })) {
+      // Menu de compartilhar só em aparelho de toque (celular/tablet); no computador baixa o PDF.
+      const ehToque = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+      if (ehToque && nav.share && nav.canShare?.({ files: [arquivo] })) {
         await nav.share({ files: [arquivo], title: titulo });
       } else {
-        // Sem compartilhamento de arquivo (computador): baixa o PDF.
+        // Computador (ou aparelho sem compartilhamento de arquivo): baixa o PDF.
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = nomeArquivo;
