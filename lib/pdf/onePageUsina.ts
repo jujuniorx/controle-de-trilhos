@@ -85,7 +85,8 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
     textoDireita(p, linha.mes, xMes, y, 9, 'negrito', hex(s.cor));
   });
 
-  if (!s.grafico) return;
+  // No mensal o gráfico diário sai: o cartão mostra só os totais do mês.
+  if (!s.grafico || mensal) return;
   if (largo) {
     // Gráfico à direita, na mesma altura da tabela
     const xg = x + 470;
