@@ -49,7 +49,7 @@ function hojeIso(): string {
   return new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString().slice(0, 10); // horário de Brasília
 }
 
-// A usina é lançada e relatada por semana (segunda a quinta): o período é sempre semana.
+// A usina é lançada e relatada por semana (segunda a domingo): o período é sempre semana.
 function periodoValido(_v: string | undefined): Periodo {
   return 'semana';
 }
@@ -102,7 +102,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
       <header className="page-header">
         <div>
           <h1 className="page-title">Relatório da usina</h1>
-          <p className="text-sm text-ink-muted">Números da semana, de segunda a quinta. Escolha qualquer dia da semana.</p>
+          <p className="text-sm text-ink-muted">Números da semana, de segunda a domingo. Escolha qualquer dia da semana.</p>
         </div>
       </header>
 
@@ -112,7 +112,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           <input id="data" name="data" type="date" defaultValue={data} className="h-11" />
         </div>
         <button type="submit" className="btn btn-ghost h-11">Ver semana</button>
-        <p className="w-full text-sm text-ink-muted">Semana de {faixaSemanaSegSex(data)} (segunda a quinta)</p>
+        <p className="w-full text-sm text-ink-muted">Semana de {faixaSemanaSegSex(data)} (segunda a domingo)</p>
       </form>
 
       <nav aria-label="Setores" className="flex flex-wrap items-center gap-2 border-b border-line pb-3 text-sm">

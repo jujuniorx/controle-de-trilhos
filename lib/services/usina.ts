@@ -50,11 +50,11 @@ export async function estaleiroDoPeriodo(periodo: Periodo, data: string) {
   };
 }
 
-/** Segunda a quinta da semana, com soldas e cortes de cada dia (vazio quando ainda não lançado). */
+/** Segunda a domingo da semana, com soldas e cortes de cada dia (vazio quando ainda não lançado). */
 export async function estaleiroDiasDaSemana(semana: string) {
-  const fim = somarDias(semana, 3);
+  const fim = somarDias(semana, 6);
   const linhas = await prisma.estaleiroDia.findMany({ where: { data: { gte: dataBanco(semana), lte: dataBanco(fim) } } });
-  return [0, 1, 2, 3].map((i) => {
+  return [0, 1, 2, 3, 4, 5, 6].map((i) => {
     const d = somarDias(semana, i);
     const r = linhas.find((x) => iso(x.data) === d);
     return { data: d, soldas: r?.soldas ?? null, cortes: r?.cortes ?? null, observacao: r?.observacao ?? null };
@@ -186,16 +186,16 @@ export interface CarretaGeracaoValor {
 }
 
 /**
- * Geração da semana (segunda a quinta): por dia e por líder, o corte digitado e os totais
+ * Geração da semana (segunda a domingo): por dia e por líder, o corte digitado e os totais
  * das carretas (carregado, deixado na via e barras). Os totais não são digitados.
  */
 export async function geracaoDaSemana(semana: string) {
-  const fim = somarDias(semana, 3);
+  const fim = somarDias(semana, 6);
   const linhas = await prisma.geracaoDia.findMany({
     where: { data: { gte: dataBanco(semana), lte: dataBanco(fim) } },
     include: { carretas: { orderBy: { ordem: 'asc' } } },
   });
-  return [0, 1, 2, 3].map((i) => {
+  return [0, 1, 2, 3, 4, 5, 6].map((i) => {
     const d = somarDias(semana, i);
     const lideres = Object.fromEntries(
       LIDERES.map((l) => {
@@ -309,11 +309,11 @@ export async function caminhoesDoPeriodo(periodo: Periodo, data: string) {
   }));
 }
 
-/** Serra da semana (segunda a quinta): barras, jacarés e observação de cada composição, por dia. */
+/** Serra da semana (segunda a domingo): barras, jacarés e observação de cada composição, por dia. */
 export async function composicoesDaSemana(semana: string) {
-  const fim = somarDias(semana, 3);
+  const fim = somarDias(semana, 6);
   const linhas = await prisma.composicaoDia.findMany({ where: { data: { gte: dataBanco(semana), lte: dataBanco(fim) } } });
-  return [0, 1, 2, 3].map((i) => {
+  return [0, 1, 2, 3, 4, 5, 6].map((i) => {
     const d = somarDias(semana, i);
     const ativos = Object.fromEntries(
       COMPOSICOES.map((a) => {
@@ -325,11 +325,11 @@ export async function composicoesDaSemana(semana: string) {
   });
 }
 
-/** Caminhões da semana (segunda a quinta): produção e perda de cada caminhão, por dia, com o resto do registro preservado. */
+/** Caminhões da semana (segunda a domingo): produção e perda de cada caminhão, por dia, com o resto do registro preservado. */
 export async function caminhoesDaSemana(semana: string) {
-  const fim = somarDias(semana, 3);
+  const fim = somarDias(semana, 6);
   const linhas = await prisma.caminhaoSoldaDia.findMany({ where: { data: { gte: dataBanco(semana), lte: dataBanco(fim) } } });
-  return [0, 1, 2, 3].map((i) => {
+  return [0, 1, 2, 3, 4, 5, 6].map((i) => {
     const d = somarDias(semana, i);
     const caminhoes = Object.fromEntries(
       CAMINHOES_ATIVOS.map((c) => {
