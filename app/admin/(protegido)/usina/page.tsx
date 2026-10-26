@@ -138,7 +138,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
           <Cartao rotulo="Soldas" valor={est.totais.soldas} />
           <Cartao rotulo="Cortes" valor={est.totais.cortes} />
-          <Cartao rotulo="Tampões carregados" valor={est.carreta.tampoes} />
+          <Cartao rotulo="Tampões carregados (m)" valor={fmtMetros(est.carreta.tampoesM)} />
           <Cartao rotulo="Trilho novo (m)" valor={fmtMetros(est.carreta.trilhoNovoM)} />
           <Cartao rotulo="Sucata saída (t)" valor={fmtPeso(est.carreta.sucataT)} />
         </div>

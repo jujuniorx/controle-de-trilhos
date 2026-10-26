@@ -66,7 +66,7 @@ export function addSextaFeira(semanaInicio: string): string {
   return somarDias(semanaInicio, 4);
 }
 
-/** O que saiu da usina nos remetidos do período: tampão (quantidade), trilho novo (m) e sucata (t). */
+/** O que saiu da usina nos remetidos do período: tampão (m), trilho novo (m) e sucata (t). */
 export async function carregamentoCarretaDoPeriodo(inicio: string, fim: string) {
   const grupos = await prisma.grupo.findMany({
     where: {
@@ -77,16 +77,16 @@ export async function carregamentoCarretaDoPeriodo(inicio: string, fim: string) 
     },
     select: { classificacao: true, tipoMaterial: true, metrosTotal: true, pesoInformado: true, pesoCalculado: true },
   });
-  let tampoes = 0;
+  let tampoesM = 0;
   let trilhoNovoM = 0;
   let sucataT = 0;
   for (const g of grupos) {
     // Tampão = todo reemprego G1, G2 ou G3.
-    if (g.tipoMaterial === 'REEMPREGO' && (g.classificacao === 'G1' || g.classificacao === 'G2' || g.classificacao === 'G3')) tampoes++;
+    if (g.tipoMaterial === 'REEMPREGO' && (g.classificacao === 'G1' || g.classificacao === 'G2' || g.classificacao === 'G3')) tampoesM += Number(g.metrosTotal);
     if (g.tipoMaterial === 'NOVO') trilhoNovoM += Number(g.metrosTotal);
     if (g.tipoMaterial === 'SUCATA') sucataT += Number(g.pesoInformado ?? g.pesoCalculado ?? 0);
   }
-  return { tampoes, trilhoNovoM: round2(trilhoNovoM), sucataT: round2(sucataT) };
+  return { tampoesM: round2(tampoesM), trilhoNovoM: round2(trilhoNovoM), sucataT: round2(sucataT) };
 }
 
 function round2(n: number) {
