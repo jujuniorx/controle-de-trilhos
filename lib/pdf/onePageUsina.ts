@@ -140,7 +140,8 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   const altLinhaSetor = largo ? 16 : 13;
   const yCabecalho = topo - 32;
   const yPrimeiraLinha = topo - 38;
-  const fimLinhas = yPrimeiraLinha - s.linhas.length * altLinhaSetor - 5;
+  // A caixa desce abaixo da última linha de texto: sem essa folga, os números da última linha passavam da borda.
+  const fimLinhas = yPrimeiraLinha - s.linhas.length * altLinhaSetor - 9;
   // Faixas zebradas primeiro; depois as caixas das colunas, por cima; por fim os textos.
   // Com as caixas das colunas, a zebra some: ela aparecia cortada nas bordas das caixas e deixava o cartão quebrado.
   if (ativas.length === 0) {
