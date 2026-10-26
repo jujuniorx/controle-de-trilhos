@@ -171,7 +171,6 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         titulo: 'Geração de trilho',
         cor: CORES_SETOR.geracao,
         linhas: [
-          { rotulo: 'Corte (m)', dia: metros(geraDia((l) => l.periodo.corteM)), semana: metros(geraSem((l) => l.periodo.corteM)), mes: metros(geraSem((l) => l.mes.corteM)), porDia: serie.geracao.corte.map((v) => fmtMetros(v)) },
           { rotulo: 'Carregado (m)', dia: metros(geraDia((l) => l.periodo.carregamentoM)), semana: metros(geraSem((l) => l.periodo.carregamentoM)), mes: metros(geraSem((l) => l.mes.carregamentoM)), porDia: serie.geracao.carregado.map((v) => fmtMetros(v)) },
           { rotulo: 'Deixado na via (m)', dia: metros(geraDia((l) => l.periodo.deixadaViaM)), semana: metros(geraSem((l) => l.periodo.deixadaViaM)), mes: metros(geraSem((l) => l.mes.deixadaViaM)), porDia: serie.geracao.deixado.map((v) => fmtMetros(v)) },
           { rotulo: 'Barras (UND)', dia: String(geraDia((l) => l.periodo.quantidade)), semana: String(geraSem((l) => l.periodo.quantidade)), mes: String(geraSem((l) => l.mes.quantidade)) },
@@ -179,7 +178,6 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         grafico: {
           titulo: 'Metros por dia',
           series: [
-            { nome: 'Corte', cor: '#64748b', valores: serie.geracao.corte },
             { nome: 'Carregado', cor: '#059669', valores: serie.geracao.carregado },
             { nome: 'Deixado na via', cor: '#db2777', valores: serie.geracao.deixado },
           ],

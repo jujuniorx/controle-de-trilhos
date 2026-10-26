@@ -186,7 +186,6 @@ export function EquipesGeracao({ equipes, cor }: { equipes: EquipeGeracaoRelator
           <thead>
             <tr className="text-[11px] uppercase tracking-wide text-slate-500">
               <th className="pb-1 text-left font-semibold">Equipe</th>
-              <th className="pb-1 text-right font-semibold">Corte</th>
               <th className="pb-1 text-right font-semibold">Carregado</th>
               <th className="pb-1 text-right font-semibold">Deixado na via</th>
               <th className="pb-1 text-right font-semibold">Barras</th>
@@ -196,10 +195,6 @@ export function EquipesGeracao({ equipes, cor }: { equipes: EquipeGeracaoRelator
             {equipes.map((e) => (
               <tr key={e.rotulo} className="border-t border-slate-100">
                 <td className="py-2 font-semibold text-slate-900">{e.rotulo}</td>
-                <td className="py-2 text-right tabular-nums">
-                  <span className="font-bold" style={{ color: cor }}>{fmtM(e.semana.corteM)}</span>
-                  <span className="block text-[11px] text-slate-500">dia {fmtM(e.dia.corteM)}</span>
-                </td>
                 <td className="py-2 text-right tabular-nums">
                   <span className="font-bold" style={{ color: cor }}>{fmtM(e.semana.carregamentoM)}</span>
                   <span className="block text-[11px] text-slate-500">dia {fmtM(e.dia.carregamentoM)}</span>
