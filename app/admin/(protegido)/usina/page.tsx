@@ -24,7 +24,6 @@ import { ehIsoValido, faixaSemanaSegSex, type Periodo } from '@/lib/usina/period
 import { FormularioUsina } from '@/components/usina/FormularioUsina';
 import { observacoesDoPeriodo } from '@/lib/services/observacaoSetor';
 import { ObservacoesDoSetor } from '@/components/usina/ObservacoesDoSetor';
-import { salvarObservacoesSetoresAction } from './actions';
 import { EscalaGrade } from '@/components/usina/EscalaGrade';
 import { lerEscala, diasDaSemana } from '@/lib/usina/escala';
 import { montarEscalaDaSemana, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, geracaoDaSemana, trilheirosDaSemana } from '@/lib/services/usina';
