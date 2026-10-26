@@ -45,7 +45,7 @@ export async function listarSaidasCarretas(busca: string, limite = 100): Promise
       take: limite,
       select: {
         id: true, placaCavalo: true, placaCarreta: true, placaCarreta2: true, origem: true,
-        motoristaNome: true, transportadora: true, numeroDocumento: true,
+        motoristaNome: true, transportadora: true,
         saidaEm: true, saidaPor: true,
       },
     }),
@@ -70,7 +70,7 @@ export async function listarSaidasCarretas(busca: string, limite = 100): Promise
       cidade: l.origem,
       motoristaNome: l.motoristaNome,
       transportadora: l.transportadora,
-      numeroDocumento: l.numeroDocumento,
+      numeroDocumento: null,
       saidaEm: l.saidaEm!,
       saidaPor: l.saidaPor,
     })),
