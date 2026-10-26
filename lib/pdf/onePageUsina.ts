@@ -259,14 +259,14 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   });
 
   // Linha 1: Estaleiro, Geração e Recolhimento serra, lado a lado.
-  const colunas = 3;
+  const nSetores = 3;
   const gapC = 12;
-  const wSet = (L - 2 * M - (colunas - 1) * gapC) / colunas;
+  const wSet = (L - 2 * M - (nSetores - 1) * gapC) / nSetores;
   const altSet = 166;
   const topoGrade = topoRes - altRes - 16;
   const porTitulo = (t: string) => d.setores.find((s) => s.titulo === t);
   const linha1 = d.setores.filter((s) => s.titulo !== 'Caminhão de solda' && s.titulo !== 'Trilheiros');
-  linha1.slice(0, colunas).forEach((s, i) => {
+  linha1.slice(0, nSetores).forEach((s, i) => {
     desenharSetor(p, s, M + i * (wSet + gapC), topoGrade, wSet, altSet, false, d.rotulosDias, mensal, colunas);
   });
 
