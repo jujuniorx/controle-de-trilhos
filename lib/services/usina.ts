@@ -476,21 +476,28 @@ export const BARRAS_POR_TRILHEIRO = 40;
 export async function trilheirosDaSemana(semana: string) {
   const fim = somarDias(semana, 6);
   const linhas = await prisma.trilheiroDia.findMany({ where: { data: { gte: dataBanco(semana), lte: dataBanco(fim) } } });
+  // Último lançamento de cada trilheiro antes da semana: o dia a dia continua a partir dele (B.O., partida, local, barras).
+  const anteriores = await Promise.all(
+    TRILHEIROS.map((t) => prisma.trilheiroDia.findFirst({ where: { trilheiro: t, data: { lt: dataBanco(semana) } }, orderBy: { data: 'desc' } })),
+  );
+  const anteriorDe = Object.fromEntries(TRILHEIROS.map((t, i) => [t, anteriores[i] ?? null]));
   return [0, 1, 2, 3, 4, 5, 6].map((i) => {
     const d = somarDias(semana, i);
     const trilheiros = Object.fromEntries(
       TRILHEIROS.map((t) => {
         const r = linhas.find((x) => iso(x.data) === d && x.trilheiro === t);
+        // Dia sem lançamento: mostra o que valia na última semana, para só preencher o que mudou.
+        const base = r ?? anteriorDe[t];
         return [
           t,
           {
-            boEm: iso(r?.boEm),
-            partidaEm: iso(r?.partidaEm),
-            local: r?.local ?? null,
+            boEm: iso(base?.boEm),
+            partidaEm: iso(base?.partidaEm),
+            local: base?.local ?? null,
             descarregadas: r?.descarregadas ?? null,
-            total: r?.total ?? null,
-            programacao: r?.programacao ?? null,
-            observacao: r?.observacao ?? null,
+            total: base?.total ?? null,
+            programacao: base?.programacao ?? null,
+            observacao: base?.observacao ?? null,
           },
         ];
       }),
