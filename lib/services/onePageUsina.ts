@@ -17,7 +17,7 @@ const soma = <T,>(lista: T[], f: (x: T) => number) => lista.reduce((a, x) => a +
 const metros = (v: number) => `${fmtMetros(v)} m`;
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
-export interface LinhaRelatorio { rotulo: string; dia: string; mes: string }
+export interface LinhaRelatorio { rotulo: string; dia: string; semana: string; mes: string }
 export interface GraficoRelatorio { titulo: string; series: { nome: string; cor: string; valores: number[] }[] }
 export interface SetorRelatorio { titulo: string; cor: string; linhas: LinhaRelatorio[]; grafico: GraficoRelatorio | null }
 
@@ -31,7 +31,7 @@ export interface EquipeGeracaoRelatorio {
 export interface DadosRelatorio {
   data: string;
   rotulosDias: string[];
-  resumo: { rotulo: string; cor: string; dia: string; mes: string; grupo: string }[];
+  resumo: { rotulo: string; cor: string; dia: string; semana: string; mes: string; grupo: string }[];
   setores: SetorRelatorio[];
   equipesGeracao: EquipeGeracaoRelatorio[];
 }
@@ -43,12 +43,14 @@ export const CORES_SETOR = { estaleiro: '#2563eb', geracao: '#059669', serra: '#
 export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio> {
   const serie = await seriesDaSemana(data);
   const { inicio, fim } = intervaloDoPeriodo('semana', data);
+  const mes = intervaloDoPeriodo('mes', data);
   const dias = serie.rotulos.length;
 
   const trilRel = await montarTrilheirosRelatorio(data);
-  const [estD, estM, gerD, gerM, camD, camM, serraMes] = await Promise.all([
+  const [estD, estS, estM, gerD, gerS, camD, camS, serraSem, serraMesRows] = await Promise.all([
     estaleiroDoPeriodo('dia', data),
     estaleiroDoPeriodo('semana', data),
+    estaleiroDoPeriodo('mes', data),
     geracaoDoPeriodo('dia', data),
     geracaoDoPeriodo('semana', data),
     caminhoesDoPeriodo('dia', data),
@@ -57,30 +59,36 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       where: { data: { gte: new Date(`${inicio}T00:00:00Z`), lte: new Date(`${fim}T00:00:00Z`) } },
       select: { data: true, ativo: true, barras: true },
     }),
+    prisma.composicaoDia.findMany({
+      where: { data: { gte: new Date(`${mes.inicio}T00:00:00Z`), lte: new Date(`${data}T00:00:00Z`) } },
+      select: { data: true, ativo: true, barras: true },
+    }),
   ]);
 
   // Serra (modelo do informativo): barras de W61 e W62 × 10,5 m, estimativa em metros.
-  const barrasDia = (ativo: string) => serraMes.filter((r) => r.ativo === ativo && iso(r.data) === data).reduce((t, r) => t + (r.barras ?? 0), 0);
-  const barrasSemana = (ativo: string) => serraMes.filter((r) => r.ativo === ativo).reduce((t, r) => t + (r.barras ?? 0), 0);
+  const barrasDia = (ativo: string) => serraSem.filter((r) => r.ativo === ativo && iso(r.data) === data).reduce((t, r) => t + (r.barras ?? 0), 0);
+  const barrasSemana = (ativo: string) => serraSem.filter((r) => r.ativo === ativo).reduce((t, r) => t + (r.barras ?? 0), 0);
+  const barrasMes = (ativo: string) => serraMesRows.filter((r) => r.ativo === ativo).reduce((t, r) => t + (r.barras ?? 0), 0);
   const metrosDeBarras = (b: number) => Math.round(b * METROS_POR_BARRA * 100) / 100;
   const serraDiaSerie = (ativo: string) => {
     const valores = new Array<number>(dias).fill(0);
-    for (const r of serraMes) {
+    for (const r of serraSem) {
       const i = Math.round((Date.parse(`${iso(r.data)}T00:00:00Z`) - Date.parse(`${inicio}T00:00:00Z`)) / 86400000);
       if (r.ativo === ativo && i >= 0 && i < dias) valores[i] += metrosDeBarras(r.barras ?? 0);
     }
     return valores;
   };
   const serraTotalDia = COMPOSICOES.reduce((t, a) => t + metrosDeBarras(barrasDia(a)), 0);
-  const serraTotalMes = COMPOSICOES.reduce((t, a) => t + metrosDeBarras(barrasSemana(a)), 0);
+  const serraTotalSemana = COMPOSICOES.reduce((t, a) => t + metrosDeBarras(barrasSemana(a)), 0);
+  const serraTotalMes = COMPOSICOES.reduce((t, a) => t + metrosDeBarras(barrasMes(a)), 0);
 
   const geraDia = (f: (l: (typeof gerD.porLider)[number]) => number) => soma(gerD.porLider, f);
-  const geraMes = (f: (l: (typeof gerM.porLider)[number]) => number) => soma(gerM.porLider, f);
+  const geraSem = (f: (l: (typeof gerS.porLider)[number]) => number) => soma(gerS.porLider, f);
 
   return {
     data,
     rotulosDias: serie.rotulos,
-    equipesGeracao: gerM.porLider.map((l) => {
+    equipesGeracao: gerS.porLider.map((l) => {
       const d = gerD.porLider.find((x) => x.valor === l.valor)?.periodo;
       return {
         rotulo: l.rotulo,
@@ -89,27 +97,44 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       };
     }),
     resumo: [
-      { rotulo: 'Estaleiro de solda', cor: CORES_SETOR.estaleiro, dia: `${estD.totais.soldas} UND`, mes: `${estM.totais.soldas} UND`, grupo: 'Estaleiro de solda' },
+      {
+        rotulo: 'Estaleiro de solda',
+        cor: CORES_SETOR.estaleiro,
+        dia: `${estD.totais.soldas} UND`,
+        semana: `${estS.totais.soldas} UND`,
+        mes: `${estM.totais.soldas} UND`,
+        grupo: 'Estaleiro de solda',
+      },
       {
         rotulo: 'Geração de trilho',
         cor: CORES_SETOR.geracao,
         dia: metros(geraDia((l) => l.periodo.carregamentoM + l.periodo.deixadaViaM)),
-        mes: metros(geraMes((l) => l.mes.carregamentoM + l.mes.deixadaViaM)),
+        semana: metros(geraSem((l) => l.periodo.carregamentoM + l.periodo.deixadaViaM)),
+        mes: metros(geraSem((l) => l.mes.carregamentoM + l.mes.deixadaViaM)),
         grupo: 'Geração de trilho',
       },
-      { rotulo: 'Serra (estimado)', cor: CORES_SETOR.serra, dia: metros(serraTotalDia), mes: metros(serraTotalMes), grupo: 'Recolhimento serra' },
+      {
+        rotulo: 'Serra (estimado)',
+        cor: CORES_SETOR.serra,
+        dia: metros(serraTotalDia),
+        semana: metros(serraTotalSemana),
+        mes: metros(serraTotalMes),
+        grupo: 'Recolhimento serra',
+      },
       ...['CW01', 'CW02'].map((cw, i) => ({
         rotulo: cw,
         cor: i === 0 ? CORES_SETOR.caminhao : '#84cc16',
         dia: `${camD.find((c) => c.caminhao === cw)?.periodo.producao ?? 0} UND`,
-        mes: `${camM.find((c) => c.caminhao === cw)?.mes.producao ?? 0} UND`,
+        semana: `${camS.find((c) => c.caminhao === cw)?.periodo.producao ?? 0} UND`,
+        mes: `${camS.find((c) => c.caminhao === cw)?.mes.producao ?? 0} UND`,
         grupo: 'Caminhão de solda',
       })),
       {
         rotulo: 'Trilheiros',
         cor: CORES_SETOR.trilheiros,
         dia: `${soma(trilRel.equipes, (e) => e.descarregadasDia)} barras`,
-        mes: `${trilRel.descarregadas} de ${trilRel.totalBarras}`,
+        semana: `${trilRel.descarregadas} de ${trilRel.totalBarras}`,
+        mes: '—',
         grupo: 'Trilheiros',
       },
     ],
@@ -118,11 +143,11 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         titulo: 'Estaleiro de solda',
         cor: CORES_SETOR.estaleiro,
         linhas: [
-          { rotulo: 'Soldas (UND)', dia: String(estD.totais.soldas), mes: String(estM.totais.soldas) },
-          { rotulo: 'Cortes (UND)', dia: String(estD.totais.cortes), mes: String(estM.totais.cortes) },
-          { rotulo: 'Tampões carregados (UND)', dia: String(estD.carreta.tampoes), mes: String(estM.carreta.tampoes) },
-          { rotulo: 'Trilho novo carregado (m)', dia: metros(estD.carreta.trilhoNovoM), mes: metros(estM.carreta.trilhoNovoM) },
-          { rotulo: 'Sucata saída (t)', dia: `${fmtPeso(estD.carreta.sucataT)} t`, mes: `${fmtPeso(estM.carreta.sucataT)} t` },
+          { rotulo: 'Soldas (UND)', dia: String(estD.totais.soldas), semana: String(estS.totais.soldas), mes: String(estM.totais.soldas) },
+          { rotulo: 'Cortes (UND)', dia: String(estD.totais.cortes), semana: String(estS.totais.cortes), mes: String(estM.totais.cortes) },
+          { rotulo: 'Tampões carregados (UND)', dia: String(estD.carreta.tampoes), semana: String(estS.carreta.tampoes), mes: String(estM.carreta.tampoes) },
+          { rotulo: 'Trilho novo carregado (m)', dia: metros(estD.carreta.trilhoNovoM), semana: metros(estS.carreta.trilhoNovoM), mes: metros(estM.carreta.trilhoNovoM) },
+          { rotulo: 'Sucata saída (t)', dia: `${fmtPeso(estD.carreta.sucataT)} t`, semana: `${fmtPeso(estS.carreta.sucataT)} t`, mes: `${fmtPeso(estM.carreta.sucataT)} t` },
         ],
         grafico: {
           titulo: 'Soldas e cortes por dia',
@@ -136,10 +161,10 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         titulo: 'Geração de trilho',
         cor: CORES_SETOR.geracao,
         linhas: [
-          { rotulo: 'Corte (m)', dia: metros(geraDia((l) => l.periodo.corteM)), mes: metros(geraMes((l) => l.mes.corteM)) },
-          { rotulo: 'Carregado (m)', dia: metros(geraDia((l) => l.periodo.carregamentoM)), mes: metros(geraMes((l) => l.mes.carregamentoM)) },
-          { rotulo: 'Deixado na via (m)', dia: metros(geraDia((l) => l.periodo.deixadaViaM)), mes: metros(geraMes((l) => l.mes.deixadaViaM)) },
-          { rotulo: 'Barras (UND)', dia: String(geraDia((l) => l.periodo.quantidade)), mes: String(geraMes((l) => l.mes.quantidade)) },
+          { rotulo: 'Corte (m)', dia: metros(geraDia((l) => l.periodo.corteM)), semana: metros(geraSem((l) => l.periodo.corteM)), mes: metros(geraSem((l) => l.mes.corteM)) },
+          { rotulo: 'Carregado (m)', dia: metros(geraDia((l) => l.periodo.carregamentoM)), semana: metros(geraSem((l) => l.periodo.carregamentoM)), mes: metros(geraSem((l) => l.mes.carregamentoM)) },
+          { rotulo: 'Deixado na via (m)', dia: metros(geraDia((l) => l.periodo.deixadaViaM)), semana: metros(geraSem((l) => l.periodo.deixadaViaM)), mes: metros(geraSem((l) => l.mes.deixadaViaM)) },
+          { rotulo: 'Barras (UND)', dia: String(geraDia((l) => l.periodo.quantidade)), semana: String(geraSem((l) => l.periodo.quantidade)), mes: String(geraSem((l) => l.mes.quantidade)) },
         ],
         grafico: {
           titulo: 'Metros por dia',
@@ -155,10 +180,10 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         cor: CORES_SETOR.serra,
         linhas: [
           ...COMPOSICOES.flatMap((a) => [
-            { rotulo: `${rotuloComposicao(a)} · barras`, dia: String(barrasDia(a)), mes: String(barrasSemana(a)) },
-            { rotulo: `${a} · metros estimados`, dia: metros(metrosDeBarras(barrasDia(a))), mes: metros(metrosDeBarras(barrasSemana(a))) },
+            { rotulo: `${rotuloComposicao(a)} · barras`, dia: String(barrasDia(a)), semana: String(barrasSemana(a)), mes: String(barrasMes(a)) },
+            { rotulo: `${a} · metros estimados`, dia: metros(metrosDeBarras(barrasDia(a))), semana: metros(metrosDeBarras(barrasSemana(a))), mes: metros(metrosDeBarras(barrasMes(a))) },
           ]),
-          { rotulo: 'Total estimado (m)', dia: metros(serraTotalDia), mes: metros(serraTotalMes) },
+          { rotulo: 'Total estimado (m)', dia: metros(serraTotalDia), semana: metros(serraTotalSemana), mes: metros(serraTotalMes) },
         ],
         grafico: {
           titulo: 'Metros estimados por dia (barras × 10,5)',
@@ -172,12 +197,14 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       {
         titulo: 'Caminhão de solda',
         cor: CORES_SETOR.caminhao,
-        linhas: camM.flatMap((c) => {
+        linhas: camS.map((c) => {
           const d = camD.find((x) => x.caminhao === c.caminhao);
-          // Uma linha por caminhao: produção / perda (em unidades), sem repetir o nome.
-          return [
-            { rotulo: `${c.caminhao} (produção / perda)`, dia: `${d?.periodo.producao ?? 0} / ${d?.periodo.perda ?? 0}`, mes: `${c.mes.producao} / ${c.mes.perda}` },
-          ];
+          return {
+            rotulo: `${c.caminhao} (produção / perda)`,
+            dia: `${d?.periodo.producao ?? 0} / ${d?.periodo.perda ?? 0}`,
+            semana: `${c.periodo.producao} / ${c.periodo.perda}`,
+            mes: `${c.mes.producao} / ${c.mes.perda}`,
+          };
         }),
         grafico: {
           titulo: 'Produção por dia',
@@ -193,7 +220,8 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         linhas: trilRel.equipes.map((e) => ({
           rotulo: `${e.trilheiro} · B.O. ${brDaIso(e.bo)} (${e.giroDias ?? '—'} dias) · Partida ${brDaIso(e.partida)} (${e.diasDesdePartida ?? '—'} dias) · ${e.local ?? '—'}`,
           dia: `+${e.descarregadasDia}`,
-          mes: `${e.descarregadas} / ${e.total}`,
+          semana: `${e.descarregadas} / ${e.total}`,
+          mes: '—',
         })),
         grafico: null,
       },

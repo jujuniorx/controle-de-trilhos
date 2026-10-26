@@ -65,7 +65,7 @@ export function gerarSetorUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio,
     const gap = 10;
     const wRes = (L - 2 * M - (cards.length - 1) * gap) / cards.length;
     const topoCards = H - 70;
-    const altRes = 56;
+    const altRes = 64;
     cards.forEach((r, i) => {
       const x = M + i * (wRes + gap);
       p.arredondado(x + 1, topoCards - altRes - 1.2, wRes, altRes, 9, SOMBRA);
@@ -76,7 +76,9 @@ export function gerarSetorUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio,
       p.texto('Do dia', x + 8, topoCards - 30, 6.5, 'normal', CINZA);
       p.texto(r.dia, x + 8, topoCards - 46, 10, 'negrito', TINTA);
       p.texto('Da semana', meio, topoCards - 30, 6.5, 'normal', CINZA);
-      p.texto(r.mes, meio, topoCards - 46, 10, 'negrito', hex(r.cor));
+      p.texto(r.semana, meio, topoCards - 46, 10, 'negrito', hex(r.cor));
+      p.texto('No mês', x + 8, topoCards - 55, 6.5, 'normal', CINZA);
+      p.texto(r.mes, x + 42, topoCards - 55, 8, 'negrito', hex(r.cor));
     });
     topoCorpo = topoCards - altRes - 16;
   }

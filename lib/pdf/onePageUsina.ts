@@ -59,19 +59,22 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   p.retangulo(x, topo - 22, w, 8, hex(s.cor));
   p.texto(s.titulo.toUpperCase(), x + 8, topo - 14, 8, 'negrito', BRANCO);
 
-  // Tabela Dia | Mês. No cartão largo ela fica à esquerda e o gráfico à direita.
-  const xDia = largo ? x + 330 : x + w - 92;
-  const xMes = largo ? x + 420 : x + w - 10;
+  // Tabela Dia | Semana | No mês. No cartão largo ela fica à esquerda e o gráfico à direita.
+  const xMes = largo ? x + 440 : x + w - 8;
+  const xSem = xMes - 66;
+  const xDia = xSem - 66;
   let y = topo - 32;
   textoDireita(p, 'DIA', xDia, y, 6.5, 'negrito', CINZA);
-  textoDireita(p, 'SEMANA', xMes, y, 6.5, 'negrito', CINZA);
+  textoDireita(p, 'SEMANA', xSem, y, 6.5, 'negrito', CINZA);
+  textoDireita(p, 'NO MÊS', xMes, y, 6.5, 'negrito', CINZA);
   y -= 6;
   p.linha(x + 8, y, xMes + 2, y, LINHA, 0.6);
   s.linhas.forEach((linha, i) => {
     y -= 12;
     if (i % 2 === 1) p.retangulo(x + 4, y - 3.5, w - 8, 12, ZEBRA);
-    p.texto(linha.rotulo, x + 8, y, 8, 'normal', TINTA);
+    p.texto(linha.rotulo, x + 8, y, 7.5, 'normal', TINTA);
     textoDireita(p, linha.dia, xDia, y, 8, 'negrito', TINTA);
+    textoDireita(p, linha.semana, xSem, y, 8, 'negrito', TINTA);
     textoDireita(p, linha.mes, xMes, y, 8, 'negrito', hex(s.cor));
   });
 
@@ -126,7 +129,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const gap = 10;
   const wRes = (L - 2 * M - (d.resumo.length - 1) * gap) / d.resumo.length;
   const topoRes = H - 70;
-  const altRes = 56;
+  const altRes = 64;
   d.resumo.forEach((r, i) => {
     const x = M + i * (wRes + gap);
     p.arredondado(x + 1, topoRes - altRes - 1.2, wRes, altRes, 9, SOMBRA);
@@ -135,9 +138,11 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
     p.texto(r.rotulo.toUpperCase(), x + 18, topoRes - 14, 7, 'negrito', TINTA);
     const meio = x + wRes / 2 + 4;
     p.texto('Do dia', x + 8, topoRes - 30, 6.5, 'normal', CINZA);
-    p.texto(r.dia, x + 8, topoRes - 46, 10, 'negrito', TINTA);
+    p.texto(r.dia, x + 8, topoRes - 44, 9, 'negrito', TINTA);
     p.texto('Da semana', meio, topoRes - 30, 6.5, 'normal', CINZA);
-    p.texto(r.mes, meio, topoRes - 46, 10, 'negrito', hex(r.cor));
+    p.texto(r.semana, meio, topoRes - 44, 9, 'negrito', hex(r.cor));
+    p.texto('No mês', x + 8, topoRes - 55, 6.5, 'normal', CINZA);
+    p.texto(r.mes, x + 42, topoRes - 55, 8, 'negrito', hex(r.cor));
   });
 
   // Linha 1: Estaleiro, Geração e Recolhimento serra, lado a lado.
@@ -160,7 +165,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const caminhao = porTitulo('Caminhão de solda');
   if (caminhao) desenharSetor(p, caminhao, M, topoLinha2, larguraTotal, altCaminhao, true, d.rotulosDias);
   // Trilheiros: a mesma tabela do PDF por setor, em versão compacta.
-  const altTrilheiros = Math.max(90, 46 + Math.max(1, tril.equipes.length) * 30 + 8);
+  const altTrilheiros = Math.max(90, 46 + Math.max(1, tril.equipes.length) * 28 + 6);
   desenharTrilheiros(p, tril, M, topoLinha2 - altCaminhao - gapLinha, larguraTotal, altTrilheiros, true);
 
   const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
