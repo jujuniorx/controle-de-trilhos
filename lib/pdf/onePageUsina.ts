@@ -142,9 +142,12 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   const yPrimeiraLinha = topo - 38;
   const fimLinhas = yPrimeiraLinha - s.linhas.length * altLinhaSetor - 5;
   // Faixas zebradas primeiro; depois as caixas das colunas, por cima; por fim os textos.
-  s.linhas.forEach((_, i) => {
-    if (i % 2 === 1) p.retangulo(x + 4, yPrimeiraLinha - (i + 1) * altLinhaSetor - 4, w - 8, altLinhaSetor, ZEBRA);
-  });
+  // Com as caixas das colunas, a zebra some: ela aparecia cortada nas bordas das caixas e deixava o cartão quebrado.
+  if (ativas.length === 0) {
+    s.linhas.forEach((_, i) => {
+      if (i % 2 === 1) p.retangulo(x + 4, yPrimeiraLinha - (i + 1) * altLinhaSetor - 4, w - 8, altLinhaSetor, ZEBRA);
+    });
+  }
   ativas.forEach((c) => {
     const xr = xDe(c);
     p.arredondado(xr - 52, fimLinhas, 60, topo - 26 - fimLinhas, 4, c === 'mes' ? hex('#f1f5f9') : BRANCO, LINHA);
