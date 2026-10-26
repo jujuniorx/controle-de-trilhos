@@ -130,7 +130,8 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   // Tabela: só as colunas escolhidas (Dia, Semana, No mês), cada uma numa caixa própria.
   // No cartão largo a tabela fica à esquerda e o gráfico à direita.
   const ativas = (['dia', 'semana', 'mes'] as Coluna[]).filter((c) => colunas.includes(c) && (!mensal || c === 'mes'));
-  const xMes = largo ? x + 440 : x + w - 8;
+  // A caixa da última coluna avança 6pt à direita do alinhamento; com 14pt de recuo, ela fica 8pt dentro do cartão.
+  const xMes = largo ? x + 440 : x + w - 14;
   const passo = 66;
   // Borda direita de cada coluna: a última ativa encosta em xMes e as anteriores andam para a esquerda.
   const xDe = (c: Coluna) => xMes - (ativas.length - 1 - ativas.indexOf(c)) * passo;
