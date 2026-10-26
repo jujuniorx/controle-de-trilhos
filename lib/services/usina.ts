@@ -81,8 +81,8 @@ export async function carregamentoCarretaDoPeriodo(inicio: string, fim: string) 
   let trilhoNovoM = 0;
   let sucataT = 0;
   for (const g of grupos) {
-    // Tampão = reemprego G1 ou G2.
-    if (g.tipoMaterial === 'REEMPREGO' && (g.classificacao === 'G1' || g.classificacao === 'G2')) tampoes++;
+    // Tampão = todo reemprego G1, G2 ou G3.
+    if (g.tipoMaterial === 'REEMPREGO' && (g.classificacao === 'G1' || g.classificacao === 'G2' || g.classificacao === 'G3')) tampoes++;
     if (g.tipoMaterial === 'NOVO') trilhoNovoM += Number(g.metrosTotal);
     if (g.tipoMaterial === 'SUCATA') sucataT += Number(g.pesoInformado ?? g.pesoCalculado ?? 0);
   }

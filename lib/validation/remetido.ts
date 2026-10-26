@@ -116,10 +116,6 @@ const grupoRemetidoReempregoSchema = grupoRemetidoBaseSchema
     classificacao: z.enum(CLASSIFICACOES_REEMPREGO_REMETIDO),
     tampao: z.boolean().optional(),
   })
-  .refine((g) => !g.tampao || g.classificacao !== 'G3', {
-    message: 'Tampão só pode ser classificado como G1 ou G2.',
-    path: ['classificacao'],
-  })
   .refine(
     (g) => g.medicoes.every((m) => validarReemprego(m.comprimento)),
     'Toda medição de reemprego precisa ter comprimento igual ou maior que 7 m.',
