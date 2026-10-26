@@ -376,7 +376,8 @@ export async function montarTrilheirosRelatorio(data: string): Promise<Trilheiro
         observacao: r.observacao ?? null,
         total,
         descarregadas,
-        descarregadasDia: Math.max(0, descarregadas - baseDoGiro),
+        // "Do dia" só vale se houve lançamento na própria data do relatório; senão mostra zero, e não o último dia lançado.
+        descarregadasDia: r.data.toISOString().slice(0, 10) === data ? Math.max(0, descarregadas - baseDoGiro) : 0,
         status: 'Em execução',
       };
     }),
