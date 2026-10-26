@@ -172,7 +172,7 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
 }
 
 /** Indicador de setor: o valor do dia e o da semana em blocos separados. */
-export function Resumo({ rotulo, cor, dia, semana, mes, mensal = false, linhas, colunas = TODAS }: { rotulo: string; cor: string; dia: string; semana: string; mes: string; mensal?: boolean; linhas?: { rotulo: string; valor: string }[]; colunas?: Coluna[] }) {
+export function Resumo({ rotulo, cor, dia, semana, mes, mensal = false, linhas, colunas = TODAS, rotuloDia = 'Do dia' }: { rotulo: string; cor: string; dia: string; semana: string; mes: string; mensal?: boolean; linhas?: { rotulo: string; valor: string }[]; colunas?: Coluna[]; rotuloDia?: string }) {
   if (linhas && linhas.length > 0) {
     return (
       <div className="rounded-lg border border-slate-200 bg-white p-3" style={{ borderTop: `3px solid ${cor}` }}>
@@ -202,7 +202,7 @@ export function Resumo({ rotulo, cor, dia, semana, mes, mensal = false, linhas, 
       <p className="text-[11px] font-bold uppercase tracking-wide text-slate-600">{rotulo}</p>
       <dl className="mt-2 divide-y divide-slate-100 text-sm">
         {[
-          { rotulo: 'Do dia', valor: dia, cor: '#0f172a', c: 'dia' as Coluna },
+          { rotulo: rotuloDia, valor: dia, cor: '#0f172a', c: 'dia' as Coluna },
           { rotulo: 'Da semana', valor: semana, cor, c: 'semana' as Coluna },
           { rotulo: 'No mês', valor: mes, cor, c: 'mes' as Coluna },
         ].filter((l) => colunas.includes(l.c)).map((l) => (

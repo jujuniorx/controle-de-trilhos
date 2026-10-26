@@ -204,9 +204,9 @@ export function desenharResumoCartao(p: PaginaPdf, r: { rotulo: string; cor: str
 }
 
 /** Linhas de um cartão do topo: as três padrão (Do dia, Da semana, No mês) ou as linhas próprias do cartão (trilheiros). */
-export function desenharLinhasResumo(p: PaginaPdf, r: { cor: string; dia: string; semana: string; mes: string; linhas?: { rotulo: string; valor: string }[] }, x: number, topo: number, w: number, colunas: Coluna[] = TODAS_COLUNAS) {
+export function desenharLinhasResumo(p: PaginaPdf, r: { cor: string; dia: string; semana: string; mes: string; linhas?: { rotulo: string; valor: string }[] }, x: number, topo: number, w: number, colunas: Coluna[] = TODAS_COLUNAS, rotuloDia = 'Do dia') {
   const padrao: { c: Coluna; rot: string; val: string; cor: ReturnType<typeof hex> }[] = [
-    { c: 'dia', rot: 'Do dia', val: r.dia, cor: TINTA },
+    { c: 'dia', rot: rotuloDia, val: r.dia, cor: TINTA },
     { c: 'semana', rot: 'Da semana', val: r.semana, cor: hex(r.cor) },
     { c: 'mes', rot: 'No mês', val: r.mes, cor: hex(r.cor) },
   ];
@@ -251,7 +251,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
     p.arredondado(x + 8, topoRes - 15, 6, 6, 3, hex(r.cor));
     p.texto(r.rotulo.toUpperCase(), x + 18, topoRes - 14, 7, 'negrito', TINTA);
     if (mensal && r.linhas?.length) {
-      desenharLinhasResumo(p, r, x, topoRes, wRes, colunas);
+      desenharLinhasResumo(p, r, x, topoRes, wRes, colunas, d.rotuloDia);
       return;
     }
     if (mensal) {
@@ -260,7 +260,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
       return;
     }
     // Três linhas iguais: rótulo à esquerda, valor à direita, mesmo tamanho e a mesma ordem em todos os cartões.
-    desenharLinhasResumo(p, r, x, topoRes, wRes, colunas);
+    desenharLinhasResumo(p, r, x, topoRes, wRes, colunas, d.rotuloDia);
   });
 
   // Linha 1: Estaleiro, Geração e Recolhimento serra, lado a lado.

@@ -9,7 +9,7 @@ import {
 } from '@/lib/services/usina';
 import { seriesDaSemana } from '@/lib/services/usinaGraficos';
 import { prisma } from '@/lib/db';
-import { intervaloDoPeriodo } from '@/lib/usina/periodo';
+import { intervaloDoPeriodo, rotuloDoDia } from '@/lib/usina/periodo';
 import { observacoesDoPeriodo } from '@/lib/services/observacaoSetor';
 import { somarDias } from '@/lib/usina/diasUteis';
 import { METROS_POR_BARRA } from '@/lib/domain/informativo';
@@ -52,6 +52,8 @@ export interface EquipeGeracaoRelatorio {
 export interface DadosRelatorio {
   data: string;
   rotulosDias: string[];
+  /** Nome da coluna "do dia" com o dia da semana, ex.: "Do dia (sexta-feira, 23/10)". */
+  rotuloDia: string;
   /** Linhas do cartão de topo; quando existem (trilheiros), trocam Do dia / Da semana / No mês. */
   resumo: { rotulo: string; cor: string; dia: string; semana: string; mes: string; grupo: string; linhas?: { rotulo: string; valor: string }[] }[];
   setores: SetorRelatorio[];
@@ -131,6 +133,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
   return {
     data,
     observacoes,
+    rotuloDia: rotuloDoDia(data),
     rotulosDias: serie.rotulos,
     equipesGeracao: gerS.porLider.map((l) => {
       const d = gerD.porLider.find((x) => x.valor === l.valor)?.periodo;
