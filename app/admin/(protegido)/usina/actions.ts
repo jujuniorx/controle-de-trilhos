@@ -296,7 +296,7 @@ export async function salvarCaminhoesSemanaAction(_: ResultadoUsina | undefined,
   return { ok: true };
 }
 
-/** Lança o acompanhamento dos trilheiros da semana (segunda a quinta), de uma vez. */
+/** Lança o acompanhamento dos trilheiros da semana (segunda a domingo), de uma vez. */
 export async function salvarTrilheirosSemanaAction(_: ResultadoUsina | undefined, formData: FormData): Promise<ResultadoUsina> {
   await requireAdmin();
   const semana = dataDoForm(formData.get('semana'));

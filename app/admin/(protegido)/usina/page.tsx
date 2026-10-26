@@ -63,7 +63,7 @@ function Cartao({ rotulo, valor }: { rotulo: string; valor: string | number }) {
   );
 }
 
-const NOME_DIA = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
+const NOME_DIA = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
 
 export default async function UsinaPage({ searchParams }: { searchParams: Promise<{ periodo?: string; data?: string }> }) {
   const params = await searchParams;

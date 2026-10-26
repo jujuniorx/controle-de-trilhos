@@ -472,11 +472,11 @@ export async function zerarTrilheiro(trilheiro: (typeof TRILHEIROS)[number]) {
 /** Barras que cada trilheiro leva em um giro. */
 export const BARRAS_POR_TRILHEIRO = 40;
 
-/** Acompanhamento de segunda a quinta: por trilheiro, o que foi lançado em cada dia. */
+/** Acompanhamento da semana (segunda a domingo): por trilheiro, o que foi lançado em cada dia. */
 export async function trilheirosDaSemana(semana: string) {
-  const fim = somarDias(semana, 3);
+  const fim = somarDias(semana, 6);
   const linhas = await prisma.trilheiroDia.findMany({ where: { data: { gte: dataBanco(semana), lte: dataBanco(fim) } } });
-  return [0, 1, 2, 3].map((i) => {
+  return [0, 1, 2, 3, 4, 5, 6].map((i) => {
     const d = somarDias(semana, i);
     const trilheiros = Object.fromEntries(
       TRILHEIROS.map((t) => {
