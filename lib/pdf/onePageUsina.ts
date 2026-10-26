@@ -1,6 +1,7 @@
 import { PaginaPdf, A4_PAISAGEM, montarPdfVarias, larguraTexto } from '@/lib/pdf/simples';
-import type { DadosRelatorio, GraficoRelatorio, SetorRelatorio } from '@/lib/services/onePageUsina';
+import type { DadosRelatorio, GraficoRelatorio, SetorRelatorio, TrilheirosRelatorio } from '@/lib/services/onePageUsina';
 import { faixaSemanaSegSex } from '@/lib/usina/periodo';
+import { desenharTrilheiros } from '@/lib/pdf/tabelaTrilheiros';
 
 type Cor = [number, number, number];
 
@@ -100,11 +101,11 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
     lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
   }
   // Sem título próprio: a legenda já diz as séries, e o gráfico fica abaixo da tabela.
-  desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 60, rotulos);
+  desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 40, rotulos);
   textoDireita(p, 'Segunda a quinta', x + w - 8, base + 12, 6, 'negrito', CINZA);
 }
 
-export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
+export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio): Buffer {
   const p = new PaginaPdf();
   p.retangulo(0, 0, L, H, BRANCO);
   // Faixa de marca no topo
@@ -143,7 +144,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
   const colunas = 3;
   const gapC = 12;
   const wSet = (L - 2 * M - (colunas - 1) * gapC) / colunas;
-  const altSet = 190;
+  const altSet = 180;
   const topoGrade = topoRes - altRes - 16;
   const porTitulo = (t: string) => d.setores.find((s) => s.titulo === t);
   const linha1 = d.setores.filter((s) => s.titulo !== 'Caminhão de solda' && s.titulo !== 'Trilheiros');
@@ -153,14 +154,14 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio): Buffer {
 
   // Linhas 2 e 3: Caminhão de solda e Trilheiros, um embaixo do outro, cada um na largura toda.
   const larguraTotal = L - 2 * M;
-  const altCaminhao = 86;
-  const altTrilheiros = 80;
+  const altCaminhao = 80;
   const gapLinha = 8;
   const topoLinha2 = topoGrade - altSet - 12;
   const caminhao = porTitulo('Caminhão de solda');
-  const trilheiros = porTitulo('Trilheiros');
   if (caminhao) desenharSetor(p, caminhao, M, topoLinha2, larguraTotal, altCaminhao, true, d.rotulosDias);
-  if (trilheiros) desenharSetor(p, trilheiros, M, topoLinha2 - altCaminhao - gapLinha, larguraTotal, altTrilheiros);
+  // Trilheiros: a mesma tabela do PDF por setor, em versão compacta.
+  const altTrilheiros = Math.max(90, 46 + Math.max(1, tril.equipes.length) * 24 + 8);
+  desenharTrilheiros(p, tril, M, topoLinha2 - altCaminhao - gapLinha, larguraTotal, altTrilheiros, true);
 
   const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
   p.linha(M, 30, L - M, 30, LINHA, 0.6);
