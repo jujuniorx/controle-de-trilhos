@@ -78,6 +78,21 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
     textoDireita(p, linha.mes, xMes, y, 8, 'negrito', hex(s.cor));
   });
 
+  if (s.grade && largo) {
+    // Produção de cada caminhão em cada dia da semana (números, no lugar do gráfico).
+    const xg = x + 470;
+    const wg = w - 482;
+    const colW = wg / Math.max(1, s.grade.colunas.length);
+    s.grade.colunas.forEach((rot, i) => textoDireita(p, rot, xg + (i + 1) * colW - 4, topo - 32, 6.5, 'negrito', CINZA));
+    s.grade.linhas.forEach((linha, li) => {
+      const yL = topo - 46 - li * 14;
+      p.texto(linha.rotulo, xg, yL, 7.5, 'negrito', TINTA);
+      linha.valores.forEach((v, i) => textoDireita(p, String(v), xg + (i + 1) * colW - 4, yL, 8, 'normal', hex(s.cor)));
+    });
+    p.linha(xg, topo - 36, xg + wg, topo - 36, LINHA, 0.6);
+    textoDireita(p, 'Produção por dia', xg + wg, base + 3, 6, 'negrito', CINZA);
+    return;
+  }
   if (!s.grafico) return;
   if (largo) {
     // Gráfico à direita, na mesma altura da tabela

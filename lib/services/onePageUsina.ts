@@ -21,7 +21,9 @@ const iso = (d: Date) => d.toISOString().slice(0, 10);
 
 export interface LinhaRelatorio { rotulo: string; dia: string; semana: string; mes: string }
 export interface GraficoRelatorio { titulo: string; series: { nome: string; cor: string; valores: number[] }[] }
-export interface SetorRelatorio { titulo: string; cor: string; linhas: LinhaRelatorio[]; grafico: GraficoRelatorio | null }
+/** Grade de produção por dia (um valor por dia da semana), para setores em que o número do dia importa mais que o gráfico. */
+export interface GradeRelatorio { colunas: string[]; linhas: { rotulo: string; valores: number[] }[] }
+export interface SetorRelatorio { titulo: string; cor: string; linhas: LinhaRelatorio[]; grafico: GraficoRelatorio | null; grade?: GradeRelatorio }
 
 /** Produção de uma equipe de geração: o dia e a semana. */
 export interface EquipeGeracaoRelatorio {
@@ -213,6 +215,13 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
             mes: `${c.mes.producao} / ${c.mes.perda}`,
           };
         }),
+        grade: {
+          colunas: serie.rotulos,
+          linhas: [
+            { rotulo: 'CW01', valores: serie.caminhao.CW01 ?? [] },
+            { rotulo: 'CW02', valores: serie.caminhao.CW02 ?? [] },
+          ],
+        },
         grafico: {
           titulo: 'Produção por dia',
           series: [
