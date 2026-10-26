@@ -82,6 +82,7 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false }: { s: Se
               titulo={s.grafico.titulo}
               rotulos={rotulosDias}
               series={s.grafico.series.map((x) => ({ nome: x.nome, cor: x.cor, valores: x.valores }))}
+              altura={150}
             />
           )}
         </div>

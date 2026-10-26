@@ -12,14 +12,15 @@ export function GraficoBarras({
   rotulos,
   series,
   unidade = '',
+  altura = 260,
 }: {
   titulo: string;
   rotulos: string[];
   series: SerieBarras[];
   unidade?: string;
+  altura?: number;
 }) {
   const largura = 600;
-  const altura = 260;
   const margemEsq = 36;
   const margemInf = 22;
   const areaL = largura - margemEsq - 6;
