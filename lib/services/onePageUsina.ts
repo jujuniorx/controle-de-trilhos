@@ -179,8 +179,8 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         dia: '',
         semana: '',
         mes: '',
-        // Só o total de barras de cada trilheiro no giro.
-        linhas: trilRel.equipes.map((e) => ({ rotulo: e.trilheiro, valor: `${e.total} barras` })),
+        // Barras que cada trilheiro tem agora: o total do giro menos as já descarregadas.
+        linhas: trilRel.equipes.map((e) => ({ rotulo: e.trilheiro, valor: `${Math.max(0, e.total - e.descarregadas)} barras` })),
         grupo: 'Trilheiros',
       },
     ],
