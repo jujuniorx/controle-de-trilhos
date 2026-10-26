@@ -166,7 +166,22 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false }: { s: Se
 }
 
 /** Indicador de setor: o valor do dia e o da semana em blocos separados. */
-export function Resumo({ rotulo, cor, dia, semana, mes, mensal = false }: { rotulo: string; cor: string; dia: string; semana: string; mes: string; mensal?: boolean }) {
+export function Resumo({ rotulo, cor, dia, semana, mes, mensal = false, linhas }: { rotulo: string; cor: string; dia: string; semana: string; mes: string; mensal?: boolean; linhas?: { rotulo: string; valor: string }[] }) {
+  if (linhas && linhas.length > 0) {
+    return (
+      <div className="rounded-lg border border-slate-200 bg-white p-3" style={{ borderTop: `3px solid ${cor}` }}>
+        <p className="text-[11px] font-bold uppercase tracking-wide text-slate-600">{rotulo}</p>
+        <dl className="mt-2 divide-y divide-slate-100 text-sm">
+          {linhas.map((l) => (
+            <div key={l.rotulo} className="flex items-baseline justify-between gap-2 py-1">
+              <dt className="text-[11px] uppercase tracking-wide text-slate-500">{l.rotulo}</dt>
+              <dd className="font-bold tabular-nums" style={{ color: cor }}>{l.valor}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    );
+  }
   if (mensal) {
     return (
       <div className="rounded-lg border border-slate-200 bg-white p-3" style={{ borderTop: `3px solid ${cor}` }}>

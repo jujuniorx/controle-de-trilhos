@@ -181,16 +181,23 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
 }
 
 /** Cartão do topo (Do dia, Da semana, No mês) em três linhas iguais: rótulo à esquerda, valor à direita. */
-export function desenharResumoCartao(p: PaginaPdf, r: { rotulo: string; cor: string; dia: string; semana: string; mes: string }, x: number, topo: number, w: number, altura: number) {
+export function desenharResumoCartao(p: PaginaPdf, r: { rotulo: string; cor: string; dia: string; semana: string; mes: string; linhas?: { rotulo: string; valor: string }[] }, x: number, topo: number, w: number, altura: number) {
   p.arredondado(x + 1, topo - altura - 1.2, w, altura, 9, SOMBRA);
   p.arredondado(x, topo - altura, w, altura, 9, BRANCO, LINHA);
   p.arredondado(x + 8, topo - 15, 6, 6, 3, hex(r.cor));
   p.texto(r.rotulo.toUpperCase(), x + 18, topo - 14, 7, 'negrito', TINTA);
-  const linhas: [string, string, ReturnType<typeof hex>][] = [
-    ['Do dia', r.dia, TINTA],
-    ['Da semana', r.semana, hex(r.cor)],
-    ['No mês', r.mes, hex(r.cor)],
-  ];
+  desenharLinhasResumo(p, r, x, topo, w);
+}
+
+/** Linhas de um cartão do topo: as três padrão (Do dia, Da semana, No mês) ou as linhas próprias do cartão (trilheiros). */
+export function desenharLinhasResumo(p: PaginaPdf, r: { cor: string; dia: string; semana: string; mes: string; linhas?: { rotulo: string; valor: string }[] }, x: number, topo: number, w: number) {
+  const linhas: [string, string, ReturnType<typeof hex>][] = r.linhas && r.linhas.length > 0
+    ? r.linhas.map((l) => [l.rotulo, l.valor, hex(r.cor)])
+    : [
+        ['Do dia', r.dia, TINTA],
+        ['Da semana', r.semana, hex(r.cor)],
+        ['No mês', r.mes, hex(r.cor)],
+      ];
   linhas.forEach(([rot, val, cor], k) => {
     const yLinha = topo - 27 - k * 13;
     if (k > 0) p.linha(x + 8, yLinha + 9, x + w - 8, yLinha + 9, LINHA, 0.4);
@@ -228,23 +235,17 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
     p.arredondado(x, topoRes - altRes, wRes, altRes, 9, BRANCO, LINHA);
     p.arredondado(x + 8, topoRes - 15, 6, 6, 3, hex(r.cor));
     p.texto(r.rotulo.toUpperCase(), x + 18, topoRes - 14, 7, 'negrito', TINTA);
+    if (mensal && r.linhas?.length) {
+      desenharLinhasResumo(p, r, x, topoRes, wRes);
+      return;
+    }
     if (mensal) {
       p.texto('No mês', x + 8, topoRes - 30, 6.5, 'normal', CINZA);
       p.texto(r.mes, x + 8, topoRes - 46, 14, 'negrito', hex(r.cor));
       return;
     }
     // Três linhas iguais: rótulo à esquerda, valor à direita, mesmo tamanho e a mesma ordem em todos os cartões.
-    const linhasRes: [string, string, ReturnType<typeof hex>][] = [
-      ['Do dia', r.dia, TINTA],
-      ['Da semana', r.semana, hex(r.cor)],
-      ['No mês', r.mes, hex(r.cor)],
-    ];
-    linhasRes.forEach(([rot, val, cor], k) => {
-      const yLinha = topoRes - 27 - k * 13;
-      if (k > 0) p.linha(x + 8, yLinha + 9, x + wRes - 8, yLinha + 9, LINHA, 0.4);
-      p.texto(rot, x + 8, yLinha, 7, 'normal', CINZA);
-      textoDireita(p, val, x + wRes - 8, yLinha, 8.5, 'negrito', cor);
-    });
+    desenharLinhasResumo(p, r, x, topoRes, wRes);
   });
 
   // Linha 1: Estaleiro, Geração e Recolhimento serra, lado a lado.

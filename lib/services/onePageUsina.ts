@@ -43,7 +43,8 @@ export interface EquipeGeracaoRelatorio {
 export interface DadosRelatorio {
   data: string;
   rotulosDias: string[];
-  resumo: { rotulo: string; cor: string; dia: string; semana: string; mes: string; grupo: string }[];
+  /** Linhas do cartão de topo; quando existem (trilheiros), trocam Do dia / Da semana / No mês. */
+  resumo: { rotulo: string; cor: string; dia: string; semana: string; mes: string; grupo: string; linhas?: { rotulo: string; valor: string }[] }[];
   setores: SetorRelatorio[];
   equipesGeracao: EquipeGeracaoRelatorio[];
   /** Observação de cada setor por dia, da segunda a domingo da semana: chave "AAAA-MM-DD|setor". */
@@ -154,9 +155,11 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       {
         rotulo: 'Trilheiros',
         cor: CORES_SETOR.trilheiros,
-        dia: `${soma(trilRel.equipes, (e) => e.descarregadasDia)} barras`,
-        semana: `${trilRel.descarregadas} de ${trilRel.totalBarras}`,
-        mes: `${trilRel.descarregadasMes} barras`,
+        dia: '',
+        semana: '',
+        mes: '',
+        // Só o total de barras de cada trilheiro no giro.
+        linhas: trilRel.equipes.map((e) => ({ rotulo: e.trilheiro, valor: `${e.total} barras` })),
         grupo: 'Trilheiros',
       },
     ],
