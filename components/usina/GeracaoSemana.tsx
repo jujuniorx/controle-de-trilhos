@@ -1,6 +1,6 @@
 'use client';
 
-// Geração da semana: por líder, uma tabela de segunda a quinta com uma linha por carreta.
+// Geração da semana: por líder, uma tabela de segunda a domingo com uma linha por carreta.
 // Cada carreta tem perfis (vários), barras e metragens. Local, corte e observação são do dia.
 // Tudo vai para o servidor num único campo oculto "dados", que o salvamento da semana lê.
 import { useRef, useState, type ReactNode } from 'react';
