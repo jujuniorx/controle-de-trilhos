@@ -166,7 +166,6 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
           { rotulo: 'Cortes (UND)', dia: String(estD.totais.cortes), semana: String(estS.totais.cortes), mes: String(estM.totais.cortes), porDia: serie.estaleiro.cortes.map(String) },
           { rotulo: 'Tampões carregados (m)', dia: metros(estD.carreta.tampoesM), semana: metros(estS.carreta.tampoesM), mes: metros(estM.carreta.tampoesM) },
           { rotulo: 'Trilho novo carregado (m)', dia: metros(estD.carreta.trilhoNovoM), semana: metros(estS.carreta.trilhoNovoM), mes: metros(estM.carreta.trilhoNovoM) },
-          { rotulo: 'Sucata saída (t)', dia: `${fmtPeso(estD.carreta.sucataT)} t`, semana: `${fmtPeso(estS.carreta.sucataT)} t`, mes: `${fmtPeso(estM.carreta.sucataT)} t` },
         ],
         grafico: {
           titulo: 'Soldas e cortes por dia',
