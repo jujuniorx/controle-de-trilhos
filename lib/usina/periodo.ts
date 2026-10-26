@@ -40,3 +40,18 @@ export function faixaSemanaSegSex(iso: string): string {
   const br = (x: string) => x.split('-').reverse().join('/');
   return `${br(inicio).slice(0, 5)} a ${br(fim)}`;
 }
+
+/** Formato do relatório: semanal (uma tabela com a semana) ou diário (um número por dia). */
+export type ModoRelatorio = 'semanal' | 'diario';
+
+export function modoValido(v: string | undefined): ModoRelatorio {
+  return v === 'diario' ? 'diario' : 'semanal';
+}
+
+/** Seletor semanal/diário: dois links que trocam o formato mantendo o dia e o setor. */
+export function linksModo(base: string, modoAtual: ModoRelatorio, params: Record<string, string>): { modo: ModoRelatorio; rotulo: string; href: string; ativo: boolean }[] {
+  return (['semanal', 'diario'] as const).map((modo) => {
+    const qs = new URLSearchParams({ ...params, modo }).toString();
+    return { modo, rotulo: modo === 'semanal' ? 'Semanal' : 'Diário', href: `${base}?${qs}`, ativo: modo === modoAtual };
+  });
+}

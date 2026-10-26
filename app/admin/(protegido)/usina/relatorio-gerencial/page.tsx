@@ -1,14 +1,15 @@
 import { montarDadosRelatorio, montarTrilheirosRelatorio } from '@/lib/services/onePageUsina';
 import { Setor, Resumo, TrilheirosBloco } from '@/components/usina/RelatorioSetores';
-import { ehIsoValido, faixaSemanaSegSex } from '@/lib/usina/periodo';
+import { ehIsoValido, faixaSemanaSegSex, modoValido, linksModo } from '@/lib/usina/periodo';
 import { BotaoCompartilharPdf } from '@/components/usina/BotaoCompartilharPdf';
 
 export const dynamic = 'force-dynamic';
 
 const br = (iso: string) => iso.split('-').reverse().join('/');
 
-export default async function RelatorioGerencialUsina({ searchParams }: { searchParams: Promise<{ data?: string }> }) {
+export default async function RelatorioGerencialUsina({ searchParams }: { searchParams: Promise<{ data?: string; modo?: string }> }) {
   const params = await searchParams;
+  const modo = modoValido(params.modo);
   const data = ehIsoValido(params.data) ? params.data : new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
   const dados = await montarDadosRelatorio(data);
   const tril = await montarTrilheirosRelatorio(data);
@@ -16,7 +17,12 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
   return (
     <main className="mx-auto max-w-6xl space-y-4 p-4">
       <div className="flex flex-wrap items-center gap-3">
-        <BotaoCompartilharPdf url={`/api/usina/relatorio-gerencial/pdf?data=${data}`} nomeArquivo={`relatorio-gerencial-usina-${data}.pdf`} titulo={`Relatório da usina ${br(data)}`} />
+        <div className="flex overflow-hidden rounded-lg border border-line" role="group" aria-label="Formato do relatório">
+          {linksModo('/admin/usina/relatorio-gerencial', modo, { data }).map((l) => (
+            <a key={l.modo} href={l.href} aria-current={l.ativo ? 'true' : undefined} className={`h-11 px-4 leading-[2.75rem] text-sm font-semibold ${l.ativo ? 'bg-slate-900 text-white' : 'bg-surface text-ink-muted'}`}>{l.rotulo}</a>
+          ))}
+        </div>
+        <BotaoCompartilharPdf url={`/api/usina/relatorio-gerencial/pdf?data=${data}&modo=${modo}`} nomeArquivo={`relatorio-gerencial-usina-${data}.pdf`} titulo={`Relatório da usina ${br(data)}`} />
         <a className="btn btn-ghost h-11" href={`/admin/usina?data=${data}`}>Voltar</a>
         <form action="" className="flex items-center gap-2 text-sm">
           <label htmlFor="data">Dia</label>
