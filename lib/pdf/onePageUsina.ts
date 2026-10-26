@@ -160,7 +160,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const caminhao = porTitulo('Caminhão de solda');
   if (caminhao) desenharSetor(p, caminhao, M, topoLinha2, larguraTotal, altCaminhao, true, d.rotulosDias);
   // Trilheiros: a mesma tabela do PDF por setor, em versão compacta.
-  const altTrilheiros = Math.max(90, 46 + Math.max(1, tril.equipes.length) * 28 + 8);
+  const altTrilheiros = Math.max(90, 46 + Math.max(1, tril.equipes.length) * 30 + 8);
   desenharTrilheiros(p, tril, M, topoLinha2 - altCaminhao - gapLinha, larguraTotal, altTrilheiros, true);
 
   const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
