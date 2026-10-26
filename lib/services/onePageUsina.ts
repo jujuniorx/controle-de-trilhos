@@ -167,8 +167,8 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         linhas: [
           { rotulo: 'Soldas (UND)', dia: String(estD.totais.soldas), semana: String(estS.totais.soldas), mes: String(estM.totais.soldas), porDia: serie.estaleiro.soldas.map(String) },
           { rotulo: 'Cortes (UND)', dia: String(estD.totais.cortes), semana: String(estS.totais.cortes), mes: String(estM.totais.cortes), porDia: serie.estaleiro.cortes.map(String) },
-          { rotulo: 'Tampões (m)', dia: metros(estD.carreta.tampoesM), semana: metros(estS.carreta.tampoesM), mes: metros(estM.carreta.tampoesM) },
-          { rotulo: 'Trilho novo (m)', dia: metros(estD.carreta.trilhoNovoM), semana: metros(estS.carreta.trilhoNovoM), mes: metros(estM.carreta.trilhoNovoM) },
+          { rotulo: 'Tampões', dia: metros(estD.carreta.tampoesM), semana: metros(estS.carreta.tampoesM), mes: metros(estM.carreta.tampoesM) },
+          { rotulo: 'Trilho novo', dia: metros(estD.carreta.trilhoNovoM), semana: metros(estS.carreta.trilhoNovoM), mes: metros(estM.carreta.trilhoNovoM) },
         ],
         grafico: {
           titulo: 'Soldas e cortes por dia',
@@ -182,8 +182,8 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         titulo: 'Geração de trilho',
         cor: CORES_SETOR.geracao,
         linhas: [
-          { rotulo: 'Carregado (m)', dia: metros(geraDia((l) => l.periodo.carregamentoM)), semana: metros(geraSem((l) => l.periodo.carregamentoM)), mes: metros(geraSem((l) => l.mes.carregamentoM)), porDia: serie.geracao.carregado.map((v) => fmtMetros(v)) },
-          { rotulo: 'Na via (m)', dia: metros(geraDia((l) => l.periodo.deixadaViaM)), semana: metros(geraSem((l) => l.periodo.deixadaViaM)), mes: metros(geraSem((l) => l.mes.deixadaViaM)), porDia: serie.geracao.deixado.map((v) => fmtMetros(v)) },
+          { rotulo: 'Carregado', dia: metros(geraDia((l) => l.periodo.carregamentoM)), semana: metros(geraSem((l) => l.periodo.carregamentoM)), mes: metros(geraSem((l) => l.mes.carregamentoM)), porDia: serie.geracao.carregado.map((v) => fmtMetros(v)) },
+          { rotulo: 'Na via', dia: metros(geraDia((l) => l.periodo.deixadaViaM)), semana: metros(geraSem((l) => l.periodo.deixadaViaM)), mes: metros(geraSem((l) => l.mes.deixadaViaM)), porDia: serie.geracao.deixado.map((v) => fmtMetros(v)) },
           { rotulo: 'Barras (UND)', dia: String(geraDia((l) => l.periodo.quantidade)), semana: String(geraSem((l) => l.periodo.quantidade)), mes: String(geraSem((l) => l.mes.quantidade)) },
         ],
         grafico: {
