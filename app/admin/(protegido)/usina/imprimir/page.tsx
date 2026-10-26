@@ -1,3 +1,4 @@
+import { ObservacoesSetorRelatorio } from '@/components/usina/ObservacoesSetorRelatorio';
 import { montarDadosRelatorio, montarTrilheirosRelatorio, CORES_SETOR } from '@/lib/services/onePageUsina';
 import { Setor, Resumo, TrilheirosBloco, EquipesGeracao } from '@/components/usina/RelatorioSetores';
 import { ehIsoValido, modoValido, linksModo, rotuloPeriodo } from '@/lib/usina/periodo';
@@ -102,14 +103,20 @@ export default async function ImprimirUsina({
           <>
             <div className="grid gap-4">
               {setores.map((s) => (
-                <Setor key={s.titulo} s={s} rotulosDias={dados.rotulosDias} largo />
+                <div key={s.titulo}>
+                  <Setor s={s} rotulosDias={dados.rotulosDias} largo />
+                  <ObservacoesSetorRelatorio titulo={s.titulo} observacoes={dados.observacoes} />
+                </div>
               ))}
             </div>
           </>
         ) : (
           <div className="grid gap-4">
             {setores.map((s) => (
-              <Setor key={s.titulo} s={s} rotulosDias={dados.rotulosDias} largo />
+              <div key={s.titulo}>
+                <Setor s={s} rotulosDias={dados.rotulosDias} largo />
+                <ObservacoesSetorRelatorio titulo={s.titulo} observacoes={dados.observacoes} />
+              </div>
             ))}
           </div>
         )}

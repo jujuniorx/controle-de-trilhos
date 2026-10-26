@@ -1,5 +1,6 @@
 import { montarDadosRelatorio, montarTrilheirosRelatorio } from '@/lib/services/onePageUsina';
 import { Setor, Resumo, TrilheirosBloco } from '@/components/usina/RelatorioSetores';
+import { ObservacoesSetorRelatorio } from '@/components/usina/ObservacoesSetorRelatorio';
 import { ehIsoValido, modoValido, linksModo, rotuloPeriodo } from '@/lib/usina/periodo';
 import { BotaoCompartilharPdf } from '@/components/usina/BotaoCompartilharPdf';
 
@@ -52,7 +53,10 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
         <p className="text-xs text-slate-500">Cada setor mostra o valor do dia e o acumulado da semana (segunda a domingo), com o gráfico desses dias.</p>
         <div className="grid gap-4">
           {dados.setores.filter((s) => s.titulo !== 'Trilheiros').map((s) => (
-            <Setor key={s.titulo} s={s} rotulosDias={dados.rotulosDias} largo mensal={modo === 'mensal'} />
+            <div key={s.titulo}>
+              <Setor s={s} rotulosDias={dados.rotulosDias} largo mensal={modo === 'mensal'} />
+              {modo !== 'mensal' && <ObservacoesSetorRelatorio titulo={s.titulo} observacoes={dados.observacoes} />}
+            </div>
           ))}
         </div>
         <TrilheirosBloco t={tril} />
