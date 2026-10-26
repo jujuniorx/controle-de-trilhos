@@ -130,8 +130,8 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   // Tabela: só as colunas escolhidas (Dia, Semana, No mês), cada uma numa caixa própria.
   // No cartão largo a tabela fica à esquerda e o gráfico à direita.
   const ativas = (['dia', 'semana', 'mes'] as Coluna[]).filter((c) => colunas.includes(c) && (!mensal || c === 'mes'));
-  // A caixa da última coluna avança 6pt à direita do alinhamento; com 14pt de recuo, ela fica 8pt dentro do cartão.
-  const xMes = largo ? x + 440 : x + w - 14;
+  // A caixa da última coluna avança 8pt à direita do alinhamento dos valores; com 16pt de recuo ela fica 10pt dentro do cartão.
+  const xMes = largo ? x + 440 : x + w - 16;
   const passo = 66;
   // Borda direita de cada coluna: a última ativa encosta em xMes e as anteriores andam para a esquerda.
   const xDe = (c: Coluna) => xMes - (ativas.length - 1 - ativas.indexOf(c)) * passo;
@@ -147,7 +147,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   });
   ativas.forEach((c) => {
     const xr = xDe(c);
-    p.arredondado(xr - 54, fimLinhas, 60, topo - 26 - fimLinhas, 4, c === 'mes' ? hex('#f1f5f9') : BRANCO, LINHA);
+    p.arredondado(xr - 52, fimLinhas, 60, topo - 26 - fimLinhas, 4, c === 'mes' ? hex('#f1f5f9') : BRANCO, LINHA);
   });
   ativas.forEach((c) => textoDireita(p, nomeDe[c], xDe(c), yCabecalho, 6.5, 'negrito', CINZA));
   p.linha(x + 8, yPrimeiraLinha - 6, xMes + 2, yPrimeiraLinha - 6, LINHA, 0.6);
