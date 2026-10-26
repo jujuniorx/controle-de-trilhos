@@ -2,6 +2,7 @@ import { PaginaPdf, A4_PAISAGEM, montarPdfVarias, larguraTexto } from '@/lib/pdf
 import type { DadosRelatorio, GraficoRelatorio, SerraRelatorio, SetorRelatorio, TrilheirosRelatorio } from '@/lib/services/onePageUsina';
 import { faixaSemanaSegSex, mesAte } from '@/lib/usina/periodo';
 import { desenharTrilheiros } from '@/lib/pdf/tabelaTrilheiros';
+import { desenharCaminhoes } from '@/lib/pdf/tabelaCaminhoes';
 
 type Cor = [number, number, number];
 
@@ -280,12 +281,13 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   // Linhas 2 e 3: Caminhão de solda e Trilheiros, um embaixo do outro, cada um na largura toda.
   const larguraTotal = L - 2 * M;
   // Altura do cartão do caminhão cresce com o número de linhas (Solda e Corte de cada caminhão), para nada passar por baixo.
-  const linhasCaminhao = porTitulo('Caminhão de solda')?.linhas.length ?? 0;
-  const altCaminhao = Math.max(92, 52 + linhasCaminhao * 16 + 14);
+  const linhasCaminhao = porTitulo('Caminhão de solda')?.caminhoes?.length ?? 0;
+  const altCaminhao = Math.max(90, 50 + linhasCaminhao * 30);
   const gapLinha = 6;
   const topoLinha2 = topoGrade - altSet - 12;
   const caminhao = porTitulo('Caminhão de solda');
-  if (caminhao) desenharSetor(p, caminhao, M, topoLinha2, larguraTotal, altCaminhao, true, d.rotulosDias, mensal);
+  // Caminhão no mesmo formato da tabela de trilheiros (sem gráfico, como no trilheiro).
+  if (caminhao?.caminhoes) desenharCaminhoes(p, caminhao.caminhoes, caminhao.cor, M, topoLinha2, larguraTotal, altCaminhao);
   // Trilheiros: a mesma tabela do PDF por setor, em versão compacta.
   const altTrilheiros = Math.max(90, 46 + Math.max(1, tril.equipes.length) * 28 + 6);
   desenharTrilheiros(p, tril, M, topoLinha2 - altCaminhao - gapLinha, larguraTotal, altTrilheiros, true);

@@ -31,7 +31,14 @@ export interface MedidaSerra { barras: number; metros: number }
 export interface LinhaSerra { ativo: string; cor: string; dia: MedidaSerra; semana: MedidaSerra; mes: MedidaSerra }
 /** Tabela da serra: uma linha por composição e um total, com Dia, Semana e Mês (barras e metros). */
 export interface SerraRelatorio { linhas: LinhaSerra[]; total: { dia: MedidaSerra; semana: MedidaSerra; mes: MedidaSerra } }
-export interface SetorRelatorio { titulo: string; cor: string; linhas: LinhaRelatorio[]; grafico: GraficoRelatorio | null; grade?: GradeRelatorio; serra?: SerraRelatorio }
+/** Um caminhão de solda: solda e corte do dia, da semana e do mês, no formato da tabela de trilheiros. */
+export interface CaminhaoTabelaRelatorio {
+  nome: string;
+  solda: { dia: number; semana: number; mes: number };
+  corte: { dia: number; semana: number; mes: number };
+}
+
+export interface SetorRelatorio { titulo: string; cor: string; linhas: LinhaRelatorio[]; grafico: GraficoRelatorio | null; grade?: GradeRelatorio; serra?: SerraRelatorio; caminhoes?: CaminhaoTabelaRelatorio[] }
 
 /** Produção de uma equipe de geração: o dia e a semana. */
 export interface EquipeGeracaoRelatorio {
@@ -232,6 +239,14 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       {
         titulo: 'Caminhão de solda',
         cor: CORES_SETOR.caminhao,
+        caminhoes: camS.map((c) => {
+          const d = camD.find((x) => x.caminhao === c.caminhao);
+          return {
+            nome: ROTULO_CAMINHAO[c.caminhao] ?? c.caminhao,
+            solda: { dia: d?.periodo.producao ?? 0, semana: c.periodo.producao, mes: c.mes.producao },
+            corte: { dia: d?.periodo.perda ?? 0, semana: c.periodo.perda, mes: c.mes.perda },
+          };
+        }),
         // Mesmo formato do estaleiro: Solda (UND) e Corte (UND) por caminhão, com Dia, Semana e No mês.
         linhas: camS.flatMap((c) => {
           const d = camD.find((x) => x.caminhao === c.caminhao);
