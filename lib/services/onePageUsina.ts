@@ -123,9 +123,9 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       {
         rotulo: 'Estaleiro de solda',
         cor: CORES_SETOR.estaleiro,
-        dia: `${estD.totais.soldas} UND`,
-        semana: `${estS.totais.soldas} UND`,
-        mes: `${estM.totais.soldas} UND`,
+        dia: `${estD.totais.soldas} und`,
+        semana: `${estS.totais.soldas} und`,
+        mes: `${estM.totais.soldas} und`,
         grupo: 'Estaleiro de solda',
       },
       {
@@ -147,9 +147,9 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       ...['CW01', 'CW02'].map((cw, i) => ({
         rotulo: ROTULO_CAMINHAO[cw] ?? cw,
         cor: i === 0 ? CORES_SETOR.caminhao : '#84cc16',
-        dia: `${camD.find((c) => c.caminhao === cw)?.periodo.producao ?? 0} UND`,
-        semana: `${camS.find((c) => c.caminhao === cw)?.periodo.producao ?? 0} UND`,
-        mes: `${camS.find((c) => c.caminhao === cw)?.mes.producao ?? 0} UND`,
+        dia: `${camD.find((c) => c.caminhao === cw)?.periodo.producao ?? 0} und`,
+        semana: `${camS.find((c) => c.caminhao === cw)?.periodo.producao ?? 0} und`,
+        mes: `${camS.find((c) => c.caminhao === cw)?.mes.producao ?? 0} und`,
         grupo: 'Caminhão de solda',
       })),
       {
@@ -168,8 +168,8 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         titulo: 'Estaleiro de solda',
         cor: CORES_SETOR.estaleiro,
         linhas: [
-          { rotulo: 'Soldas (UND)', dia: String(estD.totais.soldas), semana: String(estS.totais.soldas), mes: String(estM.totais.soldas), porDia: serie.estaleiro.soldas.map(String) },
-          { rotulo: 'Cortes (UND)', dia: String(estD.totais.cortes), semana: String(estS.totais.cortes), mes: String(estM.totais.cortes), porDia: serie.estaleiro.cortes.map(String) },
+          { rotulo: 'Soldas', dia: `${estD.totais.soldas} und`, semana: `${estS.totais.soldas} und`, mes: `${estM.totais.soldas} und`, porDia: serie.estaleiro.soldas.map(String) },
+          { rotulo: 'Cortes', dia: `${estD.totais.cortes} und`, semana: `${estS.totais.cortes} und`, mes: `${estM.totais.cortes} und`, porDia: serie.estaleiro.cortes.map(String) },
           { rotulo: 'Tampões', dia: metros(estD.carreta.tampoesM), semana: metros(estS.carreta.tampoesM), mes: metros(estM.carreta.tampoesM) },
           { rotulo: 'Trilho novo', dia: metros(estD.carreta.trilhoNovoM), semana: metros(estS.carreta.trilhoNovoM), mes: metros(estM.carreta.trilhoNovoM) },
         ],
@@ -187,7 +187,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         linhas: [
           { rotulo: 'Carregado', dia: metros(geraDia((l) => l.periodo.carregamentoM)), semana: metros(geraSem((l) => l.periodo.carregamentoM)), mes: metros(geraSem((l) => l.mes.carregamentoM)), porDia: serie.geracao.carregado.map((v) => fmtMetros(v)) },
           { rotulo: 'Na via', dia: metros(geraDia((l) => l.periodo.deixadaViaM)), semana: metros(geraSem((l) => l.periodo.deixadaViaM)), mes: metros(geraSem((l) => l.mes.deixadaViaM)), porDia: serie.geracao.deixado.map((v) => fmtMetros(v)) },
-          { rotulo: 'Barras (UND)', dia: String(geraDia((l) => l.periodo.quantidade)), semana: String(geraSem((l) => l.periodo.quantidade)), mes: String(geraSem((l) => l.mes.quantidade)) },
+          { rotulo: 'Barras', dia: `${geraDia((l) => l.periodo.quantidade)} und`, semana: `${geraSem((l) => l.periodo.quantidade)} und`, mes: `${geraSem((l) => l.mes.quantidade)} und` },
         ],
         grafico: {
           titulo: 'Metros por dia',
@@ -238,17 +238,17 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
           const nome = ROTULO_CAMINHAO[c.caminhao] ?? c.caminhao;
           return [
             {
-              rotulo: `${nome} · Solda (UND)`,
-              dia: String(d?.periodo.producao ?? 0),
-              semana: String(c.periodo.producao),
-              mes: String(c.mes.producao),
+              rotulo: `${nome} · Solda`,
+              dia: `${d?.periodo.producao ?? 0} und`,
+              semana: `${c.periodo.producao} und`,
+              mes: `${c.mes.producao} und`,
               porDia: ((serie.caminhao as Record<string, number[]>)[c.caminhao] ?? []).map(String),
             },
             {
-              rotulo: `${nome} · Corte (UND)`,
-              dia: String(d?.periodo.perda ?? 0),
-              semana: String(c.periodo.perda),
-              mes: String(c.mes.perda),
+              rotulo: `${nome} · Corte`,
+              dia: `${d?.periodo.perda ?? 0} und`,
+              semana: `${c.periodo.perda} und`,
+              mes: `${c.mes.perda} und`,
             },
           ];
         }),
