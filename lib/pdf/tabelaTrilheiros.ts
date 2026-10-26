@@ -39,7 +39,7 @@ export function desenharTrilheiros(p: PaginaPdf, t: TrilheirosRelatorio, x: numb
   rotulo('OBSERVAÇÃO', col.obs);
   p.linha(x + 8, yCabecalho - 6, x + w - 8, yCabecalho - 6, LINHA, 0.6);
 
-  const altLinha = compacto ? 24 : 40;
+  const altLinha = compacto ? 28 : 40;
   const primeiraBase = yCabecalho - (compacto ? 18 : 26);
   if (t.equipes.length === 0) {
     p.texto('Nenhum trilheiro com lançamento neste período.', x + col.trilheiro, primeiraBase, 9, 'normal', CINZA);
@@ -58,7 +58,7 @@ export function desenharTrilheiros(p: PaginaPdf, t: TrilheirosRelatorio, x: numb
       const tamanho = 8;
       const largura = larguraTexto(e.local, tamanho, 'negrito') + 12;
       const alturaEtiqueta = 13;
-      const yEtiqueta = y - 4;
+      const yEtiqueta = y - 3;
       p.arredondado(x + col.local, yEtiqueta, largura, alturaEtiqueta, 6, NAVY);
       const xTexto = x + col.local + (largura - larguraTexto(e.local, tamanho, 'negrito')) / 2;
       const yTexto = yEtiqueta + (alturaEtiqueta - tamanho * 0.7) / 2;
@@ -68,8 +68,9 @@ export function desenharTrilheiros(p: PaginaPdf, t: TrilheirosRelatorio, x: numb
     }
     p.texto(`${e.descarregadas} / ${e.total}`, x + col.barras, y, 10, 'negrito', COR_TRILHEIROS);
     const linhas = e.observacao ? quebrarLinhas(e.observacao, 7.5, w - col.obs - 16) : [];
-    const maxLinhas = compacto ? 1 : 3;
-    linhas.slice(0, maxLinhas).forEach((linha, k) => p.texto(linha, x + col.obs, y + (compacto ? 3 : 9) - k * 9, 7.5, 'normal', CINZA));
+    const maxLinhas = compacto ? 2 : 3;
+    const espaco = compacto ? 8.5 : 9;
+    linhas.slice(0, maxLinhas).forEach((linha, k) => p.texto(linha, x + col.obs, y + (compacto ? 6 : 9) - k * espaco, 7.5, 'normal', CINZA));
   });
 }
 
