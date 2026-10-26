@@ -75,14 +75,13 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false }: { s: Se
         <header className="px-4 py-2.5 text-white" style={{ background: s.cor }}>
           <span className="text-sm font-bold uppercase tracking-wide">{s.titulo}</span>
         </header>
-        <div className="space-y-3 p-4">
+        <div className={largo ? 'grid items-start gap-6 p-4 lg:grid-cols-2' : 'space-y-3 p-4'}>
           <TabelaSerra serra={s.serra} />
           {s.grafico && (
             <GraficoBarras
               titulo={s.grafico.titulo}
               rotulos={rotulosDias}
               series={s.grafico.series.map((x) => ({ nome: x.nome, cor: x.cor, valores: x.valores }))}
-              altura={150}
             />
           )}
         </div>
