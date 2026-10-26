@@ -54,9 +54,15 @@ export function desenharTrilheiros(p: PaginaPdf, t: TrilheirosRelatorio, x: numb
     p.texto(brDaIso(e.partida), x + col.partida, y, 9, 'normal', TINTA);
     p.texto(e.diasDesdePartida == null ? '—' : String(e.diasDesdePartida), x + col.diasPartida, y, 10, 'negrito', TINTA);
     if (e.local) {
-      const largura = larguraTexto(e.local, 8, 'negrito') + 12;
-      p.arredondado(x + col.local, y - 4, largura, 13, 6, NAVY);
-      p.texto(e.local, x + col.local + 6, y, 8, 'negrito', BRANCO);
+      // Etiqueta do local: texto centralizado na horizontal e na vertical.
+      const tamanho = 8;
+      const largura = larguraTexto(e.local, tamanho, 'negrito') + 12;
+      const alturaEtiqueta = 13;
+      const yEtiqueta = y - 4;
+      p.arredondado(x + col.local, yEtiqueta, largura, alturaEtiqueta, 6, NAVY);
+      const xTexto = x + col.local + (largura - larguraTexto(e.local, tamanho, 'negrito')) / 2;
+      const yTexto = yEtiqueta + (alturaEtiqueta - tamanho * 0.7) / 2;
+      p.texto(e.local, xTexto, yTexto, tamanho, 'negrito', BRANCO);
     } else {
       p.texto('—', x + col.local, y, 9, 'normal', CINZA);
     }
