@@ -54,7 +54,7 @@ function brDaIso(iso: string | null): string {
 
 /** PDF de um setor da usina (uma folha A4 paisagem), no mesmo estilo do relatório gerencial. */
 /** Grade diária: uma linha por campo, uma coluna por dia (segunda a domingo) e as colunas de semana e mês. */
-function desenharGradeDiaria(p: PaginaPdf, linhas: LinhaRelatorio[], cor: string, rotulosDias: string[], x: number, topo: number, w: number) {
+function desenharGradeDiaria(p: PaginaPdf, linhas: LinhaRelatorio[], cor: string, rotulosDias: string[], x: number, topo: number, w: number, titulo: string) {
   const colLabel = 200;
   const colSemMes = 80;
   const colDia = (w - colLabel - 2 * colSemMes) / Math.max(1, rotulosDias.length);
@@ -64,10 +64,10 @@ function desenharGradeDiaria(p: PaginaPdf, linhas: LinhaRelatorio[], cor: string
   const yCab = topo - 14;
   p.arredondado(x, topo - 22, w, 22, 9, hex(cor));
   p.retangulo(x, topo - 22, w, 8, hex(cor));
+  p.texto(titulo.toUpperCase(), x + 10, topo - 14, 8, 'negrito', BRANCO);
   rotulosDias.forEach((r, i) => textoDireita(p, r.toUpperCase(), xDia(i + 1) - 6, yCab, 6.5, 'negrito', BRANCO));
   textoDireita(p, 'SEMANA', xSem, yCab, 6.5, 'negrito', BRANCO);
   textoDireita(p, 'NO MÊS', xMes, yCab, 6.5, 'negrito', BRANCO);
-  p.texto('CAMPO', x + 10, yCab, 6.5, 'negrito', BRANCO);
   let y = topo - 36;
   linhas.forEach((linha, i) => {
     y -= 20;
@@ -146,7 +146,7 @@ export function gerarSetorUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio,
     desenharTrilheiros(p, tril, M, topoCorpo, L - 2 * M, altTril);
   } else if (modo === 'diario') {
     const s = d.setores.find((x) => x.titulo === TITULO_SETOR[setor]);
-    if (s) desenharGradeDiaria(p, s.linhas, s.cor, d.rotulosDias, M, topoCorpo, L - 2 * M);
+    if (s) desenharGradeDiaria(p, s.linhas, s.cor, d.rotulosDias, M, topoCorpo, L - 2 * M, TITULO_SETOR[setor]);
   } else {
     const s = d.setores.find((x) => x.titulo === TITULO_SETOR[setor]);
     if (s) desenharSetor(p, s, M, topoCorpo, L - 2 * M, Math.min(alturaDisponivel, 340), true, d.rotulosDias);
@@ -157,4 +157,87 @@ export function gerarSetorUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio,
   textoDireita(p, 'Controle de Trilhos · Usina', L - M, 18, 6.5, 'negrito', CINZA);
 
   return montarPdfVarias([p], `${TITULO_RELATORIO[setor]} ${d.data}`, A4_PAISAGEM);
+}
+
+/** Cabeçalho comum das páginas do gerencial diário. */
+function cabecalhoPagina(p: PaginaPdf, titulo: string, data: string) {
+  p.retangulo(0, 0, L, H, BRANCO);
+  p.retangulo(0, H - 5, L, 5, NAVY);
+  p.retangulo(0, H - 5, L * 0.35, 5, AZUL);
+  p.texto('CONTROLE DE TRILHOS', M, H - 26, 7.5, 'negrito', AZUL);
+  p.texto(titulo, M, H - 52, 21, 'negrito', TINTA);
+  const semana = faixaSemanaSegSex(data);
+  const wPilula = larguraTexto(semana, 10, 'negrito') + 26;
+  p.arredondado(L - M - wPilula, H - 54, wPilula, 22, 11, hex('#e9f1fb'));
+  textoDireita(p, semana, L - M - 13, H - 47, 10, 'negrito', NAVY);
+  textoDireita(p, 'SEGUNDA A DOMINGO', L - M, H - 26, 7, 'negrito', CINZA);
+  p.linha(M, H - 62, L - M, H - 62, LINHA, 0.8);
+}
+
+function rodapePagina(p: PaginaPdf) {
+  p.linha(M, 30, L - M, 30, LINHA, 0.6);
+  p.texto(`Emitido em ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`, M, 18, 6.5, 'normal', CINZA);
+  textoDireita(p, 'Controle de Trilhos · Usina', L - M, 18, 6.5, 'negrito', CINZA);
+}
+
+/**
+ * Gerencial no formato diário, em duas páginas:
+ * 1) cards de resumo e tabela de trilheiros; 2) grade diária dos setores e observações do dia.
+ */
+export function gerarGerencialDiarioPdf(d: DadosRelatorio, tril: TrilheirosRelatorio): Buffer {
+  // Página 1: cards e trilheiros
+  const p1 = new PaginaPdf();
+  cabecalhoPagina(p1, 'Relatório gerencial', d.data);
+  const gap = 10;
+  const wRes = (L - 2 * M - (d.resumo.length - 1) * gap) / d.resumo.length;
+  const topoRes = H - 70;
+  const altRes = 64;
+  d.resumo.forEach((r, i) => {
+    const x = M + i * (wRes + gap);
+    p1.arredondado(x + 1, topoRes - altRes - 1.2, wRes, altRes, 9, SOMBRA);
+    p1.arredondado(x, topoRes - altRes, wRes, altRes, 9, BRANCO, LINHA);
+    p1.arredondado(x + 8, topoRes - 15, 6, 6, 3, hex(r.cor));
+    p1.texto(r.rotulo.toUpperCase(), x + 18, topoRes - 14, 7, 'negrito', TINTA);
+    const meio = x + wRes / 2 + 4;
+    p1.texto('Do dia', x + 8, topoRes - 30, 6.5, 'normal', CINZA);
+    p1.texto(r.dia, x + 8, topoRes - 44, 9, 'negrito', TINTA);
+    p1.texto('Da semana', meio, topoRes - 30, 6.5, 'normal', CINZA);
+    p1.texto(r.semana, meio, topoRes - 44, 9, 'negrito', hex(r.cor));
+    p1.texto('No mês', x + 8, topoRes - 55, 6.5, 'normal', CINZA);
+    p1.texto(r.mes, x + 42, topoRes - 55, 8, 'negrito', hex(r.cor));
+  });
+  const obs = Object.entries(d.observacoes ?? {})
+    .filter(([, texto]) => texto)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(0, 6)
+    .map(([chave, texto]) => {
+      const [dataIso, setor] = chave.split('|');
+      const nomeSetor = TITULO_SETOR[(setor === 'serra' ? 'composicoes' : setor) as SetorPdf] ?? setor;
+      const dia = NOME_DIA_SEMANA[new Date(`${dataIso}T12:00:00Z`).getUTCDay()];
+      return `${dia} ${brDaIso(dataIso!)} · ${nomeSetor}: ${texto}`;
+    });
+  // Observações do dia ficam na primeira página, embaixo dos trilheiros.
+  const altObs = obs.length > 0 ? 40 + obs.length * 11 : 0;
+  const topoTril = topoRes - altRes - 24;
+  const altTril = Math.min(topoTril - 44 - altObs - (altObs > 0 ? 10 : 0), 60 + Math.max(1, tril.equipes.length) * 40 + 12);
+  desenharTrilheiros(p1, tril, M, topoTril, L - 2 * M, altTril);
+  if (altObs > 0) {
+    const base = 44;
+    p1.arredondado(M, base, L - 2 * M, altObs, 9, BRANCO, LINHA);
+    p1.texto('OBSERVAÇÕES DA SEMANA', M + 10, base + altObs - 14, 7, 'negrito', CINZA);
+    obs.forEach((linha, i) => p1.texto(linha, M + 10, base + altObs - 28 - i * 11, 8, 'normal', TINTA));
+  }
+  rodapePagina(p1);
+
+  // Página 2: grade diária dos setores (uma por setor, um dia por coluna)
+  const p2 = new PaginaPdf();
+  cabecalhoPagina(p2, 'Detalhe diário da usina', d.data);
+  let topo = H - 80;
+  for (const s of d.setores.filter((x) => x.titulo !== 'Trilheiros')) {
+    desenharGradeDiaria(p2, s.linhas, s.cor, d.rotulosDias, M, topo, L - 2 * M, s.titulo);
+    topo -= 36 + s.linhas.length * 20 + 14;
+  }
+  rodapePagina(p2);
+
+  return montarPdfVarias([p1, p2], `Relatório gerencial usina ${d.data}`, A4_PAISAGEM);
 }
