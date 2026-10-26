@@ -10,6 +10,7 @@ export function Setor({ s, rotulosDias, largo = false }: { s: SetorRelatorio; ro
           <th className="pb-1 text-left font-semibold"> </th>
           <th className="pb-1 text-right font-semibold">Dia</th>
           <th className="pb-1 text-right font-semibold">Semana</th>
+          <th className="pb-1 text-right font-semibold">No mês</th>
         </tr>
       </thead>
       <tbody>
@@ -17,13 +18,36 @@ export function Setor({ s, rotulosDias, largo = false }: { s: SetorRelatorio; ro
           <tr key={l.rotulo} className="border-t border-slate-100">
             <td className="py-1 text-slate-700">{l.rotulo}</td>
             <td className="py-1 text-right font-medium tabular-nums text-slate-900">{l.dia}</td>
+            <td className="py-1 text-right font-medium tabular-nums text-slate-900">{l.semana}</td>
             <td className="py-1 text-right font-bold tabular-nums" style={{ color: s.cor }}>{l.mes}</td>
           </tr>
         ))}
       </tbody>
     </table>
   );
-  const grafico = s.grafico ? (
+  // Quando o setor tem grade diária (caminhão), mostra os números de cada dia em vez do gráfico.
+  const grafico = s.grade ? (
+    <table className="w-full border-collapse text-[12px]">
+      <thead>
+        <tr className="text-[10px] uppercase tracking-wide text-slate-500">
+          <th className="pb-1 text-left font-semibold"> </th>
+          {s.grade.colunas.map((c) => (
+            <th key={c} className="pb-1 text-right font-semibold">{c}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {s.grade.linhas.map((l) => (
+          <tr key={l.rotulo} className="border-t border-slate-100">
+            <td className="py-1 font-semibold text-slate-700">{l.rotulo}</td>
+            {l.valores.map((v, i) => (
+              <td key={i} className="py-1 text-right tabular-nums" style={{ color: s.cor }}>{v}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  ) : s.grafico ? (
     <div>
       <GraficoBarras
         titulo={s.grafico.titulo}
