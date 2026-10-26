@@ -381,6 +381,17 @@ enum TipoTls {
 }
 
 // Estaleiro de solda: produção do dia (soldas e cortes).
+/// Observação de um setor em um dia (uma por setor e dia).
+model ObservacaoSetorDia {
+  id           String   @id @default(cuid())
+  data         DateTime @db.Date
+  setor        String
+  texto        String?
+  atualizadoEm DateTime @updatedAt
+
+  @@unique([data, setor])
+}
+
 model EstaleiroDia {
   id        String   @id @default(cuid())
   data      DateTime @unique @db.Date

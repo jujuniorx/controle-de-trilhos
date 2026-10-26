@@ -22,6 +22,8 @@ const SETORES: [string, string][] = [['estaleiro', 'Estaleiro'], ['geracao', 'Ge
 import { fmtMetros, fmtPeso } from '@/lib/format';
 import { ehIsoValido, faixaSemanaSegSex, type Periodo } from '@/lib/usina/periodo';
 import { FormularioUsina } from '@/components/usina/FormularioUsina';
+import { SETORES_OBSERVACAO, observacoesDoPeriodo } from '@/lib/services/observacaoSetor';
+import { salvarObservacoesSetoresAction } from './actions';
 import { EscalaGrade } from '@/components/usina/EscalaGrade';
 import { lerEscala, diasDaSemana } from '@/lib/usina/escala';
 import { montarEscalaDaSemana, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, geracaoDaSemana, trilheirosDaSemana } from '@/lib/services/usina';
@@ -81,6 +83,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
   const caminhoesSemana = await caminhoesDaSemana(est.semana);
   const geracaoSemana = await geracaoDaSemana(est.semana);
   const trilheirosSemana = await trilheirosDaSemana(est.semana);
+  const observacoesSemana = await observacoesDoPeriodo(est.semana, somarDiasPagina(est.semana, 6));
   const primeiroDaSemana = (t: (typeof TRILHEIROS)[number], campo: 'boEm' | 'partidaEm' | 'local' | 'observacao') =>
     trilheirosSemana.map((d) => d.trilheiros[t][campo]).find((v) => v) ?? '';
   const boSemana = Object.fromEntries(TRILHEIROS.map((t) => [t, primeiroDaSemana(t, 'boEm')]));
@@ -124,6 +127,32 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           </div>
         </details>
       </nav>
+
+      {/* ── Observações do dia, por setor (aparecem no relatório diário) ── */}
+      <section className="space-y-4" aria-labelledby="observacoes">
+        <h2 id="observacoes" className="section-title scroll-mt-24">Observações do dia</h2>
+        <div className="card space-y-4">
+          <CabecalhoSemana semana={est.semana} ajuda="Uma observação por setor e por dia: o que justifica a produção (falta de energia, parada, extra). Segunda a domingo." />
+          <FormularioUsina acao={salvarObservacoesSetoresAction} rotuloBotao="Salvar observações">
+            <input type="hidden" name="semana" value={est.semana} />
+            <div className="space-y-4">
+              {Array.from({ length: 7 }, (_, i) => somarDiasPagina(est.semana, i)).map((d, i) => (
+                <div key={d} className="space-y-2 border-t border-line pt-3 first:border-t-0 first:pt-0">
+                  <p className="font-medium">{['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'][i]} {br(d)}</p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {SETORES_OBSERVACAO.map((s) => (
+                      <label key={s.valor} className="field">
+                        <span className="text-sm text-ink-muted">{s.rotulo}</span>
+                        <input name={`obs_${s.valor}_${d}`} defaultValue={observacoesSemana[`${d}|${s.valor}`] ?? ''} maxLength={500} className="h-11" aria-label={`${s.rotulo} ${br(d)}`} />
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </FormularioUsina>
+        </div>
+      </section>
 
       {/* ── Estaleiro de solda ─────────────────────────────────────── */}
       <section className="space-y-4" aria-labelledby="estaleiro">

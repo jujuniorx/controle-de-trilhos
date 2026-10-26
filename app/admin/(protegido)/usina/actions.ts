@@ -7,6 +7,8 @@ import { ITENS_ESCALA, escalaVazia, gravarEscala, statusValido, cfgDeObjeto } fr
 import { salvarComposicao, salvarCaminhao, salvarGiro, trilheirosDaSemana, salvarTrilheiroDia, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
 import { ehIsoValido } from '@/lib/usina/periodo';
+import { SETORES_OBSERVACAO, salvarObservacaoSetor } from '@/lib/services/observacaoSetor';
+import { somarDias } from '@/lib/usina/diasUteis';
 
 export interface ResultadoUsina {
   ok: boolean;
@@ -220,6 +222,21 @@ export async function zerarTrilheiroAction(formData: FormData): Promise<void> {
   if (!TRILHEIROS.includes(trilheiro)) return;
   await zerarTrilheiro(trilheiro);
   atualizar();
+}
+
+/** Grava a observação de cada setor, dia a dia, da semana inteira (segunda a domingo). */
+export async function salvarObservacoesSetoresAction(_: ResultadoUsina | undefined, formData: FormData): Promise<ResultadoUsina> {
+  await requireAdmin();
+  const semana = dataDoForm(formData.get('semana'));
+  if (!semana) return { ok: false, erro: 'Semana inválida.' };
+  for (let i = 0; i < 7; i++) {
+    const d = somarDias(semana, i);
+    for (const s of SETORES_OBSERVACAO) {
+      await salvarObservacaoSetor(d, s.valor, texto(formData.get(`obs_${s.valor}_${d}`), 500));
+    }
+  }
+  atualizar();
+  return { ok: true };
 }
 
 /** Lança soldas e cortes da semana inteira (segunda a quinta) em uma só vez. */
