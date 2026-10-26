@@ -100,8 +100,8 @@ export function TrilheirosBloco({ t }: { t: TrilheirosRelatorio }) {
             </div>
           ))}
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] border-collapse text-[13px]">
+        <div className="overflow-x-auto print:overflow-visible">
+          <table className="w-full min-w-[760px] border-collapse text-[13px] print:min-w-0 print:text-[9px]">
             <thead>
               <tr className="text-[11px] uppercase tracking-wide text-slate-500">
                 <th className="pb-2 px-2 leading-tight align-bottom text-left font-semibold">Trilheiro</th>
@@ -124,7 +124,7 @@ export function TrilheirosBloco({ t }: { t: TrilheirosRelatorio }) {
                   <td className="py-2 px-2 align-top text-right tabular-nums">{e.diasDesdePartida ?? '—'}</td>
                   <td className="py-2 px-2 align-top font-medium">{e.local ?? '—'}</td>
                   <td className="py-2 px-2 align-top text-right font-medium tabular-nums">{e.descarregadas} / {e.total}</td>
-                  <td className="py-2 px-2 align-top min-w-[220px] whitespace-normal text-slate-600">{e.observacao ?? ''}</td>
+                  <td className="py-2 px-2 align-top min-w-[160px] whitespace-normal text-slate-600 print:min-w-0">{e.observacao ?? ''}</td>
                 </tr>
               ))}
             </tbody>
