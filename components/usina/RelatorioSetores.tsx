@@ -2,6 +2,9 @@ import { Fragment } from 'react';
 import { GraficoBarras } from '@/components/usina/GraficoBarras';
 import type { SetorRelatorio, TrilheirosRelatorio, EquipeGeracaoRelatorio, SerraRelatorio, MedidaSerra } from '@/lib/services/onePageUsina';
 import { fmtMetros } from '@/lib/format';
+import type { Coluna } from '@/lib/usina/periodo';
+
+const TODAS: Coluna[] = ['dia', 'semana', 'mes'];
 
 /** Um setor: cabeçalho colorido, tabela Dia | Semana e o gráfico de segunda a domingo. */
 /** Valor com partes separadas por ' / ', cada parte na sua cor (ex.: W61 e W62 com cores diferentes). */
@@ -68,7 +71,10 @@ function TabelaSerra({ serra }: { serra: SerraRelatorio }) {
   );
 }
 
-export function Setor({ s, rotulosDias, largo = false, mensal = false }: { s: SetorRelatorio; rotulosDias: string[]; largo?: boolean; mensal?: boolean }) {
+export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas = TODAS }: { s: SetorRelatorio; rotulosDias: string[]; largo?: boolean; mensal?: boolean; colunas?: Coluna[] }) {
+  const mostraDia = !mensal && colunas.includes('dia');
+  const mostraSem = !mensal && colunas.includes('semana');
+  const mostraMes = colunas.includes('mes');
   if (s.serra) {
     return (
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white break-inside-avoid">
@@ -93,18 +99,18 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false }: { s: Se
       <thead>
         <tr className="text-[11px] uppercase tracking-wide text-slate-500">
           <th className="pb-1 text-left font-semibold"> </th>
-          {!mensal && <th className="pb-1 text-right font-semibold">Dia</th>}
-          {!mensal && <th className="pb-1 text-right font-semibold">Semana</th>}
-          <th className="pb-1 text-right font-semibold">No mês</th>
+          {mostraDia && <th className="pb-1 text-right font-semibold">Dia</th>}
+          {mostraSem && <th className="pb-1 text-right font-semibold">Semana</th>}
+          {mostraMes && <th className="pb-1 text-right font-semibold">No mês</th>}
         </tr>
       </thead>
       <tbody>
         {s.linhas.map((l) => (
           <tr key={l.rotulo} className="border-t border-slate-100">
             <td className="py-1 text-slate-700">{l.rotulo}</td>
-            {!mensal && <td className="py-1 text-right font-medium tabular-nums text-slate-900"><ValorComCores valor={l.dia} cores={l.cores} corPadrao="#0f172a" /></td>}
-            {!mensal && <td className="py-1 text-right font-medium tabular-nums text-slate-900"><ValorComCores valor={l.semana} cores={l.cores} corPadrao="#0f172a" /></td>}
-            <td className="py-1 text-right font-bold tabular-nums"><ValorComCores valor={l.mes} cores={l.cores} corPadrao={s.cor} /></td>
+            {mostraDia && <td className="py-1 text-right font-medium tabular-nums text-slate-900"><ValorComCores valor={l.dia} cores={l.cores} corPadrao="#0f172a" /></td>}
+            {mostraSem && <td className="py-1 text-right font-medium tabular-nums text-slate-900"><ValorComCores valor={l.semana} cores={l.cores} corPadrao="#0f172a" /></td>}
+            {mostraMes && <td className="py-1 text-right font-bold tabular-nums"><ValorComCores valor={l.mes} cores={l.cores} corPadrao={s.cor} /></td>}
           </tr>
         ))}
       </tbody>
@@ -166,7 +172,7 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false }: { s: Se
 }
 
 /** Indicador de setor: o valor do dia e o da semana em blocos separados. */
-export function Resumo({ rotulo, cor, dia, semana, mes, mensal = false, linhas }: { rotulo: string; cor: string; dia: string; semana: string; mes: string; mensal?: boolean; linhas?: { rotulo: string; valor: string }[] }) {
+export function Resumo({ rotulo, cor, dia, semana, mes, mensal = false, linhas, colunas = TODAS }: { rotulo: string; cor: string; dia: string; semana: string; mes: string; mensal?: boolean; linhas?: { rotulo: string; valor: string }[]; colunas?: Coluna[] }) {
   if (linhas && linhas.length > 0) {
     return (
       <div className="rounded-lg border border-slate-200 bg-white p-3" style={{ borderTop: `3px solid ${cor}` }}>
@@ -196,10 +202,10 @@ export function Resumo({ rotulo, cor, dia, semana, mes, mensal = false, linhas }
       <p className="text-[11px] font-bold uppercase tracking-wide text-slate-600">{rotulo}</p>
       <dl className="mt-2 divide-y divide-slate-100 text-sm">
         {[
-          { rotulo: 'Do dia', valor: dia, cor: '#0f172a' },
-          { rotulo: 'Da semana', valor: semana, cor },
-          { rotulo: 'No mês', valor: mes, cor },
-        ].map((l) => (
+          { rotulo: 'Do dia', valor: dia, cor: '#0f172a', c: 'dia' as Coluna },
+          { rotulo: 'Da semana', valor: semana, cor, c: 'semana' as Coluna },
+          { rotulo: 'No mês', valor: mes, cor, c: 'mes' as Coluna },
+        ].filter((l) => colunas.includes(l.c)).map((l) => (
           <div key={l.rotulo} className="flex items-baseline justify-between gap-2 py-1">
             <dt className="text-[11px] uppercase tracking-wide text-slate-500">{l.rotulo}</dt>
             <dd className="font-bold tabular-nums" style={{ color: l.cor }}>{l.valor}</dd>
@@ -214,9 +220,13 @@ export function Resumo({ rotulo, cor, dia, semana, mes, mensal = false, linhas }
 const brData = (iso: string | null) => (iso ? iso.split('-').reverse().join('/') : '—');
 
 /** Caminhão de solda na tela: uma linha por caminhão, no mesmo formato da tabela de trilheiros. */
-export function CaminhoesBloco({ s, modo }: { s: SetorRelatorio; modo: 'semanal' | 'diario' | 'mensal' }) {
+export function CaminhoesBloco({ s, modo, colunas = TODAS }: { s: SetorRelatorio; modo: 'semanal' | 'diario' | 'mensal'; colunas?: Coluna[] }) {
   const mensal = modo === 'mensal';
   const diario = modo === 'diario';
+  const mostraDia = !mensal && colunas.includes('dia');
+  const mostraSem = !mensal && colunas.includes('semana');
+  const mostraMes = colunas.includes('mes');
+  const nColunas = (mostraDia ? 1 : 0) + (mostraSem ? 1 : 0) + (mostraMes ? 1 : 0);
   const caminhoes = s.caminhoes ?? [];
   const cor = s.cor;
   const celula = 'py-2.5 text-right font-semibold tabular-nums';
@@ -230,30 +240,30 @@ export function CaminhoesBloco({ s, modo }: { s: SetorRelatorio; modo: 'semanal'
           <thead>
             <tr className="text-[10px] uppercase tracking-wide text-slate-500">
               <th className="pb-1 text-left font-semibold" rowSpan={2}>Caminhão</th>
-              <th className="pb-1 text-center font-semibold" colSpan={mensal ? 1 : 3}>Solda (UND)</th>
-              <th className="pb-1 text-center font-semibold" colSpan={mensal ? 1 : 3}>Corte (UND)</th>
+              <th className="pb-1 text-center font-semibold" colSpan={nColunas}>Solda (UND)</th>
+              <th className="pb-1 text-center font-semibold" colSpan={nColunas}>Corte (UND)</th>
               <th className="pb-1 text-center font-semibold" rowSpan={2}>Local</th>
               {diario && <th className="pb-1 text-left font-semibold" rowSpan={2}>Observação</th>}
             </tr>
             <tr className="border-b-2 border-slate-200 text-[10px] uppercase tracking-wide text-slate-500">
-              {!mensal && <th className="pb-2 text-right font-semibold">Dia</th>}
-              {!mensal && <th className="pb-2 text-right font-semibold">Semana</th>}
-              <th className="pb-2 text-right font-semibold">No mês</th>
-              {!mensal && <th className="pb-2 text-right font-semibold">Dia</th>}
-              {!mensal && <th className="pb-2 text-right font-semibold">Semana</th>}
-              <th className="pb-2 text-right font-semibold">No mês</th>
+              {mostraDia && <th className="pb-2 text-right font-semibold">Dia</th>}
+              {mostraSem && <th className="pb-2 text-right font-semibold">Semana</th>}
+              {mostraMes && <th className="pb-2 text-right font-semibold">No mês</th>}
+              {mostraDia && <th className="pb-2 text-right font-semibold">Dia</th>}
+              {mostraSem && <th className="pb-2 text-right font-semibold">Semana</th>}
+              {mostraMes && <th className="pb-2 text-right font-semibold">No mês</th>}
             </tr>
           </thead>
           <tbody>
             {caminhoes.map((c, i) => (
               <tr key={c.nome} className={`align-top ${i % 2 === 1 ? 'bg-slate-50' : ''}`}>
                 <td className="py-2.5 pl-2 font-bold text-slate-900">{c.nome}</td>
-                {!mensal && <td className={`${celula} text-slate-900`}>{c.solda.dia}</td>}
-                {!mensal && <td className={`${celula} text-slate-900`}>{c.solda.semana}</td>}
-                <td className={celula} style={{ color: cor }}>{c.solda.mes}</td>
-                {!mensal && <td className={`${celula} text-slate-900`}>{c.corte.dia}</td>}
-                {!mensal && <td className={`${celula} text-slate-900`}>{c.corte.semana}</td>}
-                <td className={celula} style={{ color: cor }}>{c.corte.mes}</td>
+                {mostraDia && <td className={`${celula} text-slate-900`}>{c.solda.dia}</td>}
+                {mostraSem && <td className={`${celula} text-slate-900`}>{c.solda.semana}</td>}
+                {mostraMes && <td className={celula} style={{ color: cor }}>{c.solda.mes}</td>}
+                {mostraDia && <td className={`${celula} text-slate-900`}>{c.corte.dia}</td>}
+                {mostraSem && <td className={`${celula} text-slate-900`}>{c.corte.semana}</td>}
+                {mostraMes && <td className={celula} style={{ color: cor }}>{c.corte.mes}</td>}
                 <td className="py-2.5 text-center">
                   {c.local ? <span className="inline-block rounded-md bg-slate-900 px-2 py-0.5 text-[11px] font-bold text-white">{c.local}</span> : '—'}
                 </td>

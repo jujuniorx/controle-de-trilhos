@@ -1,6 +1,6 @@
 import { PaginaPdf, A4_PAISAGEM, montarPdfVarias, larguraTexto } from '@/lib/pdf/simples';
 import type { DadosRelatorio, GraficoRelatorio, SerraRelatorio, SetorRelatorio, TrilheirosRelatorio } from '@/lib/services/onePageUsina';
-import { faixaSemanaSegSex, mesAte } from '@/lib/usina/periodo';
+import { faixaSemanaSegSex, mesAte, type Coluna, TODAS_COLUNAS } from '@/lib/usina/periodo';
 import { desenharTrilheiros } from '@/lib/pdf/tabelaTrilheiros';
 import { desenharCaminhoes } from '@/lib/pdf/tabelaCaminhoes';
 
@@ -110,7 +110,7 @@ export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yB
   });
 }
 
-export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = [], mensal = false) {
+export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = [], mensal = false, colunas: Coluna[] = ['dia', 'semana', 'mes']) {
   const base = topo - h;
   p.arredondado(x + 1.2, base - 1.4, w, h, 9, SOMBRA);
   p.arredondado(x, base, w, h, 9, BRANCO, LINHA);
@@ -125,48 +125,38 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
     return;
   }
 
-  // Tabela Dia | Semana | No mês. No cartão largo ela fica à esquerda e o gráfico à direita.
+  // Tabela: só as colunas escolhidas (Dia, Semana, No mês), cada uma numa caixa própria.
+  // No cartão largo a tabela fica à esquerda e o gráfico à direita.
+  const ativas = (['dia', 'semana', 'mes'] as Coluna[]).filter((c) => colunas.includes(c) && (!mensal || c === 'mes'));
   const xMes = largo ? x + 440 : x + w - 8;
-  const xSem = xMes - 66;
-  const xDia = xSem - 66;
-  // Caixa em volta das colunas de números (Dia | Semana | No mês), com a coluna No mês levemente destacada.
-  if (!mensal) {
-    const alturaDaLinha = largo ? 16 : 13;
-    const fimLinhas = topo - 38 - s.linhas.length * alturaDaLinha - 5;
-    const bxEsq = xDia - 33;
-    const bxDir = xMes + 6;
-    p.arredondado(bxEsq, fimLinhas, bxDir - bxEsq, topo - 26 - fimLinhas, 4, BRANCO, LINHA);
-    p.retangulo((xSem + xMes) / 2, fimLinhas + 1, bxDir - (xSem + xMes) / 2 - 1, topo - 27 - fimLinhas, hex('#f1f5f9'));
-    p.linha((xDia + xSem) / 2, topo - 26, (xDia + xSem) / 2, fimLinhas, LINHA, 0.5);
-    p.linha((xSem + xMes) / 2, topo - 26, (xSem + xMes) / 2, fimLinhas, LINHA, 0.5);
-  }
-  let y = topo - 32;
-  if (!mensal) {
-    textoDireita(p, 'DIA', xDia, y, 6.5, 'negrito', CINZA);
-    textoDireita(p, 'SEMANA', xSem, y, 6.5, 'negrito', CINZA);
-  }
-  textoDireita(p, 'NO MÊS', xMes, y, 6.5, 'negrito', CINZA);
-  y -= 6;
-  p.linha(x + 8, y, xMes + 2, y, LINHA, 0.6);
-  // Linhas no mesmo padrão da tabela de trilheiros: mais altas, números em negrito e faixas zebradas.
-  // Nos cartões largos a linha é mais alta (padrão do trilheiro); no gerencial, mais compacta para caber na folha.
+  const passo = 66;
+  // Borda direita de cada coluna: a última ativa encosta em xMes e as anteriores andam para a esquerda.
+  const xDe = (c: Coluna) => xMes - (ativas.length - 1 - ativas.indexOf(c)) * passo;
+  const nomeDe: Record<Coluna, string> = { dia: 'DIA', semana: 'SEMANA', mes: 'NO MÊS' };
+  // Linhas no padrão da tabela de trilheiros: mais altas no cartão largo; mais compactas no gerencial.
   const altLinhaSetor = largo ? 16 : 13;
-  s.linhas.forEach((linha, i) => {
-    y -= altLinhaSetor;
-    if (i % 2 === 1) p.retangulo(x + 4, y - 4, w - 8, altLinhaSetor, ZEBRA);
-    p.texto(linha.rotulo, x + 8, y, 8, 'normal', TINTA);
-    if (!mensal) {
-      valorDireitaComCores(p, linha.dia, linha.cores, xDia, y, 9, 'negrito', TINTA);
-      valorDireitaComCores(p, linha.semana, linha.cores, xSem, y, 9, 'negrito', TINTA);
-    }
-    valorDireitaComCores(p, linha.mes, linha.cores, xMes, y, 9, 'negrito', hex(s.cor));
+  const yCabecalho = topo - 32;
+  const yPrimeiraLinha = topo - 38;
+  const fimLinhas = yPrimeiraLinha - s.linhas.length * altLinhaSetor - 5;
+  // Faixas zebradas primeiro; depois as caixas das colunas, por cima; por fim os textos.
+  s.linhas.forEach((_, i) => {
+    if (i % 2 === 1) p.retangulo(x + 4, yPrimeiraLinha - (i + 1) * altLinhaSetor - 4, w - 8, altLinhaSetor, ZEBRA);
   });
-  // Risco separando Dia | Semana | No mês, do cabeçalho até a última linha.
-  if (!mensal) {
-    const yFinal = y - 5;
-    p.linha((xDia + xSem) / 2, topo - 26, (xDia + xSem) / 2, yFinal, LINHA, 0.5);
-    p.linha((xSem + xMes) / 2, topo - 26, (xSem + xMes) / 2, yFinal, LINHA, 0.5);
-  }
+  ativas.forEach((c) => {
+    const xr = xDe(c);
+    p.arredondado(xr - 54, fimLinhas, 60, topo - 26 - fimLinhas, 4, c === 'mes' ? hex('#f1f5f9') : BRANCO, LINHA);
+  });
+  ativas.forEach((c) => textoDireita(p, nomeDe[c], xDe(c), yCabecalho, 6.5, 'negrito', CINZA));
+  p.linha(x + 8, yPrimeiraLinha - 6, xMes + 2, yPrimeiraLinha - 6, LINHA, 0.6);
+  let y = yPrimeiraLinha - 6;
+  s.linhas.forEach((linha) => {
+    y -= altLinhaSetor;
+    p.texto(linha.rotulo, x + 8, y, 8, 'normal', TINTA);
+    ativas.forEach((c) => {
+      const valor = c === 'dia' ? linha.dia : c === 'semana' ? linha.semana : linha.mes;
+      valorDireitaComCores(p, valor, linha.cores, xDe(c), y, 9, 'negrito', c === 'mes' ? hex(s.cor) : TINTA);
+    });
+  });
 
   // No mensal o gráfico diário sai: o cartão mostra só os totais do mês.
   if (!s.grafico || mensal) return;
@@ -208,14 +198,15 @@ export function desenharResumoCartao(p: PaginaPdf, r: { rotulo: string; cor: str
 }
 
 /** Linhas de um cartão do topo: as três padrão (Do dia, Da semana, No mês) ou as linhas próprias do cartão (trilheiros). */
-export function desenharLinhasResumo(p: PaginaPdf, r: { cor: string; dia: string; semana: string; mes: string; linhas?: { rotulo: string; valor: string }[] }, x: number, topo: number, w: number) {
+export function desenharLinhasResumo(p: PaginaPdf, r: { cor: string; dia: string; semana: string; mes: string; linhas?: { rotulo: string; valor: string }[] }, x: number, topo: number, w: number, colunas: Coluna[] = TODAS_COLUNAS) {
+  const padrao: { c: Coluna; rot: string; val: string; cor: ReturnType<typeof hex> }[] = [
+    { c: 'dia', rot: 'Do dia', val: r.dia, cor: TINTA },
+    { c: 'semana', rot: 'Da semana', val: r.semana, cor: hex(r.cor) },
+    { c: 'mes', rot: 'No mês', val: r.mes, cor: hex(r.cor) },
+  ];
   const linhas: [string, string, ReturnType<typeof hex>][] = r.linhas && r.linhas.length > 0
     ? r.linhas.map((l) => [l.rotulo, l.valor, hex(r.cor)])
-    : [
-        ['Do dia', r.dia, TINTA],
-        ['Da semana', r.semana, hex(r.cor)],
-        ['No mês', r.mes, hex(r.cor)],
-      ];
+    : padrao.filter((l) => colunas.includes(l.c)).map((l) => [l.rot, l.val, l.cor]);
   linhas.forEach(([rot, val, cor], k) => {
     const yLinha = topo - 27 - k * 13;
     if (k > 0) p.linha(x + 8, yLinha + 9, x + w - 8, yLinha + 9, LINHA, 0.4);
@@ -224,7 +215,7 @@ export function desenharLinhasResumo(p: PaginaPdf, r: { cor: string; dia: string
   });
 }
 
-export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 'semanal' | 'mensal' = 'semanal'): Buffer {
+export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 'semanal' | 'mensal' = 'semanal', colunas: Coluna[] = TODAS_COLUNAS): Buffer {
   const mensal = modo === 'mensal';
   const p = new PaginaPdf();
   p.retangulo(0, 0, L, H, BRANCO);
@@ -254,7 +245,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
     p.arredondado(x + 8, topoRes - 15, 6, 6, 3, hex(r.cor));
     p.texto(r.rotulo.toUpperCase(), x + 18, topoRes - 14, 7, 'negrito', TINTA);
     if (mensal && r.linhas?.length) {
-      desenharLinhasResumo(p, r, x, topoRes, wRes);
+      desenharLinhasResumo(p, r, x, topoRes, wRes, colunas);
       return;
     }
     if (mensal) {
@@ -263,7 +254,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
       return;
     }
     // Três linhas iguais: rótulo à esquerda, valor à direita, mesmo tamanho e a mesma ordem em todos os cartões.
-    desenharLinhasResumo(p, r, x, topoRes, wRes);
+    desenharLinhasResumo(p, r, x, topoRes, wRes, colunas);
   });
 
   // Linha 1: Estaleiro, Geração e Recolhimento serra, lado a lado.
@@ -275,7 +266,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const porTitulo = (t: string) => d.setores.find((s) => s.titulo === t);
   const linha1 = d.setores.filter((s) => s.titulo !== 'Caminhão de solda' && s.titulo !== 'Trilheiros');
   linha1.slice(0, colunas).forEach((s, i) => {
-    desenharSetor(p, s, M + i * (wSet + gapC), topoGrade, wSet, altSet, false, d.rotulosDias, mensal);
+    desenharSetor(p, s, M + i * (wSet + gapC), topoGrade, wSet, altSet, false, d.rotulosDias, mensal, colunas);
   });
 
   // Linhas 2 e 3: Caminhão de solda e Trilheiros, um embaixo do outro, cada um na largura toda.
@@ -287,7 +278,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const topoLinha2 = topoGrade - altSet - 12;
   const caminhao = porTitulo('Caminhão de solda');
   // Caminhão no mesmo formato da tabela de trilheiros (sem gráfico, como no trilheiro).
-  if (caminhao?.caminhoes) desenharCaminhoes(p, caminhao.caminhoes, caminhao.cor, M, topoLinha2, larguraTotal, altCaminhao, mensal ? 'mensal' : 'semanal');
+  if (caminhao?.caminhoes) desenharCaminhoes(p, caminhao.caminhoes, caminhao.cor, M, topoLinha2, larguraTotal, altCaminhao, mensal ? 'mensal' : 'semanal', colunas);
   // Trilheiros: a mesma tabela do PDF por setor, em versão compacta.
   const altTrilheiros = Math.max(90, 46 + Math.max(1, tril.equipes.length) * 28 + 6);
   desenharTrilheiros(p, tril, M, topoLinha2 - altCaminhao - gapLinha, larguraTotal, altTrilheiros, true);

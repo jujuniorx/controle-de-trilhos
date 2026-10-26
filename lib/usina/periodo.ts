@@ -44,6 +44,17 @@ export function faixaSemanaSegSex(iso: string): string {
 /** Formato do relatório: semanal (uma tabela com a semana) ou diário (um número por dia). */
 export type ModoRelatorio = 'semanal' | 'diario' | 'mensal';
 
+/** Colunas de número que o relatório mostra: qualquer combinação de Dia, Semana e No mês. */
+export type Coluna = 'dia' | 'semana' | 'mes';
+export const TODAS_COLUNAS: Coluna[] = ['dia', 'semana', 'mes'];
+
+/** Lê ?col=dia&col=mes (ou col=dia,mes). Sem valor válido, mostra as três. */
+export function colunasValidas(v: string | string[] | undefined): Coluna[] {
+  const lista = (Array.isArray(v) ? v : v ? [v] : []).flatMap((x) => x.split(','));
+  const escolhidas = TODAS_COLUNAS.filter((c) => lista.includes(c));
+  return escolhidas.length > 0 ? escolhidas : TODAS_COLUNAS;
+}
+
 export function modoValido(v: string | undefined): ModoRelatorio {
   return v === 'diario' ? 'diario' : v === 'mensal' ? 'mensal' : 'semanal';
 }

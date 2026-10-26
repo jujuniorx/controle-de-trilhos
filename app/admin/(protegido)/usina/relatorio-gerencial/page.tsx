@@ -1,16 +1,19 @@
 import { montarDadosRelatorio, montarTrilheirosRelatorio } from '@/lib/services/onePageUsina';
 import { Setor, Resumo, TrilheirosBloco, CaminhoesBloco } from '@/components/usina/RelatorioSetores';
 import { ObservacoesSetorRelatorio } from '@/components/usina/ObservacoesSetorRelatorio';
-import { ehIsoValido, modoValido, linksModo, rotuloPeriodo } from '@/lib/usina/periodo';
+import { ehIsoValido, modoValido, linksModo, rotuloPeriodo, colunasValidas, TODAS_COLUNAS, type Coluna } from '@/lib/usina/periodo';
 import { BotaoCompartilharPdf } from '@/components/usina/BotaoCompartilharPdf';
 
 export const dynamic = 'force-dynamic';
 
 const br = (iso: string) => iso.split('-').reverse().join('/');
 
-export default async function RelatorioGerencialUsina({ searchParams }: { searchParams: Promise<{ data?: string; modo?: string }> }) {
+const NOME_COLUNA: Record<Coluna, string> = { dia: 'Dia', semana: 'Semana', mes: 'No mês' };
+
+export default async function RelatorioGerencialUsina({ searchParams }: { searchParams: Promise<{ data?: string; modo?: string; col?: string | string[] }> }) {
   const params = await searchParams;
   const modo = modoValido(params.modo);
+  const colunas = colunasValidas(params.col);
   const data = ehIsoValido(params.data) ? params.data : new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
   const dados = await montarDadosRelatorio(data);
   const tril = await montarTrilheirosRelatorio(data);
@@ -23,7 +26,18 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
             <a key={l.modo} href={l.href} aria-current={l.ativo ? 'true' : undefined} className={`h-11 px-4 leading-[2.75rem] text-sm font-semibold ${l.ativo ? 'bg-slate-900 text-white' : 'bg-surface text-ink-muted'}`}>{l.rotulo}</a>
           ))}
         </div>
-        <BotaoCompartilharPdf url={`/api/usina/relatorio-gerencial/pdf?data=${data}&modo=${modo}`} nomeArquivo={`relatorio-gerencial-usina-${data}.pdf`} titulo={`Relatório da usina ${br(data)}`} />
+        <form action="" method="get" className="flex flex-wrap items-center gap-2 text-sm" aria-label="Colunas do relatório">
+          <input type="hidden" name="data" value={data} />
+          <input type="hidden" name="modo" value={modo} />
+          {TODAS_COLUNAS.map((c) => (
+            <label key={c} className="flex h-11 items-center gap-2 rounded-lg border border-line px-3">
+              <input type="checkbox" name="col" value={c} defaultChecked={colunas.includes(c)} />
+              {NOME_COLUNA[c]}
+            </label>
+          ))}
+          <button className="btn btn-ghost h-11" type="submit">Aplicar colunas</button>
+        </form>
+        <BotaoCompartilharPdf url={`/api/usina/relatorio-gerencial/pdf?data=${data}&modo=${modo}&col=${colunas.join(',')}`} nomeArquivo={`relatorio-gerencial-usina-${data}.pdf`} titulo={`Relatório da usina ${br(data)}`} />
         <a className="btn btn-ghost h-11" href={`/admin/usina?data=${data}`}>Voltar</a>
         <form action="" className="flex items-center gap-2 text-sm">
           <label htmlFor="data">Dia</label>
@@ -46,7 +60,7 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {dados.resumo.map((r) => (
-            <Resumo key={r.rotulo} rotulo={r.rotulo} cor={r.cor} dia={r.dia} semana={r.semana} mes={r.mes} mensal={modo === 'mensal'} linhas={r.linhas} />
+            <Resumo key={r.rotulo} rotulo={r.rotulo} cor={r.cor} dia={r.dia} semana={r.semana} mes={r.mes} mensal={modo === 'mensal'} linhas={r.linhas} colunas={colunas} />
           ))}
         </div>
 
@@ -55,10 +69,10 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
           {dados.setores.filter((s) => s.titulo !== 'Trilheiros').map((s) => (
             <div key={s.titulo}>
               {s.caminhoes ? (
-                <CaminhoesBloco s={s} modo={modo} />
+                <CaminhoesBloco s={s} modo={modo} colunas={colunas} />
               ) : (
                 <>
-                  <Setor s={s} rotulosDias={dados.rotulosDias} largo mensal={modo === 'mensal'} />
+                  <Setor s={s} rotulosDias={dados.rotulosDias} largo mensal={modo === 'mensal'} colunas={colunas} />
                   {modo === 'diario' && <ObservacoesSetorRelatorio titulo={s.titulo} observacoes={dados.observacoes} />}
                 </>
               )}
