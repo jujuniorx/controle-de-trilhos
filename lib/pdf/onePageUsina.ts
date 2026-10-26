@@ -287,7 +287,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const topoLinha2 = topoGrade - altSet - 12;
   const caminhao = porTitulo('Caminhão de solda');
   // Caminhão no mesmo formato da tabela de trilheiros (sem gráfico, como no trilheiro).
-  if (caminhao?.caminhoes) desenharCaminhoes(p, caminhao.caminhoes, caminhao.cor, M, topoLinha2, larguraTotal, altCaminhao);
+  if (caminhao?.caminhoes) desenharCaminhoes(p, caminhao.caminhoes, caminhao.cor, M, topoLinha2, larguraTotal, altCaminhao, mensal ? 'mensal' : 'semanal');
   // Trilheiros: a mesma tabela do PDF por setor, em versão compacta.
   const altTrilheiros = Math.max(90, 46 + Math.max(1, tril.equipes.length) * 28 + 6);
   desenharTrilheiros(p, tril, M, topoLinha2 - altCaminhao - gapLinha, larguraTotal, altTrilheiros, true);

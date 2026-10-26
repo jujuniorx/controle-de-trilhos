@@ -213,6 +213,60 @@ export function Resumo({ rotulo, cor, dia, semana, mes, mensal = false, linhas }
 
 const brData = (iso: string | null) => (iso ? iso.split('-').reverse().join('/') : '—');
 
+/** Caminhão de solda na tela: uma linha por caminhão, no mesmo formato da tabela de trilheiros. */
+export function CaminhoesBloco({ s, modo }: { s: SetorRelatorio; modo: 'semanal' | 'diario' | 'mensal' }) {
+  const mensal = modo === 'mensal';
+  const diario = modo === 'diario';
+  const caminhoes = s.caminhoes ?? [];
+  const cor = s.cor;
+  const celula = 'py-2.5 text-right font-semibold tabular-nums';
+  return (
+    <section className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white break-inside-avoid">
+      <header className="px-4 py-2.5 text-white" style={{ background: cor }}>
+        <span className="text-sm font-bold uppercase tracking-wide">{s.titulo}</span>
+      </header>
+      <div className="overflow-x-auto p-4">
+        <table className="w-full border-collapse text-[13px]">
+          <thead>
+            <tr className="text-[10px] uppercase tracking-wide text-slate-500">
+              <th className="pb-1 text-left font-semibold" rowSpan={2}>Caminhão</th>
+              <th className="pb-1 text-center font-semibold" colSpan={mensal ? 1 : 3}>Solda (UND)</th>
+              <th className="pb-1 text-center font-semibold" colSpan={mensal ? 1 : 3}>Corte (UND)</th>
+              <th className="pb-1 text-center font-semibold" rowSpan={2}>Local</th>
+              {diario && <th className="pb-1 text-left font-semibold" rowSpan={2}>Observação</th>}
+            </tr>
+            <tr className="border-b-2 border-slate-200 text-[10px] uppercase tracking-wide text-slate-500">
+              {!mensal && <th className="pb-2 text-right font-semibold">Dia</th>}
+              {!mensal && <th className="pb-2 text-right font-semibold">Semana</th>}
+              <th className="pb-2 text-right font-semibold">No mês</th>
+              {!mensal && <th className="pb-2 text-right font-semibold">Dia</th>}
+              {!mensal && <th className="pb-2 text-right font-semibold">Semana</th>}
+              <th className="pb-2 text-right font-semibold">No mês</th>
+            </tr>
+          </thead>
+          <tbody>
+            {caminhoes.map((c, i) => (
+              <tr key={c.nome} className={`align-top ${i % 2 === 1 ? 'bg-slate-50' : ''}`}>
+                <td className="py-2.5 pl-2 font-bold text-slate-900">{c.nome}</td>
+                {!mensal && <td className={`${celula} text-slate-900`}>{c.solda.dia}</td>}
+                {!mensal && <td className={`${celula} text-slate-900`}>{c.solda.semana}</td>}
+                <td className={celula} style={{ color: cor }}>{c.solda.mes}</td>
+                {!mensal && <td className={`${celula} text-slate-900`}>{c.corte.dia}</td>}
+                {!mensal && <td className={`${celula} text-slate-900`}>{c.corte.semana}</td>}
+                <td className={celula} style={{ color: cor }}>{c.corte.mes}</td>
+                <td className="py-2.5 text-center">
+                  {c.local ? <span className="inline-block rounded-md bg-slate-900 px-2 py-0.5 text-[11px] font-bold text-white">{c.local}</span> : '—'}
+                </td>
+                {diario && <td className="py-2.5 pr-2 text-[12px] leading-snug text-slate-600">{c.observacao ?? ''}</td>}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
 /** Trilheiros: indicadores de topo e uma linha por equipe, como no informativo da Rumo. */
 export function TrilheirosBloco({ t }: { t: TrilheirosRelatorio }) {
   const cor = '#0891b2';

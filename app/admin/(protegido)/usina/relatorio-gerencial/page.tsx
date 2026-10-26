@@ -1,5 +1,5 @@
 import { montarDadosRelatorio, montarTrilheirosRelatorio } from '@/lib/services/onePageUsina';
-import { Setor, Resumo, TrilheirosBloco } from '@/components/usina/RelatorioSetores';
+import { Setor, Resumo, TrilheirosBloco, CaminhoesBloco } from '@/components/usina/RelatorioSetores';
 import { ObservacoesSetorRelatorio } from '@/components/usina/ObservacoesSetorRelatorio';
 import { ehIsoValido, modoValido, linksModo, rotuloPeriodo } from '@/lib/usina/periodo';
 import { BotaoCompartilharPdf } from '@/components/usina/BotaoCompartilharPdf';
@@ -54,8 +54,14 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
         <div className="grid gap-4">
           {dados.setores.filter((s) => s.titulo !== 'Trilheiros').map((s) => (
             <div key={s.titulo}>
-              <Setor s={s} rotulosDias={dados.rotulosDias} largo mensal={modo === 'mensal'} />
-              {modo === 'diario' && <ObservacoesSetorRelatorio titulo={s.titulo} observacoes={dados.observacoes} />}
+              {s.caminhoes ? (
+                <CaminhoesBloco s={s} modo={modo} />
+              ) : (
+                <>
+                  <Setor s={s} rotulosDias={dados.rotulosDias} largo mensal={modo === 'mensal'} />
+                  {modo === 'diario' && <ObservacoesSetorRelatorio titulo={s.titulo} observacoes={dados.observacoes} />}
+                </>
+              )}
             </div>
           ))}
         </div>

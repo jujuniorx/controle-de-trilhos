@@ -34,6 +34,8 @@ export interface SerraRelatorio { linhas: LinhaSerra[]; total: { dia: MedidaSerr
 /** Um caminhão de solda: solda e corte do dia, da semana e do mês, no formato da tabela de trilheiros. */
 export interface CaminhaoTabelaRelatorio {
   nome: string;
+  local: string | null;
+  observacao: string | null;
   solda: { dia: number; semana: number; mes: number };
   corte: { dia: number; semana: number; mes: number };
 }
@@ -72,6 +74,18 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
   const dias = serie.rotulos.length;
 
   const trilRel = await montarTrilheirosRelatorio(data);
+  // Local e observação de cada caminhão: o local vale até a data do relatório; a observação é a do próprio dia.
+  const registrosCaminhao = await prisma.caminhaoSoldaDia.findMany({
+    where: { data: { gte: new Date(`${inicio}T00:00:00Z`), lte: new Date(`${data}T00:00:00Z`) } },
+    orderBy: { data: 'asc' },
+    select: { data: true, caminhao: true, local: true, observacao: true },
+  });
+  const infoCaminhao = (cw: string) => {
+    const doCaminhao = registrosCaminhao.filter((r) => r.caminhao === cw);
+    const comLocal = doCaminhao.filter((r) => r.local).slice(-1)[0];
+    const doDia = doCaminhao.find((r) => r.data.toISOString().slice(0, 10) === data);
+    return { local: comLocal?.local ?? null, observacao: doDia?.observacao ?? null };
+  };
   const [estD, estS, estM, gerD, gerS, camD, camS, serraSem, serraMesRows] = await Promise.all([
     estaleiroDoPeriodo('dia', data),
     estaleiroDoPeriodo('semana', data),
@@ -243,6 +257,8 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
           const d = camD.find((x) => x.caminhao === c.caminhao);
           return {
             nome: ROTULO_CAMINHAO[c.caminhao] ?? c.caminhao,
+            local: infoCaminhao(c.caminhao).local,
+            observacao: infoCaminhao(c.caminhao).observacao,
             solda: { dia: d?.periodo.producao ?? 0, semana: c.periodo.producao, mes: c.mes.producao },
             corte: { dia: d?.periodo.perda ?? 0, semana: c.periodo.perda, mes: c.mes.perda },
           };
