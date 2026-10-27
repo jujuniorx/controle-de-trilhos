@@ -331,7 +331,11 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
 
   // Sem cabeçalho repetido aqui (a capa já traz o título e a logo): só uma faixa separadora com o período.
   const semana = mensal ? `Mês até ${mesAte(d.data).split(' a ')[1]}` : diario ? rotuloPeriodo(d.data, 'diario').valor : faixaSemanaSegSex(d.data);
-  p.texto('RESUMO DO PERÍODO', M, H - 24, 7, 'negrito', AZUL);
+  // Marca no topo à esquerda: CONTROLE DE TRILHOS – logo Rumo, com um traço separando.
+  const larguraMarca = larguraTexto('CONTROLE DE TRILHOS', 7, 'negrito');
+  p.texto('CONTROLE DE TRILHOS', M, H - 24, 7, 'negrito', AZUL);
+  p.texto('–', M + larguraMarca + 6, H - 24, 7, 'negrito', CINZA);
+  p.imagem(logoRumo, M + larguraMarca + 16, H - 28.5, 40, 12.1);
   textoDireita(p, semana, L - M, H - 24, 9, 'negrito', NAVY);
   p.linha(M, H - 32, L - M, H - 32, LINHA, 0.8);
 
