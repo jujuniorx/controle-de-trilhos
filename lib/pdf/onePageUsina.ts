@@ -451,7 +451,7 @@ export function gerarOnePageUsinaSvg(
     const { p, p2 } = montarPaginasUsina(d, tril, modo, colunasEscolhidas, observacoes);
     const total = alturaFoto + 2 * H;
     return (
-      `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${L}" height="${total.toFixed(2)}" viewBox="0 0 ${L} ${total.toFixed(2)}">` +
+      `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" viewBox="0 0 ${L} ${total.toFixed(2)}">` +
       foto.conteudoSvg(alturaFoto) +
       `<g transform="translate(0 ${alturaFoto.toFixed(2)})">${p.conteudoSvg(H)}</g>` +
       `<g transform="translate(0 ${(alturaFoto + H).toFixed(2)})">${p2.conteudoSvg(H)}</g>` +
