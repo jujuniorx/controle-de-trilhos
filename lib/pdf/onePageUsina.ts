@@ -440,8 +440,24 @@ export function gerarOnePageUsinaSvg(
   modo: 'semanal' | 'mensal' | 'diario',
   colunasEscolhidas: Coluna[],
   observacoes: string[],
-  pagina: 'capa' | 'dados' | 'caminhao',
+  pagina: 'capa' | 'dados' | 'caminhao' | 'tudo',
 ): string {
+  if (pagina === 'tudo') {
+    // Uma imagem só: foto da capa em cima, depois a página de dados e a página do caminhão.
+    const larguraFoto = L;
+    const alturaFoto = (larguraFoto * BANNER_RELATORIO.altura) / BANNER_RELATORIO.largura;
+    const foto = new PaginaPdf();
+    foto.imagem(bannerRelatorio, 0, 0, larguraFoto, alturaFoto);
+    const { p, p2 } = montarPaginasUsina(d, tril, modo, colunasEscolhidas, observacoes);
+    const total = alturaFoto + 2 * H;
+    return (
+      `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${L}" height="${total.toFixed(2)}" viewBox="0 0 ${L} ${total.toFixed(2)}">` +
+      foto.conteudoSvg(alturaFoto) +
+      `<g transform="translate(0 ${alturaFoto.toFixed(2)})">${p.conteudoSvg(H)}</g>` +
+      `<g transform="translate(0 ${(alturaFoto + H).toFixed(2)})">${p2.conteudoSvg(H)}</g>` +
+      '</svg>'
+    );
+  }
   if (pagina === 'capa') {
     const foto = new PaginaPdf();
     foto.imagem(bannerRelatorio, 0, 0, BANNER_RELATORIO.largura, BANNER_RELATORIO.altura);

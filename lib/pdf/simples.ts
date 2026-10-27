@@ -124,6 +124,15 @@ export class PaginaPdf {
 
   /** A mesma página em SVG (tamanho `largura` x `altura` em pontos; y do PDF vira y de cima para baixo). */
   svg(largura: number, altura: number): string {
+    return (
+      `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${num(largura)}" height="${num(altura)}" viewBox="0 0 ${num(largura)} ${num(altura)}">` +
+      this.conteudoSvg(altura) +
+      '</svg>'
+    );
+  }
+
+  /** Só os elementos da página (sem a tag <svg>), para encaixar várias páginas numa imagem só. */
+  conteudoSvg(altura: number): string {
     const yTopo = (y: number, a: number) => num(altura - y - a);
     const partes: string[] = [];
     for (const d of this.desenhos) {
@@ -141,11 +150,7 @@ export class PaginaPdf {
         );
       }
     }
-    return (
-      `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${num(largura)}" height="${num(altura)}" viewBox="0 0 ${num(largura)} ${num(altura)}">` +
-      partes.join('') +
-      '</svg>'
-    );
+    return partes.join('');
   }
 }
 

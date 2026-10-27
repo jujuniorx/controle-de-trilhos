@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     .filter(([chave, texto]) => texto && chave.startsWith(`${data}|`))
     .map(([chave, texto]) => `${NOME_SETOR[chave.split('|')[1] ?? ''] ?? chave.split('|')[1]}: ${texto}`);
   const paginaPedida = request.nextUrl.searchParams.get('pagina');
-  const pagina = paginaPedida === 'capa' || paginaPedida === 'caminhao' ? paginaPedida : 'dados';
+  const pagina = paginaPedida === 'capa' || paginaPedida === 'caminhao' || paginaPedida === 'tudo' ? paginaPedida : 'dados';
   const svg =
     modo === 'diario'
       ? gerarOnePageUsinaSvg(dados, tril, 'diario', colunas, observacoesDoDia, pagina)
