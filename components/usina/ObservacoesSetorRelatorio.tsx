@@ -11,14 +11,10 @@ export function ObservacaoDoDia({ titulo, observacoes, data }: { titulo: string;
   if (!chave) return null;
   const texto = observacoes[`${data}|${chave}`]?.trim() ?? '';
   return (
-    <div>
-      <p className="text-[11px] font-bold uppercase tracking-wide text-slate-600">Observação do dia</p>
-      {texto ? (
-        <p className="mt-1 whitespace-pre-line text-[13px] leading-snug text-slate-700">{texto}</p>
-      ) : (
-        <p className="mt-1 text-[13px] italic text-slate-400">Sem observação registrada neste dia.</p>
-      )}
-    </div>
+    <p className="whitespace-pre-line text-[13px] leading-snug text-slate-700">
+      <span className="font-bold text-slate-900">Obs:</span>{' '}
+      {texto || <span className="italic text-slate-400">sem observação registrada neste dia.</span>}
+    </p>
   );
 }
 
