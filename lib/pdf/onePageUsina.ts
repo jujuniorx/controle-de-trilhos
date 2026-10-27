@@ -134,23 +134,25 @@ export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yB
 /** Gráfico do dia (uma barra por série) com a observação do setor logo acima. Só no PDF diário. */
 function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, base: number, w: number, rotulos: string[], destaque?: number, limiteTopo?: number) {
   if (!s.grafico) return;
-  // Observação embaixo do cartão, com "Obs:" na frente; a legenda (quadradinhos) fica logo acima dela.
+  // Observação embaixo do cartão, com "Obs:" na frente, em quantas linhas for preciso; a legenda fica logo acima dela e o gráfico logo acima da legenda.
+  let linhas: string[] = [];
   if (s.observacao) {
-    // Uma observação só começa com "Obs:"; a geração traz uma linha por equipe (já com o nome).
     const trechos = s.observacao.includes('\n') ? s.observacao.split('\n') : [`Obs: ${s.observacao}`];
-    const linhas = trechos.flatMap((t) => quebrarLinhas(t, 7, w - 16)).slice(0, 3);
-    // A primeira linha fica em cima (y maior); a última fica mais perto da base do cartão.
-    linhas.forEach((linha, i) => p.texto(linha, x + 8, base + 6 + (linhas.length - 1 - i) * 8, 7, 'normal', CINZA));
+    linhas = trechos.flatMap((t) => quebrarLinhas(t, 7, w - 16));
   }
+  // A primeira linha fica em cima (y maior); a última mais perto da base do cartão.
+  linhas.forEach((linha, i) => p.texto(linha, x + 8, base + 6 + (linhas.length - 1 - i) * 8, 7, 'normal', CINZA));
+  const yLegenda = base + 6 + linhas.length * 8 + 6;
   let lx = x + 8;
   for (const serie of s.grafico.series) {
-    p.retangulo(lx, base + 32, 6, 6, hex(serie.cor));
-    p.texto(serie.nome, lx + 9, base + 32, 6.5, 'normal', CINZA);
+    p.retangulo(lx, yLegenda, 6, 6, hex(serie.cor));
+    p.texto(serie.nome, lx + 9, yLegenda, 6.5, 'normal', CINZA);
     lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
   }
-  // A barra mais alta termina antes da última linha da tabela (limiteTopo), com folga: nunca encosta na caixa.
-  const alturaGrafico = limiteTopo === undefined ? 26 : Math.max(12, limiteTopo - 10 - (base + 42));
-  desenharGrafico(p, s.grafico, x + 8, base + 42, w - 16, alturaGrafico, rotulos, 4, destaque);
+  // O gráfico começa logo acima da legenda; a barra mais alta termina antes da última linha da tabela (limiteTopo).
+  const yGrafico = yLegenda + 12;
+  const alturaGrafico = limiteTopo === undefined ? 26 : Math.max(12, limiteTopo - 10 - yGrafico);
+  desenharGrafico(p, s.grafico, x + 8, yGrafico, w - 16, alturaGrafico, rotulos, 4, destaque);
 }
 
 export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = [], mensal = false, colunas: Coluna[] = ['dia', 'semana', 'mes'], comGrafico = true, destaque?: number) {
