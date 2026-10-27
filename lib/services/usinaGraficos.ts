@@ -50,6 +50,23 @@ export async function seriesDaSemana(data: string) {
     estCortes[i] += e.cortes ?? 0;
   }
 
+  // Envio de trilho por dia (m): tampões (reemprego G1 a G3) e trilho novo, dos remetidos de cada dia.
+  const envioTampoes = zeros();
+  const envioTrilhoNovo = zeros();
+  const grupos = await prisma.grupo.findMany({
+    where: { movimentacao: { tipo: 'REMETIDO', dataMovimentacao: { gte: dataBanco(inicio), lte: dataBanco(fim) } } },
+    select: { classificacao: true, tipoMaterial: true, metrosTotal: true, movimentacao: { select: { dataMovimentacao: true } } },
+  });
+  for (const g of grupos) {
+    const dm = g.movimentacao.dataMovimentacao;
+    if (!dm) continue;
+    const i = indice(dm);
+    if (i < 0) continue;
+    const m = num(g.metrosTotal);
+    if (g.tipoMaterial === 'REEMPREGO' && (g.classificacao === 'G1' || g.classificacao === 'G2' || g.classificacao === 'G3')) envioTampoes[i] += m;
+    if (g.tipoMaterial === 'NOVO') envioTrilhoNovo[i] += m;
+  }
+
   const camProducao: Record<string, number[]> = { CW01: zeros(), CW02: zeros() };
   for (const c of caminhao) {
     const k = String(c.caminhao);
@@ -68,6 +85,7 @@ export async function seriesDaSemana(data: string) {
     rotulos,
     geracao: { corte: geraCorte, carregado: geraCarregado, deixado: geraDeixado },
     estaleiro: { soldas: estSoldas, cortes: estCortes },
+    envio: { tampoes: envioTampoes, trilhoNovo: envioTrilhoNovo },
     caminhao: camProducao,
     composicoes: compBarras,
   };
