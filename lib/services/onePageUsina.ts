@@ -208,10 +208,12 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
           { rotulo: ROTULO_TLS.TR68_NOVO, dia: numeroTls(estD.estoqueDoDia.TR68_NOVO), semana: '—', mes: '—' },
         ],
         grafico: {
-          titulo: 'Envio de trilhos por dia (m)',
+          titulo: 'Soldas, cortes e envio de trilhos por dia',
           series: [
-            { nome: 'Trilho novo', cor: '#2563eb', valores: serie.envio.trilhoNovo },
-            { nome: 'Tampões', cor: '#f59e0b', valores: serie.envio.tampoes },
+            { nome: 'Soldas', cor: '#2563eb', valores: serie.estaleiro.soldas },
+            { nome: 'Cortes', cor: '#f59e0b', valores: serie.estaleiro.cortes },
+            { nome: 'Trilho novo (m)', cor: '#0891b2', valores: serie.envio.trilhoNovo },
+            { nome: 'Tampões (m)', cor: '#64748b', valores: serie.envio.tampoes },
           ],
         },
       },
