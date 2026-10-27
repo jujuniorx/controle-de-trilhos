@@ -80,7 +80,7 @@ function desenharTabelaSerra(p: PaginaPdf, serra: SerraRelatorio, x: number, top
   y -= 9;
   grupos.forEach((_, gi) => {
     textoDireita(p, 'Barras', fimG(gi, 0), y, 6, 'negrito', CINZA);
-    textoDireita(p, 'Metros', fimG(gi, 1), y, 6, 'negrito', CINZA);
+    textoDireita(p, 'Metros est.', fimG(gi, 1), y, 6, 'negrito', CINZA);
   });
   y -= 5;
   p.linha(x + 8, y, x + w - 8, y, LINHA, 0.6);
@@ -158,8 +158,8 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   p.arredondado(x, base, w, h, 9, BRANCO, LINHA);
   p.arredondado(x, topo - 22, w, 22, 9, hex(s.cor));
   p.retangulo(x, topo - 22, w, 8, hex(s.cor));
-  // Os números da serra são estimados: a indicação vai no título do cartão.
-  p.texto(`${s.titulo}${s.serra ? ' (estimado)' : ''}`, x + 8, topo - 14, 8, 'negrito', BRANCO);
+  // Os números da serra são estimados: a indicação fica na coluna Metros est.
+  p.texto(s.titulo, x + 8, topo - 14, 8, 'negrito', BRANCO);
   if (s.serra) {
     desenharTabelaSerra(p, s.serra, x, topo, w, mensal ? ['mes'] : colunas);
     if (s.grafico && comGrafico) {

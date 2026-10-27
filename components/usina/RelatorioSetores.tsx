@@ -50,7 +50,7 @@ function TabelaSerra({ serra, colunas = TODAS }: { serra: SerraRelatorio; coluna
           {grupos.map((g) => (
             <Fragment key={g.rotulo}>
               <th className="pb-1 text-right font-semibold">Barras</th>
-              <th className="pb-1 text-right font-semibold">Metros</th>
+              <th className="pb-1 text-right font-semibold">Metros est.</th>
             </Fragment>
           ))}
         </tr>
@@ -79,7 +79,7 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
     return (
       <section className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white break-inside-avoid">
         <header className="px-4 py-2.5 text-white" style={{ background: s.cor }}>
-          <span className="text-sm font-bold">{s.titulo} (estimado)</span>
+          <span className="text-sm font-bold">{s.titulo}</span>
         </header>
         <div className={largo ? 'grid items-start gap-6 p-4 lg:grid-cols-2' : 'space-y-3 p-4'}>
           <TabelaSerra serra={s.serra} colunas={mensal ? ['mes'] : colunas} />
