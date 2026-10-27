@@ -1,5 +1,5 @@
 import { PaginaPdf, A4_PAISAGEM, montarPdfVarias, larguraTexto, quebrarLinhas } from '@/lib/pdf/simples';
-import type { DadosRelatorio, GraficoRelatorio, SerraRelatorio, SetorRelatorio, TrilheirosRelatorio } from '@/lib/services/onePageUsina';
+import type { DadosRelatorio, GraficoRelatorio, LinhaRelatorio, SerraRelatorio, SetorRelatorio, TrilheirosRelatorio } from '@/lib/services/onePageUsina';
 import { faixaSemanaSegSex, mesAte, rotuloPeriodo, type Coluna, TODAS_COLUNAS } from '@/lib/usina/periodo';
 import { desenharTrilheiros } from '@/lib/pdf/tabelaTrilheiros';
 import { desenharCaminhoes } from '@/lib/pdf/tabelaCaminhoes';
@@ -168,7 +168,9 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   const yCabecalho = topo - 32;
   const yPrimeiraLinha = topo - 38;
   // A caixa desce abaixo da última linha de texto: sem essa folga, os números da última linha passavam da borda.
-  const fimLinhas = yPrimeiraLinha - s.linhas.length * altLinhaSetor - 9;
+  // Cada bloco com título (ex.: Soldas e cortes) ocupa uma linha a mais, além das linhas de dados.
+  const slots = s.linhas.length + s.linhas.filter((l) => l.secao).length;
+  const fimLinhas = yPrimeiraLinha - slots * altLinhaSetor - 9;
   // Faixas zebradas primeiro; depois as caixas das colunas, por cima; por fim os textos.
   // Com as caixas das colunas, a zebra some: ela aparecia cortada nas bordas das caixas e deixava o cartão quebrado.
   if (ativas.length === 0) {
@@ -184,6 +186,10 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   p.linha(x + 8, yPrimeiraLinha - 6, xMes + 2, yPrimeiraLinha - 6, LINHA, 0.6);
   let y = yPrimeiraLinha - 6;
   s.linhas.forEach((linha) => {
+    if (linha.secao) {
+      y -= altLinhaSetor;
+      p.texto(linha.secao.toUpperCase(), x + 8, y + 3, 6, 'negrito', CINZA);
+    }
     y -= altLinhaSetor;
     p.texto(linha.rotulo, x + 8, y, 8, 'normal', TINTA);
     ativas.forEach((c) => {
@@ -253,6 +259,25 @@ export function desenharLinhasResumo(p: PaginaPdf, r: { cor: string; dia: string
   });
 }
 
+const CORES_SETOR_ESTALEIRO = '#2563eb';
+
+/** Estoque de TLS no dia: uma coluna por tipo, numa faixa só, na largura toda. */
+function desenharEstoqueTls(p: PaginaPdf, linhas: LinhaRelatorio[], x: number, topo: number, w: number, h: number, cor: string) {
+  const itens = linhas.filter((l) => !l.secao);
+  const base = topo - h;
+  p.arredondado(x + 1.2, base - 1.4, w, h, 9, SOMBRA);
+  p.arredondado(x, base, w, h, 9, BRANCO, LINHA);
+  p.arredondado(x, topo - 22, w, 22, 9, hex(cor));
+  p.retangulo(x, topo - 22, w, 8, hex(cor));
+  p.texto('ESTOQUE DE TLS (NO DIA)', x + 10, topo - 14, 8, 'negrito', BRANCO);
+  const colW = (w - 16) / Math.max(1, itens.length);
+  itens.forEach((l, i) => {
+    const cx = x + 8 + i * colW;
+    p.texto(l.rotulo, cx + 4, topo - 36, 6.5, 'normal', CINZA);
+    p.texto(l.dia, cx + 4, base + 12, 13, 'negrito', TINTA);
+  });
+}
+
 export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 'semanal' | 'mensal' | 'diario' = 'semanal', colunasEscolhidas: Coluna[] = TODAS_COLUNAS, observacoes: string[] = []): Buffer {
   const mensal = modo === 'mensal';
   const diario = modo === 'diario';
@@ -263,13 +288,19 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const rotulosGrafico = d.rotulosDias;
   // Observação do setor no dia (chave "AAAA-MM-DD|setor"), mostrada embaixo de cada cartão no diário.
   const chaveSetor: Record<string, string> = { 'Estaleiro de solda': 'estaleiro', 'Geração de trilho': 'geracao', 'Recolhimento serra': 'serra' };
-  const setores = diario
+  const setoresBase = diario
     ? d.setores.map((s) => ({
         ...s,
         observacao: d.observacoes[`${d.data}|${chaveSetor[s.titulo] ?? ''}`] || undefined,
       }))
     : d.setores;
+  // O estoque de TLS sai do cartao do estaleiro e vai para uma faixa propria, embaixo da linha de setores.
+  const estaleiroBase = setoresBase.find((s) => s.titulo === 'Estaleiro de solda');
+  const iTls = estaleiroBase ? estaleiroBase.linhas.findIndex((l) => l.secao?.startsWith('Estoque TLS')) : -1;
+  const tlsLinhas: LinhaRelatorio[] = estaleiroBase && iTls >= 0 ? estaleiroBase.linhas.slice(iTls) : [];
+  const setores = setoresBase.map((s) => (s.titulo === 'Estaleiro de solda' && iTls >= 0 ? { ...s, linhas: s.linhas.slice(0, iTls) } : s));
   const p = new PaginaPdf();
+  const p2 = new PaginaPdf();
   p.retangulo(0, 0, L, H, BRANCO);
   // Faixa de marca no topo
   p.retangulo(0, H - 5, L, 5, NAVY);
@@ -313,7 +344,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const nSetores = 3;
   const gapC = 12;
   const wSet = (L - 2 * M - (nSetores - 1) * gapC) / nSetores;
-  const altSet = 166;
+  const altSet = 210;
   const topoGrade = topoRes - altRes - 16;
   const porTitulo = (t: string) => setores.find((s) => s.titulo === t);
   const linha1 = setores.filter((s) => s.titulo !== 'Caminhão de solda' && s.titulo !== 'Trilheiros');
@@ -321,20 +352,24 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
     desenharSetor(p, s, M + i * (wSet + gapC), topoGrade, wSet, altSet, false, rotulosGrafico, mensal, colunas, true, diario ? indiceDia : undefined);
   });
 
+  // Faixa do estoque de TLS (uma coluna por tipo), na largura toda, abaixo dos setores.
+  if (tlsLinhas.length > 0) desenharEstoqueTls(p, tlsLinhas, M, topoGrade - altSet - 12, L - 2 * M, 58, CORES_SETOR_ESTALEIRO);
+
   // Linhas 2 e 3: Caminhão de solda e Trilheiros, um embaixo do outro, cada um na largura toda.
   const larguraTotal = L - 2 * M;
   // Altura do cartão do caminhão cresce com o número de linhas (Solda e Corte de cada caminhão), para nada passar por baixo.
   const linhasCaminhao = porTitulo('Caminhão de solda')?.caminhoes?.length ?? 0;
   const altCaminhao = Math.max(90, 50 + linhasCaminhao * 40);
   const gapLinha = 6;
-  const topoLinha2 = topoGrade - altSet - 12;
+  // Página 2: caminhão, trilheiros e observações. Página 1: setores e estoque TLS.
+  const topoLinha2 = H - 70;
   const caminhao = porTitulo('Caminhão de solda');
   // Caminhão no mesmo formato da tabela de trilheiros (sem gráfico, como no trilheiro).
-  if (caminhao?.caminhoes) desenharCaminhoes(p, caminhao.caminhoes, caminhao.cor, M, topoLinha2, larguraTotal, altCaminhao, mensal ? 'mensal' : 'semanal', colunas);
+  if (caminhao?.caminhoes) desenharCaminhoes(p2, caminhao.caminhoes, caminhao.cor, M, topoLinha2, larguraTotal, altCaminhao, mensal ? 'mensal' : 'semanal', colunas);
   // Trilheiros: a mesma tabela do PDF por setor, em versão compacta.
   const altTrilheiros = Math.max(90, 46 + Math.max(1, tril.equipes.length) * 28 + 6);
   const topoTrilheiros = topoLinha2 - altCaminhao - gapLinha;
-  desenharTrilheiros(p, tril, M, topoTrilheiros, larguraTotal, altTrilheiros, true);
+  desenharTrilheiros(p2, tril, M, topoTrilheiros, larguraTotal, altTrilheiros, true);
 
   // Observações do dia (só no diário), embaixo dos trilheiros, nas linhas que cabem.
   if (diario && observacoes.length > 0) {
@@ -343,16 +378,18 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
     if (linhasQueCabem > 0) {
       const altObs = 24 + linhasQueCabem * 11;
       const baseObs = topoTrilheiros - altTrilheiros - 8 - altObs;
-      p.arredondado(M, baseObs, larguraTotal, altObs, 9, BRANCO, LINHA);
-      p.texto('OBSERVAÇÕES DO DIA', M + 10, baseObs + altObs - 13, 7, 'negrito', CINZA);
-      observacoes.slice(0, linhasQueCabem).forEach((linha, i) => p.texto(linha, M + 10, baseObs + altObs - 26 - i * 11, 8, 'normal', TINTA));
+      p2.arredondado(M, baseObs, larguraTotal, altObs, 9, BRANCO, LINHA);
+      p2.texto('OBSERVAÇÕES DO DIA', M + 10, baseObs + altObs - 13, 7, 'negrito', CINZA);
+      observacoes.slice(0, linhasQueCabem).forEach((linha, i) => p2.texto(linha, M + 10, baseObs + altObs - 26 - i * 11, 8, 'normal', TINTA));
     }
   }
 
   const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
-  p.linha(M, 30, L - M, 30, LINHA, 0.6);
-  p.texto(`Emitido em ${emitido}`, M, 18, 6.5, 'normal', CINZA);
-  textoDireita(p, 'Controle de Trilhos · Usina', L - M, 18, 6.5, 'negrito', CINZA);
+  for (const pg of [p, p2]) {
+    pg.linha(M, 30, L - M, 30, LINHA, 0.6);
+    pg.texto(`Emitido em ${emitido}`, M, 18, 6.5, 'normal', CINZA);
+    textoDireita(pg, 'Controle de Trilhos · Usina', L - M, 18, 6.5, 'negrito', CINZA);
+  }
 
-  return montarPdfVarias([p], `Relatório gerencial usina ${d.data}`, A4_PAISAGEM);
+  return montarPdfVarias([p, p2], `Relatório gerencial usina ${d.data}`, A4_PAISAGEM);
 }
