@@ -9,7 +9,10 @@ import type { EstadoPortaria } from '@/lib/domain/portaria';
  * Fica no topo da tela de confirmação do remetido. Mostra em que ponto a carreta está na
  * Portaria e, quando ela já chegou, o botão "Liberar carreta" (o Pátio é quem libera).
  */
-export function PainelPortaria({ id, estado }: { id: string; estado: EstadoPortaria }) {
+/** Nota fiscal da carreta liberada: emitida, pendente (já conferida, falta emitir) ou ainda sem aviso (não conferida). */
+export type SituacaoNota = 'EMITIDA' | 'PENDENTE' | null;
+
+export function PainelPortaria({ id, estado, nota = null }: { id: string; estado: EstadoPortaria; nota?: SituacaoNota }) {
   const router = useRouter();
   const [pendente, iniciar] = useTransition();
   const [erro, setErro] = useState('');
@@ -47,6 +50,8 @@ export function PainelPortaria({ id, estado }: { id: string; estado: EstadoPorta
       {estado === 'LIBERADA' && (
         <>
           <span className="badge badge-ok">Carreta liberada — a Portaria foi avisada</span>
+          {nota === 'EMITIDA' && <span className="badge badge-ok">Nota fiscal emitida</span>}
+          {nota === 'PENDENTE' && <span className="badge badge-warn">Nota fiscal pendente: falta emitir a nota desta carreta</span>}
           <button type="button" className="btn btn-ghost btn-sm" disabled={pendente} onClick={() => executar(desfazerLiberacaoAction)}>
             Liberei sem querer — desfazer
           </button>

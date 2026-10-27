@@ -27,7 +27,13 @@ export default async function ConfirmarRemetidoPage({ params }: { params: Promis
       </p>
 
       <AtualizarAuto segundos={15} />
-      {portaria && <PainelPortaria id={remetido.id} estado={portaria.estado} />}
+      {portaria && (
+        <PainelPortaria
+          id={remetido.id}
+          estado={portaria.estado}
+          nota={remetido.notaEmitidaEm ? 'EMITIDA' : remetido.status === 'CONFERIDO' ? 'PENDENTE' : null}
+        />
+      )}
 
       {portaria?.observacaoPortaria && (
         <aside role="note" className="card mt-4 border-2 border-warn bg-warn/10 p-4">
