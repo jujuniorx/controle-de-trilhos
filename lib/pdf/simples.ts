@@ -38,11 +38,11 @@ const num = (n: number) => Number(n.toFixed(2)).toString();
 const cor = (c: Cor) => c.map(num).join(' ');
 
 /** Imagem RGB de 8 bits, comprimida com zlib (FlateDecode). `nome` é a referência usada no conteúdo da página. */
-export interface ImagemPdf { nome: string; largura: number; altura: number; dados: Buffer; filtro: 'FlateDecode' | 'DCTDecode' }
+export interface ImagemPdf { nome: string; largura: number; altura: number; dados: Buffer }
 let contadorImagem = 0;
-export function criarImagemPdf(largura: number, altura: number, dados: Buffer, filtro: 'FlateDecode' | 'DCTDecode' = 'FlateDecode'): ImagemPdf {
+export function criarImagemPdf(largura: number, altura: number, dadosZlib: Buffer): ImagemPdf {
   contadorImagem += 1;
-  return { nome: `Im${contadorImagem}`, largura, altura, dados, filtro };
+  return { nome: `Im${contadorImagem}`, largura, altura, dados: dadosZlib };
 }
 
 export class PaginaPdf {
@@ -204,7 +204,7 @@ export function montarPdfVarias(paginas: PaginaPdf[], titulo: string, tamanho: {
     add(
       Buffer.concat([
         Buffer.from(
-          `<< /Type /XObject /Subtype /Image /Width ${im.largura} /Height ${im.altura} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /${im.filtro} /Length ${im.dados.length} >>\nstream\n`,
+          `<< /Type /XObject /Subtype /Image /Width ${im.largura} /Height ${im.altura} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode /Length ${im.dados.length} >>\nstream\n`,
           'latin1',
         ),
         im.dados,
