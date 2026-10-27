@@ -409,8 +409,6 @@ function montarPaginasUsina(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 
     }
   }
 
-  // Segunda página: logo menor no canto superior direito, para identificar o relatório também ali.
-  p2.imagem(logoRumo, L - M - 70, H - 34, 70, 21.2);
 
   return { capa, p, p2 };
 }
