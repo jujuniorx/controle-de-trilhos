@@ -210,10 +210,10 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
           { secao: 'Envio de trilho', rotulo: 'Trilho novo (m)', dia: fmtMetros(estD.carreta.trilhoNovoM), semana: fmtMetros(estS.carreta.trilhoNovoM), mes: fmtMetros(estM.carreta.trilhoNovoM) },
           { rotulo: 'Tampões (m)', dia: fmtMetros(estD.carreta.tampoesM), semana: fmtMetros(estS.carreta.tampoesM), mes: fmtMetros(estM.carreta.tampoesM) },
           // Estoque é um retrato do dia: só a coluna do dia tem número.
-          { secao: 'Estoque TLS (no dia)', rotulo: ROTULO_TLS.UIC60_NOVO, dia: numeroTls(estD.estoqueDoDia.UIC60_NOVO), perfil: 'TR60', semana: '—', mes: '—' },
-          { rotulo: ROTULO_TLS.TR68_NOVO, dia: numeroTls(estD.estoqueDoDia.TR68_NOVO), perfil: 'TR68', semana: '—', mes: '—' },
-          { rotulo: ROTULO_TLS.UIC60_REEMPREGO, dia: numeroTls(estD.estoqueDoDia.UIC60_REEMPREGO), perfil: 'TR60 reemprego', semana: '—', mes: '—' },
-          { rotulo: ROTULO_TLS.TR68_REEMPREGO, dia: numeroTls(estD.estoqueDoDia.TR68_REEMPREGO), perfil: 'TR68 reemprego', semana: '—', mes: '—' },
+          { secao: 'Estoque TLS (no dia)', rotulo: ROTULO_TLS.TR68_NOVO, dia: numeroTls(estD.estoqueDoDia.TR68_NOVO), perfil: 'TR68 NOVO', semana: '—', mes: '—' },
+          { rotulo: ROTULO_TLS.UIC60_NOVO, dia: numeroTls(estD.estoqueDoDia.UIC60_NOVO), perfil: 'UIC60 NOVO', semana: '—', mes: '—' },
+          { rotulo: ROTULO_TLS.TR68_REEMPREGO, dia: numeroTls(estD.estoqueDoDia.TR68_REEMPREGO), perfil: 'TR68 REEMPREGO', semana: '—', mes: '—' },
+          { rotulo: ROTULO_TLS.UIC60_REEMPREGO, dia: numeroTls(estD.estoqueDoDia.UIC60_REEMPREGO), perfil: 'UIC60 REEMPREGO', semana: '—', mes: '—' },
         ],
         grafico: {
           titulo: 'Soldas e cortes por dia',

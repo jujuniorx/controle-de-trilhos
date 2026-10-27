@@ -63,13 +63,13 @@ function Cartao({ rotulo, valor }: { rotulo: string; valor: string | number }) {
 
 const NOME_DIA = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
 // Lançamento de TLS: os novos primeiro, depois os reemprego, com os mesmos nomes do relatório.
-const ORDEM_LANCAMENTO_TLS = ['UIC60_NOVO', 'TR68_NOVO', 'UIC60_REEMPREGO', 'TR68_REEMPREGO', 'GB60_REEMPREGO'] as const;
+const ORDEM_LANCAMENTO_TLS = ['TR68_NOVO', 'UIC60_NOVO', 'TR68_REEMPREGO', 'UIC60_REEMPREGO', 'GB60_REEMPREGO'] as const;
 const NOME_LANCAMENTO_TLS: Record<string, string> = {
-  UIC60_NOVO: 'TR60',
-  TR68_NOVO: 'TR68',
-  UIC60_REEMPREGO: 'TR60 reemprego',
-  TR68_REEMPREGO: 'TR68 reemprego',
-  GB60_REEMPREGO: 'GB 60 reemprego',
+  TR68_NOVO: 'TR68 NOVO',
+  UIC60_NOVO: 'UIC60 NOVO',
+  TR68_REEMPREGO: 'TR68 REEMPREGO',
+  UIC60_REEMPREGO: 'UIC60 REEMPREGO',
+  GB60_REEMPREGO: 'GB 60 REEMPREGO',
 };
 
 export default async function UsinaPage({ searchParams }: { searchParams: Promise<{ periodo?: string; data?: string }> }) {
