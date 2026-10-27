@@ -78,3 +78,26 @@ export async function confirmarNotaEmitida(movimentacaoId: string, usuario: { no
     data: { notaEmitidaEm: new Date(), notaEmitidaPor: usuario.nome },
   });
 }
+
+/**
+ * Carretas que o Pátio liberou nos últimos 3 dias, com a situação da nota, inclusive depois da conferência
+ * (quando saem da lista de remetidos). Usado na tela do Pátio para ele ver quais notas já foram emitidas.
+ */
+export async function listarCarretasLiberadasComNota(agora = new Date()) {
+  const desde = new Date(agora.getTime() - 3 * 24 * 60 * MIN);
+  return prisma.movimentacao.findMany({
+    where: { tipo: 'REMETIDO', carretaLiberadaEm: { gte: desde } },
+    select: {
+      id: true,
+      destino: true,
+      placaCarreta: true,
+      placaCavalo: true,
+      status: true,
+      carretaLiberadaEm: true,
+      notaEmitidaEm: true,
+      notaEmitidaPor: true,
+    },
+    orderBy: { carretaLiberadaEm: 'desc' },
+    take: 30,
+  });
+}

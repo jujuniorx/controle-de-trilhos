@@ -8,6 +8,7 @@ import { AtualizarAuto } from '@/components/AtualizarAuto';
 import { AtivarAvisos } from '@/components/patio/AtivarAvisos';
 import { chavePublicaPush } from '@/lib/services/push';
 import { estadoPortaria } from '@/lib/domain/portaria';
+import { listarCarretasLiberadasComNota } from '@/lib/services/notaEmitida';
 
 const MENSAGEM_SALVO: Record<string, string> = {
   cadastro: 'Carga cadastrada!',
@@ -31,6 +32,7 @@ export default async function RemetidosAguardandoPage({
 }) {
   const salvo = (await searchParams).salvo;
   const mensagem = typeof salvo === 'string' ? MENSAGEM_SALVO[salvo] : undefined;
+  const liberadasComNota = await listarCarretasLiberadasComNota();
   const remetidos = (await listarAguardandoChegada()).sort(
     (a, b) => Number(estadoPortaria(b) === 'CHEGOU') - Number(estadoPortaria(a) === 'CHEGOU'),
   );
@@ -72,6 +74,24 @@ export default async function RemetidosAguardandoPage({
           <EstadoVazio titulo="Nenhuma carga aguardando chegada" texto="Quando cadastrar uma, ela aparece aqui." />
         )}
       </div>
+      {liberadasComNota.length > 0 && (
+        <section className="mt-6 space-y-2" aria-label="Notas fiscais das carretas liberadas">
+          <h2 className="font-condensed text-base font-bold uppercase tracking-wide text-ink">Notas das carretas liberadas (últimos 3 dias)</h2>
+          {liberadasComNota.map((c) => (
+            <div key={c.id} className="card space-y-1">
+              <p className="font-medium text-ink">{normalizarLocal(c.destino) || 'Carga'}{c.placaCarreta || c.placaCavalo ? ` · ${c.placaCarreta ?? c.placaCavalo}` : ''}</p>
+              <p className="text-xs text-ink-muted">Liberada às {fmtHora(c.carretaLiberadaEm)}</p>
+              {c.notaEmitidaEm ? (
+                <span className="badge badge-ok">Nota fiscal emitida{c.notaEmitidaPor ? ` por ${c.notaEmitidaPor}` : ''}</span>
+              ) : c.status === 'CONFERIDO' ? (
+                <span className="badge badge-warn">Nota fiscal pendente</span>
+              ) : (
+                <span className="badge badge-muted">Aguardando conferência para emitir a nota</span>
+              )}
+            </div>
+          ))}
+        </section>
+      )}
       <AtivarAvisos chavePublica={chavePublicaPush()} titulo="Aviso de carreta na Portaria" descricao="Receba um aviso neste tablet quando a Portaria registrar a chegada de uma carreta ou de um caminhão." />
     </main>
   );
