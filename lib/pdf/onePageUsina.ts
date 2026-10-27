@@ -1,8 +1,11 @@
 import { PaginaPdf, A4_PAISAGEM, montarPdfVarias, larguraTexto, quebrarLinhas, criarImagemPdf } from '@/lib/pdf/simples';
 import { LOGO_RUMO } from '@/lib/pdf/logoRumo';
+import { BANNER_RELATORIO } from '@/lib/pdf/bannerRelatorio';
 
 /** Logo da Rumo, decodificada uma vez (PDF com imagem RGB comprimida). */
 const logoRumo = criarImagemPdf(LOGO_RUMO.largura, LOGO_RUMO.altura, Buffer.from(LOGO_RUMO.dados, 'base64'));
+/** Faixa com os setores da usina (JPEG), embaixo dos setores e do TLS na primeira página. */
+const bannerRelatorio = criarImagemPdf(BANNER_RELATORIO.largura, BANNER_RELATORIO.altura, Buffer.from(BANNER_RELATORIO.dados, 'base64'), 'DCTDecode');
 import type { DadosRelatorio, GraficoRelatorio, LinhaRelatorio, SerraRelatorio, SetorRelatorio, TrilheirosRelatorio } from '@/lib/services/onePageUsina';
 import { faixaSemanaSegSex, mesAte, rotuloPeriodo, type Coluna, TODAS_COLUNAS } from '@/lib/usina/periodo';
 import { desenharTrilheiros } from '@/lib/pdf/tabelaTrilheiros';
@@ -358,7 +361,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const nSetores = 3;
   const gapC = 12;
   const wSet = (L - 2 * M - (nSetores - 1) * gapC) / nSetores;
-  const altSet = 250;
+  const altSet = 200;
   const topoGrade = topoRes - altRes - 16;
   const porTitulo = (t: string) => setores.find((s) => s.titulo === t);
   const linha1 = setores.filter((s) => s.titulo !== 'Caminhão de solda' && s.titulo !== 'Trilheiros');
@@ -368,6 +371,9 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
 
   // Faixa do estoque de TLS (uma coluna por tipo), na largura toda, abaixo dos setores.
   if (tlsLinhas.length > 0) desenharEstoqueTls(p, tlsLinhas, M, topoGrade - altSet - 12, L - 2 * M, 58, CORES_SETOR_ESTALEIRO);
+  // Faixa com a foto dos setores, embaixo do estoque de TLS (só na página 1).
+  const topoBanner = topoGrade - altSet - 12 - 58 - 12;
+  p.imagem(bannerRelatorio, M, topoBanner - 104, L - 2 * M, 104);
 
   // Linhas 2 e 3: Caminhão de solda e Trilheiros, um embaixo do outro, cada um na largura toda.
   const larguraTotal = L - 2 * M;
