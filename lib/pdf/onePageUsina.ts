@@ -458,7 +458,7 @@ export function gerarOnePageUsinaSvg(
     const rodape = new PaginaPdf().retangulo(0, 0, L, ALTURA_RODAPE, BRANCO);
     desenharRodape(rodape, d, modo, 0);
     return (
-      `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="${Math.round((total * 1200) / L)}" viewBox="0 0 ${L} ${total.toFixed(2)}">` +
+      `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1320" height="${Math.round((total * 1320) / L)}" viewBox="0 0 ${L} ${total.toFixed(2)}">` +
       foto.conteudoSvg(alturaFoto) +
       `<g transform="translate(0 ${alturaFoto.toFixed(2)})">${p.conteudoSvg(H)}</g>` +
       `<g transform="translate(0 ${(alturaFoto + altP).toFixed(2)})">${p2.conteudoSvg(H)}</g>` +
