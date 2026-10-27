@@ -203,7 +203,6 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
           // Estoque é um retrato do dia: só a coluna do dia tem número.
           { secao: 'Estoque TLS (no dia)', rotulo: ROTULO_TLS.UIC60_REEMPREGO, dia: numeroTls(estD.estoqueDoDia.UIC60_REEMPREGO), semana: '—', mes: '—' },
           { rotulo: ROTULO_TLS.UIC60_NOVO, dia: numeroTls(estD.estoqueDoDia.UIC60_NOVO), semana: '—', mes: '—' },
-          { rotulo: ROTULO_TLS.GB60_REEMPREGO, dia: numeroTls(estD.estoqueDoDia.GB60_REEMPREGO), semana: '—', mes: '—' },
           { rotulo: ROTULO_TLS.TR68_REEMPREGO, dia: numeroTls(estD.estoqueDoDia.TR68_REEMPREGO), semana: '—', mes: '—' },
           { rotulo: ROTULO_TLS.TR68_NOVO, dia: numeroTls(estD.estoqueDoDia.TR68_NOVO), semana: '—', mes: '—' },
         ],
