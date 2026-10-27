@@ -28,7 +28,6 @@ import { EscalaGrade } from '@/components/usina/EscalaGrade';
 import { lerEscala, diasDaSemana } from '@/lib/usina/escala';
 import { montarEscalaDaSemana, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, geracaoDaSemana, trilheirosDaSemana } from '@/lib/services/usina';
 import {
-  salvarEstaleiroAction,
   salvarEstoqueTlsAction,
   salvarManutencaoAction,
   salvarEscalaAction,
@@ -177,23 +176,6 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
               </table>
             </div>
                       <ObservacoesDoSetor setor="estaleiro" dias={diasObservacao} obs={observacoesSemana} />
-          </FormularioUsina>
-        </div>
-
-        <div className="card space-y-3">
-          <p className="font-semibold">Produção de {br(data)}</p>
-          <FormularioUsina acao={salvarEstaleiroAction}>
-            <SeletorDia valor={data} />
-            <div className="grid grid-cols-2 gap-3">
-              <div className="field">
-                <label htmlFor="soldas">Quantidade de soldas</label>
-                <input id="soldas" name="soldas" inputMode="numeric" defaultValue={est.diaDoLancamento?.soldas ?? ''} className="h-11" />
-              </div>
-              <div className="field">
-                <label htmlFor="cortes">Quantidade de cortes</label>
-                <input id="cortes" name="cortes" inputMode="numeric" defaultValue={est.diaDoLancamento?.cortes ?? ''} className="h-11" />
-              </div>
-            </div>
           </FormularioUsina>
         </div>
 
