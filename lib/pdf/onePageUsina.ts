@@ -80,9 +80,11 @@ function desenharTabelaSerra(p: PaginaPdf, serra: SerraRelatorio, x: number, top
   y -= 9;
   grupos.forEach((_, gi) => {
     textoDireita(p, 'Barras', fimG(gi, 0), y, 6, 'negrito', CINZA);
-    textoDireita(p, 'Metros est.', fimG(gi, 1), y, 6, 'negrito', CINZA);
+    // "Metros" e "est." em duas linhas, para não encostar em "Barras".
+    textoDireita(p, 'Metros', fimG(gi, 1), y, 6, 'negrito', CINZA);
+    textoDireita(p, 'est.', fimG(gi, 1), y - 7, 5.5, 'normal', CINZA);
   });
-  y -= 5;
+  y -= 14;
   p.linha(x + 8, y, x + w - 8, y, LINHA, 0.6);
   const medidas = (m: { barras: number; metros: number }, gi: number, cor: Cor) => {
     textoDireita(p, String(m.barras), fimG(gi, 0), y, 8.5, 'negrito', cor);
