@@ -358,7 +358,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const nSetores = 3;
   const gapC = 12;
   const wSet = (L - 2 * M - (nSetores - 1) * gapC) / nSetores;
-  const altSet = 210;
+  const altSet = 250;
   const topoGrade = topoRes - altRes - 16;
   const porTitulo = (t: string) => setores.find((s) => s.titulo === t);
   const linha1 = setores.filter((s) => s.titulo !== 'Caminhão de solda' && s.titulo !== 'Trilheiros');
