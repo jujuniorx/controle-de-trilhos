@@ -31,7 +31,7 @@ export default async function ConfirmarRemetidoPage({ params }: { params: Promis
         <PainelPortaria
           id={remetido.id}
           estado={portaria.estado}
-          nota={remetido.notaEmitidaEm ? 'EMITIDA' : remetido.status === 'CONFERIDO' ? 'PENDENTE' : null}
+          nota={remetido.notaEmitidaEm ? 'EMITIDA' : null}
         />
       )}
 
