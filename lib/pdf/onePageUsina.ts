@@ -152,7 +152,8 @@ function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, 
     lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
   }
   // O gráfico começa logo acima da legenda; a barra mais alta termina antes da última linha da tabela (limiteTopo).
-  const yGrafico = yLegenda + 12;
+  // Os nomes dos dias ficam logo abaixo do gráfico: o gráfico começa acima deles, sem encostar na legenda.
+  const yGrafico = yLegenda + 24;
   const alturaGrafico = limiteTopo === undefined ? 26 : Math.max(12, limiteTopo - 10 - yGrafico);
   desenharGrafico(p, s.grafico, x + 8, yGrafico, w - 16, alturaGrafico, rotulos, 4, destaque);
 }
