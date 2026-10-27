@@ -234,8 +234,8 @@ export function desenharLinhasResumo(p: PaginaPdf, r: { cor: string; dia: string
 export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 'semanal' | 'mensal' | 'diario' = 'semanal', colunasEscolhidas: Coluna[] = TODAS_COLUNAS, observacoes: string[] = []): Buffer {
   const mensal = modo === 'mensal';
   const diario = modo === 'diario';
-  // No diário só entram os valores do dia (e o No mês); nada da semana, nem o gráfico semanal.
-  const colunas = diario ? colunasEscolhidas.filter((c) => c !== 'semana') : colunasEscolhidas;
+  // As colunas são as escolhidas pelo usuário (Dia, Semana, No mês). No diário o gráfico de 7 dias sai, porque ele é da semana.
+  const colunas = colunasEscolhidas;
   const p = new PaginaPdf();
   p.retangulo(0, 0, L, H, BRANCO);
   // Faixa de marca no topo
