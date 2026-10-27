@@ -335,7 +335,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
     p.arredondado(x + 8, topoRes - 15, 6, 6, 3, hex(r.cor));
     p.texto(r.rotulo.toUpperCase(), x + 18, topoRes - 14, 7, 'negrito', TINTA);
     if (mensal && r.linhas?.length) {
-      desenharLinhasResumo(p, r, x, topoRes, wRes, colunas, diario ? '' : d.rotuloDia);
+      desenharLinhasResumo(p, r, x, topoRes, wRes, colunas, diario ? 'Do dia' : d.rotuloDia);
       return;
     }
     if (mensal) {
@@ -344,7 +344,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
       return;
     }
     // Três linhas iguais: rótulo à esquerda, valor à direita, mesmo tamanho e a mesma ordem em todos os cartões.
-    desenharLinhasResumo(p, r, x, topoRes, wRes, colunas, diario ? '' : d.rotuloDia);
+    desenharLinhasResumo(p, r, x, topoRes, wRes, colunas, diario ? 'Do dia' : d.rotuloDia);
   });
 
   // Linha 1: Estaleiro, Geração e Recolhimento serra, lado a lado.
