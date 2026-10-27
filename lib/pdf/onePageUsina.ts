@@ -319,11 +319,8 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   // Capa (página 1): foto dos setores em largura total, com o título e o período, como na tela.
   const capa = new PaginaPdf();
   capa.retangulo(0, 0, L, H, BRANCO);
-  const larguraBanner = L - 2 * M;
-  const alturaBanner = (larguraBanner * BANNER_RELATORIO.altura) / BANNER_RELATORIO.largura;
-  // Capa só com a foto, centralizada na folha.
-  const topoBanner = (H + alturaBanner) / 2;
-  capa.imagem(bannerRelatorio, M, topoBanner - alturaBanner, larguraBanner, alturaBanner);
+  // Capa só com a foto, cobrindo a folha inteira (a imagem já está cortada na proporção da página).
+  capa.imagem(bannerRelatorio, 0, 0, L, H);
   p.retangulo(0, 0, L, H, BRANCO);
   // Faixa de marca no topo
   p.retangulo(0, H - 5, L, 5, NAVY);
@@ -333,9 +330,12 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const semana = mensal ? `Mês até ${mesAte(d.data).split(' a ')[1]}` : diario ? rotuloPeriodo(d.data, 'diario').valor : faixaSemanaSegSex(d.data);
   // Marca no topo à esquerda: CONTROLE DE TRILHOS – logo Rumo, com um traço separando.
   const larguraMarca = larguraTexto('CONTROLE DE TRILHOS', 7, 'negrito');
+  const altLogo = 10.5;
+  const larguraLogo = (altLogo * LOGO_RUMO.largura) / LOGO_RUMO.altura;
+  const centroTexto = H - 24 + 2.6; // meio das maiusculas do texto
   p.texto('CONTROLE DE TRILHOS', M, H - 24, 7, 'negrito', AZUL);
-  p.texto('–', M + larguraMarca + 6, H - 24, 7, 'negrito', CINZA);
-  p.imagem(logoRumo, M + larguraMarca + 16, H - 28.5, 40, 12.1);
+  p.texto('-', M + larguraMarca + 9, H - 24, 7, 'negrito', CINZA);
+  p.imagem(logoRumo, M + larguraMarca + 20, centroTexto - altLogo / 2, larguraLogo, altLogo);
   textoDireita(p, semana, L - M, H - 24, 9, 'negrito', NAVY);
   p.linha(M, H - 32, L - M, H - 32, LINHA, 0.8);
 
@@ -410,7 +410,8 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   // Segunda página: logo menor no canto superior direito, para identificar o relatório também ali.
   p2.imagem(logoRumo, L - M - 70, H - 34, 70, 21.2);
   const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
-  for (const pg of [capa, p, p2]) {
+  // A capa fica so com a foto, sem rodape.
+  for (const pg of [p, p2]) {
     pg.linha(M, 30, L - M, 30, LINHA, 0.6);
     pg.texto(`Período: ${rotuloPeriodo(d.data, modo).valor}  ·  Emitido em ${emitido}`, M, 18, 6.5, 'normal', CINZA);
     textoDireita(pg, 'Controle de Trilhos · Usina', L - M, 18, 6.5, 'negrito', CINZA);
