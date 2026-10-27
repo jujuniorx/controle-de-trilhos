@@ -68,7 +68,7 @@ export function mesAte(data: string): string {
 /** Rótulo do período no topo do relatório: a semana, ou o dia escolhido quando o formato é diário. */
 /** Rótulo da coluna "do dia" com o dia da semana escolhido, ex.: "Do dia (sexta-feira, 23/10)". */
 export function rotuloDoDia(data: string): string {
-  const nome = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'][new Date(`${data}T12:00:00Z`).getUTCDay()];
+  const nome = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'][new Date(`${data}T12:00:00Z`).getUTCDay()];
   return `Do dia (${nome}, ${data.split('-').reverse().slice(0, 2).join('/')})`;
 }
 
