@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { montarDadosRelatorio, montarTrilheirosRelatorio } from '@/lib/services/onePageUsina';
-import { gerarOnePageUsinaPdf } from '@/lib/pdf/onePageUsina';
+import { gerarOnePageUsinaSvg } from '@/lib/pdf/onePageUsina';
 import { colunasValidas, ehIsoValido, modoValido } from '@/lib/usina/periodo';
 
 function hojeSP(): string {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
 }
 
-/** Baixa a one page da usina em PDF (A4 paisagem), para qualquer aparelho. */
+/** Relatório da usina como imagem SVG (sem PDF). `pagina` = capa | dados | caminhao. */
 export async function GET(request: NextRequest) {
   await requireAdmin();
   const pedido = request.nextUrl.searchParams.get('data') ?? undefined;
@@ -21,14 +21,17 @@ export async function GET(request: NextRequest) {
   const observacoesDoDia = Object.entries(dados.observacoes ?? {})
     .filter(([chave, texto]) => texto && chave.startsWith(`${data}|`))
     .map(([chave, texto]) => `${NOME_SETOR[chave.split('|')[1] ?? ''] ?? chave.split('|')[1]}: ${texto}`);
-  const pdf =
+  const paginaPedida = request.nextUrl.searchParams.get('pagina');
+  const pagina = paginaPedida === 'capa' || paginaPedida === 'caminhao' ? paginaPedida : 'dados';
+  const svg =
     modo === 'diario'
-      ? gerarOnePageUsinaPdf(dados, tril, 'diario', colunas, observacoesDoDia)
-      : gerarOnePageUsinaPdf(dados, tril, modo === 'mensal' ? 'mensal' : 'semanal', colunas);
-  return new NextResponse(new Uint8Array(pdf), {
+      ? gerarOnePageUsinaSvg(dados, tril, 'diario', colunas, observacoesDoDia, pagina)
+      : gerarOnePageUsinaSvg(dados, tril, modo === 'mensal' ? 'mensal' : 'semanal', colunas, [], pagina);
+  const nome = pagina === 'dados' ? `relatorio-gerencial-usina-${data}` : `relatorio-usina-${pagina}-${data}`;
+  return new NextResponse(svg, {
     headers: {
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `inline; filename="relatorio-gerencial-usina-${data}.pdf"`,
+      'Content-Type': 'image/svg+xml; charset=utf-8',
+      'Content-Disposition': `inline; filename="${nome}.svg"`,
       'Cache-Control': 'private, no-store',
     },
   });

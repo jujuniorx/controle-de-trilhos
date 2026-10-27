@@ -293,7 +293,7 @@ function desenharEstoqueTls(p: PaginaPdf, linhas: LinhaRelatorio[], x: number, t
   });
 }
 
-export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 'semanal' | 'mensal' | 'diario' = 'semanal', colunasEscolhidas: Coluna[] = TODAS_COLUNAS, observacoes: string[] = []): Buffer {
+function montarPaginasUsina(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 'semanal' | 'mensal' | 'diario' = 'semanal', colunasEscolhidas: Coluna[] = TODAS_COLUNAS, observacoes: string[] = []): { capa: PaginaPdf; p: PaginaPdf; p2: PaginaPdf } {
   const mensal = modo === 'mensal';
   const diario = modo === 'diario';
   // As colunas são as escolhidas pelo usuário (Dia, Semana, No mês). No diário o gráfico de 7 dias sai, porque ele é da semana.
@@ -419,5 +419,34 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
     textoDireita(pg, 'Controle de Trilhos · Usina', L - M, 18, 6.5, 'negrito', CINZA);
   }
 
+  return { capa, p, p2 };
+}
+
+/** Relatório em PDF (capa, dados e caminhão/trilheiros), como antes. */
+export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 'semanal' | 'mensal' | 'diario' = 'semanal', colunasEscolhidas: Coluna[] = TODAS_COLUNAS, observacoes: string[] = []): Buffer {
+  const { capa, p, p2 } = montarPaginasUsina(d, tril, modo, colunasEscolhidas, observacoes);
   return montarPdfVarias([capa, p, p2], `Relatório gerencial usina ${d.data}`, A4_PAISAGEM);
+}
+
+/**
+ * Relatório em imagem SVG, uma imagem por parte:
+ * - 'capa': só a foto dos setores, sem margem;
+ * - 'dados': cartões e setores (página 1 do relatório);
+ * - 'caminhao': caminhão, trilheiros e observações (página 2).
+ */
+export function gerarOnePageUsinaSvg(
+  d: DadosRelatorio,
+  tril: TrilheirosRelatorio,
+  modo: 'semanal' | 'mensal' | 'diario',
+  colunasEscolhidas: Coluna[],
+  observacoes: string[],
+  pagina: 'capa' | 'dados' | 'caminhao',
+): string {
+  if (pagina === 'capa') {
+    const foto = new PaginaPdf();
+    foto.imagem(bannerRelatorio, 0, 0, BANNER_RELATORIO.largura, BANNER_RELATORIO.altura);
+    return foto.svg(BANNER_RELATORIO.largura, BANNER_RELATORIO.altura);
+  }
+  const { p, p2 } = montarPaginasUsina(d, tril, modo, colunasEscolhidas, observacoes);
+  return (pagina === 'dados' ? p : p2).svg(L, H);
 }

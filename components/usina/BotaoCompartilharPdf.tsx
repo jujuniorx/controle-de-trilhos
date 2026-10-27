@@ -4,7 +4,7 @@
 // Onde o aparelho nao compartilha arquivo, baixa o PDF.
 import { useState } from 'react';
 
-export function BotaoCompartilharPdf({ url, nomeArquivo, titulo, rotulo = 'Compartilhar PDF' }: { url: string; nomeArquivo: string; titulo: string; rotulo?: string }) {
+export function BotaoCompartilharPdf({ url, nomeArquivo, titulo, rotulo = 'Compartilhar' }: { url: string; nomeArquivo: string; titulo: string; rotulo?: string }) {
   const [ocupado, setOcupado] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -15,7 +15,7 @@ export function BotaoCompartilharPdf({ url, nomeArquivo, titulo, rotulo = 'Compa
       const resposta = await fetch(url, { credentials: 'same-origin' });
       if (!resposta.ok) throw new Error('falha');
       const blob = await resposta.blob();
-      const arquivo = new File([blob], nomeArquivo, { type: 'application/pdf' });
+      const arquivo = new File([blob], nomeArquivo, { type: nomeArquivo.endsWith('.svg') ? 'image/svg+xml' : 'application/pdf' });
       const nav = navigator as Navigator & { canShare?: (dados: ShareData) => boolean };
       // Menu de compartilhar só em aparelho de toque (celular/tablet); no computador baixa o PDF.
       const ehToque = window.matchMedia?.('(pointer: coarse)').matches ?? false;
@@ -33,7 +33,7 @@ export function BotaoCompartilharPdf({ url, nomeArquivo, titulo, rotulo = 'Compa
       }
     } catch (e) {
       // Cancelar o menu de compartilhar nao e erro.
-      if (!(e instanceof DOMException && e.name === 'AbortError')) setErro('Não foi possível gerar o PDF. Tente de novo.');
+      if (!(e instanceof DOMException && e.name === 'AbortError')) setErro('Não foi possível gerar o arquivo. Tente de novo.');
     } finally {
       setOcupado(false);
     }
@@ -42,7 +42,7 @@ export function BotaoCompartilharPdf({ url, nomeArquivo, titulo, rotulo = 'Compa
   return (
     <div className="flex flex-wrap items-center gap-2">
       <button type="button" onClick={compartilhar} disabled={ocupado} className="btn btn-primary h-11">
-        {ocupado ? 'Preparando PDF…' : rotulo}
+        {ocupado ? 'Preparando…' : rotulo}
       </button>
       {erro && <span className="text-sm text-bad">{erro}</span>}
     </div>

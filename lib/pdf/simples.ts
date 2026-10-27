@@ -5,7 +5,16 @@
  * (codificação WinAnsi); caracteres fora dela viram "?".
  */
 
+import zlib from 'node:zlib';
+
 export const A4 = { largura: 595, altura: 842 } as const;
+
+/** Desenho guardado em paralelo às operações do PDF, para gerar a mesma página em SVG. */
+type Desenho =
+  | { t: 'img'; img: ImagemPdf; x: number; y: number; l: number; a: number }
+  | { t: 'ret'; x: number; y: number; l: number; a: number; r: number; cor: Cor; borda?: Cor }
+  | { t: 'lin'; x1: number; y1: number; x2: number; y2: number; cor: Cor; esp: number }
+  | { t: 'txt'; texto: string; x: number; y: number; tam: number; fonte: Fonte; cor: Cor };
 
 type Fonte = 'normal' | 'negrito';
 type Cor = [number, number, number]; // 0–1
@@ -48,11 +57,13 @@ export function criarImagemPdf(largura: number, altura: number, dados: Buffer, f
 export class PaginaPdf {
   private operacoes: string[] = [];
   private imagensUsadas: ImagemPdf[] = [];
+  private desenhos: Desenho[] = [];
 
   /** Desenha uma imagem (x, y = canto inferior esquerdo) com a largura e altura dadas. */
   imagem(img: ImagemPdf, x: number, y: number, largura: number, altura: number): this {
     if (!this.imagensUsadas.includes(img)) this.imagensUsadas.push(img);
     this.operacoes.push(`q ${num(largura)} 0 0 ${num(altura)} ${num(x)} ${num(y)} cm /${img.nome} Do Q`);
+    this.desenhos.push({ t: 'img', img, x, y, l: largura, a: altura });
     return this;
   }
 
@@ -63,6 +74,7 @@ export class PaginaPdf {
 
   retangulo(x: number, y: number, largura: number, altura: number, preenchimento: Cor): this {
     this.operacoes.push(`${cor(preenchimento)} rg ${num(x)} ${num(y)} ${num(largura)} ${num(altura)} re f`);
+    this.desenhos.push({ t: 'ret', x, y, l: largura, a: altura, r: 0, cor: preenchimento });
     return this;
   }
 
@@ -87,11 +99,13 @@ export class PaginaPdf {
     ].join(' ');
     const borda2 = borda ? `${cor(borda)} RG 0.6 w ` : '';
     this.operacoes.push(`${cor(preenchimento)} rg ${borda2}${path} ${borda ? 'B' : 'f'}`);
+    this.desenhos.push({ t: 'ret', x, y, l: largura, a: altura, r, cor: preenchimento, borda });
     return this;
   }
 
   linha(x1: number, y1: number, x2: number, y2: number, traco: Cor = [0.8, 0.82, 0.85], espessura = 0.7): this {
     this.operacoes.push(`${cor(traco)} RG ${num(espessura)} w ${num(x1)} ${num(y1)} m ${num(x2)} ${num(y2)} l S`);
+    this.desenhos.push({ t: 'lin', x1, y1, x2, y2, cor: traco, esp: espessura });
     return this;
   }
 
@@ -100,12 +114,94 @@ export class PaginaPdf {
     this.operacoes.push(
       `BT ${cor(cinza)} rg /${NOME_FONTE[fonte]} ${num(tamanho)} Tf ${num(x)} ${num(y)} Td (${escaparTexto(texto)}) Tj ET`,
     );
+    this.desenhos.push({ t: 'txt', texto, x, y, tam: tamanho, fonte, cor: cinza });
     return this;
   }
 
   conteudo(): string {
     return this.operacoes.join('\n');
   }
+
+  /** A mesma página em SVG (tamanho `largura` x `altura` em pontos; y do PDF vira y de cima para baixo). */
+  svg(largura: number, altura: number): string {
+    const yTopo = (y: number, a: number) => num(altura - y - a);
+    const partes: string[] = [];
+    for (const d of this.desenhos) {
+      if (d.t === 'img') {
+        partes.push(`<image x="${num(d.x)}" y="${yTopo(d.y, d.a)}" width="${num(d.l)}" height="${num(d.a)}" preserveAspectRatio="none" href="${uriDaImagem(d.img)}"/>`);
+      } else if (d.t === 'ret') {
+        const borda = d.borda ? ` stroke="${rgbCss(d.borda)}" stroke-width="0.6"` : '';
+        partes.push(`<rect x="${num(d.x)}" y="${yTopo(d.y, d.a)}" width="${num(d.l)}" height="${num(d.a)}" rx="${num(d.r)}" fill="${rgbCss(d.cor)}"${borda}/>`);
+      } else if (d.t === 'lin') {
+        partes.push(`<line x1="${num(d.x1)}" y1="${num(altura - d.y1)}" x2="${num(d.x2)}" y2="${num(altura - d.y2)}" stroke="${rgbCss(d.cor)}" stroke-width="${num(d.esp)}"/>`);
+      } else {
+        const peso = d.fonte === 'negrito' ? ' font-weight="700"' : '';
+        partes.push(
+          `<text x="${num(d.x)}" y="${num(altura - d.y)}" font-family="Helvetica, Arial, sans-serif" font-size="${num(d.tam)}"${peso} fill="${rgbCss(d.cor)}">${escaparXml(d.texto)}</text>`,
+        );
+      }
+    }
+    return (
+      `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${num(largura)}" height="${num(altura)}" viewBox="0 0 ${num(largura)} ${num(altura)}">` +
+      partes.join('') +
+      '</svg>'
+    );
+  }
+}
+
+const rgbCss = (c: Cor) => `rgb(${c.map((v) => Math.round(v * 255)).join(',')})`;
+
+function escaparXml(texto: string): string {
+  return texto.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+const uriImagens = new WeakMap<ImagemPdf, string>();
+
+/** Imagem como data URI: JPEG segue direto; RGB comprimido vira PNG. */
+function uriDaImagem(img: ImagemPdf): string {
+  const pronta = uriImagens.get(img);
+  if (pronta) return pronta;
+  let uri: string;
+  if (img.filtro === 'DCTDecode') {
+    uri = `data:image/jpeg;base64,${img.dados.toString('base64')}`;
+  } else {
+    uri = pngRgb(img.largura, img.altura, img.dados);
+  }
+  uriImagens.set(img, uri);
+  return uri;
+}
+
+/** PNG de 8 bits RGB a partir do fluxo zlib (com ou sem bytes de filtro por linha). */
+function pngRgb(largura: number, altura: number, dados: Buffer): string {
+  const bruto = zlib.inflateSync(dados);
+  const passo = largura * 3;
+  let linhas: Buffer;
+  if (bruto.length === altura * (passo + 1)) {
+    linhas = bruto;
+  } else {
+    linhas = Buffer.alloc(altura * (passo + 1));
+    for (let y = 0; y < altura; y++) bruto.copy(linhas, y * (passo + 1) + 1, y * passo, (y + 1) * passo);
+  }
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(largura, 0);
+  ihdr.writeUInt32BE(altura, 4);
+  ihdr[8] = 8; // profundidade
+  ihdr[9] = 2; // RGB
+  const bloco = (tipo: string, corpo: Buffer) => {
+    const tamanho = Buffer.alloc(4);
+    tamanho.writeUInt32BE(corpo.length, 0);
+    const tipoECorpo = Buffer.concat([Buffer.from(tipo, 'latin1'), corpo]);
+    const crc = Buffer.alloc(4);
+    crc.writeUInt32BE(zlib.crc32(tipoECorpo) >>> 0, 0);
+    return Buffer.concat([tamanho, tipoECorpo, crc]);
+  };
+  const png = Buffer.concat([
+    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+    bloco('IHDR', ihdr),
+    bloco('IDAT', zlib.deflateSync(linhas)),
+    bloco('IEND', Buffer.alloc(0)),
+  ]);
+  return `data:image/png;base64,${png.toString('base64')}`;
 }
 
 /** Quebra o texto em linhas que cabem em `larguraMax` (pontos), por palavras. */
