@@ -1,6 +1,6 @@
 import { PaginaPdf, A4_PAISAGEM, montarPdfVarias, larguraTexto } from '@/lib/pdf/simples';
 import type { DadosRelatorio, GraficoRelatorio, SerraRelatorio, SetorRelatorio, TrilheirosRelatorio } from '@/lib/services/onePageUsina';
-import { faixaSemanaSegSex, mesAte, type Coluna, TODAS_COLUNAS } from '@/lib/usina/periodo';
+import { faixaSemanaSegSex, mesAte, rotuloPeriodo, type Coluna, TODAS_COLUNAS } from '@/lib/usina/periodo';
 import { desenharTrilheiros } from '@/lib/pdf/tabelaTrilheiros';
 import { desenharCaminhoes } from '@/lib/pdf/tabelaCaminhoes';
 
@@ -230,8 +230,9 @@ export function desenharLinhasResumo(p: PaginaPdf, r: { cor: string; dia: string
   });
 }
 
-export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 'semanal' | 'mensal' = 'semanal', colunas: Coluna[] = TODAS_COLUNAS): Buffer {
+export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 'semanal' | 'mensal' | 'diario' = 'semanal', colunas: Coluna[] = TODAS_COLUNAS, observacoes: string[] = []): Buffer {
   const mensal = modo === 'mensal';
+  const diario = modo === 'diario';
   const p = new PaginaPdf();
   p.retangulo(0, 0, L, H, BRANCO);
   // Faixa de marca no topo
@@ -241,11 +242,11 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   // Cabeçalho
   p.texto('CONTROLE DE TRILHOS', M, H - 26, 7.5, 'negrito', AZUL);
   p.texto('Relatório gerencial', M, H - 52, 21, 'negrito', TINTA);
-  const semana = mensal ? `Mês até ${mesAte(d.data).split(' a ')[1]}` : faixaSemanaSegSex(d.data);
+  const semana = mensal ? `Mês até ${mesAte(d.data).split(' a ')[1]}` : diario ? rotuloPeriodo(d.data, 'diario').valor : faixaSemanaSegSex(d.data);
   const wPilula = larguraTexto(semana, 10, 'negrito') + 26;
   p.arredondado(L - M - wPilula, H - 54, wPilula, 22, 11, hex('#e9f1fb'));
   textoDireita(p, semana, L - M - 13, H - 47, 10, 'negrito', NAVY);
-  textoDireita(p, mensal ? 'MENSAL' : 'SEGUNDA A DOMINGO', L - M, H - 26, 7, 'negrito', CINZA);
+  textoDireita(p, mensal ? 'MENSAL' : diario ? 'DIÁRIO' : 'SEGUNDA A DOMINGO', L - M, H - 26, 7, 'negrito', CINZA);
   p.linha(M, H - 62, L - M, H - 62, LINHA, 0.8);
 
   // Resumo: dia e semana separados em cada setor
@@ -296,7 +297,21 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   if (caminhao?.caminhoes) desenharCaminhoes(p, caminhao.caminhoes, caminhao.cor, M, topoLinha2, larguraTotal, altCaminhao, mensal ? 'mensal' : 'semanal', colunas);
   // Trilheiros: a mesma tabela do PDF por setor, em versão compacta.
   const altTrilheiros = Math.max(90, 46 + Math.max(1, tril.equipes.length) * 28 + 6);
-  desenharTrilheiros(p, tril, M, topoLinha2 - altCaminhao - gapLinha, larguraTotal, altTrilheiros, true);
+  const topoTrilheiros = topoLinha2 - altCaminhao - gapLinha;
+  desenharTrilheiros(p, tril, M, topoTrilheiros, larguraTotal, altTrilheiros, true);
+
+  // Observações do dia (só no diário), embaixo dos trilheiros, nas linhas que cabem.
+  if (diario && observacoes.length > 0) {
+    const sobra = topoTrilheiros - altTrilheiros - 42;
+    const linhasQueCabem = Math.max(0, Math.min(observacoes.length, Math.floor((sobra - 24) / 11)));
+    if (linhasQueCabem > 0) {
+      const altObs = 24 + linhasQueCabem * 11;
+      const baseObs = topoTrilheiros - altTrilheiros - 8 - altObs;
+      p.arredondado(M, baseObs, larguraTotal, altObs, 9, BRANCO, LINHA);
+      p.texto('OBSERVAÇÕES DO DIA', M + 10, baseObs + altObs - 13, 7, 'negrito', CINZA);
+      observacoes.slice(0, linhasQueCabem).forEach((linha, i) => p.texto(linha, M + 10, baseObs + altObs - 26 - i * 11, 8, 'normal', TINTA));
+    }
+  }
 
   const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
   p.linha(M, 30, L - M, 30, LINHA, 0.6);
