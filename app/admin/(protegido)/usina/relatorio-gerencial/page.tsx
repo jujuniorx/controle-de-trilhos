@@ -1,5 +1,5 @@
 import { montarDadosRelatorio, montarTrilheirosRelatorio } from '@/lib/services/onePageUsina';
-import { Setor, Resumo, TrilheirosBloco, CaminhoesBloco } from '@/components/usina/RelatorioSetores';
+import { Setor, Resumo, TrilheirosBloco, CaminhoesBloco, EstoqueTlsBloco } from '@/components/usina/RelatorioSetores';
 import { ObservacaoDoDia } from '@/components/usina/ObservacoesSetorRelatorio';
 import { ehIsoValido, modoValido, linksModo, rotuloPeriodo, colunasValidas, TODAS_COLUNAS, type Coluna } from '@/lib/usina/periodo';
 import { BotaoCompartilharPdf } from '@/components/usina/BotaoCompartilharPdf';
@@ -17,6 +17,11 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
   const data = ehIsoValido(params.data) ? params.data : new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
   const dados = await montarDadosRelatorio(data);
   const tril = await montarTrilheirosRelatorio(data);
+  // O estoque de TLS sai do cartão do estaleiro e vai para uma faixa própria, como no PDF.
+  const estaleiro = dados.setores.find((s) => s.titulo === 'Estaleiro de solda');
+  const iTls = estaleiro ? estaleiro.linhas.findIndex((l) => l.secao?.startsWith('Estoque TLS')) : -1;
+  const tlsLinhas = estaleiro && iTls >= 0 ? estaleiro.linhas.slice(iTls) : [];
+  const setoresTela = dados.setores.map((s) => (s.titulo === 'Estaleiro de solda' && iTls >= 0 ? { ...s, linhas: s.linhas.slice(0, iTls) } : s));
 
   return (
     <main className="mx-auto max-w-6xl space-y-4 p-4">
@@ -66,7 +71,7 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
 
         <p className="text-xs text-slate-500">Cada setor mostra o valor do dia e o acumulado da semana (segunda a domingo), com o gráfico desses dias.</p>
         <div className="grid gap-4">
-          {dados.setores.filter((s) => s.titulo !== 'Trilheiros').map((s) => (
+          {setoresTela.filter((s) => s.titulo !== 'Trilheiros').map((s) => (
             <div key={s.titulo}>
               {s.caminhoes ? (
                 <CaminhoesBloco s={s} modo={modo} colunas={colunas} />
@@ -84,6 +89,7 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
             </div>
           ))}
         </div>
+        {tlsLinhas.length > 0 && estaleiro && <EstoqueTlsBloco linhas={tlsLinhas} cor={estaleiro.cor} />}
         <TrilheirosBloco t={tril} />
       </article>
     </main>

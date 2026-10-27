@@ -1,6 +1,6 @@
 import { Fragment, type ReactNode } from 'react';
 import { GraficoBarras } from '@/components/usina/GraficoBarras';
-import type { SetorRelatorio, TrilheirosRelatorio, EquipeGeracaoRelatorio, SerraRelatorio, MedidaSerra } from '@/lib/services/onePageUsina';
+import type { LinhaRelatorio, SetorRelatorio, TrilheirosRelatorio, EquipeGeracaoRelatorio, SerraRelatorio, MedidaSerra } from '@/lib/services/onePageUsina';
 import { fmtMetros } from '@/lib/format';
 import type { Coluna } from '@/lib/usina/periodo';
 
@@ -177,6 +177,26 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
         </div>
       )}
       {rodape && <div className="mt-auto border-t border-slate-100 px-4 py-3">{rodape}</div>}
+    </section>
+  );
+}
+
+/** Estoque de TLS no dia, em faixa própria abaixo dos setores (mesmo formato do PDF). */
+export function EstoqueTlsBloco({ linhas, cor }: { linhas: LinhaRelatorio[]; cor: string }) {
+  const itens = linhas.filter((l) => !l.secao);
+  return (
+    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white break-inside-avoid">
+      <header className="px-4 py-2.5 text-white" style={{ background: cor }}>
+        <span className="text-sm font-bold uppercase tracking-wide">Estoque de TLS (no dia)</span>
+      </header>
+      <div className="grid grid-cols-2 gap-3 p-4 md:grid-cols-5">
+        {itens.map((l) => (
+          <div key={l.rotulo} className="rounded-lg border border-slate-200 p-3" style={{ borderTop: `3px solid ${cor}` }}>
+            <p className="text-[11px] uppercase tracking-wide text-slate-500">{l.rotulo}</p>
+            <p className="text-xl font-bold tabular-nums" style={{ color: cor }}>{l.dia}</p>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
