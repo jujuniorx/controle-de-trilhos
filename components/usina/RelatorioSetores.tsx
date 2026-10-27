@@ -276,7 +276,7 @@ export function CaminhoesBloco({ s, modo, colunas = TODAS }: { s: SetorRelatorio
   const caminhoes = s.caminhoes ?? [];
   const cor = s.cor;
   // Um quadrado por caminhão, igual aos quadrados do estaleiro, geração e serra.
-  const bloco = (rotulo: string, valores: { dia: string; semana: string; mes: string }) => (
+  const bloco = (rotulo: string, valores: { dia: number | string; semana: number | string; mes: number | string }) => (
     <div className="rounded-lg bg-slate-50 p-2">
       <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{rotulo}</p>
       <dl className="mt-1 space-y-0.5 text-sm tabular-nums">
