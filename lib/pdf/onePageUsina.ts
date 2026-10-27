@@ -288,7 +288,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const larguraTotal = L - 2 * M;
   // Altura do cartão do caminhão cresce com o número de linhas (Solda e Corte de cada caminhão), para nada passar por baixo.
   const linhasCaminhao = porTitulo('Caminhão de solda')?.caminhoes?.length ?? 0;
-  const altCaminhao = Math.max(90, 50 + linhasCaminhao * 30);
+  const altCaminhao = Math.max(90, 50 + linhasCaminhao * 34);
   const gapLinha = 6;
   const topoLinha2 = topoGrade - altSet - 12;
   const caminhao = porTitulo('Caminhão de solda');

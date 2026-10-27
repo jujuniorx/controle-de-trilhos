@@ -38,7 +38,8 @@ export function desenharCaminhoes(
 ) {
   const base = topo - h;
   const corSetor = hex(cor);
-  const diario = modo === 'diario';
+  // Observação no mesmo estilo do trilheiro: aparece no semanal e no diário (não no mensal).
+  const comObservacao = modo !== 'mensal';
   p.arredondado(x + 1.2, base - 1.4, w, h, 9, SOMBRA);
   p.arredondado(x, base, w, h, 9, BRANCO, LINHA);
   p.arredondado(x, topo - 22, w, 22, 9, corSetor);
@@ -73,10 +74,10 @@ export function desenharCaminhoes(
   p.texto('CAMINHÃO', x + 10, yCabecalho, 6.5, 'negrito', CINZA);
   ordem.forEach((n) => dir(NOME[n.split('-')[1] as Coluna], posicao(n), yCabecalho, 6.5, 'negrito', CINZA));
   p.texto('LOCAL', x + xLocal, yCabecalho, 6.5, 'negrito', CINZA);
-  if (diario) p.texto('OBSERVAÇÃO', x + xObs, yCabecalho, 6.5, 'negrito', CINZA);
+  if (comObservacao) p.texto('OBSERVAÇÃO', x + xObs, yCabecalho, 6.5, 'negrito', CINZA);
   p.linha(x + 8, yCabecalho - 6, x + w - 8, yCabecalho - 6, LINHA, 0.6);
 
-  const altLinha = diario ? 34 : 30;
+  const altLinha = 34;
   const primeiraBase = yCabecalho - 22;
   caminhoes.forEach((c, i) => {
     const y = primeiraBase - i * altLinha;
@@ -101,7 +102,7 @@ export function desenharCaminhoes(
     } else {
       p.texto('—', x + xLocal, y, 9, 'normal', CINZA);
     }
-    if (diario) {
+    if (comObservacao) {
       const linhas = c.observacao ? quebrarLinhas(c.observacao, 7.5, w - xObs - 16) : [];
       linhas.slice(0, 3).forEach((linha, k) => p.texto(linha, x + xObs, y + 9 - k * 8.5, 7.5, 'normal', CINZA));
     }
