@@ -319,8 +319,10 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   // Capa (página 1): foto dos setores em largura total, com o título e o período, como na tela.
   const capa = new PaginaPdf();
   capa.retangulo(0, 0, L, H, BRANCO);
-  // Capa só com a foto, cobrindo a folha inteira (a imagem já está cortada na proporção da página).
-  capa.imagem(bannerRelatorio, 0, 0, L, H);
+  // Capa só com a foto inteira, sem cortar, em largura total e centralizada na folha.
+  const larguraFoto = L - 2 * M;
+  const alturaFoto = (larguraFoto * BANNER_RELATORIO.altura) / BANNER_RELATORIO.largura;
+  capa.imagem(bannerRelatorio, M, (H - alturaFoto) / 2, larguraFoto, alturaFoto);
   p.retangulo(0, 0, L, H, BRANCO);
   // Faixa de marca no topo
   p.retangulo(0, H - 5, L, 5, NAVY);
