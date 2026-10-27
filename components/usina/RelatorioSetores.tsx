@@ -256,52 +256,38 @@ export function CaminhoesBloco({ s, modo, colunas = TODAS }: { s: SetorRelatorio
   const mostraDia = !mensal && colunas.includes('dia');
   const mostraSem = !mensal && colunas.includes('semana');
   const mostraMes = colunas.includes('mes');
-  const nColunas = (mostraDia ? 1 : 0) + (mostraSem ? 1 : 0) + (mostraMes ? 1 : 0);
   const caminhoes = s.caminhoes ?? [];
   const cor = s.cor;
-  const celula = 'py-2.5 text-right font-semibold tabular-nums';
+  // Um quadrado por caminhão, igual aos quadrados do estaleiro, geração e serra.
+  const bloco = (rotulo: string, valores: { dia: string; semana: string; mes: string }) => (
+    <div className="rounded-lg bg-slate-50 p-2">
+      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{rotulo}</p>
+      <dl className="mt-1 space-y-0.5 text-sm tabular-nums">
+        {mostraDia && <div className="flex justify-between gap-2"><dt className="text-[11px] text-slate-500">Dia</dt><dd className="font-bold text-slate-900">{valores.dia}</dd></div>}
+        {mostraSem && <div className="flex justify-between gap-2"><dt className="text-[11px] text-slate-500">Semana</dt><dd className="font-bold text-slate-900">{valores.semana}</dd></div>}
+        {mostraMes && <div className="flex justify-between gap-2"><dt className="text-[11px] text-slate-500">No mês</dt><dd className="font-bold" style={{ color: cor }}>{valores.mes}</dd></div>}
+      </dl>
+    </div>
+  );
   return (
     <section className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white break-inside-avoid">
       <header className="px-4 py-2.5 text-white" style={{ background: cor }}>
         <span className="text-sm font-bold">{s.titulo}</span>
       </header>
-      <div className="overflow-x-auto p-4">
-        <table className="w-full border-collapse text-[13px]">
-          <thead>
-            <tr className="text-[10px] uppercase tracking-wide text-slate-500">
-              <th className="pb-1 text-left font-semibold" rowSpan={2}>Caminhão</th>
-              <th className="pb-1 text-center font-semibold" colSpan={nColunas}>Solda (UND)</th>
-              <th className="pb-1 text-center font-semibold" colSpan={nColunas}>Corte (UND)</th>
-              <th className="pb-1 text-center font-semibold" rowSpan={2}>Local</th>
-              {diario && <th className="pb-1 text-left font-semibold" rowSpan={2}>Observação</th>}
-            </tr>
-            <tr className="border-b-2 border-slate-200 text-[10px] uppercase tracking-wide text-slate-500">
-              {mostraDia && <th className="pb-2 text-right font-semibold">Dia</th>}
-              {mostraSem && <th className="pb-2 text-right font-semibold">Semana</th>}
-              {mostraMes && <th className="pb-2 text-right font-semibold">No mês</th>}
-              {mostraDia && <th className="pb-2 text-right font-semibold">Dia</th>}
-              {mostraSem && <th className="pb-2 text-right font-semibold">Semana</th>}
-              {mostraMes && <th className="pb-2 text-right font-semibold">No mês</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {caminhoes.map((c, i) => (
-              <tr key={c.nome} className={`align-top ${i % 2 === 1 ? 'bg-slate-50' : ''}`}>
-                <td className="py-2.5 pl-2 font-bold text-slate-900">{c.nome}</td>
-                {mostraDia && <td className={`${celula} text-slate-900`}>{c.solda.dia}</td>}
-                {mostraSem && <td className={`${celula} text-slate-900`}>{c.solda.semana}</td>}
-                {mostraMes && <td className={celula} style={{ color: cor }}>{c.solda.mes}</td>}
-                {mostraDia && <td className={`${celula} text-slate-900`}>{c.corte.dia}</td>}
-                {mostraSem && <td className={`${celula} text-slate-900`}>{c.corte.semana}</td>}
-                {mostraMes && <td className={celula} style={{ color: cor }}>{c.corte.mes}</td>}
-                <td className="py-2.5 text-center">
-                  {c.local ? <span className="inline-block rounded-md bg-slate-900 px-2 py-0.5 text-[11px] font-bold text-white">{c.local}</span> : '—'}
-                </td>
-                {diario && <td className="py-2.5 pr-2 text-[12px] leading-snug text-slate-600">{c.observacao ?? ''}</td>}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="grid gap-3 p-4 sm:grid-cols-2">
+        {caminhoes.map((c) => (
+          <div key={c.nome} className="rounded-lg border border-slate-200 p-3" style={{ borderTop: `3px solid ${cor}` }}>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-bold text-slate-900">{c.nome}</p>
+              {c.local ? <span className="inline-block rounded-md bg-slate-900 px-2 py-0.5 text-[11px] font-bold text-white">{c.local}</span> : <span className="text-slate-400">—</span>}
+            </div>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {bloco('Solda (UND)', c.solda)}
+              {bloco('Corte (UND)', c.corte)}
+            </div>
+            {diario && c.observacao && <p className="mt-2 text-[12px] leading-snug text-slate-600">{c.observacao}</p>}
+          </div>
+        ))}
       </div>
     </section>
   );
