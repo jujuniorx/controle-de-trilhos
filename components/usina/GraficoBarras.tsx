@@ -61,7 +61,7 @@ export function GraficoBarras({
               const v = s.valores[i] ?? 0;
               const x = destaque === undefined ? margemEsq + i * grupo + grupo * 0.1 + j * barra : margemEsq + i * grupo + grupo / 2 - (series.length * barra) / 2 + j * barra;
               const y = yDe(v);
-              const cor = destaque === undefined || i === destaque ? s.cor : '#cbd5e1';
+              const cor = s.cor;
               return (
                 <g key={s.nome}>
                   <rect x={x} y={y} width={Math.max(0.5, barra - 0.5)} height={Math.max(0, topoArea + areaA - y)} rx={2} fill={cor}>
