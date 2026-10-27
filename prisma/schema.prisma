@@ -179,6 +179,11 @@ model Movimentacao {
   // Lembretes à Portaria de saída pendente (depois que o Pátio libera): quantos já foram e quando foi o último.
   lembretesSaidaEnviados Int       @default(0)
   ultimoLembreteSaidaEm  DateTime?
+  // Nota fiscal da carreta liberada pelo Pátio: quando a Bianca confirma a emissão, e quando cada aviso saiu pela última vez.
+  notaEmitidaEm          DateTime?
+  notaEmitidaPor         String?
+  ultimoAvisoNotaAdminEm DateTime?
+  ultimoAvisoNotaPatioEm DateTime?
   // Observação escrita pela Portaria para o Pátio.
   observacaoPortaria String?
 

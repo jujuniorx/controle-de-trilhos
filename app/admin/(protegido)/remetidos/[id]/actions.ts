@@ -9,6 +9,7 @@ import {
   atualizarRemetido,
 } from '@/lib/services/remetido';
 import { lancamentoDiretoRemetidoSchema } from '@/lib/validation/remetido';
+import { confirmarNotaEmitida } from '@/lib/services/notaEmitida';
 import { ErroRegraNegocio } from '@/lib/services/errors';
 import { NF_REGEX, MSG_NF_INVALIDA } from '@/lib/validation/recebimento';
 
@@ -87,5 +88,17 @@ export async function atualizarRemetidoAction(movimentacaoId: string, input: unk
   } catch (erro) {
     const mensagem = erro instanceof ErroRegraNegocio ? erro.message : 'Não foi possível salvar as alterações.';
     return { ok: false, erro: mensagem };
+  }
+}
+
+/** A Bianca confirma que a nota fiscal da carreta liberada pelo Pátio foi emitida. */
+export async function confirmarNotaEmitidaAction(movimentacaoId: string): Promise<AcaoResultado> {
+  const { userId } = await requireAdmin();
+  const usuario = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { nome: true } });
+  try {
+    await confirmarNotaEmitida(movimentacaoId, usuario);
+    return { ok: true };
+  } catch (erro) {
+    return { ok: false, erro: erro instanceof ErroRegraNegocio ? erro.message : 'Não foi possível confirmar a nota. Tente novamente.' };
   }
 }

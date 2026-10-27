@@ -8,6 +8,7 @@ import { requireAdmin } from '@/lib/services/requireAdmin';
 import { pecasDoGrupo } from '@/lib/domain/regras';
 import { ConferenciaPainel } from '@/app/admin/(protegido)/recebimentos/[id]/ConferenciaPainel';
 import { NfPainel } from './NfPainel';
+import { NotaEmitidaPainel } from './NotaEmitidaPainel';
 import { NfsPainel } from '@/app/admin/(protegido)/NfsPainel';
 import { informarNumeroDocumentoAction } from './actions';
 import { rotuloNfs } from '@/lib/nf';
@@ -115,6 +116,9 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
         </dl>
 
         {mov.status !== 'AGUARDANDO_CHEGADA' && mov.numeroDocumento == null && <NfPainel movimentacaoId={mov.id} />}
+        {mov.carretaLiberadaEm && (
+          <NotaEmitidaPainel movimentacaoId={mov.id} emitidaEm={mov.notaEmitidaEm ? mov.notaEmitidaEm.toISOString() : null} emitidaPor={mov.notaEmitidaPor} />
+        )}
         {mov.numeroDocumento != null && (
           <NfsPainel movimentacaoId={mov.id} principal={mov.numeroDocumento} extras={mov.numerosDocumentoExtras} acaoCorrigirPrincipal={informarNumeroDocumentoAction} />
         )}
