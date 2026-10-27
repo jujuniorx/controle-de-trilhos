@@ -99,11 +99,11 @@ function fmtMetrosPdf(v: number): string {
 }
 
 /** Gráfico de barras por dia: uma barra por série e por dia, na área (x, yBase) até (x+w, yBase+altura). */
-export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yBase: number, w: number, altura: number, rotulos: string[] = []) {
+export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yBase: number, w: number, altura: number, rotulos: string[] = [], bwMax = 4) {
   const n = Math.max(1, ...g.series.map((s) => s.valores.length));
   const topo = Math.max(1, ...g.series.flatMap((s) => s.valores));
   const gw = w / n;
-  const bw = Math.max(0.6, Math.min(4, (gw * 0.75) / g.series.length));
+  const bw = Math.max(0.6, Math.min(bwMax, (gw * 0.75) / g.series.length));
   g.series.forEach((s, si) => {
     s.valores.forEach((v, i) => {
       const h = (Math.max(0, v) / topo) * altura;
@@ -121,8 +121,20 @@ export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yB
   });
 }
 
+/** Gráfico do dia (uma barra por série) com a observação do setor logo acima. Só no PDF diário. */
+function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, base: number, w: number, rotulos: string[]) {
+  if (!s.grafico) return;
+  if (s.observacao) {
+    const linhas = quebrarLinhas(s.observacao, 7, w - 16).slice(0, 2);
+    linhas.forEach((linha, i) => p.texto(linha, x + 8, base + 22 - i * 8, 7, 'normal', CINZA));
+  }
+  desenharGrafico(p, s.grafico, x + 8, base + 42, w - 16, 26, rotulos, 22);
+}
+
 export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = [], mensal = false, colunas: Coluna[] = ['dia', 'semana', 'mes'], comGrafico = true) {
   const base = topo - h;
+  // No diário o gráfico é do dia (um rótulo só): fica pequeno e com observação embaixo da tabela.
+  const diarioSetor = rotulos.length === 1;
   p.arredondado(x + 1.2, base - 1.4, w, h, 9, SOMBRA);
   p.arredondado(x, base, w, h, 9, BRANCO, LINHA);
   p.arredondado(x, topo - 22, w, 22, 9, hex(s.cor));
@@ -131,7 +143,8 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   if (s.serra) {
     desenharTabelaSerra(p, s.serra, x, topo, w, mensal ? ['mes'] : colunas);
     if (s.grafico && comGrafico) {
-      desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 22, rotulos);
+      if (diarioSetor) desenharObservacaoEGrafico(p, s, x, base, w, rotulos);
+      else desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 22, rotulos);
     }
     return;
   }
@@ -176,6 +189,10 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
 
   // No mensal o gráfico diário sai: o cartão mostra só os totais do mês.
   if (!s.grafico || mensal || !comGrafico) return;
+  if (diarioSetor && !largo) {
+    desenharObservacaoEGrafico(p, s, x, base, w, rotulos);
+    return;
+  }
   if (largo) {
     // Gráfico à direita, na mesma altura da tabela
     const xg = x + 470;
@@ -240,8 +257,14 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const indiceDia = (new Date(`${d.data}T12:00:00Z`).getUTCDay() + 6) % 7; // 0 = segunda
   const nomesDia = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
   const rotulosGrafico = diario ? [`${nomesDia[indiceDia]} ${d.data.slice(8, 10)}/${d.data.slice(5, 7)}`] : d.rotulosDias;
+  // Observação do setor no dia (chave "AAAA-MM-DD|setor"), mostrada embaixo de cada cartão no diário.
+  const chaveSetor: Record<string, string> = { 'Estaleiro de solda': 'estaleiro', 'Geração de trilho': 'geracao', 'Recolhimento serra': 'serra' };
   const setores = diario
-    ? d.setores.map((s) => (s.grafico ? { ...s, grafico: { ...s.grafico, series: s.grafico.series.map((serie) => ({ ...serie, valores: [serie.valores[indiceDia] ?? 0] })) } } : s))
+    ? d.setores.map((s) => ({
+        ...s,
+        grafico: s.grafico ? { ...s.grafico, series: s.grafico.series.map((serie) => ({ ...serie, valores: [serie.valores[indiceDia] ?? 0] })) } : null,
+        observacao: d.observacoes[`${d.data}|${chaveSetor[s.titulo] ?? ''}`] || undefined,
+      }))
     : d.setores;
   const p = new PaginaPdf();
   p.retangulo(0, 0, L, H, BRANCO);

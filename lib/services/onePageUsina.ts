@@ -40,7 +40,7 @@ export interface CaminhaoTabelaRelatorio {
   corte: { dia: number; semana: number; mes: number };
 }
 
-export interface SetorRelatorio { titulo: string; cor: string; linhas: LinhaRelatorio[]; grafico: GraficoRelatorio | null; grade?: GradeRelatorio; serra?: SerraRelatorio; caminhoes?: CaminhaoTabelaRelatorio[] }
+export interface SetorRelatorio { titulo: string; cor: string; linhas: LinhaRelatorio[]; grafico: GraficoRelatorio | null; grade?: GradeRelatorio; serra?: SerraRelatorio; caminhoes?: CaminhaoTabelaRelatorio[]; /** Observação do setor no dia (só usada no PDF diário). */ observacao?: string }
 
 /** Produção de uma equipe de geração: o dia e a semana. */
 export interface EquipeGeracaoRelatorio {
