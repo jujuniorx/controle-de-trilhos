@@ -108,12 +108,19 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
       </thead>
       <tbody>
         {s.linhas.map((l) => (
-          <tr key={l.rotulo} className="border-t border-slate-100">
+          <Fragment key={l.rotulo}>
+            {l.secao && (
+              <tr>
+                <td colSpan={1 + (mostraDia ? 1 : 0) + (mostraSem ? 1 : 0) + (mostraMes ? 1 : 0)} className="pb-0.5 pt-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">{l.secao}</td>
+              </tr>
+            )}
+          <tr className="border-t border-slate-100">
             <td className="py-1 text-slate-700">{l.rotulo}</td>
             {mostraDia && <td className="py-1 text-right font-medium tabular-nums text-slate-900"><ValorComCores valor={l.dia} cores={l.cores} corPadrao="#0f172a" /></td>}
             {mostraSem && <td className="py-1 text-right font-medium tabular-nums text-slate-900"><ValorComCores valor={l.semana} cores={l.cores} corPadrao="#0f172a" /></td>}
             {mostraMes && <td className="py-1 text-right font-bold tabular-nums"><ValorComCores valor={l.mes} cores={l.cores} corPadrao={s.cor} /></td>}
           </tr>
+          </Fragment>
         ))}
       </tbody>
     </table>
