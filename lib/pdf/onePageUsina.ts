@@ -134,15 +134,15 @@ export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yB
 /** Gráfico do dia (uma barra por série) com a observação do setor logo acima. Só no PDF diário. */
 function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, base: number, w: number, rotulos: string[], destaque?: number, limiteTopo?: number) {
   if (!s.grafico) return;
+  // Observação embaixo do cartão, com "Obs:" na frente; a legenda (quadradinhos) fica logo acima dela.
   if (s.observacao) {
-    const linhas = quebrarLinhas(s.observacao, 7, w - 16).slice(0, 2);
-    linhas.forEach((linha, i) => p.texto(linha, x + 8, base + 22 - i * 8, 7, 'normal', CINZA));
+    const linhas = quebrarLinhas(`Obs: ${s.observacao}`, 7, w - 16).slice(0, 2);
+    linhas.forEach((linha, i) => p.texto(linha, x + 8, base + 6 + i * 8, 7, 'normal', CINZA));
   }
-  // Legenda das cores (Soldas, Cortes...) embaixo do cartão, como no gerencial.
   let lx = x + 8;
   for (const serie of s.grafico.series) {
-    p.retangulo(lx, base + 4, 6, 6, hex(serie.cor));
-    p.texto(serie.nome, lx + 9, base + 4, 6.5, 'normal', CINZA);
+    p.retangulo(lx, base + 22, 6, 6, hex(serie.cor));
+    p.texto(serie.nome, lx + 9, base + 22, 6.5, 'normal', CINZA);
     lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
   }
   // A barra mais alta termina antes da última linha da tabela (limiteTopo), com folga: nunca encosta na caixa.
