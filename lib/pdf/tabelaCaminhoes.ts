@@ -105,7 +105,8 @@ export function desenharCaminhoes(
     }
     if (comObservacao) {
       const linhas = c.observacao ? quebrarLinhas(c.observacao, 7.5, w - xObs - 16) : [];
-      linhas.slice(0, 4).forEach((linha, k) => p.texto(linha, x + xObs, y + 9 - k * 8.5, 7.5, 'normal', CINZA));
+      // A primeira linha começa mais abaixo: sem isso o topo do texto encostava na linha do cabeçalho.
+      linhas.slice(0, 4).forEach((linha, k) => p.texto(linha, x + xObs, y + 5 - k * 8.5, 7.5, 'normal', CINZA));
     }
   });
 }
