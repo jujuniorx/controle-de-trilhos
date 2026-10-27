@@ -183,7 +183,8 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
 
 /** Estoque de TLS no dia, em faixa própria abaixo dos setores (mesmo formato do PDF). */
 export function EstoqueTlsBloco({ linhas, cor }: { linhas: LinhaRelatorio[]; cor: string }) {
-  const itens = linhas.filter((l) => !l.secao);
+  // A primeira linha da seção traz o rótulo "secao"; por isso filtra pelo perfil, não pela seção.
+  const itens = linhas.filter((l) => l.perfil);
   const celula = 'py-2 text-right font-semibold tabular-nums';
   return (
     <section className="overflow-hidden rounded-xl border border-slate-200 bg-white break-inside-avoid">

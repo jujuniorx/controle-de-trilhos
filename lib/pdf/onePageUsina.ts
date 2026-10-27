@@ -286,7 +286,8 @@ const CORES_SETOR_ESTALEIRO = '#2563eb';
 
 /** Estoque de TLS no dia: uma coluna por tipo, numa faixa só, na largura toda. */
 function desenharEstoqueTls(p: PaginaPdf, linhas: LinhaRelatorio[], x: number, topo: number, w: number, h: number, cor: string) {
-  const itens = linhas.filter((l) => !l.secao);
+  // A primeira linha da seção traz o rótulo "secao"; por isso filtra pelo perfil, não pela seção.
+  const itens = linhas.filter((l) => l.perfil);
   const base = topo - h;
   p.arredondado(x + 1.2, base - 1.4, w, h, 9, SOMBRA);
   p.arredondado(x, base, w, h, 9, BRANCO, LINHA);
