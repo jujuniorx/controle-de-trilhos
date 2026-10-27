@@ -23,7 +23,7 @@ export function desenharTrilheiros(p: PaginaPdf, t: TrilheirosRelatorio, x: numb
   p.arredondado(x, base, w, h, 9, BRANCO, LINHA);
   p.arredondado(x, topo - 22, w, 22, 9, COR_TRILHEIROS);
   p.retangulo(x, topo - 22, w, 8, COR_TRILHEIROS);
-  p.texto('TRILHEIROS', x + 10, topo - 14, 8, 'negrito', BRANCO);
+  p.texto('Trilheiros', x + 10, topo - 14, 8, 'negrito', BRANCO);
 
   // Colunas (deslocamento a partir da borda esquerda do cartão)
   const col = { trilheiro: 10, bo: 96, diasBo: 180, partida: 278, diasPartida: 364, local: 462, barras: 540, obs: 628 };

@@ -79,7 +79,7 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
     return (
       <section className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white break-inside-avoid">
         <header className="px-4 py-2.5 text-white" style={{ background: s.cor }}>
-          <span className="text-sm font-bold uppercase tracking-wide">{s.titulo} (estimado)</span>
+          <span className="text-sm font-bold">{s.titulo} (estimado)</span>
         </header>
         <div className={largo ? 'grid items-start gap-6 p-4 lg:grid-cols-2' : 'space-y-3 p-4'}>
           <TabelaSerra serra={s.serra} colunas={mensal ? ['mes'] : colunas} />
@@ -163,7 +163,7 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
   return (
     <section className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white break-inside-avoid">
       <header className="px-4 py-2.5 text-white" style={{ background: s.cor }}>
-        <span className="text-sm font-bold uppercase tracking-wide">{s.titulo}</span>
+        <span className="text-sm font-bold">{s.titulo}</span>
       </header>
       {largo ? (
         <div className="grid gap-4 p-4 md:grid-cols-2">
@@ -187,7 +187,7 @@ export function EstoqueTlsBloco({ linhas, cor }: { linhas: LinhaRelatorio[]; cor
   return (
     <section className="overflow-hidden rounded-xl border border-slate-200 bg-white break-inside-avoid">
       <header className="px-4 py-2.5 text-white" style={{ background: cor }}>
-        <span className="text-sm font-bold uppercase tracking-wide">Estoque de TLS (no dia)</span>
+        <span className="text-sm font-bold">Estoque de TLS (no dia)</span>
       </header>
       <div className="grid grid-cols-2 gap-3 p-4 md:grid-cols-5">
         {itens.map((l) => (
@@ -263,7 +263,7 @@ export function CaminhoesBloco({ s, modo, colunas = TODAS }: { s: SetorRelatorio
   return (
     <section className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white break-inside-avoid">
       <header className="px-4 py-2.5 text-white" style={{ background: cor }}>
-        <span className="text-sm font-bold uppercase tracking-wide">{s.titulo}</span>
+        <span className="text-sm font-bold">{s.titulo}</span>
       </header>
       <div className="overflow-x-auto p-4">
         <table className="w-full border-collapse text-[13px]">
@@ -319,7 +319,7 @@ export function TrilheirosBloco({ t }: { t: TrilheirosRelatorio }) {
   return (
     <section className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white break-inside-avoid">
       <header className="px-4 py-2.5 text-white" style={{ background: cor }}>
-        <span className="text-sm font-bold uppercase tracking-wide">Trilheiros</span>
+        <span className="text-sm font-bold">Trilheiros</span>
       </header>
       <div className="space-y-4 p-4">
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
@@ -384,7 +384,7 @@ export function EquipesGeracao({ equipes, cor }: { equipes: EquipeGeracaoRelator
   return (
     <section className="overflow-hidden rounded-xl border border-slate-200 bg-white break-inside-avoid">
       <header className="px-4 py-2.5 text-white" style={{ background: cor }}>
-        <span className="text-sm font-bold uppercase tracking-wide">Geração por equipe</span>
+        <span className="text-sm font-bold">Geração por equipe</span>
       </header>
       <div className="overflow-x-auto p-4">
         <table className="w-full border-collapse text-[13px]">

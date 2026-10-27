@@ -152,7 +152,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   p.arredondado(x, topo - 22, w, 22, 9, hex(s.cor));
   p.retangulo(x, topo - 22, w, 8, hex(s.cor));
   // Os números da serra são estimados: a indicação vai no título do cartão.
-  p.texto(`${s.titulo}${s.serra ? ' (estimado)' : ''}`.toUpperCase(), x + 8, topo - 14, 8, 'negrito', BRANCO);
+  p.texto(`${s.titulo}${s.serra ? ' (estimado)' : ''}`, x + 8, topo - 14, 8, 'negrito', BRANCO);
   if (s.serra) {
     desenharTabelaSerra(p, s.serra, x, topo, w, mensal ? ['mes'] : colunas);
     if (s.grafico && comGrafico) {
@@ -277,7 +277,7 @@ function desenharEstoqueTls(p: PaginaPdf, linhas: LinhaRelatorio[], x: number, t
   p.arredondado(x, base, w, h, 9, BRANCO, LINHA);
   p.arredondado(x, topo - 22, w, 22, 9, hex(cor));
   p.retangulo(x, topo - 22, w, 8, hex(cor));
-  p.texto('ESTOQUE DE TLS (NO DIA)', x + 10, topo - 14, 8, 'negrito', BRANCO);
+  p.texto('Estoque de TLS (no dia)', x + 10, topo - 14, 8, 'negrito', BRANCO);
   const colW = (w - 16) / Math.max(1, itens.length);
   itens.forEach((l, i) => {
     const cx = x + 8 + i * colW;

@@ -44,7 +44,7 @@ export function desenharCaminhoes(
   p.arredondado(x, base, w, h, 9, BRANCO, LINHA);
   p.arredondado(x, topo - 22, w, 22, 9, corSetor);
   p.retangulo(x, topo - 22, w, 8, corSetor);
-  p.texto('CAMINHÃO DE SOLDA', x + 10, topo - 14, 8, 'negrito', BRANCO);
+  p.texto('Caminhão de solda', x + 10, topo - 14, 8, 'negrito', BRANCO);
 
   // Colunas numéricas ativas, na ordem Solda (Dia, Semana, No mês) e depois Corte (Dia, Semana, No mês).
   const ordem: Numero[] = [];
