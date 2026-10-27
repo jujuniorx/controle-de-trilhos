@@ -182,8 +182,8 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         dia: '',
         semana: '',
         mes: '',
-        // Quantas barras já foram carregadas (descarregadas) e quantas o trilheiro tem no giro (ex.: 10 carregadas de 40).
-        linhas: trilRel.equipes.map((e) => ({ rotulo: e.trilheiro, valor: `${e.descarregadas} carregadas de ${e.total}` })),
+        // Barras carregadas sobre o total que o trilheiro tem no giro (ex.: 10/40).
+        linhas: trilRel.equipes.map((e) => ({ rotulo: e.trilheiro, valor: `${e.descarregadas}/${e.total}` })),
         grupo: 'Trilheiros',
       },
     ],
