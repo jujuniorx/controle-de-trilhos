@@ -1,5 +1,4 @@
-// Observações do dia de um setor, mostradas embaixo do bloco do setor no relatório (tela).
-const NOME_DIA = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+// Observação do dia de um setor, mostrada dentro do próprio cartão do setor (tela diária).
 const CHAVE_SETOR: Record<string, string> = {
   'Estaleiro de solda': 'estaleiro',
   'Geração de trilho': 'geracao',
@@ -7,6 +6,25 @@ const CHAVE_SETOR: Record<string, string> = {
   'Caminhão de solda': 'caminhao',
 };
 
+export function ObservacaoDoDia({ titulo, observacoes, data }: { titulo: string; observacoes: Record<string, string>; data: string }) {
+  const chave = CHAVE_SETOR[titulo];
+  if (!chave) return null;
+  const texto = observacoes[`${data}|${chave}`]?.trim() ?? '';
+  return (
+    <div>
+      <p className="text-[11px] font-bold uppercase tracking-wide text-slate-600">Observação do dia</p>
+      {texto ? (
+        <p className="mt-1 whitespace-pre-line text-[13px] leading-snug text-slate-700">{texto}</p>
+      ) : (
+        <p className="mt-1 text-[13px] italic text-slate-400">Sem observação registrada neste dia.</p>
+      )}
+    </div>
+  );
+}
+
+const NOME_DIA = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
+/** Lista das observações da semana de um setor (usada na impressão). */
 export function ObservacoesSetorRelatorio({ titulo, observacoes }: { titulo: string; observacoes: Record<string, string> }) {
   const chave = CHAVE_SETOR[titulo];
   if (!chave) return null;

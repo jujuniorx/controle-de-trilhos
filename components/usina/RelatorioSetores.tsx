@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, type ReactNode } from 'react';
 import { GraficoBarras } from '@/components/usina/GraficoBarras';
 import type { SetorRelatorio, TrilheirosRelatorio, EquipeGeracaoRelatorio, SerraRelatorio, MedidaSerra } from '@/lib/services/onePageUsina';
 import { fmtMetros } from '@/lib/format';
@@ -71,13 +71,13 @@ function TabelaSerra({ serra, colunas = TODAS }: { serra: SerraRelatorio; coluna
   );
 }
 
-export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas = TODAS }: { s: SetorRelatorio; rotulosDias: string[]; largo?: boolean; mensal?: boolean; colunas?: Coluna[] }) {
+export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas = TODAS, rodape }: { s: SetorRelatorio; rotulosDias: string[]; largo?: boolean; mensal?: boolean; colunas?: Coluna[]; rodape?: ReactNode }) {
   const mostraDia = !mensal && colunas.includes('dia');
   const mostraSem = !mensal && colunas.includes('semana');
   const mostraMes = colunas.includes('mes');
   if (s.serra) {
     return (
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white break-inside-avoid">
+      <section className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white break-inside-avoid">
         <header className="px-4 py-2.5 text-white" style={{ background: s.cor }}>
           <span className="text-sm font-bold uppercase tracking-wide">{s.titulo}</span>
         </header>
@@ -91,6 +91,7 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
             />
           )}
         </div>
+        {rodape && <div className="mt-auto border-t border-slate-100 px-4 py-3">{rodape}</div>}
       </section>
     );
   }
@@ -167,6 +168,7 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
           <div className="mt-auto shrink-0 border-t border-slate-100 pt-2">{grafico}</div>
         </div>
       )}
+      {rodape && <div className="mt-auto border-t border-slate-100 px-4 py-3">{rodape}</div>}
     </section>
   );
 }

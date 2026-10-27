@@ -1,6 +1,6 @@
 import { montarDadosRelatorio, montarTrilheirosRelatorio } from '@/lib/services/onePageUsina';
 import { Setor, Resumo, TrilheirosBloco, CaminhoesBloco } from '@/components/usina/RelatorioSetores';
-import { ObservacoesSetorRelatorio } from '@/components/usina/ObservacoesSetorRelatorio';
+import { ObservacaoDoDia } from '@/components/usina/ObservacoesSetorRelatorio';
 import { ehIsoValido, modoValido, linksModo, rotuloPeriodo, colunasValidas, TODAS_COLUNAS, type Coluna } from '@/lib/usina/periodo';
 import { BotaoCompartilharPdf } from '@/components/usina/BotaoCompartilharPdf';
 
@@ -71,10 +71,14 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
               {s.caminhoes ? (
                 <CaminhoesBloco s={s} modo={modo} colunas={colunas} />
               ) : (
-                <>
-                  <Setor s={s} rotulosDias={dados.rotulosDias} largo mensal={modo === 'mensal'} colunas={colunas} />
-                  {modo === 'diario' && <ObservacoesSetorRelatorio titulo={s.titulo} observacoes={dados.observacoes} />}
-                </>
+                <Setor
+                  s={s}
+                  rotulosDias={dados.rotulosDias}
+                  largo
+                  mensal={modo === 'mensal'}
+                  colunas={colunas}
+                  rodape={modo === 'diario' ? <ObservacaoDoDia titulo={s.titulo} observacoes={dados.observacoes} data={data} /> : undefined}
+                />
               )}
             </div>
           ))}
