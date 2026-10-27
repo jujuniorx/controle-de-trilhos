@@ -79,13 +79,10 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
     return (
       <section className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white break-inside-avoid">
         <header className="px-4 py-2.5 text-white" style={{ background: s.cor }}>
-          <span className="text-sm font-bold uppercase tracking-wide">{s.titulo}</span>
+          <span className="text-sm font-bold uppercase tracking-wide">{s.titulo} (estimado)</span>
         </header>
         <div className={largo ? 'grid items-start gap-6 p-4 lg:grid-cols-2' : 'space-y-3 p-4'}>
-          <div>
-            <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-slate-500">Números estimados</p>
-            <TabelaSerra serra={s.serra} colunas={mensal ? ['mes'] : colunas} />
-          </div>
+          <TabelaSerra serra={s.serra} colunas={mensal ? ['mes'] : colunas} />
           {s.grafico && (
             <GraficoBarras
               titulo={s.grafico.titulo}

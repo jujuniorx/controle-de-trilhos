@@ -49,8 +49,6 @@ function valorDireitaComCores(p: PaginaPdf, valor: string, cores: string[] | und
 
 /** Tabela da serra: W61 e W62 nas linhas; Dia, Semana e Mês com barras e metros, cada composição na sua cor. */
 function desenharTabelaSerra(p: PaginaPdf, serra: SerraRelatorio, x: number, topo: number, w: number, colunas: Coluna[] = TODAS_COLUNAS) {
-  // Os números da serra são estimados (não medidos): a nota fica no topo do cartão, à esquerda.
-  p.texto('Números estimados', x + 8, topo - 36, 6.5, 'negrito', CINZA);
   const colunaRotulo = 42;
   const colW = (w - colunaRotulo - 12) / 6;
   // Borda direita de cada coluna (barras e metros de Dia, Semana e Mês), encostadas à direita.
@@ -153,7 +151,8 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   p.arredondado(x, base, w, h, 9, BRANCO, LINHA);
   p.arredondado(x, topo - 22, w, 22, 9, hex(s.cor));
   p.retangulo(x, topo - 22, w, 8, hex(s.cor));
-  p.texto(s.titulo.toUpperCase(), x + 8, topo - 14, 8, 'negrito', BRANCO);
+  // Os números da serra são estimados: a indicação vai no título do cartão.
+  p.texto(`${s.titulo}${s.serra ? ' (estimado)' : ''}`.toUpperCase(), x + 8, topo - 14, 8, 'negrito', BRANCO);
   if (s.serra) {
     desenharTabelaSerra(p, s.serra, x, topo, w, mensal ? ['mes'] : colunas);
     if (s.grafico && comGrafico) {
