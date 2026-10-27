@@ -321,17 +321,9 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   capa.retangulo(0, 0, L, H, BRANCO);
   const larguraBanner = L - 2 * M;
   const alturaBanner = (larguraBanner * BANNER_RELATORIO.altura) / BANNER_RELATORIO.largura;
-  const topoBanner = H - 36;
+  // Capa só com a foto, centralizada na folha.
+  const topoBanner = (H + alturaBanner) / 2;
   capa.imagem(bannerRelatorio, M, topoBanner - alturaBanner, larguraBanner, alturaBanner);
-  const yCapa = topoBanner - alturaBanner - 26;
-  capa.texto('CONTROLE DE TRILHOS', M, yCapa, 8, 'negrito', AZUL);
-  capa.texto('Relatório gerencial', M, yCapa - 34, 28, 'negrito', TINTA);
-  capa.imagem(logoRumo, M + larguraTexto('CONTROLE DE TRILHOS', 8, 'negrito') + 12, yCapa - 4, 64, 19.7);
-  const periodoCapa = mensal ? `Mês até ${mesAte(d.data).split(' a ')[1]}` : diario ? rotuloPeriodo(d.data, 'diario').valor : faixaSemanaSegSex(d.data);
-  const larguraPilula = larguraTexto(periodoCapa, 12, 'negrito') + 30;
-  capa.arredondado(L - M - larguraPilula, yCapa - 36, larguraPilula, 26, 13, hex('#e9f1fb'));
-  textoDireita(capa, periodoCapa, L - M - 15, yCapa - 27, 12, 'negrito', NAVY);
-  textoDireita(capa, mensal ? 'MENSAL' : diario ? 'DIÁRIO' : 'SEGUNDA A DOMINGO', L - M, yCapa, 8, 'negrito', CINZA);
   p.retangulo(0, 0, L, H, BRANCO);
   // Faixa de marca no topo
   p.retangulo(0, H - 5, L, 5, NAVY);
