@@ -322,7 +322,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   p.texto('CONTROLE DE TRILHOS', M, H - 26, 7.5, 'negrito', AZUL);
   p.texto('Relatório gerencial', M, H - 52, 21, 'negrito', TINTA);
   // Logo da Rumo do lado de "CONTROLE DE TRILHOS", no alto da primeira página.
-  p.imagem(logoRumo, M + larguraTexto('CONTROLE DE TRILHOS', 7.5, 'negrito') + 10, H - 32, 52, 16.9);
+  p.imagem(logoRumo, M + larguraTexto('CONTROLE DE TRILHOS', 7.5, 'negrito') + 10, H - 32, 56, 17);
   const semana = mensal ? `Mês até ${mesAte(d.data).split(' a ')[1]}` : diario ? rotuloPeriodo(d.data, 'diario').valor : faixaSemanaSegSex(d.data);
   const wPilula = larguraTexto(semana, 10, 'negrito') + 26;
   p.arredondado(L - M - wPilula, H - 54, wPilula, 22, 11, hex('#e9f1fb'));
@@ -399,7 +399,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   }
 
   // Segunda página: logo menor no canto superior direito, para identificar o relatório também ali.
-  p2.imagem(logoRumo, L - M - 70, H - 34, 70, 22.8);
+  p2.imagem(logoRumo, L - M - 70, H - 34, 70, 21.2);
   const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
   for (const pg of [p, p2]) {
     pg.linha(M, 30, L - M, 30, LINHA, 0.6);
