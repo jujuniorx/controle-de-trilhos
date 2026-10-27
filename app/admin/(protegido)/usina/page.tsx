@@ -4,7 +4,6 @@ import {
   geracaoDoPeriodo,
   trilheirosDoPeriodo,
   ROTULO_TLS,
-  TIPOS_TLS,
   LIDERES,
   COMPOSICOES,
   CAMINHOES_ATIVOS,
@@ -63,6 +62,15 @@ function Cartao({ rotulo, valor }: { rotulo: string; valor: string | number }) {
 }
 
 const NOME_DIA = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+// Lançamento de TLS: os novos primeiro, depois os reemprego, com os mesmos nomes do relatório.
+const ORDEM_LANCAMENTO_TLS = ['UIC60_NOVO', 'TR68_NOVO', 'UIC60_REEMPREGO', 'TR68_REEMPREGO', 'GB60_REEMPREGO'] as const;
+const NOME_LANCAMENTO_TLS: Record<string, string> = {
+  UIC60_NOVO: 'TR60',
+  TR68_NOVO: 'TR68',
+  UIC60_REEMPREGO: 'TR60 REE',
+  TR68_REEMPREGO: 'TR68 REE',
+  GB60_REEMPREGO: 'GB 60 reemprego',
+};
 
 export default async function UsinaPage({ searchParams }: { searchParams: Promise<{ periodo?: string; data?: string }> }) {
   const params = await searchParams;
@@ -184,9 +192,9 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           <FormularioUsina acao={salvarEstoqueTlsAction}>
             <SeletorDia valor={data} />
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {TIPOS_TLS.map((t) => (
+              {ORDEM_LANCAMENTO_TLS.map((t) => (
                 <div className="field" key={t}>
-                  <label htmlFor={`tls_${t}`}>{ROTULO_TLS[t]}</label>
+                  <label htmlFor={`tls_${t}`}>{NOME_LANCAMENTO_TLS[t]}</label>
                   <input id={`tls_${t}`} name={`tls_${t}`} inputMode="numeric" defaultValue={est.estoqueDoDia[t] ?? ''} className="h-11" />
                 </div>
               ))}
