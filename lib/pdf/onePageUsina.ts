@@ -99,7 +99,7 @@ function fmtMetrosPdf(v: number): string {
 }
 
 /** Gráfico de barras por dia: uma barra por série e por dia, na área (x, yBase) até (x+w, yBase+altura). */
-export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yBase: number, w: number, altura: number, rotulos: string[] = [], bwMax = 4) {
+export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yBase: number, w: number, altura: number, rotulos: string[] = [], bwMax = 4, destaque?: number) {
   const n = Math.max(1, ...g.series.map((s) => s.valores.length));
   const topo = Math.max(1, ...g.series.flatMap((s) => s.valores));
   const gw = w / n;
@@ -109,7 +109,9 @@ export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yB
       const h = (Math.max(0, v) / topo) * altura;
       if (h <= 0) return;
       const bx = x + i * gw + gw / 2 - (g.series.length * bw) / 2 + si * bw;
-      p.retangulo(bx, yBase, bw * 0.9, h, hex(s.cor));
+      // Com dia escolhido, o resto da semana fica em cinza e só o dia escolhido tem a cor da série.
+      const cor = destaque === undefined || i === destaque ? hex(s.cor) : hex('#cbd5e1');
+      p.retangulo(bx, yBase, bw * 0.9, h, cor);
     });
   });
   p.linha(x, yBase, x + w, yBase, LINHA, 0.6);
@@ -117,24 +119,25 @@ export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yB
   const yRotulo = yBase - 9;
   rotulos.forEach((r, i) => {
     const cx = x + i * gw + gw / 2;
-    p.texto(r, cx - larguraTexto(r, 6) / 2, yRotulo, 6, 'normal', CINZA);
+    const dest = destaque === i;
+    p.texto(r, cx - larguraTexto(r, 6) / 2, yRotulo, 6, dest ? 'negrito' : 'normal', destaque === undefined || dest ? CINZA : hex('#aaaaaa'));
   });
 }
 
 /** Gráfico do dia (uma barra por série) com a observação do setor logo acima. Só no PDF diário. */
-function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, base: number, w: number, rotulos: string[]) {
+function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, base: number, w: number, rotulos: string[], destaque?: number) {
   if (!s.grafico) return;
   if (s.observacao) {
     const linhas = quebrarLinhas(s.observacao, 7, w - 16).slice(0, 2);
     linhas.forEach((linha, i) => p.texto(linha, x + 8, base + 22 - i * 8, 7, 'normal', CINZA));
   }
-  desenharGrafico(p, s.grafico, x + 8, base + 42, w - 16, 26, rotulos, 22);
+  desenharGrafico(p, s.grafico, x + 8, base + 42, w - 16, 26, rotulos, 4, destaque);
 }
 
-export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = [], mensal = false, colunas: Coluna[] = ['dia', 'semana', 'mes'], comGrafico = true) {
+export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = [], mensal = false, colunas: Coluna[] = ['dia', 'semana', 'mes'], comGrafico = true, destaque?: number) {
   const base = topo - h;
-  // No diário o gráfico é do dia (um rótulo só): fica pequeno e com observação embaixo da tabela.
-  const diarioSetor = rotulos.length === 1;
+  // No diário o gráfico é da semana, com o dia escolhido em destaque; a observação fica embaixo da tabela.
+  const diarioSetor = destaque !== undefined;
   p.arredondado(x + 1.2, base - 1.4, w, h, 9, SOMBRA);
   p.arredondado(x, base, w, h, 9, BRANCO, LINHA);
   p.arredondado(x, topo - 22, w, 22, 9, hex(s.cor));
@@ -143,7 +146,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   if (s.serra) {
     desenharTabelaSerra(p, s.serra, x, topo, w, mensal ? ['mes'] : colunas);
     if (s.grafico && comGrafico) {
-      if (diarioSetor) desenharObservacaoEGrafico(p, s, x, base, w, rotulos);
+      if (diarioSetor) desenharObservacaoEGrafico(p, s, x, base, w, rotulos, destaque);
       else desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 22, rotulos);
     }
     return;
@@ -190,7 +193,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   // No mensal o gráfico diário sai: o cartão mostra só os totais do mês.
   if (!s.grafico || mensal || !comGrafico) return;
   if (diarioSetor && !largo) {
-    desenharObservacaoEGrafico(p, s, x, base, w, rotulos);
+    desenharObservacaoEGrafico(p, s, x, base, w, rotulos, destaque);
     return;
   }
   if (largo) {
@@ -206,7 +209,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
     }
     p.texto(s.grafico.titulo, xg, topo - 32, 6.5, 'negrito', CINZA);
     // A área do gráfico termina abaixo da legenda (topo - 46): a barra mais alta nunca invade o cabeçalho do cartão.
-    desenharGrafico(p, s.grafico, xg, base + 22, wg, Math.max(40, h - 74), rotulos);
+    desenharGrafico(p, s.grafico, xg, base + 22, wg, Math.max(40, h - 74), rotulos, 4, destaque);
     return;
   }
   // Gráfico da semana, na parte de baixo do cartão (abaixo da tabela)
@@ -218,7 +221,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
     lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
   }
   // Sem título próprio: a legenda já diz as séries, e o gráfico fica abaixo da tabela.
-  desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 22, rotulos);
+  desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 22, rotulos, 4, destaque);
 }
 
 /** Cartão do topo (Do dia, Da semana, No mês) em três linhas iguais: rótulo à esquerda, valor à direita. */
@@ -253,16 +256,14 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const diario = modo === 'diario';
   // As colunas são as escolhidas pelo usuário (Dia, Semana, No mês). No diário o gráfico de 7 dias sai, porque ele é da semana.
   const colunas = colunasEscolhidas;
-  // No diário, o gráfico mostra uma barra por série com o valor do dia (não os 7 dias da semana).
+  // No diário, o gráfico é da semana e o dia escolhido fica em destaque (o resto em cinza).
   const indiceDia = (new Date(`${d.data}T12:00:00Z`).getUTCDay() + 6) % 7; // 0 = segunda
-  const nomesDia = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
-  const rotulosGrafico = diario ? [`${nomesDia[indiceDia]} ${d.data.slice(8, 10)}/${d.data.slice(5, 7)}`] : d.rotulosDias;
+  const rotulosGrafico = d.rotulosDias;
   // Observação do setor no dia (chave "AAAA-MM-DD|setor"), mostrada embaixo de cada cartão no diário.
   const chaveSetor: Record<string, string> = { 'Estaleiro de solda': 'estaleiro', 'Geração de trilho': 'geracao', 'Recolhimento serra': 'serra' };
   const setores = diario
     ? d.setores.map((s) => ({
         ...s,
-        grafico: s.grafico ? { ...s.grafico, series: s.grafico.series.map((serie) => ({ ...serie, valores: [serie.valores[indiceDia] ?? 0] })) } : null,
         observacao: d.observacoes[`${d.data}|${chaveSetor[s.titulo] ?? ''}`] || undefined,
       }))
     : d.setores;
@@ -315,7 +316,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const porTitulo = (t: string) => setores.find((s) => s.titulo === t);
   const linha1 = setores.filter((s) => s.titulo !== 'Caminhão de solda' && s.titulo !== 'Trilheiros');
   linha1.slice(0, nSetores).forEach((s, i) => {
-    desenharSetor(p, s, M + i * (wSet + gapC), topoGrade, wSet, altSet, false, rotulosGrafico, mensal, colunas);
+    desenharSetor(p, s, M + i * (wSet + gapC), topoGrade, wSet, altSet, false, rotulosGrafico, mensal, colunas, true, diario ? indiceDia : undefined);
   });
 
   // Linhas 2 e 3: Caminhão de solda e Trilheiros, um embaixo do outro, cada um na largura toda.

@@ -13,12 +13,15 @@ export function GraficoBarras({
   series,
   unidade = '',
   altura = 260,
+  destaque,
 }: {
   titulo: string;
   rotulos: string[];
   series: SerieBarras[];
   unidade?: string;
   altura?: number;
+  /** Índice do dia escolhido: os outros dias ficam em cinza e as barras são finas. */
+  destaque?: number;
 }) {
   const largura = 600;
   const margemEsq = 36;
@@ -34,7 +37,9 @@ export function GraficoBarras({
   const passo = max <= 4 ? 1 : Math.ceil(max / 4);
   const marcas = Array.from({ length: Math.floor(max / passo) + 1 }, (_, i) => i * passo);
   const grupo = areaL / rotulos.length;
-  const barra = Math.max(1, (grupo * 0.8) / Math.max(1, series.length));
+  const barraCheia = Math.max(1, (grupo * 0.8) / Math.max(1, series.length));
+  // Com destaque (diário), as barras são finas: o espaço da semana fica limpo, sem barras gordas.
+  const barra = destaque === undefined ? barraCheia : Math.min(barraCheia, 6);
   const yDe = (v: number) => topoArea + areaA - (v / max) * areaA;
   const mostraValor = rotulos.length <= 10 && series.length <= 2;
 
@@ -54,15 +59,16 @@ export function GraficoBarras({
           <g key={r}>
             {series.map((s, j) => {
               const v = s.valores[i] ?? 0;
-              const x = margemEsq + i * grupo + grupo * 0.1 + j * barra;
+              const x = destaque === undefined ? margemEsq + i * grupo + grupo * 0.1 + j * barra : margemEsq + i * grupo + grupo / 2 - (series.length * barra) / 2 + j * barra;
               const y = yDe(v);
+              const cor = destaque === undefined || i === destaque ? s.cor : '#cbd5e1';
               return (
                 <g key={s.nome}>
-                  <rect x={x} y={y} width={Math.max(0.5, barra - 0.5)} height={Math.max(0, topoArea + areaA - y)} rx={2} fill={s.cor}>
+                  <rect x={x} y={y} width={Math.max(0.5, barra - 0.5)} height={Math.max(0, topoArea + areaA - y)} rx={2} fill={cor}>
                     <title>{`${r} · ${s.nome}: ${fmt(v)}${unidade}`}</title>
                   </rect>
                   {mostraValor && v > 0 && (
-                    <text x={x + (barra - 0.5) / 2} y={y - 4} textAnchor="middle" fontSize="11" fontWeight="600" fill={s.cor}>
+                    <text x={x + (barra - 0.5) / 2} y={y - 4} textAnchor="middle" fontSize="11" fontWeight="600" fill={cor}>
                       {fmt(v)}
                     </text>
                   )}
@@ -70,7 +76,7 @@ export function GraficoBarras({
               );
             })}
             {(rotulos.length <= 10 || i % (rotulos.length > 20 ? 5 : 2) === 0 || i === rotulos.length - 1) && (
-              <text x={margemEsq + i * grupo + grupo / 2} y={altura - 6} textAnchor="middle" fontSize="11" fill="#555">
+              <text x={margemEsq + i * grupo + grupo / 2} y={altura - 6} textAnchor="middle" fontSize="11" fontWeight={destaque === i ? 700 : 400} fill={destaque === undefined || destaque === i ? '#555' : '#aaa'}>
                 {r}
               </text>
             )}
