@@ -136,13 +136,15 @@ function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, 
   if (!s.grafico) return;
   // Observação embaixo do cartão, com "Obs:" na frente; a legenda (quadradinhos) fica logo acima dela.
   if (s.observacao) {
-    const linhas = quebrarLinhas(`Obs: ${s.observacao}`, 7, w - 16).slice(0, 2);
+    // Uma observação só começa com "Obs:"; a geração traz uma linha por equipe (já com o nome).
+    const trechos = s.observacao.includes('\n') ? s.observacao.split('\n') : [`Obs: ${s.observacao}`];
+    const linhas = trechos.flatMap((t) => quebrarLinhas(t, 7, w - 16)).slice(0, 3);
     linhas.forEach((linha, i) => p.texto(linha, x + 8, base + 6 + i * 8, 7, 'normal', CINZA));
   }
   let lx = x + 8;
   for (const serie of s.grafico.series) {
-    p.retangulo(lx, base + 22, 6, 6, hex(serie.cor));
-    p.texto(serie.nome, lx + 9, base + 22, 6.5, 'normal', CINZA);
+    p.retangulo(lx, base + 32, 6, 6, hex(serie.cor));
+    p.texto(serie.nome, lx + 9, base + 32, 6.5, 'normal', CINZA);
     lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
   }
   // A barra mais alta termina antes da última linha da tabela (limiteTopo), com folga: nunca encosta na caixa.

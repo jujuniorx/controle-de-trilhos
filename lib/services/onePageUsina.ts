@@ -75,6 +75,15 @@ export const ROTULO_CAMINHAO: Record<string, string> = { CW01: 'E17 / CW01', CW0
 /** Mesmos números do relatório gerencial da usina, em forma simples para a tela e para o PDF. */
 export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio> {
   const serie = await seriesDaSemana(data);
+  // Observação de cada equipe de geração no dia (Alécio, Bruno, Reginaldo).
+  const equipesDia = await prisma.geracaoDia.findMany({
+    where: { data: new Date(`${data}T00:00:00Z`) },
+    select: { lider: true, observacao: true },
+  });
+  const rotuloEquipe: Record<string, string> = { ALECIO: 'Alécio', BRUNO: 'Bruno', REGINALDO: 'Reginaldo' };
+  const observacoesGeracao = equipesDia
+    .filter((e) => e.observacao && e.observacao.trim())
+    .map((e) => `${rotuloEquipe[e.lider] ?? e.lider}: ${e.observacao!.trim()}`);
   const { inicio, fim } = intervaloDoPeriodo('semana', data);
   const mes = intervaloDoPeriodo('mes', data);
   const dias = serie.rotulos.length;
@@ -217,6 +226,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       {
         titulo: 'Geração de trilho',
         cor: CORES_SETOR.geracao,
+        observacao: observacoesGeracao.length ? observacoesGeracao.join('\n') : undefined,
         linhas: [
           { rotulo: 'Carregado (m)', dia: fmtMetros(geraDia((l) => l.periodo.carregamentoM)), semana: fmtMetros(geraSem((l) => l.periodo.carregamentoM)), mes: fmtMetros(geraSem((l) => l.mes.carregamentoM)), porDia: serie.geracao.carregado.map((v) => fmtMetros(v)) },
           { rotulo: 'Na via (m)', dia: fmtMetros(geraDia((l) => l.periodo.deixadaViaM)), semana: fmtMetros(geraSem((l) => l.periodo.deixadaViaM)), mes: fmtMetros(geraSem((l) => l.mes.deixadaViaM)), porDia: serie.geracao.deixado.map((v) => fmtMetros(v)) },
