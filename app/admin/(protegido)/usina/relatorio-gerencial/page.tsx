@@ -57,6 +57,8 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Controle de Trilhos</p>
             <h1 className="text-2xl font-extrabold tracking-tight">Relatório gerencial</h1>
           </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-rumo.png" alt="Rumo" className="h-10 w-auto self-center" />
           <div className="text-right">
             <p className="text-[11px] uppercase tracking-wide text-slate-500">{rotuloPeriodo(data, modo).titulo}</p>
             <p className="text-lg font-bold tabular-nums">{rotuloPeriodo(data, modo).valor}</p>
