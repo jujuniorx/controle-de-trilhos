@@ -52,6 +52,9 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
       </div>
 
       <article className="space-y-4 rounded-2xl bg-slate-50 p-5 text-slate-900">
+        {/* Faixa com os setores da usina, para o relatório da tela (o PDF não usa). */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/banner-relatorio.jpg" alt="Estaleiro de solda, caminhão de solda, geração de trilhos reemprego e trilheiro" className="w-full rounded-xl object-cover" />
         <header className="flex flex-wrap items-end justify-between gap-3 border-b-2 border-slate-900 pb-3">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Controle de Trilhos</p>
