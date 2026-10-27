@@ -125,13 +125,15 @@ export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yB
 }
 
 /** Gráfico do dia (uma barra por série) com a observação do setor logo acima. Só no PDF diário. */
-function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, base: number, w: number, rotulos: string[], destaque?: number) {
+function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, base: number, w: number, rotulos: string[], destaque?: number, limiteTopo?: number) {
   if (!s.grafico) return;
   if (s.observacao) {
     const linhas = quebrarLinhas(s.observacao, 7, w - 16).slice(0, 2);
     linhas.forEach((linha, i) => p.texto(linha, x + 8, base + 22 - i * 8, 7, 'normal', CINZA));
   }
-  desenharGrafico(p, s.grafico, x + 8, base + 42, w - 16, 26, rotulos, 4, destaque);
+  // A barra mais alta termina antes da última linha da tabela (limiteTopo), com folga: nunca encosta na caixa.
+  const alturaGrafico = limiteTopo === undefined ? 26 : Math.max(12, limiteTopo - 10 - (base + 42));
+  desenharGrafico(p, s.grafico, x + 8, base + 42, w - 16, alturaGrafico, rotulos, 4, destaque);
 }
 
 export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = [], mensal = false, colunas: Coluna[] = ['dia', 'semana', 'mes'], comGrafico = true, destaque?: number) {
@@ -193,7 +195,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   // No mensal o gráfico diário sai: o cartão mostra só os totais do mês.
   if (!s.grafico || mensal || !comGrafico) return;
   if (diarioSetor && !largo) {
-    desenharObservacaoEGrafico(p, s, x, base, w, rotulos, destaque);
+    desenharObservacaoEGrafico(p, s, x, base, w, rotulos, destaque, fimLinhas);
     return;
   }
   if (largo) {
