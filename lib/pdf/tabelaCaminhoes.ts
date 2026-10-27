@@ -108,5 +108,7 @@ export function desenharCaminhoes(
       // A primeira linha começa mais abaixo: sem isso o topo do texto encostava na linha do cabeçalho.
       linhas.slice(0, 4).forEach((linha, k) => p.texto(linha, x + xObs, y + 5 - k * 8.5, 7.5, 'normal', CINZA));
     }
+    // Linha separando uma linha de caminhão da próxima.
+    if (i < caminhoes.length - 1) p.linha(x + 8, y - 11, x + w - 8, y - 11, LINHA, 0.5);
   });
 }
