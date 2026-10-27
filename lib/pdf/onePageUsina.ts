@@ -320,20 +320,20 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
 
   // Cabeçalho
   p.texto('CONTROLE DE TRILHOS', M, H - 26, 7.5, 'negrito', AZUL);
-  p.texto('Relatório gerencial', M, H - 52, 21, 'negrito', TINTA);
+  p.texto('Relatório gerencial', M, H - 58, 21, 'negrito', TINTA);
   // Logo da Rumo do lado de "CONTROLE DE TRILHOS", no alto da primeira página.
   p.imagem(logoRumo, M + larguraTexto('CONTROLE DE TRILHOS', 7.5, 'negrito') + 10, H - 32, 56, 17);
   const semana = mensal ? `Mês até ${mesAte(d.data).split(' a ')[1]}` : diario ? rotuloPeriodo(d.data, 'diario').valor : faixaSemanaSegSex(d.data);
   const wPilula = larguraTexto(semana, 10, 'negrito') + 26;
-  p.arredondado(L - M - wPilula, H - 54, wPilula, 22, 11, hex('#e9f1fb'));
-  textoDireita(p, semana, L - M - 13, H - 47, 10, 'negrito', NAVY);
+  p.arredondado(L - M - wPilula, H - 60, wPilula, 22, 11, hex('#e9f1fb'));
+  textoDireita(p, semana, L - M - 13, H - 53, 10, 'negrito', NAVY);
   textoDireita(p, mensal ? 'MENSAL' : diario ? 'DIÁRIO' : 'SEGUNDA A DOMINGO', L - M, H - 26, 7, 'negrito', CINZA);
-  p.linha(M, H - 62, L - M, H - 62, LINHA, 0.8);
+  p.linha(M, H - 72, L - M, H - 72, LINHA, 0.8);
 
   // Resumo: dia e semana separados em cada setor
   const gap = 10;
   const wRes = (L - 2 * M - (d.resumo.length - 1) * gap) / d.resumo.length;
-  const topoRes = H - 70;
+  const topoRes = H - 88;
   const altRes = 64;
   d.resumo.forEach((r, i) => {
     const x = M + i * (wRes + gap);
