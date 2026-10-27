@@ -131,6 +131,18 @@ export class PaginaPdf {
     );
   }
 
+  /** Altura usada pelo conteúdo (do topo até o elemento mais baixo + folga), sem o fundo e a faixa de rodapé. */
+  alturaUtil(altura: number): number {
+    let minY = Infinity;
+    for (const d of this.desenhos) {
+      if (d.t === 'ret' && d.y <= 0 && d.a >= altura - 1) continue;
+      const y = d.t === 'lin' ? Math.min(d.y1, d.y2) : d.y;
+      if (y < 40) continue;
+      minY = Math.min(minY, y);
+    }
+    return minY === Infinity ? altura : altura - minY + 14;
+  }
+
   /** Só os elementos da página (sem a tag <svg>), para encaixar várias páginas numa imagem só. */
   conteudoSvg(altura: number): string {
     const yTopo = (y: number, a: number) => num(altura - y - a);

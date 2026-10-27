@@ -411,20 +411,25 @@ function montarPaginasUsina(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 
 
   // Segunda página: logo menor no canto superior direito, para identificar o relatório também ali.
   p2.imagem(logoRumo, L - M - 70, H - 34, 70, 21.2);
-  const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
-  // A capa fica so com a foto, sem rodape.
-  for (const pg of [p, p2]) {
-    pg.linha(M, 30, L - M, 30, LINHA, 0.6);
-    pg.texto(`Período: ${rotuloPeriodo(d.data, modo).valor}  ·  Emitido em ${emitido}`, M, 18, 6.5, 'normal', CINZA);
-    textoDireita(pg, 'Controle de Trilhos · Usina', L - M, 18, 6.5, 'negrito', CINZA);
-  }
 
   return { capa, p, p2 };
+}
+
+const ALTURA_RODAPE = 40;
+
+/** Texto do rodapé (período e data de emissão) e a linha que o separa do conteúdo. */
+function desenharRodape(pg: PaginaPdf, d: DadosRelatorio, modo: 'semanal' | 'mensal' | 'diario', yBase: number) {
+  const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+  pg.linha(M, yBase + 30, L - M, yBase + 30, LINHA, 0.6);
+  pg.texto(`Período: ${rotuloPeriodo(d.data, modo).valor}  ·  Emitido em ${emitido}`, M, yBase + 18, 6.5, 'normal', CINZA);
+  textoDireita(pg, 'Controle de Trilhos · Usina', L - M, yBase + 18, 6.5, 'negrito', CINZA);
 }
 
 /** Relatório em PDF (capa, dados e caminhão/trilheiros), como antes. */
 export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 'semanal' | 'mensal' | 'diario' = 'semanal', colunasEscolhidas: Coluna[] = TODAS_COLUNAS, observacoes: string[] = []): Buffer {
   const { capa, p, p2 } = montarPaginasUsina(d, tril, modo, colunasEscolhidas, observacoes);
+  desenharRodape(p, d, modo, 0);
+  desenharRodape(p2, d, modo, 0);
   return montarPdfVarias([capa, p, p2], `Relatório gerencial usina ${d.data}`, A4_PAISAGEM);
 }
 
@@ -443,18 +448,23 @@ export function gerarOnePageUsinaSvg(
   pagina: 'capa' | 'dados' | 'caminhao' | 'tudo',
 ): string {
   if (pagina === 'tudo') {
-    // Uma imagem só: foto da capa em cima, depois a página de dados e a página do caminhão.
+    // Uma imagem só, sem espaço vazio: foto em cima, depois a página de dados e a do caminhão, cada uma até o último item.
     const larguraFoto = L;
     const alturaFoto = (larguraFoto * BANNER_RELATORIO.altura) / BANNER_RELATORIO.largura;
     const foto = new PaginaPdf();
     foto.imagem(bannerRelatorio, 0, 0, larguraFoto, alturaFoto);
     const { p, p2 } = montarPaginasUsina(d, tril, modo, colunasEscolhidas, observacoes);
-    const total = alturaFoto + 2 * H;
+    const altP = p.alturaUtil(H);
+    const altP2 = p2.alturaUtil(H);
+    const total = alturaFoto + altP + altP2 + ALTURA_RODAPE;
+    const rodape = new PaginaPdf().retangulo(0, 0, L, ALTURA_RODAPE, BRANCO);
+    desenharRodape(rodape, d, modo, 0);
     return (
       `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" viewBox="0 0 ${L} ${total.toFixed(2)}">` +
       foto.conteudoSvg(alturaFoto) +
       `<g transform="translate(0 ${alturaFoto.toFixed(2)})">${p.conteudoSvg(H)}</g>` +
-      `<g transform="translate(0 ${(alturaFoto + H).toFixed(2)})">${p2.conteudoSvg(H)}</g>` +
+      `<g transform="translate(0 ${(alturaFoto + altP).toFixed(2)})">${p2.conteudoSvg(H)}</g>` +
+      `<g transform="translate(0 ${(total - ALTURA_RODAPE).toFixed(2)})">${rodape.conteudoSvg(ALTURA_RODAPE)}</g>` +
       '</svg>'
     );
   }
