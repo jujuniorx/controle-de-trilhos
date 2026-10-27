@@ -165,7 +165,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         grupo: 'Geração de trilho',
       },
       {
-        rotulo: 'Serra estimada (m)',
+        rotulo: 'Recolhimento serra (m)',
         cor: CORES_SETOR.serra,
         dia: fmtMetros(serraTotalDia),
         semana: fmtMetros(serraTotalSemana),
