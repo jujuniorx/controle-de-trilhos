@@ -1,8 +1,11 @@
 import { PaginaPdf, A4_PAISAGEM, montarPdfVarias, larguraTexto, quebrarLinhas, criarImagemPdf } from '@/lib/pdf/simples';
 import { LOGO_RUMO } from '@/lib/pdf/logoRumo';
+import { BANNER_RELATORIO } from '@/lib/pdf/bannerRelatorio';
 
 /** Logo da Rumo, decodificada uma vez (PDF com imagem RGB comprimida). */
 const logoRumo = criarImagemPdf(LOGO_RUMO.largura, LOGO_RUMO.altura, Buffer.from(LOGO_RUMO.dados, 'base64'));
+/** Foto dos setores (JPEG), usada na capa do PDF. */
+const bannerRelatorio = criarImagemPdf(BANNER_RELATORIO.largura, BANNER_RELATORIO.altura, Buffer.from(BANNER_RELATORIO.dados, 'base64'), 'DCTDecode');
 import type { DadosRelatorio, GraficoRelatorio, LinhaRelatorio, SerraRelatorio, SetorRelatorio, TrilheirosRelatorio } from '@/lib/services/onePageUsina';
 import { faixaSemanaSegSex, mesAte, rotuloPeriodo, type Coluna, TODAS_COLUNAS } from '@/lib/usina/periodo';
 import { desenharTrilheiros } from '@/lib/pdf/tabelaTrilheiros';
@@ -313,6 +316,22 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const setores = setoresBase.map((s) => (s.titulo === 'Estaleiro de solda' && iTls >= 0 ? { ...s, linhas: s.linhas.slice(0, iTls) } : s));
   const p = new PaginaPdf();
   const p2 = new PaginaPdf();
+  // Capa (página 1): foto dos setores em largura total, com o título e o período, como na tela.
+  const capa = new PaginaPdf();
+  capa.retangulo(0, 0, L, H, BRANCO);
+  const larguraBanner = L - 2 * M;
+  const alturaBanner = (larguraBanner * BANNER_RELATORIO.altura) / BANNER_RELATORIO.largura;
+  const topoBanner = H - 36;
+  capa.imagem(bannerRelatorio, M, topoBanner - alturaBanner, larguraBanner, alturaBanner);
+  const yCapa = topoBanner - alturaBanner - 26;
+  capa.texto('CONTROLE DE TRILHOS', M, yCapa, 8, 'negrito', AZUL);
+  capa.texto('Relatório gerencial', M, yCapa - 34, 28, 'negrito', TINTA);
+  capa.imagem(logoRumo, M + larguraTexto('CONTROLE DE TRILHOS', 8, 'negrito') + 12, yCapa - 4, 64, 19.7);
+  const periodoCapa = mensal ? `Mês até ${mesAte(d.data).split(' a ')[1]}` : diario ? rotuloPeriodo(d.data, 'diario').valor : faixaSemanaSegSex(d.data);
+  const larguraPilula = larguraTexto(periodoCapa, 12, 'negrito') + 30;
+  capa.arredondado(L - M - larguraPilula, yCapa - 36, larguraPilula, 26, 13, hex('#e9f1fb'));
+  textoDireita(capa, periodoCapa, L - M - 15, yCapa - 27, 12, 'negrito', NAVY);
+  textoDireita(capa, mensal ? 'MENSAL' : diario ? 'DIÁRIO' : 'SEGUNDA A DOMINGO', L - M, yCapa, 8, 'negrito', CINZA);
   p.retangulo(0, 0, L, H, BRANCO);
   // Faixa de marca no topo
   p.retangulo(0, H - 5, L, 5, NAVY);
@@ -401,11 +420,11 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   // Segunda página: logo menor no canto superior direito, para identificar o relatório também ali.
   p2.imagem(logoRumo, L - M - 70, H - 34, 70, 21.2);
   const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
-  for (const pg of [p, p2]) {
+  for (const pg of [capa, p, p2]) {
     pg.linha(M, 30, L - M, 30, LINHA, 0.6);
     pg.texto(`Período: ${rotuloPeriodo(d.data, modo).valor}  ·  Emitido em ${emitido}`, M, 18, 6.5, 'normal', CINZA);
     textoDireita(pg, 'Controle de Trilhos · Usina', L - M, 18, 6.5, 'negrito', CINZA);
   }
 
-  return montarPdfVarias([p, p2], `Relatório gerencial usina ${d.data}`, A4_PAISAGEM);
+  return montarPdfVarias([capa, p, p2], `Relatório gerencial usina ${d.data}`, A4_PAISAGEM);
 }
