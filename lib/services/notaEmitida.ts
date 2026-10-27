@@ -15,7 +15,8 @@ const MIN = 60 * 1000;
  */
 export async function enviarAvisosNotaPendente(agora = new Date()): Promise<{ admin: number; patio: number }> {
   const pendentes = await prisma.movimentacao.findMany({
-    where: { tipo: 'REMETIDO', carretaLiberadaEm: { not: null }, notaEmitidaEm: null },
+    // Só depois da conferência: a nota só precisa ser emitida quando a movimentação estiver conferida.
+    where: { tipo: 'REMETIDO', status: 'CONFERIDO', carretaLiberadaEm: { not: null }, notaEmitidaEm: null },
     select: {
       id: true,
       destino: true,

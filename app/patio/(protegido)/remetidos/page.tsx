@@ -64,7 +64,8 @@ export default async function RemetidosAguardandoPage({
             {r.observacaoPortaria && <p className="mt-1 text-sm text-warn">Portaria: {r.observacaoPortaria}</p>}
             {estadoPortaria(r) === 'CHEGOU' && <span className="badge badge-warn mt-1">Carreta na Portaria — pode carregar</span>}
             {estadoPortaria(r) === 'LIBERADA' && <span className="badge badge-ok mt-1">Carreta liberada — Portaria avisada</span>}
-            {estadoPortaria(r) === 'LIBERADA' && (r.notaEmitidaEm ? <span className="badge badge-ok mt-1">Nota fiscal emitida</span> : <span className="badge badge-warn mt-1">Nota fiscal pendente</span>)}
+            {estadoPortaria(r) === 'LIBERADA' && r.notaEmitidaEm && <span className="badge badge-ok mt-1">Nota fiscal emitida</span>}
+            {estadoPortaria(r) === 'LIBERADA' && !r.notaEmitidaEm && r.status === 'CONFERIDO' && <span className="badge badge-warn mt-1">Nota fiscal pendente</span>}
           </Link>
         ))}
         {remetidos.length === 0 && (
