@@ -71,7 +71,32 @@ function TabelaSerra({ serra, colunas = TODAS }: { serra: SerraRelatorio; coluna
   );
 }
 
-export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas = TODAS, rodape }: { s: SetorRelatorio; rotulosDias: string[]; largo?: boolean; mensal?: boolean; colunas?: Coluna[]; rodape?: ReactNode }) {
+/** Faixa da semana (Seg a Sex, ou até o fim de semana quando o dia escolhido cai nele): o dia escolhido em destaque. */
+export function FaixaDias({ rotulos, destaque, cor }: { rotulos: string[]; destaque: number; cor: string }) {
+  const mostrar = rotulos.slice(0, Math.max(5, destaque + 1));
+  return (
+    <div>
+      <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-600">Semana</p>
+      <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${mostrar.length}, minmax(0, 1fr))` }}>
+        {mostrar.map((r, i) => {
+          const ativo = i === destaque;
+          return (
+            <div
+              key={r}
+              className={`rounded-lg py-3 text-center text-[13px] font-bold tabular-nums ${ativo ? 'text-white' : 'bg-slate-100 text-slate-400'}`}
+              style={ativo ? { background: cor } : undefined}
+              aria-current={ativo ? 'date' : undefined}
+            >
+              {r}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas = TODAS, rodape, diaDestaque }: { s: SetorRelatorio; rotulosDias: string[]; largo?: boolean; mensal?: boolean; colunas?: Coluna[]; rodape?: ReactNode; /** Índice do dia escolhido (0 = segunda). Quando existe, o gráfico vira a faixa da semana. */ diaDestaque?: number }) {
   const mostraDia = !mensal && colunas.includes('dia');
   const mostraSem = !mensal && colunas.includes('semana');
   const mostraMes = colunas.includes('mes');
@@ -83,13 +108,15 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
         </header>
         <div className={largo ? 'grid items-start gap-6 p-4 lg:grid-cols-2' : 'space-y-3 p-4'}>
           <TabelaSerra serra={s.serra} colunas={mensal ? ['mes'] : colunas} />
-          {s.grafico && (
+          {s.grafico && (diaDestaque !== undefined && !mensal ? (
+            <FaixaDias rotulos={rotulosDias} destaque={diaDestaque} cor={s.cor} />
+          ) : (
             <GraficoBarras
               titulo={s.grafico.titulo}
               rotulos={rotulosDias}
               series={s.grafico.series.map((x) => ({ nome: x.nome, cor: x.cor, valores: x.valores }))}
             />
-          )}
+          ))}
         </div>
         {rodape && <div className="mt-auto border-t border-slate-100 px-4 py-3">{rodape}</div>}
       </section>
@@ -119,14 +146,17 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
   );
   // Gráfico diário do setor; sem gráfico, mostra a grade de números quando existir.
   const grafico = mensal ? null : s.grafico ? (
-
-    <div>
-      <GraficoBarras
-        titulo={s.grafico.titulo}
-        rotulos={rotulosDias}
-        series={s.grafico.series.map((x) => ({ nome: x.nome, cor: x.cor, valores: x.valores }))}
-      />
-    </div>
+    diaDestaque !== undefined ? (
+      <FaixaDias rotulos={rotulosDias} destaque={diaDestaque} cor={s.cor} />
+    ) : (
+      <div>
+        <GraficoBarras
+          titulo={s.grafico.titulo}
+          rotulos={rotulosDias}
+          series={s.grafico.series.map((x) => ({ nome: x.nome, cor: x.cor, valores: x.valores }))}
+        />
+      </div>
+    )
   ) : s.grade ? (
     <table className="w-full border-collapse text-[12px]">
       <thead>

@@ -77,6 +77,7 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
                   largo
                   mensal={modo === 'mensal'}
                   colunas={colunas}
+                  diaDestaque={modo === 'diario' ? (new Date(`${data}T12:00:00Z`).getUTCDay() + 6) % 7 : undefined}
                   rodape={modo === 'diario' ? <ObservacaoDoDia titulo={s.titulo} observacoes={dados.observacoes} data={data} /> : undefined}
                 />
               )}
