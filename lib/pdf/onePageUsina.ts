@@ -1,4 +1,8 @@
-import { PaginaPdf, A4_PAISAGEM, montarPdfVarias, larguraTexto, quebrarLinhas } from '@/lib/pdf/simples';
+import { PaginaPdf, A4_PAISAGEM, montarPdfVarias, larguraTexto, quebrarLinhas, criarImagemPdf } from '@/lib/pdf/simples';
+import { LOGO_RUMO } from '@/lib/pdf/logoRumo';
+
+/** Logo da Rumo, decodificada uma vez (PDF com imagem RGB comprimida). */
+const logoRumo = criarImagemPdf(LOGO_RUMO.largura, LOGO_RUMO.altura, Buffer.from(LOGO_RUMO.dados, 'base64'));
 import type { DadosRelatorio, GraficoRelatorio, LinhaRelatorio, SerraRelatorio, SetorRelatorio, TrilheirosRelatorio } from '@/lib/services/onePageUsina';
 import { faixaSemanaSegSex, mesAte, rotuloPeriodo, type Coluna, TODAS_COLUNAS } from '@/lib/usina/periodo';
 import { desenharTrilheiros } from '@/lib/pdf/tabelaTrilheiros';
@@ -317,6 +321,8 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   // Cabeçalho
   p.texto('CONTROLE DE TRILHOS', M, H - 26, 7.5, 'negrito', AZUL);
   p.texto('Relatório gerencial', M, H - 52, 21, 'negrito', TINTA);
+  // Logo da Rumo ao lado do título, na primeira página.
+  p.imagem(logoRumo, M + 240, H - 58, 100, 32.6);
   const semana = mensal ? `Mês até ${mesAte(d.data).split(' a ')[1]}` : diario ? rotuloPeriodo(d.data, 'diario').valor : faixaSemanaSegSex(d.data);
   const wPilula = larguraTexto(semana, 10, 'negrito') + 26;
   p.arredondado(L - M - wPilula, H - 54, wPilula, 22, 11, hex('#e9f1fb'));
@@ -392,6 +398,8 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
     }
   }
 
+  // Segunda página: logo menor no canto superior direito, para identificar o relatório também ali.
+  p2.imagem(logoRumo, L - M - 70, H - 34, 70, 22.8);
   const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
   for (const pg of [p, p2]) {
     pg.linha(M, 30, L - M, 30, LINHA, 0.6);

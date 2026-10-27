@@ -37,8 +37,29 @@ function escaparTexto(texto: string): string {
 const num = (n: number) => Number(n.toFixed(2)).toString();
 const cor = (c: Cor) => c.map(num).join(' ');
 
+/** Imagem RGB de 8 bits, comprimida com zlib (FlateDecode). `nome` é a referência usada no conteúdo da página. */
+export interface ImagemPdf { nome: string; largura: number; altura: number; dados: Buffer }
+let contadorImagem = 0;
+export function criarImagemPdf(largura: number, altura: number, dadosZlib: Buffer): ImagemPdf {
+  contadorImagem += 1;
+  return { nome: `Im${contadorImagem}`, largura, altura, dados: dadosZlib };
+}
+
 export class PaginaPdf {
   private operacoes: string[] = [];
+  private imagensUsadas: ImagemPdf[] = [];
+
+  /** Desenha uma imagem (x, y = canto inferior esquerdo) com a largura e altura dadas. */
+  imagem(img: ImagemPdf, x: number, y: number, largura: number, altura: number): this {
+    if (!this.imagensUsadas.includes(img)) this.imagensUsadas.push(img);
+    this.operacoes.push(`q ${num(largura)} 0 0 ${num(altura)} ${num(x)} ${num(y)} cm /${img.nome} Do Q`);
+    return this;
+  }
+
+  /** Imagens usadas nesta página (para montar os recursos do PDF). */
+  get imagens(): ImagemPdf[] {
+    return this.imagensUsadas;
+  }
 
   retangulo(x: number, y: number, largura: number, altura: number, preenchimento: Cor): this {
     this.operacoes.push(`${cor(preenchimento)} rg ${num(x)} ${num(y)} ${num(largura)} ${num(altura)} re f`);
@@ -160,6 +181,11 @@ export function montarPdfVarias(paginas: PaginaPdf[], titulo: string, tamanho: {
   const objetos: Buffer[] = [];
   const add = (s: string | Buffer) => objetos.push(Buffer.isBuffer(s) ? s : Buffer.from(s, 'latin1'));
   const kids = paginas.map((_, i) => `${6 + 2 * i} 0 R`).join(' ');
+  // Imagens do documento (sem repetir): ficam depois das páginas e dos conteúdos.
+  const imagens: ImagemPdf[] = [];
+  for (const pg of paginas) for (const im of pg.imagens) if (!imagens.includes(im)) imagens.push(im);
+  const numeroImagem = (im: ImagemPdf) => 6 + 2 * paginas.length + imagens.indexOf(im);
+  const recursoImagens = imagens.length ? ` /XObject << ${imagens.map((im) => `/${im.nome} ${numeroImagem(im)} 0 R`).join(' ')} >>` : '';
 
   add('<< /Type /Catalog /Pages 2 0 R >>');
   add(`<< /Type /Pages /Kids [${kids}] /Count ${paginas.length} >>`);
@@ -170,9 +196,21 @@ export function montarPdfVarias(paginas: PaginaPdf[], titulo: string, tamanho: {
     const fluxo = Buffer.from(pagina.conteudo(), 'latin1');
     add(
       `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${tamanho.largura} ${tamanho.altura}] ` +
-        `/Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${7 + 2 * i} 0 R >>`,
+        `/Resources << /Font << /F1 3 0 R /F2 4 0 R >>${recursoImagens} >> /Contents ${7 + 2 * i} 0 R >>`,
     );
     add(Buffer.concat([Buffer.from(`<< /Length ${fluxo.length} >>\nstream\n`, 'latin1'), fluxo, Buffer.from('\nendstream', 'latin1')]));
+  });
+  imagens.forEach((im) => {
+    add(
+      Buffer.concat([
+        Buffer.from(
+          `<< /Type /XObject /Subtype /Image /Width ${im.largura} /Height ${im.altura} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode /Length ${im.dados.length} >>\nstream\n`,
+          'latin1',
+        ),
+        im.dados,
+        Buffer.from('\nendstream', 'latin1'),
+      ]),
+    );
   });
 
   const partes: Buffer[] = [Buffer.from('%PDF-1.4\n', 'latin1')];
