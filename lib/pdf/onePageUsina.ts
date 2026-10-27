@@ -60,6 +60,13 @@ function desenharTabelaSerra(p: PaginaPdf, serra: SerraRelatorio, x: number, top
   const grupos = todosGrupos.filter((g) => colunas.includes(g.chave));
   const fim = (c: number) => x + colunaRotulo + (c + 1) * colW - 4;
   const fimG = (gi: number, sub: 0 | 1) => fim(6 - 2 * grupos.length + gi * 2 + sub);
+  // Caixa por coluna (Dia, Semana, No mês), igual aos cartões de estaleiro e geração: cobre o cabeçalho até a última linha.
+  const baseCaixa = topo - 32 - 9 - 5 - 11 * (serra.linhas.length + 1) - 6;
+  grupos.forEach((g, gi) => {
+    const x0 = fimG(gi, 0) - colW + 6;
+    const x1 = fimG(gi, 1) + 6;
+    p.arredondado(x0, baseCaixa, x1 - x0, topo - 26 - baseCaixa, 4, g.chave === 'mes' ? hex('#f1f5f9') : BRANCO, LINHA);
+  });
   let y = topo - 32;
   grupos.forEach((g, gi) => textoDireita(p, g.rotulo, fimG(gi, 1), y, 6.5, 'negrito', CINZA));
   y -= 9;
@@ -75,7 +82,8 @@ function desenharTabelaSerra(p: PaginaPdf, serra: SerraRelatorio, x: number, top
   };
   serra.linhas.forEach((l, i) => {
     y -= 11;
-    if (i % 2 === 1) p.retangulo(x + 4, y - 3, w - 8, 11, ZEBRA);
+    // Sem zebra quando há caixas de coluna (a zebra aparecia cortada nas bordas das caixas).
+    if (grupos.length === 0 && i % 2 === 1) p.retangulo(x + 4, y - 3, w - 8, 11, ZEBRA);
     p.texto(l.ativo, x + 8, y, 8, 'negrito', hex(l.cor));
     grupos.forEach((g, gi) => medidas(l[g.chave], gi, hex(l.cor)));
   });
