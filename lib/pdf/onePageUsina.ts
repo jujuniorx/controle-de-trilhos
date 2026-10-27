@@ -131,6 +131,13 @@ function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, 
     const linhas = quebrarLinhas(s.observacao, 7, w - 16).slice(0, 2);
     linhas.forEach((linha, i) => p.texto(linha, x + 8, base + 22 - i * 8, 7, 'normal', CINZA));
   }
+  // Legenda das cores (Soldas, Cortes...) embaixo do cartão, como no gerencial.
+  let lx = x + 8;
+  for (const serie of s.grafico.series) {
+    p.retangulo(lx, base + 4, 6, 6, hex(serie.cor));
+    p.texto(serie.nome, lx + 9, base + 4, 6.5, 'normal', CINZA);
+    lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
+  }
   // A barra mais alta termina antes da última linha da tabela (limiteTopo), com folga: nunca encosta na caixa.
   const alturaGrafico = limiteTopo === undefined ? 26 : Math.max(12, limiteTopo - 10 - (base + 42));
   desenharGrafico(p, s.grafico, x + 8, base + 42, w - 16, alturaGrafico, rotulos, 4, destaque);
