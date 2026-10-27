@@ -5,7 +5,7 @@ export function CabecalhoSemana({ semana, ajuda }: { semana: string; ajuda: stri
   return (
     <div className="flex flex-wrap items-baseline justify-between gap-2">
       <p className="font-semibold">
-        Semana de {br(semana)} a {br(somarDiasPagina(semana, 3))}
+        Semana de {br(semana)} a {br(somarDiasPagina(semana, 6))}
       </p>
       <p className="text-sm text-ink-muted">{ajuda}</p>
     </div>
