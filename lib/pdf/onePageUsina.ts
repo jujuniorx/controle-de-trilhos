@@ -1,4 +1,4 @@
-import { PaginaPdf, A4_PAISAGEM, montarPdfVarias, larguraTexto } from '@/lib/pdf/simples';
+import { PaginaPdf, A4_PAISAGEM, montarPdfVarias, larguraTexto, quebrarLinhas } from '@/lib/pdf/simples';
 import type { DadosRelatorio, GraficoRelatorio, SerraRelatorio, SetorRelatorio, TrilheirosRelatorio } from '@/lib/services/onePageUsina';
 import { faixaSemanaSegSex, mesAte, rotuloPeriodo, type Coluna, TODAS_COLUNAS } from '@/lib/usina/periodo';
 import { desenharTrilheiros } from '@/lib/pdf/tabelaTrilheiros';
