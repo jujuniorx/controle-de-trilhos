@@ -285,11 +285,19 @@ function desenharEstoqueTls(p: PaginaPdf, linhas: LinhaRelatorio[], x: number, t
   p.arredondado(x, topo - 22, w, 22, 9, hex(cor));
   p.retangulo(x, topo - 22, w, 8, hex(cor));
   p.texto('Estoque de TLS (no dia)', x + 10, topo - 14, 8, 'negrito', BRANCO);
-  const colW = (w - 16) / Math.max(1, itens.length);
+  // Tabela: perfil, malha paulista, malha norte, FIPS e total (as malhas ainda sem lançamento separado).
+  const colunas = [x + 10, x + w * 0.36, x + w * 0.55, x + w * 0.72, x + w * 0.88];
+  const cabecalho = ['Perfil', 'Malha Paulista', 'Malha Norte', 'FIPS', 'Total'];
+  const yCab = topo - 36;
+  cabecalho.forEach((t, j) => p.texto(t, colunas[j], yCab, 6.5, 'negrito', CINZA));
+  p.linha(x + 8, yCab - 5, x + w - 8, yCab - 5, LINHA, 0.6);
   itens.forEach((l, i) => {
-    const cx = x + 8 + i * colW;
-    p.texto(l.rotulo, cx + 4, topo - 36, 6.5, 'normal', CINZA);
-    p.texto(l.dia, cx + 4, base + 12, 13, 'negrito', TINTA);
+    const y = yCab - 18 - i * 14;
+    p.texto(l.perfil ?? l.rotulo, colunas[0], y, 8, 'negrito', TINTA);
+    p.texto('—', colunas[1], y, 8, 'normal', CINZA);
+    p.texto('—', colunas[2], y, 8, 'normal', CINZA);
+    p.texto('—', colunas[3], y, 8, 'normal', CINZA);
+    p.texto(l.dia, colunas[4], y, 9, 'negrito', TINTA);
   });
 }
 
@@ -378,7 +386,7 @@ function montarPaginasUsina(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 
   });
 
   // Faixa do estoque de TLS (uma coluna por tipo), na largura toda, abaixo dos setores.
-  if (tlsLinhas.length > 0) desenharEstoqueTls(p, tlsLinhas, M, topoGrade - altSet - 12, L - 2 * M, 58, CORES_SETOR_ESTALEIRO);
+  if (tlsLinhas.length > 0) desenharEstoqueTls(p, tlsLinhas, M, topoGrade - altSet - 12, L - 2 * M, 108, CORES_SETOR_ESTALEIRO);
 
   // Linhas 2 e 3: Caminhão de solda e Trilheiros, um embaixo do outro, cada um na largura toda.
   const larguraTotal = L - 2 * M;

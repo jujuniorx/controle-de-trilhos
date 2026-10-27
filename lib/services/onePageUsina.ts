@@ -25,7 +25,7 @@ const iso = (d: Date) => d.toISOString().slice(0, 10);
 /** Valores de cada dia da semana (segunda a domingo), quando existem; usados no PDF diário. */
 /** cores: uma cor por parte do valor separada por ' / ' (ex.: W61 e W62), para cada parte aparecer na cor da sua composição. */
 /** Linha de um setor. `secao` marca o início de um bloco com título próprio (ex.: Estoque TLS). */
-export interface LinhaRelatorio { rotulo: string; dia: string; semana: string; mes: string; porDia?: string[]; cores?: string[]; secao?: string }
+export interface LinhaRelatorio { rotulo: string; dia: string; semana: string; mes: string; porDia?: string[]; cores?: string[]; secao?: string; perfil?: string }
 export interface GraficoRelatorio { titulo: string; series: { nome: string; cor: string; valores: number[] }[] }
 /** Grade de produção por dia (um valor por dia da semana), para setores em que o número do dia importa mais que o gráfico. */
 export interface GradeRelatorio { colunas: string[]; linhas: { rotulo: string; valores: number[] }[] }
@@ -201,10 +201,10 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
           { secao: 'Envio de trilho', rotulo: 'Trilho novo (m)', dia: fmtMetros(estD.carreta.trilhoNovoM), semana: fmtMetros(estS.carreta.trilhoNovoM), mes: fmtMetros(estM.carreta.trilhoNovoM) },
           { rotulo: 'Tampões (m)', dia: fmtMetros(estD.carreta.tampoesM), semana: fmtMetros(estS.carreta.tampoesM), mes: fmtMetros(estM.carreta.tampoesM) },
           // Estoque é um retrato do dia: só a coluna do dia tem número.
-          { secao: 'Estoque TLS (no dia)', rotulo: ROTULO_TLS.UIC60_NOVO, dia: numeroTls(estD.estoqueDoDia.UIC60_NOVO), semana: '—', mes: '—' },
-          { rotulo: ROTULO_TLS.TR68_NOVO, dia: numeroTls(estD.estoqueDoDia.TR68_NOVO), semana: '—', mes: '—' },
-          { rotulo: ROTULO_TLS.UIC60_REEMPREGO, dia: numeroTls(estD.estoqueDoDia.UIC60_REEMPREGO), semana: '—', mes: '—' },
-          { rotulo: ROTULO_TLS.TR68_REEMPREGO, dia: numeroTls(estD.estoqueDoDia.TR68_REEMPREGO), semana: '—', mes: '—' },
+          { secao: 'Estoque TLS (no dia)', rotulo: ROTULO_TLS.UIC60_NOVO, dia: numeroTls(estD.estoqueDoDia.UIC60_NOVO), perfil: 'TR60', semana: '—', mes: '—' },
+          { rotulo: ROTULO_TLS.TR68_NOVO, dia: numeroTls(estD.estoqueDoDia.TR68_NOVO), perfil: 'TR68', semana: '—', mes: '—' },
+          { rotulo: ROTULO_TLS.UIC60_REEMPREGO, dia: numeroTls(estD.estoqueDoDia.UIC60_REEMPREGO), perfil: 'TR60 REE', semana: '—', mes: '—' },
+          { rotulo: ROTULO_TLS.TR68_REEMPREGO, dia: numeroTls(estD.estoqueDoDia.TR68_REEMPREGO), perfil: 'TR68 REE', semana: '—', mes: '—' },
         ],
         grafico: {
           titulo: 'Soldas e cortes por dia',

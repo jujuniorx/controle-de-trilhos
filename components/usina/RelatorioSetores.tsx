@@ -184,18 +184,35 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
 /** Estoque de TLS no dia, em faixa própria abaixo dos setores (mesmo formato do PDF). */
 export function EstoqueTlsBloco({ linhas, cor }: { linhas: LinhaRelatorio[]; cor: string }) {
   const itens = linhas.filter((l) => !l.secao);
+  const celula = 'py-2 text-right font-semibold tabular-nums';
   return (
     <section className="overflow-hidden rounded-xl border border-slate-200 bg-white break-inside-avoid">
       <header className="px-4 py-2.5 text-white" style={{ background: cor }}>
         <span className="text-sm font-bold">Estoque de TLS (no dia)</span>
       </header>
-      <div className="grid grid-cols-2 gap-3 p-4 md:grid-cols-5">
-        {itens.map((l) => (
-          <div key={l.rotulo} className="rounded-lg border border-slate-200 p-3" style={{ borderTop: `3px solid ${cor}` }}>
-            <p className="text-[11px] uppercase tracking-wide text-slate-500">{l.rotulo}</p>
-            <p className="text-xl font-bold tabular-nums" style={{ color: cor }}>{l.dia}</p>
-          </div>
-        ))}
+      <div className="overflow-x-auto p-4">
+        <table className="w-full border-collapse text-[13px]">
+          <thead>
+            <tr className="border-b-2 border-slate-200 text-[10px] uppercase tracking-wide text-slate-500">
+              <th className="pb-2 text-left font-semibold">Perfil</th>
+              <th className="pb-2 text-right font-semibold">Malha Paulista</th>
+              <th className="pb-2 text-right font-semibold">Malha Norte</th>
+              <th className="pb-2 text-right font-semibold">FIPS</th>
+              <th className="pb-2 text-right font-semibold">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {itens.map((l, i) => (
+              <tr key={l.rotulo} className={`border-b border-slate-100 ${i % 2 === 1 ? 'bg-slate-50' : ''}`}>
+                <td className="py-2 font-bold text-slate-900">{l.perfil ?? l.rotulo}</td>
+                <td className={`${celula} text-slate-400`}>—</td>
+                <td className={`${celula} text-slate-400`}>—</td>
+                <td className={`${celula} text-slate-400`}>—</td>
+                <td className={celula} style={{ color: cor }}>{l.dia}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </section>
   );
