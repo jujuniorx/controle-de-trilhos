@@ -236,6 +236,13 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const diario = modo === 'diario';
   // As colunas são as escolhidas pelo usuário (Dia, Semana, No mês). No diário o gráfico de 7 dias sai, porque ele é da semana.
   const colunas = colunasEscolhidas;
+  // No diário, o gráfico mostra uma barra por série com o valor do dia (não os 7 dias da semana).
+  const indiceDia = (new Date(`${d.data}T12:00:00Z`).getUTCDay() + 6) % 7; // 0 = segunda
+  const nomesDia = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+  const rotulosGrafico = diario ? [`${nomesDia[indiceDia]} ${d.data.slice(8, 10)}/${d.data.slice(5, 7)}`] : d.rotulosDias;
+  const setores = diario
+    ? d.setores.map((s) => (s.grafico ? { ...s, grafico: { ...s.grafico, series: s.grafico.series.map((serie) => ({ ...serie, valores: [serie.valores[indiceDia] ?? 0] })) } } : s))
+    : d.setores;
   const p = new PaginaPdf();
   p.retangulo(0, 0, L, H, BRANCO);
   // Faixa de marca no topo
@@ -282,10 +289,10 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const wSet = (L - 2 * M - (nSetores - 1) * gapC) / nSetores;
   const altSet = 166;
   const topoGrade = topoRes - altRes - 16;
-  const porTitulo = (t: string) => d.setores.find((s) => s.titulo === t);
-  const linha1 = d.setores.filter((s) => s.titulo !== 'Caminhão de solda' && s.titulo !== 'Trilheiros');
+  const porTitulo = (t: string) => setores.find((s) => s.titulo === t);
+  const linha1 = setores.filter((s) => s.titulo !== 'Caminhão de solda' && s.titulo !== 'Trilheiros');
   linha1.slice(0, nSetores).forEach((s, i) => {
-    desenharSetor(p, s, M + i * (wSet + gapC), topoGrade, wSet, altSet, false, d.rotulosDias, mensal, colunas, !diario);
+    desenharSetor(p, s, M + i * (wSet + gapC), topoGrade, wSet, altSet, false, rotulosGrafico, mensal, colunas);
   });
 
   // Linhas 2 e 3: Caminhão de solda e Trilheiros, um embaixo do outro, cada um na largura toda.
