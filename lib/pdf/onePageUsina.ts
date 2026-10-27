@@ -121,7 +121,7 @@ export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yB
   });
 }
 
-export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = [], mensal = false, colunas: Coluna[] = ['dia', 'semana', 'mes']) {
+export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = [], mensal = false, colunas: Coluna[] = ['dia', 'semana', 'mes'], comGrafico = true) {
   const base = topo - h;
   p.arredondado(x + 1.2, base - 1.4, w, h, 9, SOMBRA);
   p.arredondado(x, base, w, h, 9, BRANCO, LINHA);
@@ -130,7 +130,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   p.texto(s.titulo.toUpperCase(), x + 8, topo - 14, 8, 'negrito', BRANCO);
   if (s.serra) {
     desenharTabelaSerra(p, s.serra, x, topo, w, mensal ? ['mes'] : colunas);
-    if (s.grafico) {
+    if (s.grafico && comGrafico) {
       desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 22, rotulos);
     }
     return;
@@ -175,7 +175,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   });
 
   // No mensal o gráfico diário sai: o cartão mostra só os totais do mês.
-  if (!s.grafico || mensal) return;
+  if (!s.grafico || mensal || !comGrafico) return;
   if (largo) {
     // Gráfico à direita, na mesma altura da tabela
     const xg = x + 470;
@@ -231,9 +231,11 @@ export function desenharLinhasResumo(p: PaginaPdf, r: { cor: string; dia: string
   });
 }
 
-export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 'semanal' | 'mensal' | 'diario' = 'semanal', colunas: Coluna[] = TODAS_COLUNAS, observacoes: string[] = []): Buffer {
+export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 'semanal' | 'mensal' | 'diario' = 'semanal', colunasEscolhidas: Coluna[] = TODAS_COLUNAS, observacoes: string[] = []): Buffer {
   const mensal = modo === 'mensal';
   const diario = modo === 'diario';
+  // No diário só entram os valores do dia (e o No mês); nada da semana, nem o gráfico semanal.
+  const colunas = diario ? colunasEscolhidas.filter((c) => c !== 'semana') : colunasEscolhidas;
   const p = new PaginaPdf();
   p.retangulo(0, 0, L, H, BRANCO);
   // Faixa de marca no topo
@@ -283,7 +285,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const porTitulo = (t: string) => d.setores.find((s) => s.titulo === t);
   const linha1 = d.setores.filter((s) => s.titulo !== 'Caminhão de solda' && s.titulo !== 'Trilheiros');
   linha1.slice(0, nSetores).forEach((s, i) => {
-    desenharSetor(p, s, M + i * (wSet + gapC), topoGrade, wSet, altSet, false, d.rotulosDias, mensal, colunas);
+    desenharSetor(p, s, M + i * (wSet + gapC), topoGrade, wSet, altSet, false, d.rotulosDias, mensal, colunas, !diario);
   });
 
   // Linhas 2 e 3: Caminhão de solda e Trilheiros, um embaixo do outro, cada um na largura toda.
