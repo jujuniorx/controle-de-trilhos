@@ -124,7 +124,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
     return valores;
   };
   // Cor de cada composição da serra: a mesma usada no gráfico (W61 roxo, W62 âmbar).
-  const COR_COMPOSICAO = COMPOSICOES.map((_, i) => (i === 0 ? '#7c3aed' : '#f59e0b'));
+  const COR_COMPOSICAO = COMPOSICOES.map((_, i) => (i === 0 ? '#7c3aed' : '#0d9488'));
   const serraTotalDia = COMPOSICOES.reduce((t, a) => t + metrosDeBarras(barrasDia(a)), 0);
   const serraTotalSemana = COMPOSICOES.reduce((t, a) => t + metrosDeBarras(barrasSemana(a)), 0);
   const serraTotalMes = COMPOSICOES.reduce((t, a) => t + metrosDeBarras(barrasMes(a)), 0);
@@ -237,7 +237,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         serra: {
           linhas: COMPOSICOES.map((a, i) => ({
             ativo: a,
-            cor: i === 0 ? '#7c3aed' : '#f59e0b',
+            cor: i === 0 ? '#7c3aed' : '#0d9488',
             dia: { barras: barrasDia(a), metros: metrosDeBarras(barrasDia(a)) },
             semana: { barras: barrasSemana(a), metros: metrosDeBarras(barrasSemana(a)) },
             mes: { barras: barrasMes(a), metros: metrosDeBarras(barrasMes(a)) },
@@ -258,7 +258,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
           titulo: 'Metros por dia: W61 e W62 (barras × 10,5 m)',
           series: COMPOSICOES.map((a, i) => ({
             nome: a,
-            cor: i === 0 ? '#7c3aed' : '#f59e0b',
+            cor: i === 0 ? '#7c3aed' : '#0d9488',
             valores: serraDiaSerie(a),
           })),
         },
