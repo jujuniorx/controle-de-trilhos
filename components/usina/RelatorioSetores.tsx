@@ -205,7 +205,7 @@ export function EstoqueTlsBloco({ linhas, cor }: { linhas: LinhaRelatorio[]; cor
 export function Resumo({ rotulo, cor, dia, semana, mes, mensal = false, linhas, colunas = TODAS, rotuloDia = 'Do dia' }: { rotulo: string; cor: string; dia: string; semana: string; mes: string; mensal?: boolean; linhas?: { rotulo: string; valor: string }[]; colunas?: Coluna[]; rotuloDia?: string }) {
   if (linhas && linhas.length > 0) {
     return (
-      <div className="rounded-lg border border-slate-200 bg-white p-3" style={{ borderTop: `3px solid ${cor}` }}>
+      <div className="rounded-lg border border-slate-200 bg-white p-4" style={{ borderTop: `3px solid ${cor}` }}>
         <p className="text-[11px] font-bold uppercase tracking-wide text-slate-600">{rotulo}</p>
         <dl className="mt-2 divide-y divide-slate-100 text-sm">
           {linhas.map((l) => (
@@ -220,7 +220,7 @@ export function Resumo({ rotulo, cor, dia, semana, mes, mensal = false, linhas, 
   }
   if (mensal) {
     return (
-      <div className="rounded-lg border border-slate-200 bg-white p-3" style={{ borderTop: `3px solid ${cor}` }}>
+      <div className="rounded-lg border border-slate-200 bg-white p-4" style={{ borderTop: `3px solid ${cor}` }}>
         <p className="text-[11px] font-bold uppercase tracking-wide text-slate-600">{rotulo}</p>
         <p className="mt-2 text-[10px] uppercase tracking-wide text-slate-500">No mês</p>
         <p className="text-xl font-bold tabular-nums" style={{ color: cor }}>{mes}</p>
@@ -228,7 +228,7 @@ export function Resumo({ rotulo, cor, dia, semana, mes, mensal = false, linhas, 
     );
   }
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-3" style={{ borderTop: `3px solid ${cor}` }}>
+    <div className="rounded-lg border border-slate-200 bg-white p-4" style={{ borderTop: `3px solid ${cor}` }}>
       <p className="text-[11px] font-bold uppercase tracking-wide text-slate-600">{rotulo}</p>
       <dl className="mt-2 divide-y divide-slate-100 text-sm">
         {[
