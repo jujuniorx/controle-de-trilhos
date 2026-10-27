@@ -377,7 +377,7 @@ export function TrilheirosBloco({ t }: { t: TrilheirosRelatorio }) {
   );
 }
 
-const fmtM = (v: number) => `${v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m`;
+const fmtM = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 /** Geração por equipe: o que cada líder produziu no dia e na semana. */
 export function EquipesGeracao({ equipes, cor }: { equipes: EquipeGeracaoRelatorio[]; cor: string }) {
@@ -391,8 +391,8 @@ export function EquipesGeracao({ equipes, cor }: { equipes: EquipeGeracaoRelator
           <thead>
             <tr className="text-[11px] uppercase tracking-wide text-slate-500">
               <th className="pb-1 text-left font-semibold">Equipe</th>
-              <th className="pb-1 text-right font-semibold">Carregado</th>
-              <th className="pb-1 text-right font-semibold">Deixado na via</th>
+              <th className="pb-1 text-right font-semibold">Carregado (m)</th>
+              <th className="pb-1 text-right font-semibold">Deixado na via (m)</th>
               <th className="pb-1 text-right font-semibold">Barras</th>
             </tr>
           </thead>

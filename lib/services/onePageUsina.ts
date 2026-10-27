@@ -17,7 +17,7 @@ import { METROS_POR_BARRA } from '@/lib/domain/informativo';
 import { fmtMetros, fmtPeso } from '@/lib/format';
 
 const soma = <T,>(lista: T[], f: (x: T) => number) => lista.reduce((a, x) => a + f(x), 0);
-const metros = (v: number) => `${fmtMetros(v)} m`;
+const metros = (v: number) => fmtMetros(v);
 /** Estoque de TLS no dia: número, ou travessão quando ainda não foi lançado. */
 const numeroTls = (v: number | null | undefined) => (v == null ? '—' : String(v));
 const iso = (d: Date) => d.toISOString().slice(0, 10);
