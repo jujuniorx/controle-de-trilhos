@@ -63,8 +63,9 @@ function desenharTabelaSerra(p: PaginaPdf, serra: SerraRelatorio, x: number, top
   // Caixa por coluna (Dia, Semana, No mês), igual aos cartões de estaleiro e geração: cobre o cabeçalho até a última linha.
   const baseCaixa = topo - 32 - 9 - 5 - 11 * (serra.linhas.length + 1) - 6;
   grupos.forEach((g, gi) => {
+    // Caixas com folga entre elas: cada grupo ocupa duas colunas, e a caixa seguinte começa depois de 6pt.
     const x0 = fimG(gi, 0) - colW + 6;
-    const x1 = fimG(gi, 1) + 6;
+    const x1 = fimG(gi, 1) + 3;
     p.arredondado(x0, baseCaixa, x1 - x0, topo - 26 - baseCaixa, 4, g.chave === 'mes' ? hex('#f1f5f9') : BRANCO, LINHA);
   });
   let y = topo - 32;
@@ -289,7 +290,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const larguraTotal = L - 2 * M;
   // Altura do cartão do caminhão cresce com o número de linhas (Solda e Corte de cada caminhão), para nada passar por baixo.
   const linhasCaminhao = porTitulo('Caminhão de solda')?.caminhoes?.length ?? 0;
-  const altCaminhao = Math.max(90, 50 + linhasCaminhao * 34);
+  const altCaminhao = Math.max(90, 50 + linhasCaminhao * 40);
   const gapLinha = 6;
   const topoLinha2 = topoGrade - altSet - 12;
   const caminhao = porTitulo('Caminhão de solda');

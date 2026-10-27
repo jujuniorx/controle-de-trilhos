@@ -77,7 +77,8 @@ export function desenharCaminhoes(
   if (comObservacao) p.texto('OBSERVAÇÃO', x + xObs, yCabecalho, 6.5, 'negrito', CINZA);
   p.linha(x + 8, yCabecalho - 6, x + w - 8, yCabecalho - 6, LINHA, 0.6);
 
-  const altLinha = 34;
+  // Linhas mais altas para a observação caber em até 4 linhas.
+  const altLinha = 40;
   const primeiraBase = yCabecalho - 22;
   caminhoes.forEach((c, i) => {
     const y = primeiraBase - i * altLinha;
@@ -104,7 +105,7 @@ export function desenharCaminhoes(
     }
     if (comObservacao) {
       const linhas = c.observacao ? quebrarLinhas(c.observacao, 7.5, w - xObs - 16) : [];
-      linhas.slice(0, 3).forEach((linha, k) => p.texto(linha, x + xObs, y + 9 - k * 8.5, 7.5, 'normal', CINZA));
+      linhas.slice(0, 4).forEach((linha, k) => p.texto(linha, x + xObs, y + 9 - k * 8.5, 7.5, 'normal', CINZA));
     }
   });
 }
