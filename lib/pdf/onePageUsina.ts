@@ -139,7 +139,8 @@ function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, 
     // Uma observação só começa com "Obs:"; a geração traz uma linha por equipe (já com o nome).
     const trechos = s.observacao.includes('\n') ? s.observacao.split('\n') : [`Obs: ${s.observacao}`];
     const linhas = trechos.flatMap((t) => quebrarLinhas(t, 7, w - 16)).slice(0, 3);
-    linhas.forEach((linha, i) => p.texto(linha, x + 8, base + 6 + i * 8, 7, 'normal', CINZA));
+    // A primeira linha fica em cima (y maior); a última fica mais perto da base do cartão.
+    linhas.forEach((linha, i) => p.texto(linha, x + 8, base + 6 + (linhas.length - 1 - i) * 8, 7, 'normal', CINZA));
   }
   let lx = x + 8;
   for (const serie of s.grafico.series) {
