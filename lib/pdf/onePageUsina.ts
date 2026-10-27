@@ -395,7 +395,7 @@ export function gerarOnePageUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatori
   const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
   for (const pg of [p, p2]) {
     pg.linha(M, 30, L - M, 30, LINHA, 0.6);
-    pg.texto(`Emitido em ${emitido}`, M, 18, 6.5, 'normal', CINZA);
+    pg.texto(`Período: ${rotuloPeriodo(d.data, modo).valor}  ·  Emitido em ${emitido}`, M, 18, 6.5, 'normal', CINZA);
     textoDireita(pg, 'Controle de Trilhos · Usina', L - M, 18, 6.5, 'negrito', CINZA);
   }
 
