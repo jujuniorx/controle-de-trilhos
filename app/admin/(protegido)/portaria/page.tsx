@@ -97,13 +97,11 @@ export default async function AdminPortariaPage({
           {c.movimentacaoId && (
             <Link href={`/admin/recebimentos/${c.movimentacaoId}`} className="btn btn-ghost btn-sm">Ver</Link>
           )}
-          {dono && (
-            <BotaoApagar
-              rotulo="Apagar"
-              aviso="Apagar esta chegada de vez? Não dá para desfazer."
-              acao={apagarChegadaAction.bind(null, c.id)}
-            />
-          )}
+          <BotaoApagar
+            rotulo="Apagar"
+            aviso="Apagar esta chegada de vez? Não dá para desfazer."
+            acao={apagarChegadaAction.bind(null, c.id)}
+          />
         </>
       ),
     })),

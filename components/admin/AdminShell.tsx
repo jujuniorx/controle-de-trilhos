@@ -137,7 +137,7 @@ export function AdminShell({ nome, ehDono = false, children }: { nome: string; e
           </div>
         </header>
         <InstalarApp />
-        {ehDono && <MenuExcluir />}
+        <MenuExcluir />
         <main className="min-w-0 flex-1">
           <SwipeAdmin rotas={ROTAS_SWIPE}>{children}</SwipeAdmin>
         </main>

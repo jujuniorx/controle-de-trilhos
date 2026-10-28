@@ -7,10 +7,9 @@ import { registrarAuditoria } from '@/lib/services/auditoria';
 
 type Resultado = { ok: boolean; erro?: string };
 
-/** Apaga de vez uma chegada lançada pela Portaria (cadastrada errado, duplicada). Só o dono. */
+/** Apaga de vez uma chegada lançada pela Portaria (cadastrada errado, duplicada). Qualquer usuário do admin. */
 export async function apagarChegadaAction(id: string): Promise<Resultado> {
   const sessao = await requireAdmin();
-  if (sessao.role !== 'DONO') return { ok: false, erro: 'Só o dono do sistema pode apagar dados da Portaria.' };
   try {
     const c = await prisma.chegadaCaminhao.delete({ where: { id } });
     await registrarAuditoria(sessao, 'Chegada da Portaria apagada', `${c.placaCarreta ?? c.placaCavalo ?? c.motoristaNome ?? 'sem identificação'} (${c.origem ?? 'sem origem'})`);
