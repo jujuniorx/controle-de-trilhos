@@ -4,9 +4,13 @@ import type { DadosGraficos, ItemRanking } from '@/lib/services/graficosRelatori
 
 const idx = (n: number) => ({ '--i': n }) as CSSProperties;
 
-/** Cor de cada fatia pela posição (ordem fixa); "Outros" sempre no cinza neutro. */
-function corDa(i: ItemRanking, indice: number): string {
-  return i.rotulo === 'Outros' ? 'var(--viz-outros)' : `var(--viz-${indice + 1})`;
+/** Cor fixa por nome (não muda com o filtro): o mesmo perfil ou material tem sempre a mesma cor. "Outros" fica cinza. */
+const PALETA_VIZ = 5;
+function corDa(i: ItemRanking, _indice: number): string {
+  if (i.rotulo === 'Outros') return 'var(--viz-outros)';
+  let h = 0;
+  for (const c of i.rotulo) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return `var(--viz-${(h % PALETA_VIZ) + 1})`;
 }
 
 const GAP = 0.8; // vão entre fatias, em % da circunferência
@@ -96,7 +100,10 @@ function Ranking({ titulo, itens, vazio }: { titulo: string; itens: ItemRanking[
   );
 }
 
-export function GraficosRelatorio({ dados }: { dados: DadosGraficos }) {
+/** Com filtro de tipo, mostra só o que o filtro permite: Remetido não tem recebimento, Recebimento não tem envio. */
+export function GraficosRelatorio({ dados, tipo }: { dados: DadosGraficos; tipo?: 'RECEBIMENTO' | 'REMETIDO' }) {
+  const mostraRec = tipo !== 'REMETIDO';
+  const mostraEnv = tipo !== 'RECEBIMENTO';
   const max = Math.max(...dados.serie.flatMap((p) => [p.recebido, p.enviado]), 0);
   const altura = (v: number) => (max > 0 && v > 0 ? Math.max((v / max) * 100, 3) : 0);
   const resumoSerie = dados.serie
@@ -113,8 +120,8 @@ export function GraficosRelatorio({ dados }: { dados: DadosGraficos }) {
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h3 className="card-title">Toneladas por {dados.granularidade === 'semana' ? 'semana' : 'mês'}</h3>
           <div className="grafico-legenda">
-            <span><i className="grafico-cor grafico-cor-rec" /> Recebido</span>
-            <span><i className="grafico-cor grafico-cor-env" /> Enviado</span>
+            {mostraRec && <span><i className="grafico-cor grafico-cor-rec" /> Recebido</span>}
+            {mostraEnv && <span><i className="grafico-cor grafico-cor-env" /> Enviado</span>}
           </div>
         </div>
         <div className="grafico-colunas" role="img" aria-label={`Toneladas por ${dados.granularidade}. ${resumoSerie}`}>
@@ -126,14 +133,18 @@ export function GraficosRelatorio({ dados }: { dados: DadosGraficos }) {
               title={`${p.rotulo} — recebido ${fmtPeso(p.recebido)} t, enviado ${fmtPeso(p.enviado)} t`}
             >
               <div className="grafico-par">
-                <div className="grafico-col">
-                  {p.recebido > 0 && <span className="grafico-val">{fmtPeso(p.recebido)}</span>}
-                  <span className="grafico-barra grafico-cor-rec" style={{ height: `${altura(p.recebido)}%` }} />
-                </div>
-                <div className="grafico-col">
-                  {p.enviado > 0 && <span className="grafico-val">{fmtPeso(p.enviado)}</span>}
-                  <span className="grafico-barra grafico-cor-env" style={{ height: `${altura(p.enviado)}%` }} />
-                </div>
+                {mostraRec && (
+                  <div className="grafico-col">
+                    {p.recebido > 0 && <span className="grafico-val">{fmtPeso(p.recebido)}</span>}
+                    <span className="grafico-barra grafico-cor-rec" style={{ height: `${altura(p.recebido)}%` }} />
+                  </div>
+                )}
+                {mostraEnv && (
+                  <div className="grafico-col">
+                    {p.enviado > 0 && <span className="grafico-val">{fmtPeso(p.enviado)}</span>}
+                    <span className="grafico-barra grafico-cor-env" style={{ height: `${altura(p.enviado)}%` }} />
+                  </div>
+                )}
               </div>
               <span className="grafico-eixo">{p.rotulo}</span>
             </div>
@@ -151,8 +162,8 @@ export function GraficosRelatorio({ dados }: { dados: DadosGraficos }) {
       </div>
 
       <div className="grid gap-3 lg:grid-cols-2">
-        <Ranking titulo="Recebido por origem (t)" itens={dados.origens} vazio="Nenhum recebimento nesses filtros." />
-        <Ranking titulo="Enviado por destino (t)" itens={dados.destinos} vazio="Nenhum remetido nesses filtros." />
+        {mostraRec && <Ranking titulo="Recebido por origem (t)" itens={dados.origens} vazio="Nenhum recebimento nesses filtros." />}
+        {mostraEnv && <Ranking titulo="Enviado por destino (t)" itens={dados.destinos} vazio="Nenhum remetido nesses filtros." />}
       </div>
     </section>
   );

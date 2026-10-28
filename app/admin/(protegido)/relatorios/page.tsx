@@ -238,11 +238,6 @@ export default async function RelatoriosPage({
           </div>
         </div>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:justify-end">
-          {temFiltro && (
-            <Link href="/admin/relatorios" className="btn btn-secondary w-full sm:w-auto">
-              Limpar filtros
-            </Link>
-          )}
           <button type="submit" className="btn btn-primary w-full sm:w-auto sm:min-w-32">
             Filtrar
           </button>
@@ -278,7 +273,7 @@ export default async function RelatoriosPage({
         </div>
         <div className="stat-tile">
           <p className="stat-label">Peças</p>
-          <p className="stat-value">{resumo.pecas}</p>
+          <p className="stat-value">{resumo.pecas.toLocaleString('pt-BR')}</p>
         </div>
         <div className="stat-tile">
           <p className="stat-label">Metros</p>
@@ -292,7 +287,7 @@ export default async function RelatoriosPage({
         </div>
       </div>
 
-      {movimentacoes.length > 0 && <GraficosRelatorio dados={graficos} />}
+      {movimentacoes.length > 0 && <GraficosRelatorio dados={graficos} tipo={filtros.tipo === 'RECEBIMENTO' || filtros.tipo === 'REMETIDO' ? filtros.tipo : undefined} />}
 
       <section className="space-y-2">
         <div className="flex items-center justify-between">
