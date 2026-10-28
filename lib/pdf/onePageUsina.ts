@@ -472,6 +472,7 @@ export function gerarOnePageUsinaSvg(
     return (
       `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1320" height="${Math.round((total * 1320) / L)}" viewBox="0 0 ${L} ${total.toFixed(2)}">` +
       foto.conteudoSvg(alturaFoto) +
+      `<g transform="translate(0 ${alturaFoto.toFixed(2)})">${new PaginaPdf().retangulo(0, 0, L, total - alturaFoto, BRANCO).conteudoSvg(total - alturaFoto)}</g>` +
       `<g transform="translate(0 ${alturaFoto.toFixed(2)})">${p.conteudoSvg(H)}</g>` +
       `<g transform="translate(0 ${topoP2.toFixed(2)})">${p2.conteudoSvg(H)}</g>` +
       `<g transform="translate(0 ${(total - ALTURA_RODAPE).toFixed(2)})">${rodape.conteudoSvg(ALTURA_RODAPE)}</g>` +
