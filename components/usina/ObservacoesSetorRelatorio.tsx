@@ -11,7 +11,7 @@ export function CampoObservacao({ texto }: { texto: string }) {
   const t = texto.trim();
   return (
     <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Observação</p>
+      <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Observação</p>
       <p className={`mt-1 whitespace-pre-line text-[13px] leading-snug ${t ? 'text-slate-700' : 'italic text-slate-400'}`}>
         {t || 'Sem observação registrada neste dia.'}
       </p>

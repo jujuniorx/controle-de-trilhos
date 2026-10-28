@@ -46,7 +46,7 @@ function TabelaSerra({ serra, colunas = TODAS }: { serra: SerraRelatorio; coluna
             <th key={g.rotulo} colSpan={2} className="pb-1 text-center font-semibold">{g.rotulo}</th>
           ))}
         </tr>
-        <tr className="text-[10px] uppercase tracking-wide text-slate-500">
+        <tr className="text-[11px] uppercase tracking-wide text-slate-500">
           <th className="pb-1 text-left font-semibold"> </th>
           {grupos.map((g) => (
             <Fragment key={g.rotulo}>
@@ -114,7 +114,7 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
           <Fragment key={l.rotulo}>
             {l.secao && (
               <tr>
-                <td colSpan={1 + (mostraDia ? 1 : 0) + (mostraSem ? 1 : 0) + (mostraMes ? 1 : 0)} className="pb-0.5 pt-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">{l.secao}</td>
+                <td colSpan={1 + (mostraDia ? 1 : 0) + (mostraSem ? 1 : 0) + (mostraMes ? 1 : 0)} className="pb-0.5 pt-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">{l.secao}</td>
               </tr>
             )}
           <tr className="border-t border-slate-100">
@@ -141,7 +141,7 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
   ) : s.grade ? (
     <table className="w-full border-collapse text-[12px]">
       <thead>
-        <tr className="text-[10px] uppercase tracking-wide text-slate-500">
+        <tr className="text-[11px] uppercase tracking-wide text-slate-500">
           <th className="pb-1 text-left font-semibold"> </th>
           {s.grade.colunas.map((c) => (
             <th key={c} className="pb-1 text-center font-semibold">{c}</th>
@@ -200,7 +200,7 @@ export function EstoqueTlsBloco({ linhas, cor }: { linhas: LinhaRelatorio[]; cor
           <col style={{ width: '18%' }} />
         </colgroup>
         <thead>
-          <tr className="border-b-2 border-slate-200 text-[10px] uppercase tracking-wide text-slate-500">
+          <tr className="border-b-2 border-slate-200 text-[11px] uppercase tracking-wide text-slate-500">
             <th className="pb-2 text-left font-semibold">Perfil</th>
             <th className="pb-2 text-center font-semibold">Malha Paulista</th>
             <th className="pb-2 text-center font-semibold">Malha Norte</th>
@@ -241,7 +241,7 @@ export function Resumo({ rotulo, cor, dia, semana, mes, mensal = false, linhas, 
       <div className="rounded-lg border border-slate-200 bg-white p-4" style={{ borderTop: `3px solid ${cor}` }}>
         <div className="flex items-baseline justify-between gap-2">
           <p className="text-[11px] font-bold uppercase tracking-wide text-slate-600">{rotulo}</p>
-          {legenda && <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{legenda}</span>}
+          {legenda && <span className="text-[11px] font-bold uppercase tracking-wide text-slate-500">{legenda}</span>}
         </div>
         <dl className="mt-2 divide-y divide-slate-100 text-sm">
           {linhas.map((l) => (
@@ -258,7 +258,7 @@ export function Resumo({ rotulo, cor, dia, semana, mes, mensal = false, linhas, 
     return (
       <div className="rounded-lg border border-slate-200 bg-white p-4" style={{ borderTop: `3px solid ${cor}` }}>
         <p className="text-[11px] font-bold uppercase tracking-wide text-slate-600">{rotulo}</p>
-        <p className="mt-2 text-[10px] uppercase tracking-wide text-slate-500">No mês</p>
+        <p className="mt-2 text-[11px] uppercase tracking-wide text-slate-500">No mês</p>
         <p className="text-xl font-bold tabular-nums" style={{ color: cor }}>{mes}</p>
       </div>
     );
@@ -297,7 +297,7 @@ export function CaminhoesBloco({ s, modo, colunas = TODAS }: { s: SetorRelatorio
   // Um quadrado por caminhão, igual aos quadrados do estaleiro, geração e serra.
   const bloco = (rotulo: string, valores: { dia: number | string; semana: number | string; mes: number | string }) => (
     <div className="rounded-lg bg-slate-50 p-2">
-      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{rotulo}</p>
+      <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">{rotulo}</p>
       <dl className="mt-1 space-y-0.5 text-sm tabular-nums">
         {mostraDia && <div className="flex justify-between gap-2"><dt className="text-[11px] text-slate-500">Dia</dt><dd className="font-bold text-slate-900">{valores.dia}</dd></div>}
         {mostraSem && <div className="flex justify-between gap-2"><dt className="text-[11px] text-slate-500">Semana</dt><dd className="font-bold text-slate-900">{valores.semana}</dd></div>}
@@ -347,7 +347,7 @@ export function TrilheirosBloco({ t }: { t: TrilheirosRelatorio }) {
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
           {cards.map((c) => (
             <div key={c.rotulo} className="rounded-lg border border-slate-200 p-3" style={{ borderTop: `3px solid ${cor}` }}>
-              <p className="text-[10px] uppercase tracking-wide text-slate-500">{c.rotulo}</p>
+              <p className="text-[11px] uppercase tracking-wide text-slate-500">{c.rotulo}</p>
               <p className="text-lg font-bold tabular-nums text-slate-900">{c.valor}</p>
             </div>
           ))}
@@ -365,7 +365,7 @@ export function TrilheirosBloco({ t }: { t: TrilheirosRelatorio }) {
               <col className="w-[32%]" />
             </colgroup>
             <thead>
-              <tr className="border-b-2 border-slate-200 text-[10px] uppercase tracking-wide text-slate-500">
+              <tr className="border-b-2 border-slate-200 text-[11px] uppercase tracking-wide text-slate-500">
                 <th className="pb-2 text-left font-semibold">Trilheiro</th>
                 <th className="pb-2 text-center font-semibold">B.O.</th>
                 <th className="pb-2 text-center font-semibold leading-tight">Dias<br />desde B.O.</th>

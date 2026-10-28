@@ -166,11 +166,11 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-3 border-t border-line pt-3">
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Metragem</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">Metragem</p>
                     <p className="font-mono text-base font-semibold text-ink">{fmtMetros(g.metrosTotal)} m</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Peso</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">Peso</p>
                     <p className="font-mono text-base font-semibold text-ink">
                       {fmtPeso(Number(g.pesoInformado ?? g.pesoCalculado ?? 0))} t
                       {g.tipoMaterial === 'SUCATA' && g.pesoInformado == null && <span className="ml-2 text-xs font-normal text-warn">estimado, a confirmar</span>}

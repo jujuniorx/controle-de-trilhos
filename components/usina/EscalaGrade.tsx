@@ -297,7 +297,7 @@ function ItemLinhas({
       </tr>
       {!ITENS_SEM_LOCAL.has(item) && (
       <tr>
-        <th scope="row" className="sticky left-0 z-10 bg-[var(--g2)] px-2 pb-1 text-left text-[10px] font-semibold uppercase tracking-wider text-ink-muted">
+        <th scope="row" className="sticky left-0 z-10 bg-[var(--g2)] px-2 pb-1 text-left text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
           Local
         </th>
         {celulas.map((c, i) => (
