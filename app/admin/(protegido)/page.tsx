@@ -1,4 +1,5 @@
 import { nfsEmTexto, rotuloNfs } from '@/lib/nf';
+import { BotaoExcluirMovimentacao } from '@/components/admin/BotaoExcluirMovimentacao';
 import Link from 'next/link';
 import { listarPendentesConferencia } from '@/lib/services/movimentacao';
 import { listarAguardandoChegada } from '@/lib/services/remetido';
@@ -133,6 +134,7 @@ export default async function AdminHomePage() {
                     >
                       Ver detalhes →
                     </Link>
+                    <BotaoExcluirMovimentacao id={m.id} rotulo={m.numeroDocumento ? rotuloNfs(m) : (m.destino ?? m.origem ?? 'Movimentação em aberto')} />
                   </td>
                 </tr>
               ))}
@@ -176,6 +178,7 @@ export default async function AdminHomePage() {
                       <Link href={`/admin/remetidos/${r.id}`} className="tbl-action">
                         Ver detalhes →
                       </Link>
+                      <BotaoExcluirMovimentacao id={r.id} rotulo={r.destino ?? r.reservaPedido ?? 'Remetido aguardando chegada'} />
                     </td>
                   </tr>
                 ))}
