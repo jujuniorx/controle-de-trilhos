@@ -7,6 +7,7 @@ import { liveQuery } from 'dexie';
 import { db, type RecebimentoLocal, type SyncStatus } from '@/lib/offline/db';
 import { sincronizarPendentes } from '@/lib/offline/sync';
 import { ChecagemAnimada } from '@/components/ui/ChecagemAnimada';
+import { metros } from '@/lib/domain/numero';
 
 function metrosDaMedicao(m: { quantidade: number; comprimento: number }): number {
   return Math.round(m.quantidade * m.comprimento * 100) / 100;
@@ -124,7 +125,7 @@ export function ConfirmacaoRecebimento({ clientId }: { clientId: string }) {
                 Grupo {i + 1}: {g.perfil} — {g.tipoMaterial}
               </span>
               <p className="text-ink-muted">
-                {g.medicoes.length} medição(ões) — {metrosDoGrupo(g.medicoes).toFixed(2)} m —{' '}
+                {g.medicoes.length} medição(ões) — {metros(metrosDoGrupo(g.medicoes))} —{' '}
                 {g.tipoMaterial === 'SUCATA' ? (
                   <span className="font-medium text-warn">peso pendente</span>
                 ) : (

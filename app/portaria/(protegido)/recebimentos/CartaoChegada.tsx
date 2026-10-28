@@ -97,13 +97,15 @@ export function CartaoChegada({ item, origens = [] }: { item: ItemChegada; orige
   const [ordemTexto, setOrdemTexto] = useState(item.ordemDia ? String(item.ordemDia) : '');
   const [ordemPendente, iniciarOrdem] = useTransition();
   const [ordemErro, setOrdemErro] = useState('');
-  function trocarOrdem() {
-    const n = Number(ordemTexto);
+  function trocarOrdem(n: number) {
     setOrdemErro('');
     iniciarOrdem(async () => {
       const r = await definirOrdemChegadaAction(item.id, n);
       if (!r.ok) setOrdemErro(r.erro ?? 'Não foi possível trocar o número.');
-      else router.refresh();
+      else {
+        setOrdemTexto(String(n));
+        router.refresh();
+      }
     });
   }
   const listaOrigens = `origens-descarga-${item.id}`;
@@ -135,11 +137,16 @@ export function CartaoChegada({ item, origens = [] }: { item: ItemChegada; orige
               <label htmlFor={`${item.id}-ordem`}>Número do caminhão (ordem)</label>
               <input id={`${item.id}-ordem`} className="h-12 w-28" inputMode="numeric" maxLength={3} value={ordemTexto} onChange={(e) => setOrdemTexto(e.target.value.replace(/\D/g, '').slice(0, 3))} disabled={ordemPendente} />
             </div>
-            <button type="button" className="btn btn-ghost btn-sm h-12" disabled={ordemPendente || !ordemTexto} onClick={trocarOrdem}>
+            <button type="button" className="btn btn-ghost h-12" disabled={ordemPendente || !ordemTexto} onClick={() => trocarOrdem(Number(ordemTexto))}>
               {ordemPendente ? 'Aguarde...' : 'Trocar número'}
             </button>
+            {item.ordemDia !== 1 && (
+              <button type="button" className="btn btn-primary h-12" disabled={ordemPendente} onClick={() => trocarOrdem(1)}>
+                Passar para o primeiro
+              </button>
+            )}
           </div>
-          <p className="text-xs text-ink-muted">Ordem de descarga do dia. Trocar aqui muda só este caminhão.</p>
+          <p className="text-sm text-ink-muted">Ordem de descarga do dia. Os outros caminhões andam uma posição para trás, sem número repetido.</p>
           {ordemErro && <p role="alert" className="text-sm text-bad">{ordemErro}</p>}
         </div>
       )}

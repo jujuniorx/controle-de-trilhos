@@ -144,13 +144,30 @@ export async function confirmarSaidaChegada(id: string, atorNome: string): Promi
   if (r.count === 0) throw new ErroRegraNegocio('Não foi possível confirmar: a situação mudou. Atualize a tela.');
 }
 
-/** Portaria: muda o número de ordem do caminhão (o automático é o próximo do dia). */
+/**
+ * Portaria: põe o caminhão na posição "ordem" da fila do dia. Quem já estava a partir dessa
+ * posição anda uma casa para trás, então não sobra número repetido. Caminhões que já saíram
+ * ou foram cancelados ficam de fora. Ex.: o motorista do nº 1 está dormindo e o nº 2 passa
+ * na frente: a Portaria põe o nº 2 como 1 e o antigo nº 1 vira 2.
+ */
 export async function definirOrdemChegada(id: string, ordem: number): Promise<void> {
   if (!Number.isInteger(ordem) || ordem < 1 || ordem > 999) throw new ErroRegraNegocio('O número de ordem deve ser de 1 a 999.');
   const c = await prisma.chegadaCaminhao.findUnique({ where: { id } });
   if (!c) throw new ErroRegraNegocio('Chegada não encontrada.');
   if (c.canceladaEm) throw new ErroRegraNegocio('Esta chegada foi cancelada.');
-  await prisma.chegadaCaminhao.update({ where: { id }, data: { ordemDia: ordem, ordemData: c.ordemData ?? diaHoje() } });
+  const dia = c.ordemData ?? diaHoje();
+  const fila = await prisma.chegadaCaminhao.findMany({
+    where: { ordemData: dia, id: { not: id }, canceladaEm: null, saidaEm: null },
+    orderBy: [{ ordemDia: 'asc' }, { liberadaEm: 'asc' }],
+    select: { id: true },
+  });
+  const posicao = Math.min(ordem, fila.length + 1) - 1;
+  const nova = [...fila.slice(0, posicao), { id }, ...fila.slice(posicao)];
+  await prisma.$transaction(
+    nova.map((item, i) =>
+      prisma.chegadaCaminhao.update({ where: { id: item.id }, data: { ordemDia: i + 1, ordemData: dia } }),
+    ),
+  );
 }
 
 /** Cancela uma chegada que ainda não foi descarregada (cadastrada por engano, caminhão foi embora). */
