@@ -63,7 +63,7 @@ function Cartao({ rotulo, valor }: { rotulo: string; valor: string | number }) {
 
 const NOME_DIA = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
 // Lançamento de TLS: os novos primeiro, depois os reemprego, com os mesmos nomes do relatório.
-const ORDEM_LANCAMENTO_TLS = ['TR68_NOVO', 'UIC60_NOVO', 'TR68_REEMPREGO', 'UIC60_REEMPREGO', 'GB60_REEMPREGO'] as const;
+const ORDEM_LANCAMENTO_TLS = ['TR68_NOVO', 'UIC60_NOVO', 'TR68_REEMPREGO', 'UIC60_REEMPREGO'] as const;
 const MALHAS_LANCAMENTO_TLS = [
   { chave: 'PAULISTA', rotulo: 'Malha Paulista' },
   { chave: 'NORTE', rotulo: 'Malha Norte' },
