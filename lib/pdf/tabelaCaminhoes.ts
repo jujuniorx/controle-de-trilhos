@@ -9,6 +9,8 @@ const hex = (h: string): Cor => {
 };
 const BRANCO: Cor = [1, 1, 1];
 const LINHA: Cor = [0.86, 0.88, 0.91];
+// Separador entre caminhões: mais escuro que a linha do cabeçalho, para aparecer sobre a faixa zebrada.
+const SEPARADOR: Cor = [0.62, 0.66, 0.73];
 const TINTA: Cor = [0.1, 0.12, 0.16];
 const CINZA: Cor = [0.42, 0.45, 0.5];
 const NAVY: Cor = hex('#0b1b31');
@@ -109,6 +111,6 @@ export function desenharCaminhoes(
       linhas.slice(0, 4).forEach((linha, k) => p.texto(linha, x + xObs, y + 5 - k * 8.5, 7.5, 'normal', CINZA));
     }
     // Linha separando uma linha de caminhão da próxima.
-    if (i < caminhoes.length - 1) p.linha(x + 8, y - 11, x + w - 8, y - 11, LINHA, 0.5);
+    if (i < caminhoes.length - 1) p.linha(x + 4, y - 12, x + w - 4, y - 12, SEPARADOR, 0.9);
   });
 }
