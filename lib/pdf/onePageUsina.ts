@@ -411,7 +411,7 @@ function montarPaginasUsina(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 
   const altCaminhao = Math.max(90, 50 + linhasCaminhao * 40);
   const gapLinha = 12; // mesmo espaço entre cartões da página, em toda a folha
   // Página 2: caminhão, trilheiros e observações. Página 1: setores e estoque TLS.
-  const topoLinha2 = H - 70;
+  const topoLinha2 = H - 46; // mesmo topo da primeira página (sem faixa em branco no começo da segunda)
   const caminhao = porTitulo('Caminhão de solda');
   // Caminhão no mesmo formato da tabela de trilheiros (sem gráfico, como no trilheiro).
   if (caminhao?.caminhoes) desenharCaminhoes(p2, caminhao.caminhoes, caminhao.cor, M, topoLinha2, larguraTotal, altCaminhao, mensal ? 'mensal' : 'semanal', colunas);
