@@ -208,8 +208,8 @@ export default async function AdminPortariaPage({
                       </p>
                     ))}
                   </td>
-                  <td className="px-3 py-2">
-                    <div className="flex flex-wrap justify-end gap-1">{l.acoes}</div>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    <div className="flex flex-nowrap justify-end gap-1">{l.acoes}</div>
                   </td>
                 </tr>
               ))}
