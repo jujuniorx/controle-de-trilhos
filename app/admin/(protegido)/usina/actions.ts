@@ -392,7 +392,6 @@ export async function salvarGeracaoSemanaAction(_: ResultadoUsina | undefined, f
   for (const g of gravar) {
     await salvarGeracaoDia(g.data, g.lider, { local: g.local, corteM: g.corteM, observacao: g.observacao, carretas: g.carretas });
   }
-  await salvarObservacoesDoSetor(formData, semana, 'geracao');
   atualizar();
   return { ok: true };
 }

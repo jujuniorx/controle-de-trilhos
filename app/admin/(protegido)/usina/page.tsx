@@ -257,7 +257,6 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
               lideres={LIDERES}
               opcoesPerfis={PERFIS}
             />
-                      <ObservacoesDoSetor setor="geracao" dias={diasObservacao} obs={observacoesSemana} />
           </FormularioUsina>
         </div>
       </details>
