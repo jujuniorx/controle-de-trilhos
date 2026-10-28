@@ -39,7 +39,7 @@ export function desenharTrilheiros(p: PaginaPdf, t: TrilheirosRelatorio, x: numb
   rotuloC('DIAS DESDE B.O.', cen.diasBo);
   rotuloC('PARTIDA', cen.partida);
   rotuloC('DIAS DESDE PARTIDA', cen.diasPartida);
-  rotulo('LOCAL', col.local);
+  centro('LOCAL', 501, yCabecalho, 6.5, 'negrito', CINZA);
   rotuloC('BARRAS DESC. / TOTAL', cen.barras);
   rotulo('OBSERVAÇÃO', col.obs);
   p.linha(x + 8, yCabecalho - 6, x + w - 8, yCabecalho - 6, LINHA, 0.6);
@@ -65,12 +65,13 @@ export function desenharTrilheiros(p: PaginaPdf, t: TrilheirosRelatorio, x: numb
       const largura = Math.max(larguraTexto(e.local, tamanho, 'negrito') + 12, 34);
       const alturaEtiqueta = 13;
       const yEtiqueta = y - 3;
-      p.arredondado(x + col.local, yEtiqueta, largura, alturaEtiqueta, 6, NAVY);
-      const xTexto = x + col.local + (largura - larguraTexto(e.local, tamanho, 'negrito')) / 2;
+      const xEtiqueta = x + 501 - largura / 2;
+      p.arredondado(xEtiqueta, yEtiqueta, largura, alturaEtiqueta, 6, NAVY);
+      const xTexto = xEtiqueta + (largura - larguraTexto(e.local, tamanho, 'negrito')) / 2;
       const yTexto = yEtiqueta + (alturaEtiqueta - tamanho * 0.7) / 2;
       p.texto(e.local, xTexto, yTexto, tamanho, 'negrito', BRANCO);
     } else {
-      p.texto('—', x + col.local, y, 9, 'normal', CINZA);
+      centro('—', 501, y, 9, 'normal', CINZA);
     }
     centro(`${e.descarregadas} / ${e.total}`, cen.barras, y, 10, 'negrito', COR_TRILHEIROS);
     const linhas = e.observacao ? quebrarLinhas(e.observacao, 7.5, w - col.obs - 16) : [];

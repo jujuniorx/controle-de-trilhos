@@ -21,6 +21,7 @@ type Grupo = 'solda' | 'corte';
 type Numero = `${Grupo}-${Coluna}`;
 const NOME: Record<Coluna, string> = { dia: 'DIA', semana: 'SEMANA', mes: 'NO MÊS' };
 const PASSO = 68;
+
 const INICIO = 200;
 
 /**
@@ -40,6 +41,9 @@ export function desenharCaminhoes(
 ) {
   const base = topo - h;
   const corSetor = hex(cor);
+  // Texto centralizado em xc (coordenada absoluta da página).
+  const textoCentroLocal = (texto: string, xc: number, yy: number, tamanho: number, fonte: 'normal' | 'negrito', c: Cor) =>
+    p.texto(texto, xc - larguraTexto(texto, tamanho, fonte) / 2, yy, tamanho, fonte, c);
   // Observação no mesmo estilo do trilheiro: aparece no semanal e no diário (não no mensal).
   const comObservacao = modo !== 'mensal';
   p.arredondado(x + 1.2, base - 1.4, w, h, 9, SOMBRA);
@@ -76,7 +80,8 @@ export function desenharCaminhoes(
   centroGrupo('CORTE (UND)', 'corte');
   p.texto('CAMINHÃO', x + 10, yCabecalho, 6.5, 'negrito', CINZA);
   ordem.forEach((n) => centro(NOME[n.split('-')[1] as Coluna], posicao(n), yCabecalho, 6.5, 'negrito', CINZA));
-  p.texto('LOCAL', x + xLocal, yCabecalho, 6.5, 'negrito', CINZA);
+  // LOCAL centralizado na coluna (entre xLocal e xObs).
+  textoCentroLocal('LOCAL', x + xLocal + 45, yCabecalho, 6.5, 'negrito', CINZA);
   if (comObservacao) p.texto('OBSERVAÇÃO', x + xObs, yCabecalho, 6.5, 'negrito', CINZA);
   p.linha(x + 8, yCabecalho - 6, x + w - 8, yCabecalho - 6, LINHA, 0.6);
 
@@ -99,12 +104,13 @@ export function desenharCaminhoes(
       const largura = Math.max(larguraTexto(c.local, tamanho, 'negrito') + 12, 34);
       const alturaEtiqueta = 13;
       const yEtiqueta = y - 3;
-      p.arredondado(x + xLocal, yEtiqueta, largura, alturaEtiqueta, 6, NAVY);
-      const xTexto = x + xLocal + (largura - larguraTexto(c.local, tamanho, 'negrito')) / 2;
+      const xEtiqueta = x + xLocal + 45 - largura / 2;
+      p.arredondado(xEtiqueta, yEtiqueta, largura, alturaEtiqueta, 6, NAVY);
+      const xTexto = xEtiqueta + (largura - larguraTexto(c.local, tamanho, 'negrito')) / 2;
       const yTexto = yEtiqueta + (alturaEtiqueta - tamanho * 0.7) / 2;
       p.texto(c.local, xTexto, yTexto, tamanho, 'negrito', BRANCO);
     } else {
-      p.texto('—', x + xLocal, y, 9, 'normal', CINZA);
+      textoCentroLocal('—', x + xLocal + 45, y, 9, 'normal', CINZA);
     }
     if (comObservacao) {
       const linhas = c.observacao ? quebrarLinhas(c.observacao, 7.5, w - xObs - 16) : [];
