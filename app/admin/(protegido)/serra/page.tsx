@@ -11,7 +11,7 @@ export default async function SerraPage() {
   const progresso = Math.min((r.naUsinaM / r.metaM) * 100, 100);
 
   return (
-    <main className="mx-auto w-full max-w-3xl space-y-6">
+    <main className="mx-auto w-full max-w-7xl space-y-6">
       <header>
         <h1 className="page-title">Trilho da serra</h1>
         <p className="text-sm text-ink-muted">Evangelista e Paratinga. Atualiza sozinho conforme os recebimentos são lançados. 1 unidade ≈ 10 m.</p>

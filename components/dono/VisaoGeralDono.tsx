@@ -51,7 +51,7 @@ const CSS = `
 .vg-tile:nth-child(1) { animation-delay: .05s } .vg-tile:nth-child(2) { animation-delay: .12s }
 .vg-tile:nth-child(3) { animation-delay: .19s } .vg-tile:nth-child(4) { animation-delay: .26s }
 .vg-tile { padding: 20px 20px 18px; position: relative; overflow: hidden; }
-.vg-tile .stat-value { font-size: clamp(26px, 5.2vw, 34px); line-height: 1.05; margin-top: 8px; font-weight: 700; }
+.vg-tile .stat-value { font-size: clamp(20px, 3.9vw, 30px); line-height: 1.05; margin-top: 8px; font-weight: 700; white-space: nowrap; max-width: 100%; }
 .vg-tile::after { content: ''; position: absolute; right: -30px; top: -30px; width: 90px; height: 90px; border-radius: 50%; background: var(--cor); opacity: .07; pointer-events: none; }
 .vg-zero { opacity: .7; }
 .vg-tile:hover { transform: translateY(-4px); box-shadow: 0 12px 26px -14px var(--cor); border-color: var(--cor); }

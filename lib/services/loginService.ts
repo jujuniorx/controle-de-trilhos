@@ -59,6 +59,8 @@ export async function autenticar(identificador: string, senha: string, ip = 'des
   }
 
   await prisma.loginAttempt.deleteMany({ where: { identificador: { in: [chaveIp, chave] } } });
+  // Registra o último acesso (a tela de Usuários mostra). Falha aqui não pode impedir o login.
+  await prisma.user.update({ where: { id: user.id }, data: { ultimoLoginEm: agora } }).catch(() => undefined);
   const { token, expiresAt } = await criarSessao(user.id);
   return { ok: true, token, expiresAt };
 }
