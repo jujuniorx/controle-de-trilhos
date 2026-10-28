@@ -413,6 +413,8 @@ export async function montarTrilheirosRelatorio(data: string): Promise<Trilheiro
         where: { trilheiro: t, data: { lte: dataRel }, descarregadas: { not: null } },
         orderBy: { data: 'desc' },
       });
+      // A observação é a do próprio dia do relatório (não a do último dia com barras).
+      const doDia = await prisma.trilheiroDia.findUnique({ where: { data_trilheiro: { data: dataRel, trilheiro: t } } });
       // Dia anterior do mesmo giro: a diferenca entre os dois e o que foi descarregado no dia.
       const anterior = r
         ? await prisma.trilheiroDia.findFirst({
@@ -428,7 +430,7 @@ export async function montarTrilheirosRelatorio(data: string): Promise<Trilheiro
           partida: null,
           diasDesdePartida: null,
           local: null,
-          observacao: null,
+          observacao: doDia?.observacao ?? null,
           total: 0,
           descarregadas: 0,
           descarregadasDia: 0,
@@ -449,7 +451,7 @@ export async function montarTrilheirosRelatorio(data: string): Promise<Trilheiro
         partida,
         diasDesdePartida,
         local: r.local ?? null,
-        observacao: r.observacao ?? null,
+        observacao: doDia?.observacao ?? null,
         total,
         descarregadas,
         // "Do dia" só vale se houve lançamento na própria data do relatório; senão mostra zero, e não o último dia lançado.
