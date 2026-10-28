@@ -171,7 +171,7 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
                       </span>
                     ) : (
                       <span className="whitespace-nowrap text-right font-mono font-semibold text-warn">
-                        {fmtPeso(Number(g.pesoCalculado ?? 0))} t <span className="text-xs font-normal">(estimado, a confirmar)</span>
+                        {fmtPeso(Number(g.pesoInformado ?? g.pesoCalculado ?? 0))} t{g.pesoInformado == null && <span className="text-xs font-normal"> (estimado, a confirmar)</span>}
                       </span>
                     )}
                   </div>

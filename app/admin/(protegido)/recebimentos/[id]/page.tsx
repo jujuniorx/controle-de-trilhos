@@ -64,7 +64,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
           <div className="kv-item"><div className="kv-label">Criado pelo Pátio em</div><div className="kv-val font-mono">{fmtDataHora(mov.createdAt)}</div></div>
           <div className="kv-item"><div className="kv-label">Nota fiscal</div><div className="kv-val font-mono">{nfsEmTexto(mov) || 'Em aberto'}</div></div>
           <div className="kv-item"><div className="kv-label">Origem</div><div className="kv-val">{normalizarLocal(mov.origem)}</div></div>
-          <div className="kv-item"><div className="kv-label">Transporte</div><div className="kv-val">{mov.tipoTransporte}</div></div>
+          <div className="kv-item"><div className="kv-label">Transporte</div><div className="kv-val">{mov.tipoTransporte === 'CAMINHAO' ? 'Caminhão' : mov.tipoTransporte}</div></div>
           <div className="kv-item"><div className="kv-label">Carreta(s)</div><div className="kv-val font-mono">{[mov.placaCarreta, mov.placaCarreta2].filter(Boolean).join(' / ') || '—'}</div></div>
           <div className="kv-item"><div className="kv-label">Cavalo</div><div className="kv-val font-mono">{mov.placaCavalo ?? '—'}</div></div>
           <div className="kv-item"><div className="kv-label">Responsável (Pátio)</div><div className="kv-val">{mov.responsavelPatio}</div></div>
@@ -120,13 +120,13 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
                     {pecasDoGrupo(g.medicoes)} {pecasDoGrupo(g.medicoes) === 1 ? 'barra' : 'barras'} · {fmtMetros(g.metrosTotal)} m
                   </span>
                 </div>
-                {g.tipoMaterial === 'SUCATA' ? (
+                {g.tipoMaterial === 'SUCATA' && g.pesoInformado == null ? (
                   <span className="whitespace-nowrap text-right font-mono">
-                    <span className="font-semibold text-ink">{fmtPeso(Number(g.pesoCalculado ?? 0))} t</span>{' '}
+                    <span className="font-semibold text-ink">{fmtPeso(Number(g.pesoInformado ?? g.pesoCalculado ?? 0))} t</span>{' '}
                     <span className="text-xs text-warn">(estimado, a confirmar)</span>
                   </span>
                 ) : (
-                  <span className="whitespace-nowrap font-mono font-semibold text-ink">{fmtPeso(Number(g.pesoCalculado ?? 0))} t</span>
+                  <span className="whitespace-nowrap font-mono font-semibold text-ink">{fmtPeso(Number(g.pesoInformado ?? g.pesoCalculado ?? 0))} t</span>
                 )}
               </div>
             </div>
@@ -172,8 +172,8 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Peso</p>
                     <p className="font-mono text-base font-semibold text-ink">
-                      {fmtPeso(Number(g.pesoCalculado ?? 0))} t
-                      {g.tipoMaterial === 'SUCATA' && <span className="ml-2 text-xs font-normal text-warn">estimado, a confirmar</span>}
+                      {fmtPeso(Number(g.pesoInformado ?? g.pesoCalculado ?? 0))} t
+                      {g.tipoMaterial === 'SUCATA' && g.pesoInformado == null && <span className="ml-2 text-xs font-normal text-warn">estimado, a confirmar</span>}
                     </p>
                   </div>
                 </div>
