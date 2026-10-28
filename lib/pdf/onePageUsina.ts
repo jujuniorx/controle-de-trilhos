@@ -68,8 +68,8 @@ function desenharTabelaSerra(p: PaginaPdf, serra: SerraRelatorio, x: number, top
   const fim = (c: number) => x + colunaRotulo + (c + 1) * colW - 4;
   const fimG = (gi: number, sub: 0 | 1) => fim(6 - 2 * grupos.length + gi * 2 + sub);
   // Caixa por coluna (Dia, Semana, No mês), igual aos cartões de estaleiro e geração: cobre o cabeçalho até a última linha.
-  // A caixa desce até abaixo da linha do Total (a linha do Total fica em topo - 64 - 11 x (linhas + 1)).
-  const baseCaixa = topo - 64 - 11 * (serra.linhas.length + 1) - 4;
+  // A caixa desce até logo abaixo da linha do Total (a linha do Total fica em topo - 55 - 11 x (linhas + 1)).
+  const baseCaixa = topo - 55 - 11 * (serra.linhas.length + 1) - 4;
   grupos.forEach((g, gi) => {
     // Caixas com folga entre elas: cada grupo ocupa duas colunas, e a caixa seguinte começa depois de 6pt.
     const x0 = fimG(gi, 0) - colW + 6;
