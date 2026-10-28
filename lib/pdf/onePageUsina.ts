@@ -93,7 +93,7 @@ function desenharTabelaSerra(p: PaginaPdf, serra: SerraRelatorio, x: number, top
     textoCentro(p, 'Barras', fimG(gi, 0) - colW / 2, y, 6, 'negrito', CINZA);
     // "Metros" e "est." em duas linhas, para não encostar em "Barras".
     textoCentro(p, 'Metros', fimG(gi, 1) - colW / 2, y, 6, 'negrito', CINZA);
-    textoCentro(p, 'est.', fimG(gi, 1) - colW / 2, y - 7, 5.5, 'normal', CINZA);
+    textoCentro(p, '(est.)', fimG(gi, 1) - colW / 2, y - 7, 6, 'negrito', CINZA);
   });
   y -= 14;
   p.linha(x + 8, y, x + w - 8, y, LINHA, 0.6);
