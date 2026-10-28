@@ -359,7 +359,8 @@ function montarPaginasUsina(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 
   const larguraLogo = (altLogo * LOGO_RUMO.largura) / LOGO_RUMO.altura;
   const centroTexto = H - 24 + 2.6; // meio das maiusculas do texto
   p.texto('CONTROLE DE TRILHOS', M, H - 24, 7, 'negrito', AZUL);
-  p.texto('-', M + larguraMarca + 9, H - 24, 7, 'negrito', CINZA);
+  // Traço desenhado como linha, no meio exato das maiúsculas (o glifo "-" ficava baixo).
+  p.linha(M + larguraMarca + 9, centroTexto, M + larguraMarca + 13, centroTexto, CINZA, 0.9);
   p.imagem(logoRumo, M + larguraMarca + 20, centroTexto - altLogo / 2, larguraLogo, altLogo);
   textoDireita(p, semana, L - M, H - 24, 9, 'negrito', NAVY);
   p.linha(M, H - 32, L - M, H - 32, LINHA, 0.8);
