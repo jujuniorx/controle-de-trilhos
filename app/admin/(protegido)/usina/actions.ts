@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { salvarEstaleiroDia, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, geracaoDaSemana, salvarGeracaoDia, salvarEstoqueTlsMalhas, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, MALHAS_TLS, type TipoTlsValor, type MalhaTlsValor } from '@/lib/services/usina';
 import { ITENS_ESCALA, escalaVazia, gravarEscala, statusValido, cfgDeObjeto } from '@/lib/usina/escala';
-import { salvarComposicao, salvarCaminhao, salvarGiro, trilheirosDaSemana, salvarTrilheiroDia, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
+import { salvarComposicao, salvarCaminhao, salvarGiro, trilheirosDaSemana, salvarTrilheirosDias, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
 import { ehIsoValido } from '@/lib/usina/periodo';
 import { salvarObservacaoSetor } from '@/lib/services/observacaoSetor';
@@ -347,7 +347,7 @@ export async function salvarTrilheirosSemanaAction(_: ResultadoUsina | undefined
       });
     }
   }
-  for (const l of lancamentos) await salvarTrilheiroDia(l.data, l.trilheiro, l.v);
+  await salvarTrilheirosDias(lancamentos);
   atualizar();
   return { ok: true };
 }

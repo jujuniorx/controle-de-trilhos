@@ -555,6 +555,27 @@ export async function salvarTrilheiroDia(
   });
 }
 
+/** Grava vários dias de trilheiros numa única transação (uma ida ao banco, em vez de uma por dia). */
+export async function salvarTrilheirosDias(
+  lista: {
+    data: string;
+    trilheiro: (typeof TRILHEIROS)[number];
+    v: { boEm: string | null; partidaEm: string | null; local: string | null; descarregadas: number | null; total: number | null; programacao: string | null; observacao: string | null };
+  }[],
+) {
+  if (lista.length === 0) return;
+  await prisma.$transaction(
+    lista.map(({ data, trilheiro, v }) => {
+      const valores = { ...v, boEm: v.boEm ? dataBanco(v.boEm) : null, partidaEm: v.partidaEm ? dataBanco(v.partidaEm) : null };
+      return prisma.trilheiroDia.upsert({
+        where: { data_trilheiro: { data: dataBanco(data), trilheiro } },
+        update: valores,
+        create: { data: dataBanco(data), trilheiro, ...valores },
+      });
+    }),
+  );
+}
+
 export async function salvarManutencaoTrilheiro(v: { data: string; trilheiro: (typeof TRILHEIROS)[number]; local: string | null; tipo: string | null; detalhamento: string | null }) {
   await prisma.trilheiroManutencao.create({ data: { ...v, data: dataBanco(v.data) } });
 }
