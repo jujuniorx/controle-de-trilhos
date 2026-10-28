@@ -561,7 +561,7 @@ describe('informarNumeroDocumentoRemetido', () => {
   afterAll(async () => {
     const ids = (
       await prisma.movimentacao.findMany({
-        where: { OR: [{ reservaPedido: { startsWith: RESERVA_MARCADOR } }, { origem: RESERVA_MARCADOR }] },
+        where: { OR: [{ reservaPedido: { startsWith: RESERVA_MARCADOR } }, { origem: { equals: RESERVA_MARCADOR, mode: 'insensitive' } }] },
         select: { id: true },
       })
     ).map((m) => m.id);

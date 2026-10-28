@@ -76,7 +76,14 @@ export const dadosPortariaSchema = z.object({
   materialPrevisto: texto(120),
   // Recado da Portaria para o Pátio.
   observacao: texto(500),
-  transportadora: texto(120),
+  // Mesmo padrão do Pátio: maiúsculas ao gravar, senão a mesma empresa vira duas no relatório.
+  transportadora: opcional(
+    z
+      .string()
+      .trim()
+      .max(120)
+      .transform((v) => v.replace(/\s+/g, ' ').toLocaleUpperCase('pt-BR')),
+  ),
   motoristaNome: texto(80),
   motoristaCpf: cpf,
   motoristaTelefone: telefone,

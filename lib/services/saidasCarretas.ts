@@ -24,13 +24,21 @@ const contem = (valor: string | null | undefined, termo: string) =>
  * Carretas que já saíram: cargas (Remetido, com saída da Portaria) e descargas
  * (chegada de caminhão, com saída registrada). Busca opcional por placa, cidade ou motorista.
  */
-export async function listarSaidasCarretas(busca: string, limite = 100): Promise<SaidaCarreta[]> {
+export interface FiltroSaidas {
+  /** 'CARGA', 'DESCARGA' ou vazio para as duas. */
+  tipo?: string;
+  /** Quantos dias para trás (7, 30...). Vazio mostra tudo. */
+  dias?: number;
+}
+
+export async function listarSaidasCarretas(busca: string, limite = 100, filtro: FiltroSaidas = {}): Promise<SaidaCarreta[]> {
   const termo = busca.trim();
   const placa = soAlfanumerico(termo);
+  const desde = filtro.dias && filtro.dias > 0 ? new Date(Date.now() - filtro.dias * 24 * 60 * 60 * 1000) : null;
 
   const [cargas, descargas] = await Promise.all([
     prisma.movimentacao.findMany({
-      where: { tipo: 'REMETIDO', saidaPortariaEm: { not: null } },
+      where: { tipo: 'REMETIDO', saidaPortariaEm: desde ? { gte: desde } : { not: null } },
       orderBy: { saidaPortariaEm: 'desc' },
       take: limite,
       select: {
@@ -40,7 +48,7 @@ export async function listarSaidasCarretas(busca: string, limite = 100): Promise
       },
     }),
     prisma.chegadaCaminhao.findMany({
-      where: { saidaEm: { not: null } },
+      where: { saidaEm: desde ? { gte: desde } : { not: null } },
       orderBy: { saidaEm: 'desc' },
       take: limite,
       select: {
@@ -51,11 +59,28 @@ export async function listarSaidasCarretas(busca: string, limite = 100): Promise
     }),
   ]);
 
+  /**
+   * Placas rotuladas e sem repetição. Quando o mesmo número está salvo em dois campos
+   * (acontece quando a 2ª carreta foi preenchida com a placa do cavalo), a lista mostrava
+   * o mesmo número duas vezes e ninguém sabia qual era qual.
+   */
+  const placasDe = (cavalo: string | null, carreta: string | null, carreta2: string | null): string[] => {
+    const vistas = new Set<string>();
+    const saida: string[] = [];
+    for (const [rotulo, valor] of [['Cavalo', cavalo], ['Carreta', carreta], ['Carreta 2', carreta2]] as const) {
+      const limpo = valor?.trim().toUpperCase();
+      if (!limpo || vistas.has(limpo)) continue;
+      vistas.add(limpo);
+      saida.push(`${rotulo} ${limpo}`);
+    }
+    return saida;
+  };
+
   const todas: SaidaCarreta[] = [
     ...cargas.map((l) => ({
       id: l.id,
       tipo: 'CARGA' as const,
-      placas: [l.placaCavalo, l.placaCarreta, l.placaCarreta2].filter((p): p is string => Boolean(p)),
+      placas: placasDe(l.placaCavalo, l.placaCarreta, l.placaCarreta2),
       cidade: l.destino,
       motoristaNome: l.motoristaNome,
       transportadora: l.transportadora,
@@ -66,7 +91,7 @@ export async function listarSaidasCarretas(busca: string, limite = 100): Promise
     ...descargas.map((l) => ({
       id: l.id,
       tipo: 'DESCARGA' as const,
-      placas: [l.placaCavalo, l.placaCarreta, l.placaCarreta2].filter((p): p is string => Boolean(p)),
+      placas: placasDe(l.placaCavalo, l.placaCarreta, l.placaCarreta2),
       cidade: l.origem,
       motoristaNome: l.motoristaNome,
       transportadora: l.transportadora,
@@ -76,14 +101,15 @@ export async function listarSaidasCarretas(busca: string, limite = 100): Promise
     })),
   ];
 
+  const porTipo = filtro.tipo === 'CARGA' || filtro.tipo === 'DESCARGA' ? todas.filter((s) => s.tipo === filtro.tipo) : todas;
   const filtradas = termo
-    ? todas.filter(
+    ? porTipo.filter(
         (s) =>
           (placa && s.placas.some((p) => soAlfanumerico(p).includes(placa))) ||
           contem(s.cidade, termo) ||
           contem(s.motoristaNome, termo),
       )
-    : todas;
+    : porTipo;
 
   return filtradas.sort((a, b) => b.saidaEm.getTime() - a.saidaEm.getTime()).slice(0, limite);
 }

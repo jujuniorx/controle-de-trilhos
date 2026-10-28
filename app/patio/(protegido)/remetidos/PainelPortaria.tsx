@@ -52,7 +52,7 @@ export function PainelPortaria({ id, estado, nota = null }: { id: string; estado
           <span className="badge badge-ok">Carreta liberada — a Portaria foi avisada</span>
           {nota === 'EMITIDA' && <span className="badge badge-ok">Nota fiscal emitida</span>}
           {nota === 'PENDENTE' && <span className="badge badge-warn">Nota fiscal pendente: falta emitir a nota desta carreta</span>}
-          <button type="button" className="btn btn-ghost btn-sm" disabled={pendente} onClick={() => executar(desfazerLiberacaoAction)}>
+          <button type="button" className="btn btn-ghost h-11" disabled={pendente} onClick={() => executar(desfazerLiberacaoAction)}>
             Liberei sem querer — desfazer
           </button>
         </>

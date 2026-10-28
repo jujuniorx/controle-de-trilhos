@@ -290,7 +290,7 @@ describe('gerarRelatorioExcel — aba Remetidos', () => {
 
 afterAll(async () => {
   const movimentacoes = await prisma.movimentacao.findMany({
-    where: { OR: [{ origem: MARCADOR }, { destino: MARCADOR }] },
+    where: { OR: [{ origem: MARCADOR }, { destino: MARCADOR }, { origem: MARCADOR_UPPER }, { destino: MARCADOR_UPPER }] },
     select: { id: true },
   });
   const ids = movimentacoes.map((m) => m.id);

@@ -169,11 +169,11 @@ describe('Carreta que chegou sem aviso do Pátio — a Portaria cria o envio', (
 
 afterAll(async () => {
   const movs = await prisma.movimentacao.findMany({
-    where: { OR: [{ reservaPedido: { startsWith: MARCADOR } }, { origem: MARCADOR }] },
+    where: { OR: [{ reservaPedido: { startsWith: MARCADOR } }, { origem: { equals: MARCADOR, mode: 'insensitive' } }] },
     select: { id: true },
   });
   const ids = movs.map((m) => m.id);
-  await prisma.chegadaCaminhao.deleteMany({ where: { OR: [{ origem: MARCADOR }, { movimentacaoId: { in: ids } }] } });
+  await prisma.chegadaCaminhao.deleteMany({ where: { OR: [{ origem: { equals: MARCADOR, mode: 'insensitive' } }, { movimentacaoId: { in: ids } }] } });
   await prisma.historicoAlteracao.deleteMany({ where: { movimentacaoId: { in: ids } } });
   await prisma.medicao.deleteMany({ where: { grupo: { movimentacaoId: { in: ids } } } });
   await prisma.grupo.deleteMany({ where: { movimentacaoId: { in: ids } } });

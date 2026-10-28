@@ -9,12 +9,12 @@ export default async function PilhasPatioPage() {
   await requirePatioAcesso();
   const pilhas = await listarPilhasPatio();
   return (
-    <main className="mx-auto w-full max-w-md space-y-5 p-6 sm:max-w-3xl lg:max-w-4xl">
+    <main className="patio-tela mx-auto w-full max-w-md space-y-5 p-6 sm:max-w-3xl lg:max-w-4xl">
       <header className="space-y-1">
         <h1 className="font-condensed text-3xl font-bold uppercase tracking-wide text-ink">Pilhas do pátio</h1>
         <p className="text-sm text-ink-muted">
-          Para cada pilha, escreva o nome que vocês usam no pátio e escolha o que tem nela. Não precisa informar quantidade.
-          Cada campo é salvo ao sair dele.
+          Isto é só um mapa de onde está cada material no pátio: não altera o estoque nem avisa o Administrativo.
+          Escreva o nome que vocês usam e escolha o que tem na pilha. Não precisa informar quantidade — cada campo é salvo ao sair dele.
         </p>
       </header>
       <EditorPilhas

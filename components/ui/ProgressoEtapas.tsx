@@ -1,5 +1,5 @@
 /** Barra de etapas do formulário: segmentos que se enchem conforme o avanço. */
-export function ProgressoEtapas({ etapa, total }: { etapa: number; total: number }) {
+export function ProgressoEtapas({ etapa, total, rotulo }: { etapa: number; total: number; rotulo?: string }) {
   return (
     <div className="progresso" role="progressbar" aria-valuemin={1} aria-valuemax={total} aria-valuenow={etapa} aria-label={`Etapa ${etapa} de ${total}`}>
       <div className="progresso-segmentos">
@@ -9,6 +9,7 @@ export function ProgressoEtapas({ etapa, total }: { etapa: number; total: number
       </div>
       <p className="progresso-texto">
         Etapa {etapa} de {total}
+        {rotulo ? ` · ${rotulo}` : ''}
       </p>
     </div>
   );

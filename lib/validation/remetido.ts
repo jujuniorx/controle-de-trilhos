@@ -24,7 +24,7 @@ export const preCadastroRemetidoSchema = z.object({
   tipoRemetido: z.enum(TIPOS_REMETIDO).optional(),
   // Opcional: o Pátio não precisa informar (igual ao lançamento direto); fica nulo.
   reservaPedido: z.string().trim().min(1).optional(),
-  destino: z.string().trim().min(1, 'Informe o destino.'),
+  destino: z.string().trim().min(1, 'Informe o destino.').transform((v) => v.replace(/\s+/g, ' ').toLocaleUpperCase('pt-BR')),
   numeroDocumento: nfOpcional,
 });
 
@@ -46,7 +46,7 @@ const dadosConfirmacaoBaseSchema = z.object({
     placaCavalo: z.string().regex(PLACA_REGEX, MSG_PLACA_INVALIDA).optional(),
     placaCarreta: z.string().regex(PLACA_REGEX, MSG_PLACA_INVALIDA).optional(),
     placaCarreta2: z.string().regex(PLACA_REGEX, MSG_PLACA_INVALIDA).optional(),
-    transportadora: z.string().trim().max(120).optional(),
+    transportadora: z.string().trim().max(120).transform((v) => v.replace(/\s+/g, ' ').toLocaleUpperCase('pt-BR')).optional(),
     responsavelPatio: z.string().trim().min(3, 'Informe quem está preenchendo.'),
     observacao: z.string().trim().max(500, 'Observação: no máximo 500 caracteres.').optional(),
 });
@@ -172,7 +172,7 @@ export const lancamentoDiretoRemetidoSchema = z.object({
   // da tela (o Administrativo não usa essa referência nesse fluxo) — o campo
   // em si continua existindo no banco e no pré-cadastro/Admin, intocado.
   reservaPedido: z.string().trim().min(1).optional(),
-  destino: z.string().trim().min(1, 'Informe o destino.'),
+  destino: z.string().trim().min(1, 'Informe o destino.').transform((v) => v.replace(/\s+/g, ' ').toLocaleUpperCase('pt-BR')),
   dados: dadosConfirmacaoSchema,
   grupos: z.array(grupoRemetidoSchema).min(1, 'Adicione ao menos um grupo antes de finalizar.'),
 });

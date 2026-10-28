@@ -32,9 +32,15 @@ export default function AcessoPatioPage() {
             name="pin"
             type="password"
             inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={12}
             required
-            className="h-12 text-center text-lg tracking-widest"
+            autoFocus
+            /* 18 px: abaixo de 16 px o iPhone dá zoom e não volta sozinho. */
+            className="h-14 text-center tracking-[.4em]"
+            style={{ fontSize: '18px' }}
           />
+          <p className="hint">Código com o responsável do pátio.</p>
         </div>
 
         <button
@@ -55,8 +61,8 @@ export default function AcessoPatioPage() {
         )}
       </form>
 
-      <Link href="/" className="mt-6 text-center text-sm text-ink-muted underline hover:text-ink">
-        ← Voltar ao início (trocar de setor)
+      <Link href="/" className="btn btn-ghost mt-6 h-12 w-full">
+        Voltar ao início (trocar de setor)
       </Link>
       <Link href="/privacidade" className="mt-2 text-center text-xs text-ink-dim underline hover:text-ink">
         Privacidade e cookies

@@ -1535,3 +1535,67 @@ html[data-tema="escuro"] .portaria-shell, html[data-tema="escuro"] .portaria-tel
   .portaria-shell .aba-rotulo { font-size: .82rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
   .portaria-shell .aba[data-ativa="true"] { color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); }
 }
+
+/* ── Pátio (revisão de 28/10/2026) ─────────────────────────────────────────
+   O Pátio trabalha num tablet Android, de luva e em pé: campos com 16 px (sem
+   zoom do iPhone), alvos de toque de 44 px, selos e linhas de medida legíveis
+   a distância de braço, e a barra de abas visível também no tablet. */
+.patio-shell, .patio-tela { --rotulo-patio: #5b6a80; }
+.area-patio .patio-tela, .patio-shell { --rotulo-patio: #9aa9bb; }
+
+.patio-shell input, .patio-shell select, .patio-shell textarea { font-size: 16px; min-height: 48px; }
+.patio-shell input[type="checkbox"], .patio-shell input[type="radio"] { min-height: 0; }
+.patio-shell .btn { min-height: 44px; font-size: 1rem; }
+.patio-shell .btn-sm { min-height: 44px; font-size: .95rem; }
+.patio-shell .badge { font-size: .82rem; }
+.patio-shell .field label { font-size: .8rem; color: var(--rotulo-patio); }
+.patio-shell input:focus, .patio-shell select:focus, .patio-shell textarea:focus {
+  outline: 2px solid var(--primary); outline-offset: 1px;
+}
+/* Títulos de seção com um degrau a mais que o texto comum. */
+.patio-shell h2, .patio-shell .card-title { font-size: 1.25rem; }
+.patio-shell .page-title, .patio-shell h1 { font-size: 1.6rem; }
+/* Linhas de medida: altas o bastante para o dedo e com o "Remover" como alvo de 44 px. */
+.patio-shell .medicao-row { min-height: 44px; font-size: .95rem; padding: 6px 0; }
+.patio-shell .medicao-row button { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: .9rem; font-weight: 600; }
+.patio-shell .progresso-texto { font-size: .95rem; font-weight: 600; color: var(--ink); }
+/* Em tela grande o conteúdo para de esticar de ponta a ponta. */
+.patio-shell .patio-tela { margin-inline: auto; max-width: 1040px; }
+
+/* Barra de abas: também no tablet (o aparelho principal do Pátio). */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .patio-shell.com-abas { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
+  .patio-shell .barra-abas {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: flex; align-items: stretch; justify-content: space-around;
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px));
+    background: color-mix(in srgb, var(--surface) 92%, transparent); border-top: 1px solid var(--line);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4);
+  }
+  .patio-shell .aba {
+    position: relative; flex: 1 1 0; min-width: 0; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    border: 0; background: transparent; color: var(--ink-muted); text-decoration: none; font: inherit; cursor: pointer; border-radius: 14px;
+  }
+  .patio-shell .aba-icone { display: grid; place-items: center; }
+  .patio-shell .aba-icone svg { width: 26px; height: 26px; }
+  .patio-shell .aba-rotulo { font-size: .82rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .patio-shell .aba[data-ativa="true"] { color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); }
+}
+@media (min-width: 1280px) {
+  .patio-shell.com-abas { padding-bottom: 0; }
+}
+
+/* Cards de atalho do Início: três colunas quando cabe, sem buraco na grade. */
+@media (min-width: 900px) { .acoes-patio { grid-template-columns: repeat(3, 1fr); } }
+.acao-patio span { color: var(--ink-muted); }
+.acao-patio-principal span { color: color-mix(in srgb, var(--on-primary, #fff) 88%, transparent); }
+
+/* Cartão de caminhão/carreta inteiro clicável, com a seta à direita. */
+.patio-card-link { display: flex; align-items: flex-start; gap: 10px; width: 100%; text-align: left; }
+.patio-card-link .patio-card-seta { margin-left: auto; flex: none; color: var(--ink-muted); }
+
+/* Transição de página: curta e sem começar invisível (no tablet parecia travamento). */
+.pagina-anim { animation-duration: .16s; }
+@keyframes pagina-entra { from { opacity: .6; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+/* Campo com erro: a borda muda junto com a mensagem (antes só o texto ficava vermelho). */
+[aria-invalid="true"] { border-color: var(--bad) !important; }
+[aria-invalid="true"]:focus { outline-color: var(--bad) !important; }

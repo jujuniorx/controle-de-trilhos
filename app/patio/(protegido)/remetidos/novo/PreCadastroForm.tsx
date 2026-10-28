@@ -67,7 +67,7 @@ export function PreCadastroForm() {
 
       <div className="field">
         <label htmlFor="tipoRemetido">Tipo de carga (opcional — o Administrativo completa depois)</label>
-        <select id="tipoRemetido" name="tipoRemetido" className="h-11" defaultValue="">
+        <select id="tipoRemetido" name="tipoRemetido" className="h-12" defaultValue="">
           <option value="">Não sei / completar depois</option>
           {TIPOS_REMETIDO.map((t) => (
             <option key={t} value={t}>
@@ -78,8 +78,8 @@ export function PreCadastroForm() {
       </div>
 
       <div className="field">
-        <label htmlFor="destino">Destino</label>
-        <input id="destino" name="destino" required className="h-11 uppercase" />
+        <label htmlFor="destino">Destino *</label>
+        <input id="destino" name="destino" required autoComplete="off" placeholder="Ex.: EVANGELISTA-SP" className="h-12 uppercase" />
       </div>
 
       <div className="field">
@@ -89,7 +89,7 @@ export function PreCadastroForm() {
           name="numeroDocumento"
           inputMode="numeric"
           placeholder="Opcional — dá para completar depois"
-          className="h-11"
+          className="h-12"
         />
       </div>
 

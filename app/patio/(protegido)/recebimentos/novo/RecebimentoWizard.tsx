@@ -1,7 +1,7 @@
 'use client';
 
 import { ProgressoEtapas } from '@/components/ui/ProgressoEtapas';
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import {
   PERFIS,
   CLASSIFICACOES_REEMPREGO,
@@ -11,9 +11,14 @@ import {
   MSG_NF_INVALIDA,
   MARCAS,
   MARCA_LABEL,
+  FAIXA_SC,
   recebimentoCaminhaoSchema,
 } from '@/lib/validation/recebimento';
 import { validarReemprego, classificarSC, pecasDoGrupo, formatarComprimentoDigitado } from '@/lib/domain/regras';
+import { dataBr, metros as fmtMetros, toneladas as fmtToneladas } from '@/lib/domain/numero';
+import { useVoltarEtapa } from '@/components/patio/useVoltarEtapa';
+import { AvisoRascunho } from '@/components/patio/AvisoRascunho';
+import { ICONE_LIXEIRA_PATIO } from '@/components/patio/icones';
 import {
   salvarRecebimentoLocal,
   salvarRascunhoRecebimento,
@@ -194,6 +199,8 @@ function descreverErroValidacao(
   return issue.message;
 }
 
+const NOME_ETAPA = ['Caminhão', 'Materiais', 'Medidas', 'Conferir'];
+
 export function RecebimentoWizard({
   fatoresCadastrados,
   chegada = null,
@@ -245,6 +252,9 @@ export function RecebimentoWizard({
   const [modoDraft, setModoDraft] = useState<ModoMedicao>('INDIVIDUAL');
   const [enviando, setEnviando] = useState(false);
   const [erroFinal, setErroFinal] = useState('');
+  // Faixa de "lançamento retomado": só aparece quando o rascunho trouxe trabalho já feito.
+  const [retomado, setRetomado] = useState('');
+  const campoComprimento = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let ativo = true;
@@ -260,6 +270,12 @@ export function RecebimentoWizard({
         setDataTocada(r.dataTocada);
         setGrupos(r.grupos);
         setActiveGrupoId(r.activeGrupoId);
+        const medidas = r.grupos.reduce((acc, g) => acc + g.medicoes.length, 0);
+        if (medidas > 0 || r.grupos.length > 0) {
+          setRetomado(
+            `Você estava na etapa ${r.step} com ${r.grupos.length} ${r.grupos.length === 1 ? 'grupo' : 'grupos'} e ${medidas} ${medidas === 1 ? 'medida' : 'medidas'}.`,
+          );
+        }
       } else if (chegada) {
         // Dados que a Portaria já preencheu: entram nos campos, o Pátio só confere e completa.
         setDados((d) => ({
@@ -290,6 +306,9 @@ export function RecebimentoWizard({
       activeGrupoId,
     });
   }, [restaurando, clientId, chegada?.id, step, dadosBrutos, dataTocada, grupos, activeGrupoId]);
+
+  const voltarEtapa = useCallback((n: number) => setStep(n), []);
+  useVoltarEtapa(step, voltarEtapa);
 
   const dados = useMemo<Dados>(
     () => (dataTocada ? dadosBrutos : { ...dadosBrutos, data: dadosBrutos.data || hoje }),
@@ -323,9 +342,30 @@ export function RecebimentoWizard({
     setStep(n);
   }
 
+  /** Descarta o lançamento retomado e começa um novo, em branco. */
+  function descartarRascunho() {
+    void limparRascunhoRecebimento();
+    setRetomado('');
+    setGrupos([]);
+    setActiveGrupoId(null);
+    setStep(1);
+    setDados({ data: '', numeroDocumento: '', origem: chegada?.origem ?? '', placaCavalo: chegada?.placaCavalo ?? '', placaCarreta: chegada?.placaCarreta ?? '', placaCarreta2: '', transportadora: chegada?.transportadora ?? '', responsavelPatio: '', observacao: '' });
+    setDataTocada(false);
+  }
+
   function proximoDeDados() {
     setAttemptStep1(true);
-    if (Object.keys(validarDados(dados)).length > 0) return;
+    const erros = validarDados(dados);
+    const campos = Object.keys(erros);
+    if (campos.length > 0) {
+      // Num formulário longo o botão fica no rodapé e os erros acima, fora da tela:
+      // leva a pessoa até o primeiro campo com problema em vez de só pintar o texto.
+      const id = { data: 'f-data', numeroDocumento: 'f-nf', origem: 'f-origem', placaCavalo: 'f-cavalo', placaCarreta: 'f-carreta', placaCarreta2: 'f-carreta2', responsavelPatio: 'f-resp' }[campos[0]];
+      const alvo = id ? document.getElementById(id) : null;
+      alvo?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      (alvo as HTMLInputElement | null)?.focus({ preventScroll: true });
+      return;
+    }
     setStep(2);
   }
 
@@ -400,6 +440,8 @@ export function RecebimentoWizard({
     };
     atualizarGrupo(grupoAtivo.clientId, { medicoes: [...grupoAtivo.medicoes, medicao] });
     setDraft({ quantidade: '1', comprimento: '', sc: '', scManual: false, erro: '' });
+    // Medição em série: o foco volta sozinho para o comprimento, sem um toque a mais por barra.
+    campoComprimento.current?.focus();
   }
 
   function removerMedicao(grupoId: string, medicaoClientId: string) {
@@ -499,11 +541,17 @@ export function RecebimentoWizard({
   if (confirmadoId) return <ConfirmacaoRecebimento clientId={confirmadoId} />;
 
   return (
-    <main className="mx-auto max-w-xl lg:max-w-none p-6">
+    <main className="patio-tela mx-auto max-w-xl lg:max-w-none p-6">
       <h1 className="font-condensed text-xl font-bold uppercase tracking-wide text-ink">Nova descarga — Caminhão</h1>
+      {chegada && (
+        <p className="mt-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-ink">
+          Dados vindos da Portaria{chegada.placaCarreta || chegada.placaCavalo ? ` (placa ${chegada.placaCarreta || chegada.placaCavalo})` : ''}. Confira e corrija se precisar.
+        </p>
+      )}
       <div className="mb-6 mt-3">
-        <ProgressoEtapas etapa={step} total={4} />
+        <ProgressoEtapas etapa={step} total={4} rotulo={NOME_ETAPA[step - 1]} />
       </div>
+      {retomado && <AvisoRascunho resumo={retomado} aoDescartar={descartarRascunho} />}
 
       {step === 1 && (
         <section className="space-y-4">
@@ -511,6 +559,7 @@ export function RecebimentoWizard({
             <label htmlFor="f-data">Data *</label>
             <input
               id="f-data"
+              aria-invalid={Boolean(errosDados.data)}
               type="date"
               className="h-11"
               value={dados.data}
@@ -525,6 +574,7 @@ export function RecebimentoWizard({
             <label htmlFor="f-nf">Nota fiscal (se já souber)</label>
             <input
               id="f-nf"
+              aria-invalid={Boolean(errosDados.numeroDocumento)}
               inputMode="numeric"
               placeholder="Ex.: 123456 ou 087781-1"
               className="h-11"
@@ -535,7 +585,8 @@ export function RecebimentoWizard({
           </div>
           <div className="field">
             <label htmlFor="f-origem">Origem *</label>
-            <input id="f-origem" className="h-11 uppercase" value={dados.origem} onChange={(e) => setDados({ ...dados, origem: e.target.value })} />
+            <input id="f-origem"
+              aria-invalid={Boolean(errosDados.origem)} className="h-11 uppercase" value={dados.origem} onChange={(e) => setDados({ ...dados, origem: e.target.value })} />
             {errosDados.origem && <p className="text-sm text-bad">{errosDados.origem}</p>}
           </div>
           <p className="text-sm text-ink-dim">Transporte: Caminhão (único suportado nesta etapa)</p>
@@ -551,6 +602,7 @@ export function RecebimentoWizard({
               <label htmlFor="f-carreta">1ª carreta</label>
               <input
                 id="f-carreta"
+                aria-invalid={Boolean(errosDados.placaCarreta)}
                 maxLength={7}
                 className="h-11 text-lg font-semibold uppercase"
                 value={dados.placaCarreta}
@@ -564,6 +616,7 @@ export function RecebimentoWizard({
                 <label htmlFor="f-carreta2">2ª carreta (opcional)</label>
                 <input
                   id="f-carreta2"
+                aria-invalid={Boolean(errosDados.placaCarreta2)}
                   maxLength={7}
                   className="h-11 text-lg font-semibold uppercase"
                   value={dados.placaCarreta2}
@@ -581,6 +634,7 @@ export function RecebimentoWizard({
               <label htmlFor="f-cavalo">Placa do cavalo</label>
               <input
                 id="f-cavalo"
+                aria-invalid={Boolean(errosDados.placaCavalo)}
                 maxLength={7}
                 className="h-11 uppercase"
                 value={dados.placaCavalo}
@@ -604,7 +658,8 @@ export function RecebimentoWizard({
           </div>
           <div className="field">
             <label htmlFor="f-resp">Responsável pelo preenchimento *</label>
-            <input id="f-resp" className="h-11" value={dados.responsavelPatio} onChange={(e) => setDados({ ...dados, responsavelPatio: e.target.value })} />
+            <input id="f-resp"
+              aria-invalid={Boolean(errosDados.responsavelPatio)} className="h-11" value={dados.responsavelPatio} onChange={(e) => setDados({ ...dados, responsavelPatio: e.target.value })} />
             {errosDados.responsavelPatio && <p className="text-sm text-bad">{errosDados.responsavelPatio}</p>}
           </div>
           <div className="field">
@@ -690,7 +745,7 @@ export function RecebimentoWizard({
               <p className="mt-2 text-sm text-ink-muted">
                 {g.medicoes.length === 0
                   ? 'Nenhuma medição adicionada'
-                  : `${pecasDoGrupo(g.medicoes)} ${pecasDoGrupo(g.medicoes) === 1 ? 'barra' : 'barras'} · ${metrosDoGrupo(g).toFixed(2).replace('.', ',')} m`}
+                  : `${pecasDoGrupo(g.medicoes)} ${pecasDoGrupo(g.medicoes) === 1 ? 'barra' : 'barras'} · ${fmtMetros(metrosDoGrupo(g))}`}
               </p>
               <button className="btn btn-secondary btn-sm mt-2" onClick={() => abrirMedicoes(g.clientId)}>
                 {g.medicoes.length ? 'Medir' : 'Lançar medidas'}
@@ -703,11 +758,19 @@ export function RecebimentoWizard({
             <NovoGrupoForm onAdd={adicionarGrupo} />
           </div>
 
+          {grupos.length === 0 && <p className="text-sm text-ink-muted">Escolha o perfil e o tipo de material para adicionar o primeiro grupo.</p>}
+          {grupos.length > 0 && grupos.some((g) => g.medicoes.length === 0) && (
+            <p className="text-sm text-warn">Todo grupo precisa de pelo menos uma medida antes de conferir.</p>
+          )}
           <div className="flex gap-3">
             <button className="btn btn-secondary h-12 flex-1" onClick={() => irPara(1)}>
               Voltar
             </button>
-            <button className="btn btn-primary h-12 flex-1" disabled={grupos.length === 0} onClick={() => irPara(4)}>
+            <button
+              className="btn btn-primary h-12 flex-1"
+              disabled={grupos.length === 0 || grupos.some((g) => g.medicoes.length === 0)}
+              onClick={() => irPara(4)}
+            >
               Ver resumo
             </button>
           </div>
@@ -737,9 +800,11 @@ export function RecebimentoWizard({
 
           <div className="flex flex-wrap gap-2">
             {modoDraft === 'QTD_COMPRIMENTO' && (
+              <div className="field w-28 shrink-0">
+                <label htmlFor="f-qtd">Quantidade de barras</label>
               <input
-                aria-label="Quantidade"
-                className="h-11 w-20 shrink-0"
+                id="f-qtd"
+                className="h-11 w-full"
                 inputMode="numeric"
                 value={draft.quantidade}
                 onChange={(e) => setDraft({ ...draft, quantidade: e.target.value })}
@@ -750,12 +815,16 @@ export function RecebimentoWizard({
                   }
                 }}
               />
+              </div>
             )}
             {!(grupoAtivo.tipoMaterial === 'SUCATA' && draft.sc === 'JACARE') && (
+            <div className="field flex-1 min-w-[180px]">
+              <label htmlFor="f-comprimento">Comprimento (m)</label>
             <input
-              aria-label="Comprimento"
-              className="h-11 flex-1 min-w-[160px]"
-              placeholder="Comprimento (m), ex.: 980 = 9,80"
+              id="f-comprimento"
+              ref={campoComprimento}
+              className="h-11 w-full"
+              placeholder="digite só números: 980 = 9,80 m"
               inputMode="numeric"
               value={draft.comprimento}
               onChange={(e) => {
@@ -775,6 +844,10 @@ export function RecebimentoWizard({
                 }
               }}
             />
+            {grupoAtivo.tipoMaterial === 'REEMPREGO' && (
+              <p className="hint">Reemprego: a barra precisa ter 7 m ou mais. Abaixo disso, lance como sucata.</p>
+            )}
+            </div>
             )}
             {grupoAtivo.tipoMaterial === 'SUCATA' && draft.sc === 'JACARE' && (
               <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4">
@@ -802,17 +875,23 @@ export function RecebimentoWizard({
               </div>
             )}
             {grupoAtivo.tipoMaterial === 'SUCATA' && (
-              <select
-                aria-label="Classificação SC"
-                className="h-11 w-24"
-                value={draft.sc}
-                onChange={(e) => setDraft({ ...draft, sc: e.target.value as ClassificacaoSC, scManual: true })}
-              >
-                <option value="">SC?</option>
-                {CLASSIFICACOES_SC_MEDIDAS.map((sc) => (
-                  <option key={sc} value={sc}>{sc === 'JACARE' ? 'Jacaré' : sc}</option>
-                ))}
-              </select>
+              <div className="field min-w-[200px] flex-1">
+                <label htmlFor="f-sc">Classificação</label>
+                <select
+                  id="f-sc"
+                  className="h-11 w-full"
+                  value={draft.sc}
+                  onChange={(e) => setDraft({ ...draft, sc: e.target.value as ClassificacaoSC, scManual: true })}
+                >
+                  <option value="" disabled>
+                    Selecione a classificação
+                  </option>
+                  {CLASSIFICACOES_SC_MEDIDAS.map((sc) => (
+                    <option key={sc} value={sc}>{FAIXA_SC[sc] ?? sc}</option>
+                  ))}
+                </select>
+                <p className="hint">{draft.scManual ? 'Escolhida por você.' : 'Sugerida pelo comprimento; dá para trocar.'}</p>
+              </div>
             )}
             <button className="btn btn-primary h-11" onClick={adicionarMedicao}>
               Adicionar
@@ -825,11 +904,12 @@ export function RecebimentoWizard({
               <div key={m.clientId} className="medicao-row px-3">
                 <span>
                   {i + 1}. {m.classificacaoSC === 'JACARE'
-                    ? `Jacaré (4 medidas) · ${m.comprimento.toFixed(2)} m · 1 unidade`
-                    : m.quantidade > 1 ? `${m.quantidade} × ${m.comprimento.toFixed(2)} m` : `${m.comprimento.toFixed(2)} m`}
+                    ? `Jacaré (4 medidas) · ${fmtMetros(m.comprimento)} · 1 unidade`
+                    : m.quantidade > 1 ? `${m.quantidade} × ${fmtMetros(m.comprimento)}` : fmtMetros(m.comprimento)}
                   {m.classificacaoSC && m.classificacaoSC !== 'JACARE' ? ` — ${m.classificacaoSC}` : ''}
                 </span>
-                <button className="text-bad" onClick={() => removerMedicao(grupoAtivo.clientId, m.clientId)}>
+                <button className="text-bad" aria-label={`Remover a medida ${i + 1}`} onClick={() => removerMedicao(grupoAtivo.clientId, m.clientId)}>
+                  {ICONE_LIXEIRA_PATIO(18)}
                   Remover
                 </button>
               </div>
@@ -837,7 +917,7 @@ export function RecebimentoWizard({
             {grupoAtivo.medicoes.length === 0 && <p className="px-3 py-4 text-sm text-ink-dim">Nenhuma medida ainda.</p>}
           </div>
 
-          <p className="text-right font-medium text-ink">Total do grupo: {metrosDoGrupo(grupoAtivo).toFixed(2)} m</p>
+          <p className="text-right font-medium text-ink">Total do grupo: {fmtMetros(metrosDoGrupo(grupoAtivo))}</p>
           <button className="btn btn-primary btn-lg h-12" onClick={() => irPara(2)}>
             Voltar aos grupos
           </button>
@@ -848,14 +928,14 @@ export function RecebimentoWizard({
         <section className="space-y-4">
           <h2 className="card-title !mb-0">Resumo</h2>
           <div className="card text-sm">
-            <p>Data: {dados.data}</p>
-            <p>NF: {dados.numeroDocumento}</p>
-            <p>Origem: {dados.origem}</p>
+            <p>Data: {dataBr(dados.data)}</p>
+            <p>NF: {dados.numeroDocumento || '—'}</p>
+            <p>Origem: {dados.origem || '—'}</p>
             <p>
               Carreta(s): {[dados.placaCarreta, dados.placaCarreta2].filter(Boolean).join(' / ') || '—'}
             </p>
             <p>Cavalo: {dados.placaCavalo || '—'}</p>
-            {dados.transportadora && <p>Transportadora: {dados.transportadora}</p>}
+            <p>Transportadora: {dados.transportadora || '—'}</p>
             <p>Responsável: {dados.responsavelPatio}</p>
             {dados.observacao && <p>Observação: {dados.observacao}</p>}
           </div>
@@ -881,16 +961,16 @@ export function RecebimentoWizard({
                         Grupo {i + 1} ({g.perfil})
                       </td>
                       <td>{g.tipoMaterial}</td>
-                      <td className="text-right font-mono">{metros.toFixed(2)} m</td>
+                      <td className="text-right font-mono">{fmtMetros(metros)}</td>
                       <td className="text-right font-mono">
                         {peso == null ? (
                           'Fator não cadastrado'
                         ) : g.tipoMaterial === 'SUCATA' ? (
                           <>
-                            {peso.toFixed(3)} t <span className="text-xs text-warn">(estimado)</span>
+                            {fmtToneladas(peso)} <span className="text-xs text-warn">(estimado)</span>
                           </>
                         ) : (
-                          `${peso.toFixed(3)} t`
+                          fmtToneladas(peso)
                         )}
                       </td>
                     </tr>
@@ -902,11 +982,11 @@ export function RecebimentoWizard({
 
           <div className="resumo-bar !justify-end text-right">
             <div>
-              <p className="stat-label">{temSucataPendente ? 'Peso até agora' : 'Peso total'}</p>
-              <p className="stat-value">{pesoNovoReemprego.toFixed(3)} t</p>
+              <p className="stat-label">Peso total</p>
+              <p className="stat-value">{fmtToneladas(pesoNovoReemprego + pesoSucataEstimado)}</p>
               {temSucataPendente && (
                 <p className="mt-1 text-sm text-warn">
-                  SUCATA: {pesoSucataEstimado.toFixed(3)} t (estimado, a confirmar)
+                  Inclui {fmtToneladas(pesoSucataEstimado)} de sucata, estimado pelo comprimento. O Administrativo confirma na pesagem.
                 </p>
               )}
             </div>

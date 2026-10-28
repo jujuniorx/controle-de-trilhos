@@ -473,7 +473,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
         </p>
       )}
       {movimentacaoId && !falhaRascunho && salvoEm && (
-        <p role="status" className="text-xs text-ink-muted">
+        <p role="status" className="text-sm text-ink-muted">
           Rascunho salvo neste aparelho às {salvoEm}
         </p>
       )}
@@ -708,13 +708,13 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
                 <div className="conf-block mt-2">
                   <div className="flex gap-2 text-sm">
                     <button
-                      className={`btn btn-sm ${modoDraft === 'INDIVIDUAL' ? 'btn-primary' : 'btn-secondary'}`}
+                      className={`btn h-11 ${modoDraft === 'INDIVIDUAL' ? 'btn-primary' : 'btn-secondary'}`}
                       onClick={() => setModoDraft('INDIVIDUAL')}
                     >
                       Individual
                     </button>
                     <button
-                      className={`btn btn-sm ${modoDraft === 'QTD_COMPRIMENTO' ? 'btn-primary' : 'btn-secondary'}`}
+                      className={`btn h-11 ${modoDraft === 'QTD_COMPRIMENTO' ? 'btn-primary' : 'btn-secondary'}`}
                       onClick={() => setModoDraft('QTD_COMPRIMENTO')}
                     >
                       Qtd × comprimento

@@ -18,10 +18,30 @@ export const PERFIS = [
   'TR22', 'TR32', 'TR37', 'TR40', 'TR45', 'TR50', 'TR54', 'TR55', 'TR57', 'TR60', 'TR68',
 ] as const;
 
+/**
+ * Texto que vai para relatório e Excel: sem espaços sobrando e em MAIÚSCULAS.
+ * Sem isso, "Capital cargo" e "Capital Cargo" viram duas empresas na hora de somar.
+ */
+function textoPadronizado(max: number) {
+  return z
+    .string()
+    .trim()
+    .max(max)
+    .transform((v) => v.replace(/\s+/g, ' ').toLocaleUpperCase('pt-BR'));
+}
+
 export const CLASSIFICACOES_REEMPREGO = ['G1', 'G2', 'G3'] as const;
 export const CLASSIFICACOES_SC = ['SC1', 'SC2', 'SC3', 'DIVERSOS', 'JACARE'] as const;
 /** O que o Pátio escolhe ao medir sucata no recebimento. "Diversos" só existe no envio (Remetido), nunca no recebimento. */
 export const CLASSIFICACOES_SC_MEDIDAS = ['SC1', 'SC2', 'SC3', 'JACARE'] as const;
+
+/** Faixa de comprimento de cada classe, para a tela explicar a regra em vez de só mostrar a sigla. */
+export const FAIXA_SC: Record<string, string> = {
+  SC1: 'SC1 · 7 m ou mais',
+  SC2: 'SC2 · 3 a 6,99 m',
+  SC3: 'SC3 · até 2,99 m',
+  JACARE: 'Jacaré · 4 medidas somadas',
+};
 
 // Lista fechada de marcas (V1.2 §11) — "OUTROS" libera o texto livre em fabricanteOutro.
 export const MARCAS = ['NIPPON', 'EVRAZ', 'PANGANG', 'OUTROS'] as const;
@@ -42,13 +62,13 @@ export const dadosCarregamentoSchema = z
   .object({
     data: z.string().min(1, 'Informe a data do recebimento.'),
     numeroDocumento: nfOpcional,
-    origem: z.string().trim().min(1, 'Informe a origem do material.'),
+    origem: z.string().trim().min(1, 'Informe a origem do material.').transform((v) => v.replace(/\s+/g, ' ').toLocaleUpperCase('pt-BR')),
     // Nenhuma placa é individualmente obrigatória — a regra é "pelo menos uma
     // das três" (refine abaixo). Um cavalo pode puxar até 2 carretas; a 2ª é opcional.
     placaCavalo: z.string().regex(PLACA_REGEX, MSG_PLACA_INVALIDA).optional(),
     placaCarreta: z.string().regex(PLACA_REGEX, MSG_PLACA_INVALIDA).optional(),
     placaCarreta2: z.string().regex(PLACA_REGEX, MSG_PLACA_INVALIDA).optional(),
-    transportadora: z.string().trim().max(120).optional(),
+    transportadora: textoPadronizado(120).optional(),
     responsavelPatio: z.string().trim().min(3, 'Informe quem está preenchendo.'),
     observacao: z.string().trim().max(500, 'Observação: no máximo 500 caracteres.').optional(),
   })
@@ -78,7 +98,7 @@ const grupoNovoSchema = z
     tipoMaterial: z.literal('NOVO'),
     // Obrigatória só para NOVO (Bloco 1.5) — Reemprego e Sucata não têm marca.
     marca: z.enum(MARCAS, { message: 'Selecione a marca/fabricante.' }),
-    fabricanteOutro: z.string().trim().max(120).optional(),
+    fabricanteOutro: textoPadronizado(120).optional(),
     medicoes: z
       .array(medicaoSchema.omit({ classificacaoSC: true }))
       .min(1, 'Adicione ao menos uma medição.'),

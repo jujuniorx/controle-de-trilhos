@@ -54,7 +54,7 @@ export function PreCadastrosPendentes() {
               <p className="text-sm text-bad">{item.erro ?? 'Não foi possível enviar este cadastro.'}</p>
               <button
                 type="button"
-                className="btn btn-ghost btn-sm"
+                className="btn btn-ghost h-11"
                 onClick={() => void db.preCadastros.delete(item.clientId)}
               >
                 Descartar

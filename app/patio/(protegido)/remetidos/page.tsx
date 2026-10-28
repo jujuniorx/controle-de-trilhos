@@ -9,6 +9,7 @@ import { AtivarAvisos } from '@/components/patio/AtivarAvisos';
 import { chavePublicaPush } from '@/lib/services/push';
 import { estadoPortaria } from '@/lib/domain/portaria';
 import { listarCarretasLiberadasComNota } from '@/lib/services/notaEmitida';
+import { quandoLegivel } from '@/lib/domain/quando';
 
 const MENSAGEM_SALVO: Record<string, string> = {
   cadastro: 'Carga cadastrada!',
@@ -20,10 +21,6 @@ const TIPO_REMETIDO_LABEL: Record<string, string> = {
   TRANS: 'Transferência',
   INDUS: 'Industrialização',
 };
-
-function fmtHora(d: Date | null): string {
-  return d ? d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }) : '—';
-}
 
 export default async function RemetidosAguardandoPage({
   searchParams,
@@ -38,31 +35,33 @@ export default async function RemetidosAguardandoPage({
   );
 
   return (
-    <main className="mx-auto max-w-md lg:max-w-none p-6">
+    <main className="patio-tela mx-auto max-w-md lg:max-w-none p-6">
       <AvisoSucesso mensagem={mensagem} />
       <AtualizarAuto />
-      <h1 className="font-condensed text-xl font-bold uppercase tracking-wide text-ink">Cargas</h1>
+      <h1 className="font-condensed font-bold uppercase tracking-wide text-ink">Cargas</h1>
 
       <Link href="/patio/remetidos/novo" className="btn btn-primary mt-4 h-12">
         + Nova carga
       </Link>
 
-      <h2 className="mt-6 font-condensed text-base font-bold uppercase tracking-wide text-ink">Aguardando chegada</h2>
-      <p className="mt-1 text-sm text-ink-muted">
-        Toque num deles quando o caminhão chegar para confirmar o carregamento.
-      </p>
+      <h2 className="mt-6 font-condensed font-bold uppercase tracking-wide text-ink">Aguardando chegada</h2>
+      {remetidos.length > 0 && (
+        <p className="mt-1 text-sm text-ink-muted">
+          Toque numa carga quando o caminhão chegar para confirmar o carregamento. Se ainda não chegou, o escritório avisa aqui quando a nota sair.
+        </p>
+      )}
 
       <div className="mt-3 space-y-2">
         <PreCadastrosPendentes />
         {remetidos.map((r) => (
-          <Link key={r.id} href={`/patio/remetidos/${r.id}/confirmar`} className="card block transition hover:brightness-110">
+          <Link key={r.id} href={`/patio/remetidos/${r.id}/confirmar`} className="card patio-card-link block transition hover:brightness-110">
             <p className="font-medium text-ink">{normalizarLocal(r.destino) || 'Carga'}</p>
             <p className="text-sm text-ink-muted">
               {TIPO_REMETIDO_LABEL[r.remetidoDetalhe?.tipoRemetido ?? ''] ?? '—'}
               {r.reservaPedido ? ` · Reserva ${r.reservaPedido}` : ''}
             </p>
             {r.numeroDocumento && <p className="text-sm text-ink-dim">NF {r.numeroDocumento}</p>}
-            {r.createdAt && <p className="text-xs text-ink-muted">Enviado às {fmtHora(r.createdAt)}</p>}
+            {r.createdAt && <p className="text-sm text-ink-muted">Enviada {quandoLegivel(r.createdAt)}</p>}
             {r.observacaoPortaria && <p className="mt-1 text-sm text-warn">Portaria: {r.observacaoPortaria}</p>}
             {estadoPortaria(r) === 'CHEGOU' && <span className="badge badge-warn mt-1">Carreta na Portaria — pode carregar</span>}
             {estadoPortaria(r) === 'LIBERADA' && <span className="badge badge-ok mt-1">Carreta liberada — Portaria avisada</span>}
@@ -76,11 +75,11 @@ export default async function RemetidosAguardandoPage({
       </div>
       {liberadasComNota.length > 0 && (
         <section className="mt-6 space-y-2" aria-label="Notas fiscais das carretas liberadas">
-          <h2 className="font-condensed text-base font-bold uppercase tracking-wide text-ink">Notas das carretas liberadas (últimos 3 dias)</h2>
+          <h2 className="font-condensed font-bold uppercase tracking-wide text-ink">Notas das carretas liberadas (últimos 3 dias)</h2>
           {liberadasComNota.map((c) => (
             <div key={c.id} className="card space-y-1">
               <p className="font-medium text-ink">{normalizarLocal(c.destino) || 'Carga'}{c.placaCarreta || c.placaCavalo ? ` · ${c.placaCarreta ?? c.placaCavalo}` : ''}</p>
-              <p className="text-xs text-ink-muted">Liberada às {fmtHora(c.carretaLiberadaEm)}</p>
+              <p className="text-sm text-ink-muted">Liberada {quandoLegivel(c.carretaLiberadaEm)}</p>
               {c.notaEmitidaEm ? (
                 <span className="badge badge-ok">Nota fiscal emitida{c.notaEmitidaPor ? ` por ${c.notaEmitidaPor}` : ''}</span>
               ) : c.status === 'CONFERIDO' ? (

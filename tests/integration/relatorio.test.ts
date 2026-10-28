@@ -160,7 +160,7 @@ describe('listarPendencias', () => {
 
 afterAll(async () => {
   const movimentacoes = await prisma.movimentacao.findMany({
-    where: { OR: [{ origem: MARCADOR }, { destino: MARCADOR }] },
+    where: { OR: [{ origem: { equals: MARCADOR, mode: 'insensitive' } }, { destino: { equals: MARCADOR, mode: 'insensitive' } }] },
     select: { id: true },
   });
   const ids = movimentacoes.map((m) => m.id);
