@@ -45,10 +45,21 @@ export function BotaoCompartilharPdf({ url, nomeArquivo, titulo, rotulo = 'Compa
     setOcupado(true);
     try {
       const resposta = await fetch(url, { credentials: 'same-origin' });
-      if (!resposta.ok) throw new Error('falha');
+      if (!resposta.ok) throw new Error(`servidor respondeu ${resposta.status}`);
       const blobOriginal = await resposta.blob();
-      const blob = png ? await svgParaPng(blobOriginal) : blobOriginal;
-      const arquivo = new File([blob], nomeArquivo, { type: png ? 'image/png' : nomeArquivo.endsWith('.svg') ? 'image/svg+xml' : 'application/pdf' });
+      let blob = blobOriginal;
+      let nome = nomeArquivo;
+      if (png) {
+        try {
+          blob = await svgParaPng(blobOriginal);
+        } catch (e) {
+          // Não converteu: entrega o SVG para não ficar sem arquivo, e avisa o motivo.
+          nome = nomeArquivo.replace(/\.png$/, '.svg');
+          blob = blobOriginal;
+          setErro(`Não converteu em PNG (${e instanceof Error ? e.message : 'erro'}). Baixei em SVG.`);
+        }
+      }
+      const arquivo = new File([blob], nome, { type: blob.type || 'application/octet-stream' });
       const nav = navigator as Navigator & { canShare?: (dados: ShareData) => boolean };
       // Menu de compartilhar só em aparelho de toque (celular/tablet); no computador baixa o PDF.
       const ehToque = window.matchMedia?.('(pointer: coarse)').matches ?? false;
@@ -58,7 +69,7 @@ export function BotaoCompartilharPdf({ url, nomeArquivo, titulo, rotulo = 'Compa
         // Computador (ou aparelho sem compartilhamento de arquivo): baixa o PDF.
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = nomeArquivo;
+        link.download = nome;
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -66,7 +77,7 @@ export function BotaoCompartilharPdf({ url, nomeArquivo, titulo, rotulo = 'Compa
       }
     } catch (e) {
       // Cancelar o menu de compartilhar nao e erro.
-      if (!(e instanceof DOMException && e.name === 'AbortError')) setErro('Não foi possível gerar o arquivo. Tente de novo.');
+      if (!(e instanceof DOMException && e.name === 'AbortError')) setErro(`Não foi possível gerar o arquivo (${e instanceof Error ? e.message : 'erro'}). Tente de novo.`);
     } finally {
       setOcupado(false);
     }
