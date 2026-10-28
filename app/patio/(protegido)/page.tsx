@@ -14,7 +14,7 @@ import { normalizarLocal } from '@/lib/domain/local';
 import { chavePublicaPush } from '@/lib/services/push';
 import { ExcluirPatioBotao } from '@/components/patio/ExcluirPatioBotao';
 import { excluirChegadaPatioAction } from './recebimentos/actions';
-import { ICONE_CARGA, ICONE_PILHAS, ICONE_RECEBER, ICONE_SAIDAS } from '@/components/patio/icones';
+import { ICONE_CARGA, ICONE_RECEBER, ICONE_SAIDAS } from '@/components/patio/icones';
 
 const atraso = (n: number) => ({ '--i': n }) as CSSProperties;
 
@@ -119,11 +119,6 @@ export default async function PatioHomePage() {
           {ICONE_SAIDAS(30)}
           <strong>Já saíram</strong>
           <span>Cargas e descargas que a Portaria registrou como saída.</span>
-        </Link>
-        <Link href="/patio/pilhas" className="acao-patio" style={atraso(3)}>
-          {ICONE_PILHAS(30)}
-          <strong>Pilhas do pátio</strong>
-          <span>Onde está cada material no pátio.</span>
         </Link>
       </div>
 

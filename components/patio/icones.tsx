@@ -29,13 +29,6 @@ export const ICONE_SAIDAS: (tam: number) => ReactNode = (tam) => (
   </svg>
 );
 
-/** Pilhas: barras empilhadas. */
-export const ICONE_PILHAS: (tam: number) => ReactNode = (tam) => (
-  <svg width={tam} height={tam} viewBox="0 0 24 24" {...t} aria-hidden="true">
-    <path d="M3 18h18M5 14h14M7 10h10M9 6h6" />
-  </svg>
-);
-
 export const ICONE_TROCAR_AREA: (tam: number) => ReactNode = (tam) => (
   <svg width={tam} height={tam} viewBox="0 0 24 24" {...t} aria-hidden="true">
     <path d="M7 4L3 8l4 4M3 8h14M17 12l4 4-4 4M21 16H7" />

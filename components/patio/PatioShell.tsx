@@ -9,10 +9,10 @@ import { GestosApp } from '@/components/ui/GestosApp';
 import { AquecerOffline } from '@/components/patio/AquecerOffline';
 import { NavPatio } from '@/components/patio/NavPatio';
 import { TrocarAreaLink } from '@/components/patio/TrocarAreaLink';
-import { ICONE_CARGA, ICONE_INICIO, ICONE_PILHAS, ICONE_RECEBER, ICONE_SAIDAS, ICONE_TROCAR_AREA } from '@/components/patio/icones';
+import { ICONE_CARGA, ICONE_INICIO, ICONE_RECEBER, ICONE_SAIDAS, ICONE_TROCAR_AREA } from '@/components/patio/icones';
 
 /**
- * Abas do rodapé: as cinco telas de trabalho. "Trocar área" sai daqui de propósito —
+ * Abas do rodapé: as quatro telas de trabalho. "Trocar área" sai daqui de propósito —
  * é a ação que mais custa caro se tocada por engano, e fica só no cabeçalho.
  */
 const ABAS: Aba[] = [
@@ -20,7 +20,6 @@ const ABAS: Aba[] = [
   { href: '/patio/recebimentos/novo', rotulo: 'Receber', prefixo: '/patio/recebimentos', icone: ICONE_RECEBER(24) },
   { href: '/patio/remetidos', rotulo: 'Cargas', prefixo: '/patio/remetidos', icone: ICONE_CARGA(24) },
   { href: '/patio/saidas', rotulo: 'Já saíram', icone: ICONE_SAIDAS(24) },
-  { href: '/patio/pilhas', rotulo: 'Pilhas', icone: ICONE_PILHAS(24) },
 ];
 
 export function PatioShell({ children }: { children: ReactNode }) {
