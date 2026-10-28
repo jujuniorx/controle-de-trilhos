@@ -4,7 +4,39 @@
 // Onde o aparelho nao compartilha arquivo, baixa o PDF.
 import { useState } from 'react';
 
-export function BotaoCompartilharPdf({ url, nomeArquivo, titulo, rotulo = 'Compartilhar' }: { url: string; nomeArquivo: string; titulo: string; rotulo?: string }) {
+/** Converte o SVG do relatorio em PNG, no navegador, na resolucao 2x (texto nitido no celular). */
+async function svgParaPng(blobSvg: Blob): Promise<Blob> {
+  const texto = await blobSvg.text();
+  const medida = texto.match(/width="(\d+)" height="(\d+)"/);
+  if (!medida) throw new Error('svg sem medidas');
+  const largura = Number(medida[1]);
+  const altura = Number(medida[2]);
+  const urlSvg = URL.createObjectURL(new Blob([texto], { type: 'image/svg+xml' }));
+  try {
+    const imagem = await new Promise<HTMLImageElement>((ok, falha) => {
+      const img = new Image();
+      img.onload = () => ok(img);
+      img.onerror = () => falha(new Error('imagem invalida'));
+      img.src = urlSvg;
+    });
+    const escala = 2;
+    const canvas = document.createElement('canvas');
+    canvas.width = largura * escala;
+    canvas.height = altura * escala;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('canvas indisponivel');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(imagem, 0, 0, canvas.width, canvas.height);
+    const png = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, 'image/png'));
+    if (!png) throw new Error('png falhou');
+    return png;
+  } finally {
+    URL.revokeObjectURL(urlSvg);
+  }
+}
+
+export function BotaoCompartilharPdf({ url, nomeArquivo, titulo, rotulo = 'Compartilhar', png = false }: { url: string; nomeArquivo: string; titulo: string; rotulo?: string; /** Entrega PNG (convertido aqui) em vez do arquivo recebido. */ png?: boolean }) {
   const [ocupado, setOcupado] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -14,8 +46,9 @@ export function BotaoCompartilharPdf({ url, nomeArquivo, titulo, rotulo = 'Compa
     try {
       const resposta = await fetch(url, { credentials: 'same-origin' });
       if (!resposta.ok) throw new Error('falha');
-      const blob = await resposta.blob();
-      const arquivo = new File([blob], nomeArquivo, { type: nomeArquivo.endsWith('.svg') ? 'image/svg+xml' : 'application/pdf' });
+      const blobOriginal = await resposta.blob();
+      const blob = png ? await svgParaPng(blobOriginal) : blobOriginal;
+      const arquivo = new File([blob], nomeArquivo, { type: png ? 'image/png' : nomeArquivo.endsWith('.svg') ? 'image/svg+xml' : 'application/pdf' });
       const nav = navigator as Navigator & { canShare?: (dados: ShareData) => boolean };
       // Menu de compartilhar só em aparelho de toque (celular/tablet); no computador baixa o PDF.
       const ehToque = window.matchMedia?.('(pointer: coarse)').matches ?? false;

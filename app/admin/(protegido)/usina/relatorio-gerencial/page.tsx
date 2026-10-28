@@ -42,7 +42,7 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
           ))}
           <button className="btn btn-ghost h-11" type="submit">Aplicar colunas</button>
         </form>
-        <BotaoCompartilharPdf url={`/api/usina/relatorio-gerencial/pdf?data=${data}&modo=${modo}&pagina=tudo&col=${colunas.join(',')}`} nomeArquivo={`relatorio-gerencial-usina-${data}.svg`} titulo={`Relatório da usina ${br(data)}`} rotulo="Imagem do relatório" />
+        <BotaoCompartilharPdf url={`/api/usina/relatorio-gerencial/pdf?data=${data}&modo=${modo}&pagina=tudo&col=${colunas.join(',')}`} nomeArquivo={`relatorio-gerencial-usina-${data}.png`} titulo={`Relatório da usina ${br(data)}`} rotulo="Imagem do relatório" png />
         <a className="btn btn-ghost h-11" href={`/admin/usina?data=${data}`}>Voltar</a>
         <form action="" className="flex items-center gap-2 text-sm">
           <label htmlFor="data">Dia</label>
