@@ -91,9 +91,10 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
   const dias = serie.rotulos.length;
 
   const trilRel = await montarTrilheirosRelatorio(data);
-  // Local e observação de cada caminhão: o local vale até a data do relatório; a observação é a do próprio dia.
+  // Local e observação de cada caminhão: o local é o último lançado até a data do relatório (pode ser de outra semana);
+  // a observação é a do próprio dia.
   const registrosCaminhao = await prisma.caminhaoSoldaDia.findMany({
-    where: { data: { gte: new Date(`${inicio}T00:00:00Z`), lte: new Date(`${data}T00:00:00Z`) } },
+    where: { data: { lte: new Date(`${data}T00:00:00Z`) } },
     orderBy: { data: 'asc' },
     select: { data: true, caminhao: true, local: true, observacao: true },
   });
