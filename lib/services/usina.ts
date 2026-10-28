@@ -5,6 +5,8 @@ import { somarDias, diasUteisNaUsina, conjuntoFeriados } from '@/lib/usina/diasU
 
 export const TIPOS_TLS = ['UIC60_REEMPREGO', 'UIC60_NOVO', 'GB60_REEMPREGO', 'TR68_REEMPREGO', 'TR68_NOVO'] as const;
 export type TipoTlsValor = (typeof TIPOS_TLS)[number];
+export const MALHAS_TLS = ['PAULISTA', 'NORTE', 'FIPS'] as const;
+export type MalhaTlsValor = (typeof MALHAS_TLS)[number];
 
 export const ROTULO_TLS: Record<TipoTlsValor, string> = {
   UIC60_REEMPREGO: 'UIC 60 reemprego',
@@ -21,9 +23,10 @@ export async function estaleiroDoPeriodo(periodo: Periodo, data: string) {
   const { inicio, fim } = intervaloDoPeriodo(periodo, data);
   const semana = inicioDaSemana(data);
 
-  const [dias, estoque, manutencao, escala, carreta] = await Promise.all([
+  const [dias, estoque, malhas, manutencao, escala, carreta] = await Promise.all([
     prisma.estaleiroDia.findMany({ where: { data: { gte: dataBanco(inicio), lte: dataBanco(fim) } }, orderBy: { data: 'asc' } }),
     prisma.estoqueTlsDia.findMany({ where: { data: dataBanco(data) } }),
+    prisma.estoqueTlsMalha.findMany({ where: { data: dataBanco(data) } }),
     prisma.manutencaoSemana.findUnique({ where: { semanaInicio: dataBanco(semana) } }),
     prisma.escalaSemana.findUnique({ where: { semanaInicio: dataBanco(semana) } }),
     carregamentoCarretaDoPeriodo(inicio, fim),
@@ -44,6 +47,9 @@ export async function estaleiroDoPeriodo(periodo: Periodo, data: string) {
     estoqueDoDia: Object.fromEntries(
       TIPOS_TLS.map((t) => [t, estoque.find((e) => e.tipo === t)?.quantidade ?? null]),
     ) as Record<TipoTlsValor, number | null>,
+    malhasDoDia: Object.fromEntries(
+      TIPOS_TLS.map((t) => [t, Object.fromEntries(MALHAS_TLS.map((m) => [m, malhas.find((x) => x.tipo === t && x.malha === m)?.quantidade ?? null]))]),
+    ) as Record<TipoTlsValor, Record<MalhaTlsValor, number | null>>,
     manutencaoDia: iso(manutencao?.diaManutencao) ?? addSextaFeira(semana),
     escala: escala?.conteudo ?? '',
     carreta,
@@ -100,6 +106,28 @@ export async function salvarEstaleiroDia(data: string, soldas: number | null, co
     update: observacao === undefined ? { soldas, cortes } : { soldas, cortes, observacao },
     create: { data: dataBanco(data), soldas, cortes, observacao: observacao ?? null },
   });
+}
+
+/** Lança a quantidade de cada malha do perfil; o total do perfil no dia é a soma das malhas. */
+export async function salvarEstoqueTlsMalhas(data: string, valores: Partial<Record<TipoTlsValor, Partial<Record<MalhaTlsValor, number | null>>>>) {
+  for (const tipo of TIPOS_TLS) {
+    const linha = valores[tipo];
+    if (!linha) continue;
+    if (MALHAS_TLS.every((m) => linha[m] == null)) continue;
+    let total = 0;
+    for (const m of MALHAS_TLS) {
+      const q = linha[m] ?? 0;
+      total += q;
+      await prisma.estoqueTlsMalha.upsert({
+        where: { data_tipo_malha: { data: dataBanco(data), tipo, malha: m } },
+        update: { quantidade: q },
+        create: { data: dataBanco(data), tipo, malha: m, quantidade: q },
+      });
+    }
+    const v: Partial<Record<TipoTlsValor, number | null>> = {};
+    v[tipo] = total;
+    await salvarEstoqueTls(data, v);
+  }
 }
 
 export async function salvarEstoqueTls(data: string, valores: Partial<Record<TipoTlsValor, number | null>>) {

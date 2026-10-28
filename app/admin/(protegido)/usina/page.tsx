@@ -64,6 +64,11 @@ function Cartao({ rotulo, valor }: { rotulo: string; valor: string | number }) {
 const NOME_DIA = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
 // Lançamento de TLS: os novos primeiro, depois os reemprego, com os mesmos nomes do relatório.
 const ORDEM_LANCAMENTO_TLS = ['TR68_NOVO', 'UIC60_NOVO', 'TR68_REEMPREGO', 'UIC60_REEMPREGO', 'GB60_REEMPREGO'] as const;
+const MALHAS_LANCAMENTO_TLS = [
+  { chave: 'PAULISTA', rotulo: 'Malha Paulista' },
+  { chave: 'NORTE', rotulo: 'Malha Norte' },
+  { chave: 'FIPS', rotulo: 'FIPS' },
+] as const;
 const NOME_LANCAMENTO_TLS: Record<string, string> = {
   TR68_NOVO: 'TR68 NOVO',
   UIC60_NOVO: 'UIC60 NOVO',
@@ -190,11 +195,24 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           <p className="font-semibold">Estoque de TLS em {br(data)}</p>
           <FormularioUsina acao={salvarEstoqueTlsAction}>
             <SeletorDia valor={data} />
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <div className="space-y-3">
               {ORDEM_LANCAMENTO_TLS.map((t) => (
-                <div className="field" key={t}>
-                  <label htmlFor={`tls_${t}`}>{NOME_LANCAMENTO_TLS[t]}</label>
-                  <input id={`tls_${t}`} name={`tls_${t}`} inputMode="numeric" defaultValue={est.estoqueDoDia[t] ?? ''} className="h-11" />
+                <div key={t} className="space-y-2">
+                  <p className="text-sm font-semibold">{NOME_LANCAMENTO_TLS[t]}</p>
+                  <div className="grid grid-cols-3 gap-3">
+                    {MALHAS_LANCAMENTO_TLS.map((m) => (
+                      <div className="field" key={m.chave}>
+                        <label htmlFor={`malha_${t}_${m.chave}`}>{m.rotulo}</label>
+                        <input
+                          id={`malha_${t}_${m.chave}`}
+                          name={`malha_${t}_${m.chave}`}
+                          inputMode="numeric"
+                          defaultValue={est.malhasDoDia[t]?.[m.chave] ?? ''}
+                          className="h-11"
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>

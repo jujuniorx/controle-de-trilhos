@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/services/requireAdmin';
-import { salvarEstaleiroDia, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, geracaoDaSemana, salvarGeracaoDia, salvarEstoqueTls, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, type TipoTlsValor } from '@/lib/services/usina';
+import { salvarEstaleiroDia, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, geracaoDaSemana, salvarGeracaoDia, salvarEstoqueTlsMalhas, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, MALHAS_TLS, type TipoTlsValor, type MalhaTlsValor } from '@/lib/services/usina';
 import { ITENS_ESCALA, escalaVazia, gravarEscala, statusValido, cfgDeObjeto } from '@/lib/usina/escala';
 import { salvarComposicao, salvarCaminhao, salvarGiro, trilheirosDaSemana, salvarTrilheiroDia, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
@@ -56,13 +56,17 @@ export async function salvarEstoqueTlsAction(_: ResultadoUsina | undefined, form
   await requireAdmin();
   const data = dataDoForm(formData.get('data'));
   if (!data) return { ok: false, erro: 'Data inválida.' };
-  const valores: Partial<Record<TipoTlsValor, number | null>> = {};
+  const valores: Partial<Record<TipoTlsValor, Partial<Record<MalhaTlsValor, number | null>>>> = {};
   for (const tipo of TIPOS_TLS) {
-    const q = inteiro(formData.get(`tls_${tipo}`));
-    if (q === 'invalido') return { ok: false, erro: 'Use só números inteiros no estoque de TLS.' };
-    valores[tipo] = q;
+    const linha: Partial<Record<MalhaTlsValor, number | null>> = {};
+    for (const m of MALHAS_TLS) {
+      const q = inteiro(formData.get(`malha_${tipo}_${m}`));
+      if (q === 'invalido') return { ok: false, erro: 'Use só números inteiros no estoque de TLS.' };
+      linha[m] = q;
+    }
+    valores[tipo] = linha;
   }
-  await salvarEstoqueTls(data, valores);
+  await salvarEstoqueTlsMalhas(data, valores);
   atualizar();
   return { ok: true };
 }

@@ -299,7 +299,7 @@ function desenharEstoqueTls(p: PaginaPdf, linhas: LinhaRelatorio[], x: number, t
   p.arredondado(x, topo - 22, w, 22, 9, hex(cor));
   p.retangulo(x, topo - 22, w, 8, hex(cor));
   p.texto('Estoque de TLS', x + 10, topo - 14, 8, 'negrito', BRANCO);
-  // Tabela: perfil, malha paulista, malha norte, FIPS e total (as malhas ainda sem lançamento separado).
+  // Tabela: perfil, malha paulista, malha norte, FIPS e total (o total é a soma das malhas).
   const colunas = [x + 10, x + w * 0.36, x + w * 0.55, x + w * 0.72, x + w * 0.88];
   const cabecalho = ['Perfil', 'Malha Paulista', 'Malha Norte', 'FIPS', 'Total'];
   const yCab = topo - 36;
@@ -308,9 +308,10 @@ function desenharEstoqueTls(p: PaginaPdf, linhas: LinhaRelatorio[], x: number, t
   itens.forEach((l, i) => {
     const y = yCab - 18 - i * 14;
     p.texto(l.perfil ?? l.rotulo, colunas[0], y, 8, 'negrito', TINTA);
-    p.texto('—', colunas[1], y, 8, 'normal', CINZA);
-    p.texto('—', colunas[2], y, 8, 'normal', CINZA);
-    p.texto('—', colunas[3], y, 8, 'normal', CINZA);
+    const malhas = l.malhas ?? ['—', '—', '—'];
+    p.texto(malhas[0], colunas[1], y, 8, 'normal', TINTA);
+    p.texto(malhas[1], colunas[2], y, 8, 'normal', TINTA);
+    p.texto(malhas[2], colunas[3], y, 8, 'normal', TINTA);
     p.texto(l.dia, colunas[4], y, 9, 'negrito', TINTA);
   });
 }

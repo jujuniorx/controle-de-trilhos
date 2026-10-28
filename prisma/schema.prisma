@@ -429,6 +429,24 @@ model EstoqueTlsDia {
   @@unique([data, tipo])
 }
 
+enum MalhaTls {
+  PAULISTA
+  NORTE
+  FIPS
+}
+
+// Estoque de TLS por malha (Paulista, Norte e FIPS). O total do perfil no dia é a soma delas.
+model EstoqueTlsMalha {
+  id           String   @id @default(cuid())
+  data         DateTime @db.Date
+  tipo         TipoTls
+  malha        MalhaTls
+  quantidade   Int
+  atualizadoEm DateTime @updatedAt
+
+  @@unique([data, tipo, malha])
+}
+
 // Segunda-feira: escala da semana (formato a definir).
 model EscalaSemana {
   id           String   @id @default(cuid())

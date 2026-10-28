@@ -208,9 +208,9 @@ export function EstoqueTlsBloco({ linhas, cor }: { linhas: LinhaRelatorio[]; cor
             {itens.map((l, i) => (
               <tr key={l.rotulo} className={`border-b border-slate-100 ${i % 2 === 1 ? 'bg-slate-50' : ''}`}>
                 <td className="py-2 font-bold text-slate-900">{l.perfil ?? l.rotulo}</td>
-                <td className={`${celula} text-slate-400`}>—</td>
-                <td className={`${celula} text-slate-400`}>—</td>
-                <td className={`${celula} text-slate-400`}>—</td>
+                {(l.malhas ?? ['—', '—', '—']).map((v, j) => (
+                  <td key={j} className={`${celula} text-slate-700`}>{v}</td>
+                ))}
                 <td className={celula} style={{ color: cor }}>{l.dia}</td>
               </tr>
             ))}
