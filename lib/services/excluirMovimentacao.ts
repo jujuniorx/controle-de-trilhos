@@ -52,7 +52,7 @@ export async function excluirMovimentacao(
  */
 export async function excluirRemetidoPatio(movimentacaoId: string, motivo: string, atorNome: string): Promise<void> {
   const texto = motivo.trim();
-  if (texto.length < 3) throw new ErroRegraNegocio('Escreva o motivo da exclusão (pelo menos 3 letras).');
+  if (texto.length < 10) throw new ErroRegraNegocio('Escreva o motivo da exclusão com pelo menos 10 letras (ex.: "carga cancelada pelo cliente").');
   const mov = await prisma.movimentacao.findUnique({
     where: { id: movimentacaoId },
     select: { tipo: true, carretaLiberadaEm: true, saidaPortariaEm: true },

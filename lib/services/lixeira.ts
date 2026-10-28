@@ -45,7 +45,8 @@ export function rotuloDaMovimentacao(mov: {
     normalizarLocal(mov.destino ?? mov.origem) || null,
     fmtDataCurta(mov.dataMovimentacao),
   ].filter(Boolean);
-  return partes.length > 0 ? partes.join(' · ') : mov.id;
+  // Sem NF, local nem data, não mostra o id técnico: um texto que a pessoa entende.
+  return partes.length > 0 ? partes.join(' · ') : 'Movimentação sem NF, local ou data';
 }
 
 /** Lê a movimentação inteira (com tudo que pertence a ela) e devolve pronta para guardar como JSON. */
