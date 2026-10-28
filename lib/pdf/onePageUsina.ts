@@ -464,8 +464,8 @@ export function gerarOnePageUsinaSvg(
     const { p, p2 } = montarPaginasUsina(d, tril, modo, colunasEscolhidas, observacoes);
     const altP = p.alturaUtil(H);
     const altP2 = p2.alturaUtil(H);
-    // A segunda página começa logo depois da primeira (sem a margem de topo dela no meio): a primeira linha fica a 14 da última da primeira.
-    const topoP2 = alturaFoto + altP - 32;
+    // A segunda página começa logo depois da primeira (sem a margem de topo dela no meio): há um espaço de cerca de 40 entre o fim da primeira e o começo da segunda.
+    const topoP2 = alturaFoto + altP - 20;
     const total = topoP2 + altP2 + ALTURA_RODAPE;
     const rodape = new PaginaPdf().retangulo(0, 0, L, ALTURA_RODAPE, BRANCO);
     desenharRodape(rodape, d, modo, 0);
