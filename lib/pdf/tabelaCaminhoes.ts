@@ -61,8 +61,9 @@ export function desenharCaminhoes(
 
   const yGrupo = topo - 34;
   const yCabecalho = topo - 44;
-  const dir = (texto: string, xDireita: number, y: number, tamanho: number, fonte: 'normal' | 'negrito', c: Cor) =>
-    p.texto(texto, x + xDireita - larguraTexto(texto, tamanho, fonte), y, tamanho, fonte, c);
+  // Números e cabeçalhos centralizados na própria coluna (cada coluna tem PASSO de largura, terminando em posicao).
+  const centro = (texto: string, colunaDireita: number, y: number, tamanho: number, fonte: 'normal' | 'negrito', c: Cor) =>
+    p.texto(texto, x + colunaDireita - PASSO / 2 - larguraTexto(texto, tamanho, fonte) / 2, y, tamanho, fonte, c);
   const centroGrupo = (texto: string, g: Grupo) => {
     const cols = ordem.filter((n) => n.startsWith(`${g}-`));
     if (cols.length === 0) return;
@@ -74,7 +75,7 @@ export function desenharCaminhoes(
   centroGrupo('SOLDA (UND)', 'solda');
   centroGrupo('CORTE (UND)', 'corte');
   p.texto('CAMINHÃO', x + 10, yCabecalho, 6.5, 'negrito', CINZA);
-  ordem.forEach((n) => dir(NOME[n.split('-')[1] as Coluna], posicao(n), yCabecalho, 6.5, 'negrito', CINZA));
+  ordem.forEach((n) => centro(NOME[n.split('-')[1] as Coluna], posicao(n), yCabecalho, 6.5, 'negrito', CINZA));
   p.texto('LOCAL', x + xLocal, yCabecalho, 6.5, 'negrito', CINZA);
   if (comObservacao) p.texto('OBSERVAÇÃO', x + xObs, yCabecalho, 6.5, 'negrito', CINZA);
   p.linha(x + 8, yCabecalho - 6, x + w - 8, yCabecalho - 6, LINHA, 0.6);
@@ -90,7 +91,7 @@ export function desenharCaminhoes(
       const [g, k] = n.split('-') as [Grupo, Coluna];
       const valor = c[g][k];
       const destaque = k === 'mes';
-      dir(String(valor), posicao(n), y, 10, 'negrito', destaque ? corSetor : TINTA);
+      centro(String(valor), posicao(n), y, 10, 'negrito', destaque ? corSetor : TINTA);
     });
     // Local em etiqueta escura, como no trilheiro.
     if (c.local) {
