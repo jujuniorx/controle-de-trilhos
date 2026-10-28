@@ -22,12 +22,17 @@ const metros = (v: number) => fmtMetros(v);
 const numeroTls = (v: number | null | undefined) => (v == null ? '—' : String(v));
 // Paulista, Norte e FIPS do perfil no dia; sem lançamento aparece traço.
 const malhasTls = (m: Record<string, number | null> | undefined): [string, string, string] => [numeroTls(m?.PAULISTA), numeroTls(m?.NORTE), numeroTls(m?.FIPS)];
+// Total de barras curtas do perfil: soma das malhas (traço quando não há lançamento).
+const somaTls = (m: Record<string, number | null> | undefined): string => {
+  const valores = Object.values(m ?? {}).filter((v): v is number => v != null);
+  return valores.length ? String(valores.reduce((a, b) => a + b, 0)) : '—';
+};
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
 /** Valores de cada dia da semana (segunda a domingo), quando existem; usados no PDF diário. */
 /** cores: uma cor por parte do valor separada por ' / ' (ex.: W61 e W62), para cada parte aparecer na cor da sua composição. */
 /** Linha de um setor. `secao` marca o início de um bloco com título próprio (ex.: Estoque TLS). */
-export interface LinhaRelatorio { rotulo: string; dia: string; semana: string; mes: string; porDia?: string[]; cores?: string[]; secao?: string; perfil?: string; malhas?: [string, string, string] }
+export interface LinhaRelatorio { rotulo: string; dia: string; semana: string; mes: string; porDia?: string[]; cores?: string[]; secao?: string; perfil?: string; malhas?: [string, string, string]; curtaMalhas?: [string, string, string]; curtaTotal?: string }
 export interface GraficoRelatorio { titulo: string; series: { nome: string; cor: string; valores: number[] }[] }
 /** Grade de produção por dia (um valor por dia da semana), para setores em que o número do dia importa mais que o gráfico. */
 export interface GradeRelatorio { colunas: string[]; linhas: { rotulo: string; valores: number[] }[] }
@@ -218,10 +223,10 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
           { secao: 'Envio de trilho', rotulo: 'Trilho novo (m)', dia: fmtMetros(estD.carreta.trilhoNovoM), semana: fmtMetros(estS.carreta.trilhoNovoM), mes: fmtMetros(estM.carreta.trilhoNovoM) },
           { rotulo: 'Tampões (m)', dia: fmtMetros(estD.carreta.tampoesM), semana: fmtMetros(estS.carreta.tampoesM), mes: fmtMetros(estM.carreta.tampoesM) },
           // Estoque é um retrato do dia: só a coluna do dia tem número.
-          { secao: 'Estoque TLS (no dia)', rotulo: ROTULO_TLS.TR68_NOVO, dia: numeroTls(estD.estoqueDoDia.TR68_NOVO), perfil: 'TR68 NOVO', malhas: malhasTls(estD.malhasDoDia.TR68_NOVO), semana: '—', mes: '—' },
-          { rotulo: ROTULO_TLS.UIC60_NOVO, dia: numeroTls(estD.estoqueDoDia.UIC60_NOVO), perfil: 'UIC60 NOVO', malhas: malhasTls(estD.malhasDoDia.UIC60_NOVO), semana: '—', mes: '—' },
-          { rotulo: ROTULO_TLS.TR68_REEMPREGO, dia: numeroTls(estD.estoqueDoDia.TR68_REEMPREGO), perfil: 'TR68 REEMPREGO', malhas: malhasTls(estD.malhasDoDia.TR68_REEMPREGO), semana: '—', mes: '—' },
-          { rotulo: ROTULO_TLS.UIC60_REEMPREGO, dia: numeroTls(estD.estoqueDoDia.UIC60_REEMPREGO), perfil: 'UIC60 REEMPREGO', malhas: malhasTls(estD.malhasDoDia.UIC60_REEMPREGO), semana: '—', mes: '—' },
+          { secao: 'Estoque TLS (no dia)', rotulo: ROTULO_TLS.TR68_NOVO, dia: numeroTls(estD.estoqueDoDia.TR68_NOVO), perfil: 'TR68 NOVO', malhas: malhasTls(estD.malhasDoDia.TR68_NOVO), curtaMalhas: malhasTls(estD.barrasCurtasDoDia.TR68_NOVO), curtaTotal: somaTls(estD.barrasCurtasDoDia.TR68_NOVO), semana: '—', mes: '—' },
+          { rotulo: ROTULO_TLS.UIC60_NOVO, dia: numeroTls(estD.estoqueDoDia.UIC60_NOVO), perfil: 'UIC60 NOVO', malhas: malhasTls(estD.malhasDoDia.UIC60_NOVO), curtaMalhas: malhasTls(estD.barrasCurtasDoDia.UIC60_NOVO), curtaTotal: somaTls(estD.barrasCurtasDoDia.UIC60_NOVO), semana: '—', mes: '—' },
+          { rotulo: ROTULO_TLS.TR68_REEMPREGO, dia: numeroTls(estD.estoqueDoDia.TR68_REEMPREGO), perfil: 'TR68 REEMPREGO', malhas: malhasTls(estD.malhasDoDia.TR68_REEMPREGO), curtaMalhas: malhasTls(estD.barrasCurtasDoDia.TR68_REEMPREGO), curtaTotal: somaTls(estD.barrasCurtasDoDia.TR68_REEMPREGO), semana: '—', mes: '—' },
+          { rotulo: ROTULO_TLS.UIC60_REEMPREGO, dia: numeroTls(estD.estoqueDoDia.UIC60_REEMPREGO), perfil: 'UIC60 REEMPREGO', malhas: malhasTls(estD.malhasDoDia.UIC60_REEMPREGO), curtaMalhas: malhasTls(estD.barrasCurtasDoDia.UIC60_REEMPREGO), curtaTotal: somaTls(estD.barrasCurtasDoDia.UIC60_REEMPREGO), semana: '—', mes: '—' },
         ],
         grafico: {
           titulo: 'Soldas e cortes por dia',

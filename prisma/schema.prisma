@@ -447,6 +447,18 @@ model EstoqueTlsMalha {
   @@unique([data, tipo, malha])
 }
 
+// Barras curtas: mesmos perfis do TLS, por malha. O total do perfil é a soma das malhas.
+model EstoqueBarraCurtaMalha {
+  id           String   @id @default(cuid())
+  data         DateTime @db.Date
+  tipo         TipoTls
+  malha        MalhaTls
+  quantidade   Int
+  atualizadoEm DateTime @updatedAt
+
+  @@unique([data, tipo, malha])
+}
+
 // Segunda-feira: escala da semana (formato a definir).
 model EscalaSemana {
   id           String   @id @default(cuid())

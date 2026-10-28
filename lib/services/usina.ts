@@ -23,10 +23,11 @@ export async function estaleiroDoPeriodo(periodo: Periodo, data: string) {
   const { inicio, fim } = intervaloDoPeriodo(periodo, data);
   const semana = inicioDaSemana(data);
 
-  const [dias, estoque, malhas, manutencao, escala, carreta] = await Promise.all([
+  const [dias, estoque, malhas, curtas, manutencao, escala, carreta] = await Promise.all([
     prisma.estaleiroDia.findMany({ where: { data: { gte: dataBanco(inicio), lte: dataBanco(fim) } }, orderBy: { data: 'asc' } }),
     prisma.estoqueTlsDia.findMany({ where: { data: dataBanco(data) } }),
     prisma.estoqueTlsMalha.findMany({ where: { data: dataBanco(data) } }),
+    prisma.estoqueBarraCurtaMalha.findMany({ where: { data: dataBanco(data) } }),
     prisma.manutencaoSemana.findUnique({ where: { semanaInicio: dataBanco(semana) } }),
     prisma.escalaSemana.findUnique({ where: { semanaInicio: dataBanco(semana) } }),
     carregamentoCarretaDoPeriodo(inicio, fim),
@@ -49,6 +50,9 @@ export async function estaleiroDoPeriodo(periodo: Periodo, data: string) {
     ) as Record<TipoTlsValor, number | null>,
     malhasDoDia: Object.fromEntries(
       TIPOS_TLS.map((t) => [t, Object.fromEntries(MALHAS_TLS.map((m) => [m, malhas.find((x) => x.tipo === t && x.malha === m)?.quantidade ?? null]))]),
+    ) as Record<TipoTlsValor, Record<MalhaTlsValor, number | null>>,
+    barrasCurtasDoDia: Object.fromEntries(
+      TIPOS_TLS.map((t) => [t, Object.fromEntries(MALHAS_TLS.map((m) => [m, curtas.find((x) => x.tipo === t && x.malha === m)?.quantidade ?? null]))]),
     ) as Record<TipoTlsValor, Record<MalhaTlsValor, number | null>>,
     manutencaoDia: iso(manutencao?.diaManutencao) ?? addSextaFeira(semana),
     escala: escala?.conteudo ?? '',
@@ -127,6 +131,23 @@ export async function salvarEstoqueTlsMalhas(data: string, valores: Partial<Reco
     const v: Partial<Record<TipoTlsValor, number | null>> = {};
     v[tipo] = total;
     await salvarEstoqueTls(data, v);
+  }
+}
+
+/** Barras curtas por malha no dia. Não tem total próprio: a soma das malhas é mostrada no relatório. */
+export async function salvarBarrasCurtasMalhas(data: string, valores: Partial<Record<TipoTlsValor, Partial<Record<MalhaTlsValor, number | null>>>>) {
+  for (const tipo of TIPOS_TLS) {
+    const linha = valores[tipo];
+    if (!linha) continue;
+    if (MALHAS_TLS.every((m) => linha[m] == null)) continue;
+    for (const m of MALHAS_TLS) {
+      const q = linha[m] ?? 0;
+      await prisma.estoqueBarraCurtaMalha.upsert({
+        where: { data_tipo_malha: { data: dataBanco(data), tipo, malha: m } },
+        update: { quantidade: q },
+        create: { data: dataBanco(data), tipo, malha: m, quantidade: q },
+      });
+    }
   }
 }
 

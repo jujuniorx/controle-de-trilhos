@@ -309,22 +309,39 @@ function desenharEstoqueTls(p: PaginaPdf, linhas: LinhaRelatorio[], x: number, t
   p.arredondado(x, topo - 22, w, 22, 9, hex(cor));
   p.retangulo(x, topo - 22, w, 8, hex(cor));
   p.texto('Estoque de TLS', x + 10, topo - 14, 8, 'negrito', BRANCO);
-  // Tabela: perfil, malha paulista, malha norte, FIPS e total (o total é a soma das malhas).
-  const colunas = [x + 10, x + w * 0.36, x + w * 0.55, x + w * 0.72, x + w * 0.88];
-  const cabecalho = ['Perfil', 'Malha Paulista', 'Malha Norte', 'FIPS', 'Total'];
-  const yCab = topo - 36;
-  // Colunas numéricas centralizadas entre a coluna atual e a próxima (a última vai até a borda direita do cartão).
-  const centros = [0, (colunas[1] + colunas[2]) / 2, (colunas[2] + colunas[3]) / 2, (colunas[3] + colunas[4]) / 2, (colunas[4] + x + w - 8) / 2];
-  cabecalho.forEach((t, j) => (j === 0 ? p.texto(t, colunas[0], yCab, 6.5, 'negrito', CINZA) : textoCentro(p, t, centros[j]!, yCab, 6.5, 'negrito', CINZA)));
+  const meio = x + w / 2;
+  p.linha(meio, base + 8, meio, topo - 30, LINHA, 0.6);
+  desenharMeioTls(p, 'TLS', itens, x, w / 2, topo, (l) => l.malhas ?? ['—', '—', '—'], (l) => l.dia);
+  desenharMeioTls(p, 'BARRAS CURTAS', itens, meio, w / 2, topo, (l) => l.curtaMalhas ?? ['—', '—', '—'], (l) => l.curtaTotal ?? '—');
+}
+
+/** Um dos dois quadros do estoque (TLS ou barras curtas): perfil, malha paulista, malha norte, FIPS e total, centralizados. */
+function desenharMeioTls(
+  p: PaginaPdf,
+  titulo: string,
+  itens: LinhaRelatorio[],
+  x: number,
+  w: number,
+  topo: number,
+  malhasDe: (l: LinhaRelatorio) => [string, string, string],
+  totalDe: (l: LinhaRelatorio) => string,
+) {
+  const colunas = [x + 10, x + w * 0.34, x + w * 0.54, x + w * 0.74, x + w * 0.9];
+  const centros = [0, (colunas[1]! + colunas[2]!) / 2, (colunas[2]! + colunas[3]!) / 2, (colunas[3]! + colunas[4]!) / 2, (colunas[4]! + x + w - 8) / 2];
+  p.texto(titulo, x + 10, topo - 33, 7, 'negrito', TINTA);
+  const yCab = topo - 44;
+  ['Perfil', 'Malha Paulista', 'Malha Norte', 'FIPS', 'Total'].forEach((t, j) =>
+    j === 0 ? p.texto(t, colunas[0]!, yCab, 6.5, 'negrito', CINZA) : textoCentro(p, t, centros[j]!, yCab, 6.5, 'negrito', CINZA),
+  );
   p.linha(x + 8, yCab - 5, x + w - 8, yCab - 5, LINHA, 0.6);
   itens.forEach((l, i) => {
-    const y = yCab - 18 - i * 14;
-    p.texto(l.perfil ?? l.rotulo, colunas[0], y, 8, 'negrito', TINTA);
-    const malhas = l.malhas ?? ['—', '—', '—'];
+    const y = yCab - 17 - i * 13;
+    p.texto(l.perfil ?? l.rotulo, colunas[0]!, y, 8, 'negrito', TINTA);
+    const malhas = malhasDe(l);
     textoCentro(p, malhas[0], centros[1]!, y, 8, 'normal', TINTA);
     textoCentro(p, malhas[1], centros[2]!, y, 8, 'normal', TINTA);
     textoCentro(p, malhas[2], centros[3]!, y, 8, 'normal', TINTA);
-    textoCentro(p, l.dia, centros[4]!, y, 9, 'negrito', TINTA);
+    textoCentro(p, totalDe(l), centros[4]!, y, 9, 'negrito', TINTA);
   });
 }
 

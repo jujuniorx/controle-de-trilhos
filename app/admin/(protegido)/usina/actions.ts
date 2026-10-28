@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/services/requireAdmin';
-import { salvarEstaleiroDia, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, geracaoDaSemana, salvarGeracaoDia, salvarEstoqueTlsMalhas, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, MALHAS_TLS, type TipoTlsValor, type MalhaTlsValor } from '@/lib/services/usina';
+import { salvarEstaleiroDia, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, geracaoDaSemana, salvarGeracaoDia, salvarEstoqueTlsMalhas, salvarBarrasCurtasMalhas, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, MALHAS_TLS, type TipoTlsValor, type MalhaTlsValor } from '@/lib/services/usina';
 import { ITENS_ESCALA, escalaVazia, gravarEscala, statusValido, cfgDeObjeto } from '@/lib/usina/escala';
 import { salvarComposicao, salvarCaminhao, salvarGiro, trilheirosDaSemana, salvarTrilheirosDias, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
@@ -67,6 +67,17 @@ export async function salvarEstoqueTlsAction(_: ResultadoUsina | undefined, form
     valores[tipo] = linha;
   }
   await salvarEstoqueTlsMalhas(data, valores);
+  const curtas: Partial<Record<TipoTlsValor, Partial<Record<MalhaTlsValor, number | null>>>> = {};
+  for (const tipo of TIPOS_TLS) {
+    const linha: Partial<Record<MalhaTlsValor, number | null>> = {};
+    for (const m of MALHAS_TLS) {
+      const q = inteiro(formData.get(`curta_${tipo}_${m}`));
+      if (q === 'invalido') return { ok: false, erro: 'Use só números inteiros nas barras curtas.' };
+      linha[m] = q;
+    }
+    curtas[tipo] = linha;
+  }
+  await salvarBarrasCurtasMalhas(data, curtas);
   atualizar();
   return { ok: true };
 }

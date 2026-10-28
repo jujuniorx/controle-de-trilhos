@@ -195,24 +195,32 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           <p className="font-semibold">Estoque de TLS em {br(data)}</p>
           <FormularioUsina acao={salvarEstoqueTlsAction}>
             <SeletorDia valor={data} />
-            <div className="space-y-3">
-              {ORDEM_LANCAMENTO_TLS.map((t) => (
-                <div key={t} className="space-y-2">
-                  <p className="text-sm font-semibold">{NOME_LANCAMENTO_TLS[t]}</p>
-                  <div className="grid grid-cols-3 gap-3">
-                    {MALHAS_LANCAMENTO_TLS.map((m) => (
-                      <div className="field" key={m.chave}>
-                        <label htmlFor={`malha_${t}_${m.chave}`}>{m.rotulo}</label>
-                        <input
-                          id={`malha_${t}_${m.chave}`}
-                          name={`malha_${t}_${m.chave}`}
-                          inputMode="numeric"
-                          defaultValue={est.malhasDoDia[t]?.[m.chave] ?? ''}
-                          className="h-11"
-                        />
+            <div className="grid gap-4 md:grid-cols-2">
+              {[
+                { titulo: 'TLS', prefixo: 'malha', valores: est.malhasDoDia },
+                { titulo: 'Barras curtas', prefixo: 'curta', valores: est.barrasCurtasDoDia },
+              ].map((bloco) => (
+                <div key={bloco.prefixo} className="space-y-3">
+                  <p className="text-sm font-bold uppercase tracking-wide text-slate-500">{bloco.titulo}</p>
+                  {ORDEM_LANCAMENTO_TLS.map((t) => (
+                    <div key={t} className="space-y-2">
+                      <p className="text-sm font-semibold">{NOME_LANCAMENTO_TLS[t]}</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {MALHAS_LANCAMENTO_TLS.map((m) => (
+                          <div className="field" key={m.chave}>
+                            <label htmlFor={`${bloco.prefixo}_${t}_${m.chave}`}>{m.rotulo}</label>
+                            <input
+                              id={`${bloco.prefixo}_${t}_${m.chave}`}
+                              name={`${bloco.prefixo}_${t}_${m.chave}`}
+                              inputMode="numeric"
+                              defaultValue={bloco.valores[t]?.[m.chave] ?? ''}
+                              className="h-11"
+                            />
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>
