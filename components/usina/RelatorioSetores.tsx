@@ -190,7 +190,14 @@ export function EstoqueTlsBloco({ linhas, cor }: { linhas: LinhaRelatorio[]; cor
   const tabela = (titulo: string, malhasDe: (l: LinhaRelatorio) => [string, string, string], totalDe: (l: LinhaRelatorio) => string) => (
     <div className="min-w-0 overflow-x-auto">
       <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">{titulo}</p>
-      <table className="w-full border-collapse text-[13px]">
+      <table className="w-full table-fixed border-collapse text-[13px]">
+        <colgroup>
+          <col style={{ width: '28%' }} />
+          <col style={{ width: '18%' }} />
+          <col style={{ width: '18%' }} />
+          <col style={{ width: '18%' }} />
+          <col style={{ width: '18%' }} />
+        </colgroup>
         <thead>
           <tr className="border-b-2 border-slate-200 text-[10px] uppercase tracking-wide text-slate-500">
             <th className="pb-2 text-left font-semibold">Perfil</th>
@@ -203,11 +210,10 @@ export function EstoqueTlsBloco({ linhas, cor }: { linhas: LinhaRelatorio[]; cor
         <tbody>
           {itens.map((l, i) => (
             <tr key={l.rotulo} className={`border-b border-slate-100 ${i % 2 === 1 ? 'bg-slate-50' : ''}`}>
-              <td className="py-2 font-bold text-slate-900">{l.perfil ?? l.rotulo}</td>
-              {malhasDe(l).map((v, j) => (
-                <td key={j} className="py-2 text-center tabular-nums text-slate-700">{v}</td>
+              <td className="py-2 text-left font-bold text-slate-900">{l.perfil ?? l.rotulo}</td>
+              {[...malhasDe(l), totalDe(l)].map((v, j) => (
+                <td key={j} className="py-2 text-center font-normal tabular-nums text-slate-700">{v}</td>
               ))}
-              <td className="py-2 text-center tabular-nums text-slate-700">{totalDe(l)}</td>
             </tr>
           ))}
         </tbody>
