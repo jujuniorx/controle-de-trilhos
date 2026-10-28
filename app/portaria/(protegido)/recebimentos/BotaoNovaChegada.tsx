@@ -3,16 +3,18 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { novaChegadaAction } from './actions';
+import { ICONE_MAIS } from '@/components/portaria/icones';
 
+/** Mesmo estilo e mesma posição de "Carreta sem aviso do Pátio" na tela de Carga. */
 export function BotaoNovaChegada() {
   const router = useRouter();
   const [pendente, iniciar] = useTransition();
   const [erro, setErro] = useState('');
   return (
-    <div className="flex flex-col items-stretch sm:items-end">
+    <div className="flex flex-col items-stretch gap-1">
       <button
         type="button"
-        className="btn btn-primary h-12 w-full sm:w-auto"
+        className="btn btn-ghost h-12 w-full"
         disabled={pendente}
         onClick={() =>
           iniciar(async () => {
@@ -27,10 +29,11 @@ export function BotaoNovaChegada() {
           })
         }
       >
-        {pendente ? 'Cadastrando...' : '+ Nova chegada'}
+        {ICONE_MAIS(18)}
+        {pendente ? 'Cadastrando...' : 'Nova chegada'}
       </button>
       {erro && (
-        <p role="alert" className="mt-1 text-sm text-bad">
+        <p role="alert" className="text-sm text-bad">
           {erro}
         </p>
       )}

@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 
-/** Bloco de campos do cartão da Portaria: título pequeno + grade responsiva. */
+/** Bloco de campos do cartão da Portaria: título em caixa-alta (12 px) + grade responsiva. */
 export function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
     <fieldset className="rounded-xl border border-line bg-surface-2/50 p-3">
-      <legend className="px-1.5 text-[.68rem] font-bold uppercase tracking-[.12em] text-ink-muted">{titulo}</legend>
+      <legend className="px-1.5 text-xs font-bold uppercase tracking-[.08em] text-ink-muted">{titulo}</legend>
       <div className="grid gap-3 sm:grid-cols-2">{children}</div>
     </fieldset>
   );

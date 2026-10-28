@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 import { NavegacaoTopo } from '@/components/ui/NavegacaoTopo';
 import { Logo } from '@/components/ui/Logo';
 import { InstalarApp } from '@/components/InstalarApp';
@@ -24,23 +25,47 @@ function iniciaisDe(nome: string): string {
     .join('');
 }
 
+/**
+ * Avatar que abre o menu da conta. Vale em todas as larguras, então o Sair também
+ * funciona no celular (antes ele só existia no menu lateral, que some abaixo de 1024 px).
+ */
+function MenuConta({ nome, iniciais, sair }: { nome: string; iniciais: string; sair: () => Promise<void> }) {
+  return (
+    <details className="portaria-menu">
+      <summary className="portaria-avatar" aria-label={`Conta de ${nome}`}>
+        {iniciais}
+      </summary>
+      <div className="portaria-menu-painel">
+        <p className="portaria-menu-nome">{nome}</p>
+        <p className="portaria-menu-papel">Portaria</p>
+        <Link href="/" className="portaria-menu-item">
+          Trocar área
+        </Link>
+        <BotaoSair acao={sair} className="portaria-menu-sair" />
+      </div>
+    </details>
+  );
+}
+
 export function PortariaShell({ nome, sair, children }: { nome: string; sair: () => Promise<void>; children: ReactNode }) {
   const iniciais = iniciaisDe(nome) || '?';
   return (
-    <div className="area-admin com-abas flex min-h-screen flex-col bg-background md:flex-row">
+    <div className="portaria-shell area-admin com-abas flex min-h-screen flex-col bg-background lg:flex-row">
       <GestosApp />
-      <header className="ct-topbar relative flex h-14 flex-none items-center justify-between px-3 md:hidden">
+      <header className="ct-topbar relative flex h-14 flex-none items-center justify-between px-3 lg:hidden">
         <div className="flex items-center gap-2">
-          <NavegacaoTopo inicioArea="/portaria" />
+          <div className="min-w-[84px]">
+            <NavegacaoTopo inicioArea="/portaria" />
+          </div>
           <span className="font-condensed text-base font-bold uppercase tracking-wide text-ink">Portaria</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <AlternarTema padrao="claro" />
-          <span className="ct-user-avatar" aria-hidden="true">{iniciais}</span>
+          <MenuConta nome={nome} iniciais={iniciais} sair={sair} />
         </div>
       </header>
 
-      <aside className="ct-sidebar hidden w-[248px] flex-none flex-col md:flex">
+      <aside className="ct-sidebar hidden w-[248px] flex-none flex-col lg:flex">
         <div className="ct-sidebar-logo">
           <Logo size={32} subtitle="Portaria" />
         </div>
@@ -60,12 +85,11 @@ export function PortariaShell({ nome, sair, children }: { nome: string; sair: ()
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="ct-topbar hidden h-[52px] flex-none items-center justify-between gap-3 px-6 md:flex">
+        <header className="ct-topbar hidden h-[52px] flex-none items-center justify-between gap-3 px-6 lg:flex">
           <NavegacaoTopo inicioArea="/portaria" />
           <div className="flex items-center gap-3">
             <AlternarTema padrao="claro" />
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-sm font-bold text-white">{iniciais}</span>
-            <span className="text-sm font-semibold text-ink">{nome}</span>
+            <MenuConta nome={nome} iniciais={iniciais} sair={sair} />
           </div>
         </header>
         <InstalarApp />

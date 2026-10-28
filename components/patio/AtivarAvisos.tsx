@@ -17,10 +17,13 @@ export function AtivarAvisos({
   chavePublica,
   titulo = 'Avisos da Portaria',
   descricao = 'Receba um aviso neste aparelho quando a Portaria registrar a chegada de um caminhão.',
+  ocultarQuandoLigado = false,
 }: {
   chavePublica: string | null;
   titulo?: string;
   descricao?: string;
+  /** Some quando os avisos já estão ligados neste aparelho (a tela não precisa mais lembrar disso). */
+  ocultarQuandoLigado?: boolean;
 }) {
   const [situacao, setSituacao] = useState<Situacao>('carregando');
   const [erro, setErro] = useState('');
@@ -84,6 +87,7 @@ export function AtivarAvisos({
   }
 
   if (situacao === 'carregando') return null;
+  if (ocultarQuandoLigado && situacao === 'ligado') return null;
 
   return (
     <div className="card mt-4 space-y-2">

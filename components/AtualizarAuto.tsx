@@ -8,7 +8,9 @@ export function AtualizarAuto({ segundos = 20 }: { segundos?: number }) {
   const router = useRouter();
   useEffect(() => {
     const id = window.setInterval(() => {
-      if (document.visibilityState === 'visible' && navigator.onLine) router.refresh();
+      // Não recarrega enquanto alguém está digitando num campo: a atualização não pode apagar o que está sendo preenchido.
+      const digitando = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName ?? '');
+      if (document.visibilityState === 'visible' && navigator.onLine && !digitando) router.refresh();
     }, segundos * 1000);
     return () => window.clearInterval(id);
   }, [router, segundos]);

@@ -1477,3 +1477,61 @@ html[data-tema="claro"] .home-entrada .via-trilho-corpo { fill: #7d8fa8; }
 .nao-encontrada-titulo { font-family: var(--font-condensed), sans-serif; font-size: 1.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
 .nao-encontrada-texto { color: var(--t3); font-size: .95rem; line-height: 1.5; }
 .nao-encontrada-acoes { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 10px; }
+
+/* ── Portaria (revisão de 28/10/2026) ───────────────────────────────────────
+   Rótulos e textos de apoio com contraste de pelo menos 4,5:1 no tema claro;
+   campos com 16 px (o iPhone não dá zoom automático); foco sempre visível.
+   Escopo só na Portaria (classe .portaria-tela / .portaria-shell). */
+.portaria-shell, .portaria-tela { --rotulo-portaria: #3f4b5c; }
+html[data-tema="escuro"] .portaria-shell, html[data-tema="escuro"] .portaria-tela { --rotulo-portaria: #b8c4d2; }
+.portaria-shell .text-ink-muted, .portaria-tela .text-ink-muted,
+.portaria-shell .field label, .portaria-tela .field label,
+.portaria-shell .stat-label, .portaria-shell .stat-unit,
+.portaria-tela .stat-label, .portaria-tela .stat-unit { color: var(--rotulo-portaria); }
+.portaria-shell .field label, .portaria-tela .field label { font-size: .8rem; }
+.portaria-shell input, .portaria-shell select, .portaria-shell textarea,
+.portaria-tela input, .portaria-tela select, .portaria-tela textarea { font-size: 16px; }
+.portaria-shell input:focus, .portaria-shell select:focus, .portaria-shell textarea:focus,
+.portaria-tela input:focus, .portaria-tela select:focus, .portaria-tela textarea:focus {
+  outline: 2px solid var(--primary); outline-offset: 1px;
+}
+.portaria-tela .btn { font-size: 1rem; }
+
+/* Avatar com menu da conta (Sair e Trocar área em qualquer largura) */
+.portaria-menu { position: relative; }
+.portaria-avatar {
+  list-style: none; cursor: pointer; width: 36px; height: 36px; border-radius: 999px; display: grid; place-items: center;
+  background: var(--primary); color: #fff; font-weight: 700; font-size: .85rem; user-select: none;
+}
+.portaria-avatar::-webkit-details-marker { display: none; }
+.portaria-avatar:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.portaria-menu-painel {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 70; min-width: 232px; padding: 12px;
+  display: flex; flex-direction: column; gap: 4px; background: var(--surface); border: 1px solid var(--line-2);
+  border-radius: 14px; box-shadow: 0 16px 40px rgba(0, 0, 0, .22);
+}
+.portaria-menu-nome { font-weight: 700; color: var(--ink); }
+.portaria-menu-papel { font-size: .8rem; color: var(--rotulo-portaria); margin-bottom: 6px; }
+.portaria-menu-item { padding: 10px 12px; border-radius: 10px; color: var(--ink); text-decoration: none; font-weight: 600; }
+.portaria-menu-item:hover { background: var(--surface-2); }
+.portaria-menu-sair { width: 100%; margin-top: 6px; }
+.portaria-menu-sair .ct-sair { width: 100%; min-height: 44px; justify-content: center; }
+
+/* Tablet (768 a 1023 px): barra de abas no rodapé, como no celular */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .portaria-shell.com-abas { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
+  .portaria-shell .barra-abas {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: flex; align-items: stretch; justify-content: space-around;
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px));
+    background: color-mix(in srgb, var(--surface) 88%, transparent); border-top: 1px solid var(--line);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4);
+  }
+  .portaria-shell .aba {
+    position: relative; flex: 1 1 0; min-width: 0; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    border: 0; background: transparent; color: var(--ink-muted); text-decoration: none; font: inherit; cursor: pointer; border-radius: 14px;
+  }
+  .portaria-shell .aba-icone { display: grid; place-items: center; }
+  .portaria-shell .aba-icone svg { width: 26px; height: 26px; }
+  .portaria-shell .aba-rotulo { font-size: .82rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .portaria-shell .aba[data-ativa="true"] { color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); }
+}
