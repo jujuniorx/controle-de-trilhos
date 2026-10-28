@@ -362,10 +362,9 @@ function montarPaginasUsina(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 
         observacao: s.observacao ?? (d.observacoes[`${d.data}|${chaveSetor[s.titulo] ?? ''}`] || undefined),
       }))
     : d.setores;
-  // O estoque de TLS sai do cartao do estaleiro e vai para uma faixa propria, embaixo da linha de setores.
+  // O estoque de TLS fica fora do relatorio por enquanto (desenharEstoqueTls guardada para voltar).
   const estaleiroBase = setoresBase.find((s) => s.titulo === 'Estaleiro de solda');
   const iTls = estaleiroBase ? estaleiroBase.linhas.findIndex((l) => l.secao?.startsWith('Estoque TLS')) : -1;
-  const tlsLinhas: LinhaRelatorio[] = estaleiroBase && iTls >= 0 ? estaleiroBase.linhas.slice(iTls) : [];
   const setores = setoresBase.map((s) => (s.titulo === 'Estaleiro de solda' && iTls >= 0 ? { ...s, linhas: s.linhas.slice(0, iTls) } : s));
   const p = new PaginaPdf();
   const p2 = new PaginaPdf();
@@ -431,9 +430,6 @@ function montarPaginasUsina(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 
   linha1.slice(0, nSetores).forEach((s, i) => {
     desenharSetor(p, s, M + i * (wSet + gapC), topoGrade, wSet, altSet, false, rotulosGrafico, mensal, colunas, true, diario ? indiceDia : undefined);
   });
-
-  // Faixa do estoque de TLS (uma coluna por tipo), na largura toda, abaixo dos setores.
-  if (tlsLinhas.length > 0) desenharEstoqueTls(p, tlsLinhas, M, topoGrade - altSet - 12, L - 2 * M, 108, CORES_SETOR_ESTALEIRO);
 
   // Linhas 2 e 3: Caminhão de solda e Trilheiros, um embaixo do outro, cada um na largura toda.
   const larguraTotal = L - 2 * M;
