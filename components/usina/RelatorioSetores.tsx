@@ -32,12 +32,13 @@ function TabelaSerra({ serra, colunas = TODAS }: { serra: SerraRelatorio; coluna
   ].filter((g) => colunas.includes(g.chave));
   const celula = (m: MedidaSerra) => (
     <>
-      <td className="py-1 text-right font-semibold tabular-nums">{m.barras}</td>
-      <td className="py-1 text-right font-semibold tabular-nums">{fmtMetros(m.metros)}</td>
+      <td className="whitespace-nowrap py-1 pl-2 text-right font-semibold tabular-nums">{m.barras}</td>
+      <td className="whitespace-nowrap py-1 pl-2 text-right font-semibold tabular-nums">{fmtMetros(m.metros)}</td>
     </>
   );
   return (
-    <table className="w-full border-collapse text-[13px]">
+    <div className="min-w-0 overflow-x-auto">
+    <table className="w-full min-w-[300px] border-collapse text-[12px]">
       <thead>
         <tr className="text-[11px] uppercase tracking-wide text-slate-500">
           <th className="pb-1 text-left font-semibold"> </th>
@@ -68,6 +69,7 @@ function TabelaSerra({ serra, colunas = TODAS }: { serra: SerraRelatorio; coluna
         </tr>
       </tbody>
     </table>
+    </div>
   );
 }
 
