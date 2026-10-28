@@ -201,7 +201,8 @@ export type MovimentacaoComGrupos = Prisma.MovimentacaoGetPayload<{
 export function listarPendentesConferencia() {
   return prisma.movimentacao.findMany({
     where: { status: 'PENDENTE_CONFERENCIA' },
-    orderBy: { dataMovimentacao: 'desc' },
+    // Mais recente primeiro: pelo dia da movimentação e, dentro do dia, pela hora em que foi lançada.
+    orderBy: [{ dataMovimentacao: 'desc' }, { createdAt: 'desc' }],
   });
 }
 

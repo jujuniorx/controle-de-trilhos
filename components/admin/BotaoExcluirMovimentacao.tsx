@@ -17,7 +17,7 @@ export function BotaoExcluirMovimentacao({ id, rotulo }: { id: string; rotulo: s
 
   if (!aberto) {
     return (
-      <button type="button" className="btn btn-ghost btn-sm text-bad" onClick={() => setAberto(true)}>
+      <button type="button" className="btn btn-sm border border-bad/40 bg-transparent text-bad" onClick={() => setAberto(true)}>
         Excluir
       </button>
     );
