@@ -420,20 +420,6 @@ function montarPaginasUsina(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 
   const topoTrilheiros = topoLinha2 - altCaminhao - gapLinha;
   desenharTrilheiros(p2, tril, M, topoTrilheiros, larguraTotal, altTrilheiros, true);
 
-  // Observações do dia (só no diário), embaixo dos trilheiros, nas linhas que cabem.
-  if (diario && observacoes.length > 0) {
-    const sobra = topoTrilheiros - altTrilheiros - 42;
-    const linhasQueCabem = Math.max(0, Math.min(observacoes.length, Math.floor((sobra - 24) / 11)));
-    if (linhasQueCabem > 0) {
-      const altObs = 24 + linhasQueCabem * 11;
-      const baseObs = topoTrilheiros - altTrilheiros - 8 - altObs;
-      p2.arredondado(M, baseObs, larguraTotal, altObs, 9, BRANCO, LINHA);
-      p2.texto('OBSERVAÇÕES DO DIA', M + 10, baseObs + altObs - 13, 7, 'negrito', CINZA);
-      observacoes.slice(0, linhasQueCabem).forEach((linha, i) => p2.texto(linha, M + 10, baseObs + altObs - 26 - i * 11, 8, 'normal', TINTA));
-    }
-  }
-
-
   return { capa, p, p2 };
 }
 
