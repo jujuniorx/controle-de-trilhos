@@ -10,6 +10,17 @@ const br = (iso: string) => iso.split('-').reverse().join('/');
 
 const NOME_COLUNA: Record<Coluna, string> = { dia: 'Dia', semana: 'Semana', mes: 'No mês' };
 
+/** Explica, com as colunas escolhidas, o que cada número dos setores quer dizer. */
+function legendaColunas(colunas: Coluna[], modo: string): string {
+  if (modo === 'mensal') return 'Cada setor mostra o acumulado do mês até o dia escolhido.';
+  const partes: string[] = [];
+  if (colunas.includes('dia')) partes.push('o valor do dia');
+  if (colunas.includes('semana')) partes.push('o acumulado da semana (segunda a domingo)');
+  if (colunas.includes('mes')) partes.push('o acumulado do mês até o dia');
+  const lista = partes.length <= 1 ? (partes[0] ?? 'os valores') : `${partes.slice(0, -1).join(', ')} e ${partes[partes.length - 1]}`;
+  return `Cada setor mostra ${lista}, com o gráfico dos dias da semana.`;
+}
+
 export default async function RelatorioGerencialUsina({ searchParams }: { searchParams: Promise<{ data?: string; modo?: string; col?: string | string[] }> }) {
   const params = await searchParams;
   const modo = modoValido(params.modo);
@@ -23,8 +34,9 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
   const setoresTela = dados.setores.map((s) => (s.titulo === 'Estaleiro de solda' && iTls >= 0 ? { ...s, linhas: s.linhas.slice(0, iTls) } : s));
 
   return (
-    <main className="mx-auto max-w-6xl space-y-4 p-4">
+    <main className="mx-auto w-full max-w-6xl space-y-4">
       <div className="flex flex-wrap items-center gap-3">
+        <span className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Formato</span>
         <div className="flex overflow-hidden rounded-lg border border-line" role="group" aria-label="Formato do relatório">
           {linksModo('/admin/usina/relatorio-gerencial', modo, { data }, true).map((l) => (
             <a key={l.modo} href={l.href} aria-current={l.ativo ? 'true' : undefined} className={`h-11 px-4 leading-[2.75rem] text-sm font-semibold ${l.ativo ? 'bg-slate-900 text-white' : 'bg-surface text-ink-muted'}`}>{l.rotulo}</a>
@@ -33,6 +45,7 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
         <form action="" method="get" className="flex flex-wrap items-center gap-2 text-sm" aria-label="Colunas do relatório">
           <input type="hidden" name="data" value={data} />
           <input type="hidden" name="modo" value={modo} />
+          <span className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Colunas</span>
           {TODAS_COLUNAS.map((c) => (
             <label key={c} className="flex h-11 items-center gap-2 rounded-lg border border-line px-3">
               <input type="checkbox" name="col" value={c} defaultChecked={colunas.includes(c)} />
@@ -73,7 +86,7 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
           ))}
         </div>
 
-        <p className="text-xs text-slate-500">Cada setor mostra o valor do dia e o acumulado da semana (segunda a domingo), com o gráfico desses dias.</p>
+        <p className="text-xs text-slate-500">{legendaColunas(colunas, modo)}</p>
         <div className="grid gap-4">
           {setoresTela.filter((s) => s.titulo !== 'Trilheiros').map((s) => (
             <div key={s.titulo}>

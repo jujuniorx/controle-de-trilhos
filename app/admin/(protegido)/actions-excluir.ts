@@ -15,7 +15,7 @@ export async function excluirMovimentacaoAction(id: string, motivo: string): Pro
     await registrarAuditoria(
       sessao,
       'Exclusão de movimentação',
-      `${tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'} ${rotulo} (vai para a lixeira). Motivo: ${motivoLimpo}`,
+      `${tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'} ${rotulo} foi para a Lixeira · Motivo: “${motivoLimpo}”`,
     );
   } catch (e) {
     if (e instanceof ErroRegraNegocio) return { ok: false, erro: e.message };

@@ -30,9 +30,9 @@ export function ValorAnimado({ valor, casas = 0, sufixo = '', duracaoMs = 1000 }
 
   const texto = exibido.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas });
   return (
-    <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+    <span className="num-unidade" style={{ fontVariantNumeric: 'tabular-nums' }}>
       {texto}
-      {sufixo}
+      {sufixo && <span className="un">{sufixo.trim()}</span>}
     </span>
   );
 }

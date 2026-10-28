@@ -6,6 +6,7 @@ import { listarCarretasNaPortaria } from '@/lib/services/portaria';
 import { listarAuditoria } from '@/lib/services/auditoria';
 import { saudacaoRotativa } from '@/lib/saudacao';
 import { VisaoGeralDono } from '@/components/dono/VisaoGeralDono';
+import { textoAuditoria } from '@/lib/ui/textoAuditoria';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,7 +54,7 @@ export default async function VisaoGeralPage() {
       ultimas={auditoria.map((a) => ({
         usuario: a.usuarioNome,
         acao: a.acao,
-        descricao: a.descricao,
+        descricao: textoAuditoria(a.descricao),
         quando: a.criadoEm.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }),
       }))}
     />

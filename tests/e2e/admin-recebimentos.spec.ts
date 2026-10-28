@@ -67,9 +67,10 @@ test.describe('Administrativo — listagem e detalhe de recebimentos pendentes',
     await expect(page.getByRole('cell', { name: nf })).toBeVisible();
     const row = page.locator('tr', { has: page.getByRole('cell', { name: nf }) });
     await expect(row.getByText('Rondonópolis')).toBeVisible();
-    await expect(row.getByText('XYZ9E88 / ABC1D23')).toBeVisible();
+    await expect(row.getByText('XYZ9E88')).toBeVisible();
+    await expect(row.getByText('ABC1D23')).toBeVisible();
     await expect(row.getByText(RESPONSAVEL)).toBeVisible();
-    await expect(row.getByText('Pendente de conferência')).toBeVisible();
+    await expect(row.getByText('Pendente', { exact: true })).toBeVisible();
   });
 
   test('abre o detalhe e mostra grupos, medições e "Peso até agora" (sucata pendente)', async ({ page }) => {
@@ -78,7 +79,7 @@ test.describe('Administrativo — listagem e detalhe de recebimentos pendentes',
 
     await entrarNoAdmin(page);
     const row = page.locator('tr', { has: page.getByRole('cell', { name: nf }) });
-    await row.getByRole('link', { name: 'Ver detalhes' }).click();
+    await row.getByRole('link', { name: 'Conferir' }).click();
     await page.waitForURL('**/admin/recebimentos/**');
 
     await expect(page.getByRole('heading', { name: `Recebimento — NF ${nf}` })).toBeVisible();

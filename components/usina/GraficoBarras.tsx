@@ -43,6 +43,18 @@ export function GraficoBarras({
   const yDe = (v: number) => topoArea + areaA - (v / max) * areaA;
   const mostraValor = rotulos.length <= 10 && series.length <= 2;
 
+  // Sem nenhum lançamento no período: em vez de um eixo vazio de 0 a 1, um aviso claro.
+  if (maiorValor <= 0) {
+    return (
+      <figure className="space-y-1">
+        <figcaption className="text-sm font-semibold">{titulo}</figcaption>
+        <div className="grafico-vazio" style={{ minHeight: Math.round(altura * 0.55) }}>
+          Sem lançamentos neste período.
+        </div>
+      </figure>
+    );
+  }
+
   return (
     <figure className="space-y-1">
       <figcaption className="text-sm font-semibold">{titulo}</figcaption>

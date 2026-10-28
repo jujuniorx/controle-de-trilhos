@@ -10,7 +10,7 @@ export default function TrocarSenhaPage() {
   const [estado, formAction, enviando] = useActionState(trocarSenhaAction, ESTADO_INICIAL);
 
   return (
-    <main className="mx-auto max-w-sm p-6">
+    <main className="mx-auto w-full max-w-sm">
       <Link href="/admin" className="back-link">
         ← Voltar
       </Link>

@@ -148,17 +148,17 @@ export default async function AdminPortariaPage({
     });
 
   return (
-    <main className="mx-auto max-w-6xl space-y-5 p-4 md:p-6">
+    <main className="mx-auto w-full max-w-7xl space-y-6">
       <div className="space-y-1">
         <h1 className="page-title">Portaria</h1>
-        <p className="text-sm text-ink-muted">Cargas e descargas lançadas pela Portaria. Só consulta; o dono pode apagar pelos botões de cada linha.</p>
+        <p className="text-sm text-ink-muted">Carretas que passaram pela Portaria: descargas (chegadas) e cargas (remetidos). Use a busca para achar por placa, cidade ou motorista.</p>
       </div>
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <Abas aba={aba} q={q} emAndamento={emAndamento} saidas={saidas} />
         <form method="get" className="flex gap-2">
           <input type="hidden" name="aba" value={aba} />
-          <input name="q" defaultValue={q} placeholder="Placa, cidade ou motorista" className="h-10 w-full md:w-72" aria-label="Buscar na Portaria" />
+          <input name="q" type="search" defaultValue={q} placeholder="Buscar placa, cidade ou motorista" className="h-10 w-full md:w-80" aria-label="Buscar na Portaria" />
           <button type="submit" className="btn btn-sm btn-primary">Buscar</button>
         </form>
       </div>
@@ -169,7 +169,7 @@ export default async function AdminPortariaPage({
           texto={q ? 'Tente outra placa, cidade ou motorista.' : 'Os lançamentos da Portaria aparecem aqui.'}
         />
       ) : (
-        <div className="tbl-wrap card p-0">
+        <div className="tbl-wrap tbl-acoes-fixas card p-0">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-line text-left text-ink-muted">
@@ -188,16 +188,22 @@ export default async function AdminPortariaPage({
                   <td className="px-3 py-2">
                     <span className="badge badge-muted">{l.tipo}</span>
                   </td>
-                  <td className="px-3 py-2 font-mono font-semibold text-ink">{l.placas.join(' · ') || '—'}</td>
-                  <td className="px-3 py-2">{l.motorista || '—'}</td>
-                  <td className="px-3 py-2">{l.cidade || '—'}</td>
+                  <td className="px-3 py-2 font-semibold text-ink">
+                    {l.placas.length > 0 ? (
+                      <span className="placas">{l.placas.map((p) => <span key={p}>{p}</span>)}</span>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
+                  <td className="px-3 py-2 min-w-[10rem]">{l.motorista || '—'}</td>
+                  <td className="px-3 py-2 min-w-[8rem]">{l.cidade || '—'}</td>
                   <td className="px-3 py-2">
-                    <span className={`badge ${l.badge}`}>{l.status}</span>
+                    <span className={`badge whitespace-nowrap ${l.badge}`}>{l.status}</span>
                     {l.saidaPor && <p className="mt-1 text-xs text-ink-muted">por {l.saidaPor}</p>}
                   </td>
                   <td className="px-3 py-2 text-xs text-ink-muted">
                     {l.etapas.map((e) => (
-                      <p key={e.rotulo}>
+                      <p key={e.rotulo} className="whitespace-nowrap">
                         {e.rotulo}: <span className={e.em ? 'text-ink' : ''}>{hora(e.em)}</span>
                       </p>
                     ))}

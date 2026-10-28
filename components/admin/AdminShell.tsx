@@ -11,6 +11,7 @@ import { BotaoSair } from '@/components/admin/BotaoSair';
 import { GestosApp } from '@/components/ui/GestosApp';
 import { BarraAbas, type Aba } from '@/components/ui/BarraAbas';
 import { SwipeAdmin } from './SwipeAdmin';
+import { TrilhaTopo } from './TrilhaTopo';
 
 /** Seções das abas da barra de baixo, na ordem em que o deslizar passa de uma para outra. */
 const ROTAS_SWIPE = ['/admin', '/admin/relatorios', '/admin/portaria', '/admin/usina'];
@@ -103,7 +104,7 @@ export function AdminShell({ nome, ehDono = false, children }: { nome: string; e
         </div>
       </header>
 
-      <aside className="ct-sidebar hidden w-[248px] flex-none flex-col md:flex">
+      <aside className="ct-sidebar hidden w-[248px] flex-none flex-col md:sticky md:top-0 md:flex md:h-dvh md:overflow-y-auto">
         <div className="ct-sidebar-logo">
           <Logo size={32} subtitle="Administração" />
         </div>
@@ -126,8 +127,11 @@ export function AdminShell({ nome, ehDono = false, children }: { nome: string; e
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="ct-topbar hidden h-[52px] flex-none items-center justify-between gap-3 px-6 md:flex">
-          <NavegacaoTopo inicioArea="/admin" />
+        <header className="ct-topbar sticky top-0 z-30 hidden h-[52px] flex-none items-center justify-between gap-3 px-6 md:flex">
+          <div className="flex min-w-0 items-center gap-3">
+            <NavegacaoTopo inicioArea="/admin" />
+            <TrilhaTopo />
+          </div>
           <div className="flex items-center gap-3">
             <AlternarTema padrao="claro" />
             <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-sm font-bold text-white">
@@ -138,7 +142,7 @@ export function AdminShell({ nome, ehDono = false, children }: { nome: string; e
         </header>
         <InstalarApp />
         <MenuExcluir />
-        <main className="min-w-0 flex-1">
+        <main className="pagina-admin min-w-0 flex-1">
           <SwipeAdmin rotas={ROTAS_SWIPE}>{children}</SwipeAdmin>
         </main>
       </div>

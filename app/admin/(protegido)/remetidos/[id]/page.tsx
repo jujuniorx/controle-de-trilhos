@@ -56,7 +56,7 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
   const podeEditar = mov.status !== 'AGUARDANDO_CHEGADA';
 
   return (
-    <main className="mx-auto max-w-3xl xl:max-w-5xl space-y-4 p-6">
+    <main className="mx-auto w-full max-w-3xl xl:max-w-5xl space-y-4">
       <div>
         <Link href="/admin" className="back-link">
           ← Voltar à lista

@@ -111,7 +111,7 @@ export function VisaoGeralDono(d: DadosVisaoGeral) {
   const pctTexto = Math.round(pct);
   const faltam = Math.max(d.metaM - d.recolhidoAno, 0);
   return (
-    <main className="mx-auto max-w-5xl space-y-6 p-6">
+    <main className="mx-auto w-full max-w-7xl space-y-6">
       <style>{CSS}</style>
       <div className="vg">
         <section className="saudacao-hero">
@@ -131,7 +131,7 @@ export function VisaoGeralDono(d: DadosVisaoGeral) {
         <section className="card vg-meta space-y-4">
           <div className="flex flex-wrap items-end justify-between gap-2">
             <div>
-              <p className="stat-label">Meta de recolhimento do ano</p>
+              <p className="stat-label">Meta de recolhimento na serra (ano)</p>
               <p className="text-2xl font-bold">
                 {fmtMetros(d.recolhidoAno)} m <span className="text-base font-normal text-ink-muted">de {fmtMetros(d.metaM)} m</span>
               </p>
@@ -144,13 +144,16 @@ export function VisaoGeralDono(d: DadosVisaoGeral) {
             <div className="vg-barra-fill" style={{ ['--pct' as string]: `${pct}%` }} />
           </div>
           <p className="text-sm text-ink-muted">Faltam {fmtMetros(faltam)} m para bater a meta.</p>
+          <p className="text-xs text-ink-dim">
+            Recolhido = barras W61 e W62 tiradas da serra (10,5 m cada). Chegou na usina = o que já entrou nos recebimentos. Os dois números andam perto, mas não são a mesma conta.
+          </p>
         </section>
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <Tile rotulo="Recolhido no ano" cor="#60a5fa" unidade="barras"><ContadorAnimado valor={barras(d.recolhidoAno)} /></Tile>
-          <Tile rotulo="Chegou na usina" cor="#4a6cd4" unidade="no ano"><ValorAnimado valor={d.chegouAno} casas={2} sufixo=" m" /></Tile>
-          <Tile rotulo="Recolhido no mês" cor="#e8a33d" unidade="até hoje"><ValorAnimado valor={d.recolhidoMes} casas={2} sufixo=" m" /></Tile>
-          <Tile rotulo="Recolhido hoje" cor="#16a34a" unidade={d.recolhidoHoje > 0 ? `chegou ${fmtMetros(d.chegouHoje)} m` : 'nada recolhido ainda hoje'} vazio={d.recolhidoHoje <= 0}><ValorAnimado valor={d.recolhidoHoje} casas={2} sufixo=" m" /></Tile>
+          <Tile rotulo="Recolhido na serra no ano" cor="#60a5fa" unidade="barras"><ContadorAnimado valor={barras(d.recolhidoAno)} /></Tile>
+          <Tile rotulo="Chegou na usina" cor="#4a6cd4" unidade="no ano, pelos recebimentos"><ValorAnimado valor={d.chegouAno} casas={2} sufixo=" m" /></Tile>
+          <Tile rotulo="Recolhido na serra no mês" cor="#e8a33d" unidade="até hoje"><ValorAnimado valor={d.recolhidoMes} casas={2} sufixo=" m" /></Tile>
+          <Tile rotulo="Recolhido na serra hoje" cor="#16a34a" unidade={d.recolhidoHoje > 0 ? `chegou ${fmtMetros(d.chegouHoje)} m` : 'nada recolhido ainda hoje'} vazio={d.recolhidoHoje <= 0}><ValorAnimado valor={d.recolhidoHoje} casas={2} sufixo=" m" /></Tile>
         </div>
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

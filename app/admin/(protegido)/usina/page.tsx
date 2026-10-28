@@ -109,7 +109,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
   const escalaLegada = !escalaSalva && est.escala.trim() !== '';
 
   return (
-    <div className="space-y-8">
+    <main className="mx-auto w-full max-w-7xl space-y-8">
       <header className="page-header">
         <div>
           <h1 className="page-title">Relatório da usina</h1>
@@ -525,6 +525,6 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           </ul>
         )}
       </section>
-    </div>
+    </main>
   );
 }

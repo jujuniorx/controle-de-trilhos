@@ -42,3 +42,25 @@ describe('AdminShell — dono', () => {
     expect(screen.queryByRole('link', { name: 'Auditoria' })).toBeNull();
   });
 });
+
+describe('AdminShell — organização do menu', () => {
+  afterEach(cleanup);
+
+  it('para o dono, Visão geral é o primeiro item do menu', () => {
+    render(<AdminShell nome="Junior" ehDono>x</AdminShell>);
+    const nav = document.querySelector('aside .ct-sidebar-nav');
+    const primeiro = nav?.querySelector('a');
+    expect(primeiro?.getAttribute('href')).toBe('/admin/dono');
+  });
+
+  it('para o admin comum, Visão geral não aparece', () => {
+    render(<AdminShell nome="Paula">x</AdminShell>);
+    expect(screen.queryByRole('link', { name: 'Visão geral' })).toBeNull();
+  });
+
+  it('mostra a trilha do topo com a seção atual', () => {
+    render(<AdminShell nome="Paula">x</AdminShell>);
+    const trilha = screen.getByRole('navigation', { name: 'Você está em' });
+    expect(trilha.textContent).toContain('Relatórios');
+  });
+});

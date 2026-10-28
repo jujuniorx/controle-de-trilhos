@@ -14,7 +14,6 @@ export const NAV_ITEMS = [
 
 /** Itens extras, só para o DONO. */
 export const NAV_ITEMS_DONO = [
-  { href: '/admin/dono', label: 'Visão geral' },
   { href: '/admin/usuarios', label: 'Usuários' },
   { href: '/admin/lixeira', label: 'Lixeira' },
   { href: '/admin/pilhas', label: 'Pilhas do pátio' },
@@ -97,6 +96,8 @@ export function SidebarNav({ onNavigate, className, dono }: { onNavigate?: () =>
   return (
     <nav className={`ct-sidebar-nav ${className ?? ''}`}>
       <span className="nav-section">Menu</span>
+      {/* Visão geral é o painel principal do dono: fica em primeiro. */}
+      {dono && item({ href: '/admin/dono', label: 'Visão geral' })}
       {NAV_ITEMS.map(item)}
       {dono && (
         <>

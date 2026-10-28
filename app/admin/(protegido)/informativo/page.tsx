@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { informativoDoAno, META_RECOLHIMENTO_M, METROS_POR_BARRA } from '@/lib/services/informativo';
 import { cartoesDoFiltro, montarGrafico, niceEixo, parseSeries, rotuloFiltro, CHAVES_SERIE, ROTULO_CURTO, UNIDADES, type ChaveSerie, type Unidade } from '@/lib/services/informativoGrafico';
-import { fmtMetros } from '@/lib/format';
+import { fmtInteiro, fmtMetros } from '@/lib/format';
 import { BotaoBaixarPdf } from './BotaoBaixarPdf';
 
 export const dynamic = 'force-dynamic';
@@ -93,7 +93,7 @@ export default async function InformativoPage({ searchParams }: { searchParams: 
     `inf-segmento rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${ativo ? 'bg-primary text-on-primary shadow-sm' : 'text-ink-muted hover:text-ink'}`;
 
   return (
-    <main className="mx-auto max-w-5xl space-y-6 p-4">
+    <main className="mx-auto w-full max-w-7xl space-y-6">
       <style>{ANIMACAO}</style>
       <header className="space-y-3">
         <h1 className="page-title">Informativo de trilhos</h1>
@@ -244,7 +244,7 @@ function GraficoBarras({ W, H, mobile, indices, series, max, passo, eixoRotulo, 
       {Array.from({ length: Math.floor(max / passo) + 1 }, (_, k) => k * passo).map((v, k) => (
         <g key={v}>
           <line className="inf-grade" style={{ animationDelay: `${k * 90}ms` }} x1={x0} x2={W - 8} y1={y(v)} y2={y(v)} stroke="currentColor" strokeOpacity={v === 0 ? 0.6 : 0.12} />
-          <text className="inf-eixo" style={{ animationDelay: `${k * 90 + 300}ms` }} x={x0 - 6} y={y(v) + 4} textAnchor="end" fontSize={fonteEixo} fill="currentColor" fillOpacity="0.7">{v.toLocaleString('pt-BR')}</text>
+          <text className="inf-eixo" style={{ animationDelay: `${k * 90 + 300}ms` }} x={x0 - 6} y={y(v) + 4} textAnchor="end" fontSize={fonteEixo} fill="currentColor" fillOpacity="0.7">{fmtInteiro(v)}</text>
         </g>
       ))}
       <text x={4} y={topoPlot - 10} fontSize={fonteEixo} fill="currentColor" fillOpacity="0.7">{eixoRotulo}</text>
@@ -261,10 +261,10 @@ function GraficoBarras({ W, H, mobile, indices, series, max, passo, eixoRotulo, 
               return (
                 <g key={s.chave}>
                   <rect className="inf-barra" style={{ animationDelay: `${delay}ms` }} x={bx} y={y(v)} width={bw - 2} height={yBase - y(v)} rx="2" fill={s.cor}>
-                    <title>{`${s.rotulo} · ${mes}: ${Math.round(v).toLocaleString('pt-BR')} ${eixoRotulo}`}</title>
+                    <title>{`${s.rotulo} · ${mes}: ${fmtInteiro(v)} ${eixoRotulo}`}</title>
                   </rect>
                   {mostrarValores && (
-                    <text className="inf-valor" style={{ animationDelay: `${delay + 600}ms` }} x={bx + (bw - 2) / 2} y={y(v) - 4} textAnchor="middle" fontSize={fonteEixo} fill="currentColor">{Math.round(v).toLocaleString('pt-BR')}</text>
+                    <text className="inf-valor" style={{ animationDelay: `${delay + 600}ms` }} x={bx + (bw - 2) / 2} y={y(v) - 4} textAnchor="middle" fontSize={fonteEixo} fill="currentColor">{fmtInteiro(v)}</text>
                   )}
                 </g>
               );

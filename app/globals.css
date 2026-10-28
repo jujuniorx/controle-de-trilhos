@@ -1404,3 +1404,76 @@ html[data-tema="claro"] .home-entrada .via-trilho-corpo { fill: #7d8fa8; }
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
 }
+
+/* ======================================================================
+   Organização v4 — espaçamento padrão, trilha do topo, tabelas
+   ====================================================================== */
+
+/* Mesmo respiro em volta do conteúdo em todas as telas do Administrativo. */
+.pagina-admin { padding: 20px 16px 32px; }
+@media (min-width: 768px) { .pagina-admin { padding: 28px 32px 48px; } }
+
+/* Trilha de navegação no topo (desktop). */
+.trilha-topo { min-width: 0; }
+.trilha-topo ol { display: flex; align-items: center; gap: 6px; list-style: none; margin: 0; padding: 0; font-size: .85rem; white-space: nowrap; }
+.trilha-topo li { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.trilha-topo li + li::before { content: '/'; color: var(--ink-dim); }
+.trilha-topo a { color: var(--ink-muted); }
+.trilha-topo a:hover { color: var(--ink); text-decoration: underline; }
+.trilha-topo [aria-current="page"] { color: var(--ink); font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+
+/* Números e placas na mesma fonte do resto do sistema (Barlow), com algarismos alinhados. */
+.font-mono { font-family: inherit; font-variant-numeric: tabular-nums; }
+
+/* Tabela: só rola na horizontal; a rolagem vertical é sempre a da página. */
+.tbl-wrap { overflow-y: hidden; }
+
+/* Placas empilhadas, uma por linha, sem barra entre elas. */
+.placas { display: flex; flex-direction: column; gap: 2px; white-space: nowrap; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.data-hora { display: flex; flex-direction: column; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.data-hora small { color: var(--ink-muted); font-size: .75rem; }
+.celula-nome { min-width: 7rem; }
+
+/* Coluna de ações sempre visível na direita, mesmo quando a tabela rola para o lado. */
+@media (min-width: 641px) {
+  .tbl-acoes-fixas thead th:last-child,
+  .tbl-acoes-fixas tbody td:last-child {
+    position: sticky; right: 0; z-index: 1;
+    background: var(--surface);
+    box-shadow: -10px 0 12px -10px rgba(0, 0, 0, .45);
+  }
+  .tbl-acoes-fixas thead th:last-child { background: var(--g1); }
+  .tbl-acoes-fixas tbody tr:hover td:last-child { background: var(--g2); }
+}
+
+/* Esqueleto de carregamento com contraste visível no tema escuro. */
+.esqueleto {
+  background-color: var(--surface-2);
+  background-image: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--ink) 9%, transparent) 50%, transparent 100%);
+  border: 1px solid var(--line);
+}
+
+/* Unidade menor ao lado do número (ex.: "18.675,03 m"), sem quebrar para a linha de baixo. */
+.num-unidade { white-space: nowrap; }
+.num-unidade .un { font-size: .55em; font-weight: 600; margin-left: .2em; opacity: .8; }
+
+/* Gráfico sem dados. */
+.grafico-vazio { display: grid; place-items: center; min-height: 140px; border: 1px dashed color-mix(in srgb, currentColor 28%, transparent); border-radius: 12px; color: inherit; opacity: .7; font-size: .85rem; text-align: center; padding: 16px; }
+
+.acoes-linha { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 4px; }
+.acoes-linha > a, .acoes-linha > button { white-space: nowrap; }
+
+/* Resumo dos filtros aplicados no Relatório. */
+.filtros-ativos { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: .82rem; }
+.filtros-ativos-rotulo { color: var(--ink-muted); margin-right: 2px; }
+.chip-filtro { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); color: var(--ink); font-weight: 500; }
+.filtros-ativos-limpar { margin-left: 4px; color: var(--primary-light, var(--primary)); font-weight: 600; }
+.filtros-ativos-limpar:hover { text-decoration: underline; }
+
+/* Página 404 */
+.nao-encontrada { min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; background: radial-gradient(circle at 50% 30%, #12315a 0%, var(--g0) 60%); color: var(--t1); }
+.nao-encontrada-caixa { width: 100%; max-width: 440px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.nao-encontrada-codigo { font-family: var(--font-condensed), sans-serif; font-size: 4.5rem; font-weight: 700; line-height: 1; color: var(--b3); letter-spacing: .04em; margin-top: 8px; }
+.nao-encontrada-titulo { font-family: var(--font-condensed), sans-serif; font-size: 1.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.nao-encontrada-texto { color: var(--t3); font-size: .95rem; line-height: 1.5; }
+.nao-encontrada-acoes { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 10px; }

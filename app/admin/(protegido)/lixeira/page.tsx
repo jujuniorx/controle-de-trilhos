@@ -10,7 +10,7 @@ export default async function LixeiraPage() {
   const [itens, chegadas] = await Promise.all([listarLixeira(), listarChegadasExcluidas()]);
 
   return (
-    <main className="mx-auto max-w-5xl space-y-4 p-4 md:p-6">
+    <main className="mx-auto w-full max-w-7xl space-y-6">
       <div>
         <h1 className="font-condensed text-2xl font-bold uppercase tracking-wide text-ink">Lixeira</h1>
         <p className="text-sm text-ink-muted">

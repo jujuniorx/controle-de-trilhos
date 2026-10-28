@@ -32,17 +32,20 @@ const STATUS_BADGE: Record<string, string> = {
 
 const STATUS_TEXTO: Record<string, string> = {
   AGUARDANDO_CHEGADA: 'Aguardando chegada',
-  PENDENTE_CONFERENCIA: 'Pendente de conferência',
+  PENDENTE_CONFERENCIA: 'Pendente',
   CONFERIDO: 'Conferido',
 };
 
 export default async function AdminHomePage() {
-  const { nome } = await requireAdmin();
+  const { nome, role } = await requireAdmin();
+  // O dono vê a saudação na Visão geral; aqui a tela vai direto ao que precisa conferir.
+  const mostrarSaudacao = role !== 'DONO';
   const primeiroNome = nome.trim().split(' ')[0] ?? nome;
   const [movimentacoes, aguardandoChegada] = await Promise.all([listarPendentesConferencia(), listarAguardandoChegada()]);
 
   return (
-    <main className="mx-auto max-w-4xl xl:max-w-6xl space-y-6 p-6">
+    <main className="mx-auto w-full max-w-7xl space-y-6">
+      {mostrarSaudacao && (
       <section className="saudacao-hero">
         <FundoTrilhos />
         <div className="saudacao-hero-texto">
@@ -56,6 +59,7 @@ export default async function AdminHomePage() {
           </p>
         </div>
       </section>
+      )}
 
       <div className="boas-vindas">
         <h1 className="page-title">Movimentações pendentes de conferência</h1>
@@ -82,13 +86,12 @@ export default async function AdminHomePage() {
       </div>
 
       <div className="card">
-        <div className="tbl-wrap tbl-cards">
+        <div className="tbl-wrap tbl-cards tbl-acoes-fixas">
           <table>
             <thead>
               <tr>
                 <th>Tipo</th>
                 <th>Data</th>
-                <th>Hora</th>
                 <th>NF</th>
                 <th>Origem/Destino</th>
                 <th>Caminhão</th>
@@ -103,8 +106,12 @@ export default async function AdminHomePage() {
                   <td data-label="Tipo">
                     <span className="badge badge-info">{m.tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'}</span>
                   </td>
-                  <td data-label="Data" className="font-mono">{fmtData(m.dataMovimentacao, m.createdAt)}</td>
-                  <td data-label="Hora" className="font-mono">{fmtHora(m.createdAt)}</td>
+                  <td data-label="Data">
+                    <span className="data-hora">
+                      {fmtData(m.dataMovimentacao, m.createdAt)}
+                      <small>{fmtHora(m.createdAt)}</small>
+                    </span>
+                  </td>
                   <td data-label="NF" className="font-mono" title={nfsEmTexto(m) || undefined}>
                     {m.numeroDocumento ? (
                       <>
@@ -114,27 +121,37 @@ export default async function AdminHomePage() {
                         )}
                       </>
                     ) : (
-                      'Em aberto'
+                      <span className="badge badge-muted">Em aberto</span>
                     )}
                   </td>
-                  <td data-label="Origem/Destino">{normalizarLocal(m.tipo === 'RECEBIMENTO' ? m.origem : m.destino)}</td>
-                  <td data-label="Caminhão" className="font-mono">
-                    {[m.placaCarreta, m.placaCarreta2, m.placaCavalo].filter(Boolean).join(' / ') || '—'}
+                  <td data-label="Origem/Destino" className="celula-nome">{normalizarLocal(m.tipo === 'RECEBIMENTO' ? m.origem : m.destino)}</td>
+                  <td data-label="Caminhão">
+                    {[m.placaCarreta, m.placaCarreta2, m.placaCavalo].some(Boolean) ? (
+                      <span className="placas">
+                        {[m.placaCarreta, m.placaCarreta2, m.placaCavalo].filter(Boolean).map((p) => (
+                          <span key={p}>{p}</span>
+                        ))}
+                      </span>
+                    ) : (
+                      '—'
+                    )}
                   </td>
-                  <td data-label="Responsável">{m.responsavelPatio}</td>
+                  <td data-label="Responsável" className="celula-nome">{m.responsavelPatio}</td>
                   <td data-label="Status">
                     <span className={`badge ${STATUS_BADGE[m.status] ?? 'badge-muted'}`}>
                       {STATUS_TEXTO[m.status] ?? m.status}
                     </span>
                   </td>
                   <td className="text-right">
-                    <Link
-                      href={m.tipo === 'RECEBIMENTO' ? `/admin/recebimentos/${m.id}` : `/admin/remetidos/${m.id}`}
-                      className="tbl-action"
-                    >
-                      Ver detalhes →
-                    </Link>
-                    <BotaoExcluirMovimentacao id={m.id} rotulo={m.numeroDocumento ? rotuloNfs(m) : (m.destino ?? m.origem ?? 'Movimentação em aberto')} />
+                    <div className="acoes-linha">
+                      <Link
+                        href={m.tipo === 'RECEBIMENTO' ? `/admin/recebimentos/${m.id}` : `/admin/remetidos/${m.id}`}
+                        className="btn btn-ghost btn-sm"
+                      >
+                        Conferir
+                      </Link>
+                      <BotaoExcluirMovimentacao id={m.id} rotulo={m.numeroDocumento ? rotuloNfs(m) : (m.destino ?? m.origem ?? 'Movimentação em aberto')} />
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -156,9 +173,9 @@ export default async function AdminHomePage() {
         <div className="page-header">
           <h2 className="page-title text-base">Remetidos aguardando chegada</h2>
         </div>
-        <p className="-mt-4 mb-2 text-sm text-ink-muted">{aguardandoChegada.length} pré-cadastro(s) aguardando o Pátio confirmar.</p>
+        <p className="-mt-4 mb-2 text-sm text-ink-muted">{aguardandoChegada.length === 1 ? '1 pré-cadastro aguardando' : `${aguardandoChegada.length} pré-cadastros aguardando`} o Pátio confirmar.</p>
         <div className="card">
-          <div className="tbl-wrap tbl-cards">
+          <div className="tbl-wrap tbl-cards tbl-acoes-fixas">
             <table>
               <thead>
                 <tr>
@@ -172,13 +189,20 @@ export default async function AdminHomePage() {
                 {aguardandoChegada.map((r) => (
                   <tr key={r.id} data-mov-id={r.id} data-mov-rotulo={r.destino ?? r.reservaPedido ?? "Remetido aguardando chegada"}>
                     <td>{normalizarLocal(r.destino)}</td>
-                    <td className="font-mono">{r.numeroDocumento ?? 'Em aberto'}</td>
-                    <td className="font-mono">{fmtHora(r.createdAt)}</td>
+                    <td>{r.numeroDocumento ?? <span className="badge badge-muted">Em aberto</span>}</td>
+                    <td>
+                      <span className="data-hora">
+                        {fmtData(null, r.createdAt)}
+                        <small>{fmtHora(r.createdAt)}</small>
+                      </span>
+                    </td>
                     <td className="text-right">
-                      <Link href={`/admin/remetidos/${r.id}`} className="tbl-action">
-                        Ver detalhes →
-                      </Link>
-                      <BotaoExcluirMovimentacao id={r.id} rotulo={r.destino ?? r.reservaPedido ?? 'Remetido aguardando chegada'} />
+                      <div className="acoes-linha">
+                        <Link href={`/admin/remetidos/${r.id}`} className="btn btn-ghost btn-sm">
+                          Ver detalhes
+                        </Link>
+                        <BotaoExcluirMovimentacao id={r.id} rotulo={r.destino ?? r.reservaPedido ?? 'Remetido aguardando chegada'} />
+                      </div>
                     </td>
                   </tr>
                 ))}

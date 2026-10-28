@@ -14,7 +14,7 @@ export default async function PilhasDonoPage() {
   const ultima = pilhas.reduce<string | null>((acc, p) => (!acc || p.atualizadoEm > acc ? p.atualizadoEm : acc), null);
 
   return (
-    <main className="space-y-5">
+    <main className="mx-auto w-full max-w-7xl space-y-6">
       <header className="space-y-1">
         <h1 className="font-condensed text-3xl font-bold uppercase tracking-wide text-ink">Pilhas do pátio</h1>
         <p className="text-sm text-ink-muted">Acompanhamento do levantamento feito pelo pátio. Somente leitura.</p>

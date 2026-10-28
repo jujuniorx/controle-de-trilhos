@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { fmtPeso } from '@/lib/format';
+import { fmtToneladas as fmtPeso } from '@/lib/format';
 import type { DadosGraficos, ItemRanking } from '@/lib/services/graficosRelatorio';
 
 const idx = (n: number) => ({ '--i': n }) as CSSProperties;

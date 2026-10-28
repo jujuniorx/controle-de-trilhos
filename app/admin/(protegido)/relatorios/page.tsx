@@ -1,7 +1,7 @@
 import { rotuloStatusRemetido } from '@/lib/domain/statusRemetido';
 import { nfsEmTexto, rotuloNfs } from '@/lib/nf';
 import Link from 'next/link';
-import { fmtMetros, fmtPeso } from '@/lib/format';
+import { fmtMetros, fmtToneladas } from '@/lib/format';
 import { normalizarLocal } from '@/lib/domain/local';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { filtrosRelatorioSchema, MATERIAIS_RELATORIO, CLASSIFICACOES_RELATORIO, STATUS_RELATORIO } from '@/lib/validation/relatorio';
@@ -35,23 +35,53 @@ const STATUS_TEXTO: Record<string, string> = {
   CONFERIDO: 'Conferido',
 };
 
+/** Cabeçalho único das tabelas de movimentação (lista principal e pendências). */
+function CabecalhoMovimentacoes() {
+  return (
+    <thead>
+      <tr>
+        <th>Tipo</th>
+        <th>Data</th>
+        <th>NF</th>
+        <th>Origem/Destino</th>
+        <th>Caminhão</th>
+        <th>Responsável</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+  );
+}
+
 function LinhaTabela({ mov }: { mov: MovimentacaoRelatorio }) {
+  const placas = [mov.placaCarreta, mov.placaCarreta2, mov.placaCavalo].filter(Boolean) as string[];
+  const status = rotuloStatusRemetido(mov.status, mov.chegadaPortariaEm);
+  // Na tabela o texto fica curto para caber; o completo aparece ao passar o mouse.
+  const statusCurto = status.texto === 'Pendente de conferência' ? 'Pendente' : status.texto;
   return (
     <tr data-mov-id={mov.id} data-mov-rotulo={mov.numeroDocumento ? rotuloNfs(mov) : (mov.destino ?? mov.origem ?? 'Movimentação em aberto')}>
       <td data-label="Tipo">{mov.tipo === 'RECEBIMENTO' ? 'Recebimento' : 'Remetido'}</td>
-      <td data-label="Data" className="font-mono">{fmtData(mov.dataMovimentacao)}</td>
-      <td data-label="Hora" className="font-mono">{fmtHora(mov.createdAt)}</td>
-      <td data-label="NF" className="font-mono">{nfsEmTexto(mov) || 'Em aberto'}</td>
-      <td data-label="Origem/Destino">{normalizarLocal(mov.tipo === 'RECEBIMENTO' ? mov.origem : mov.destino)}</td>
-      <td data-label="Caminhão" className="font-mono">{[mov.placaCarreta, mov.placaCarreta2, mov.placaCavalo].filter(Boolean).join(' / ') || '—'}</td>
-      <td data-label="Responsável">{mov.responsavelPatio}</td>
+      <td data-label="Data">
+        <span className="data-hora">
+          {fmtData(mov.dataMovimentacao)}
+          <small>{fmtHora(mov.createdAt)}</small>
+        </span>
+      </td>
+      <td data-label="NF">{nfsEmTexto(mov) || <span className="badge badge-muted">Em aberto</span>}</td>
+      <td data-label="Origem/Destino" className="celula-nome">{normalizarLocal(mov.tipo === 'RECEBIMENTO' ? mov.origem : mov.destino)}</td>
+      <td data-label="Caminhão">
+        {placas.length > 0 ? <span className="placas">{placas.map((p) => <span key={p}>{p}</span>)}</span> : '—'}
+      </td>
+      <td data-label="Responsável" className="celula-nome">{mov.responsavelPatio}</td>
       <td data-label="Status">
-        {(() => { const r = rotuloStatusRemetido(mov.status, mov.chegadaPortariaEm); return <span className={`badge ${r.badge}`}>{r.texto}</span>; })()}
+        <span className={`badge whitespace-nowrap ${status.badge}`} title={status.texto}>{statusCurto}</span>
       </td>
       <td className="text-right">
-        <Link href={detalheHref(mov)} className="tbl-action">
-          Ver detalhes →
-        </Link>
+        <div className="acoes-linha">
+          <Link href={detalheHref(mov)} className="btn btn-ghost btn-sm">
+            Ver detalhes
+          </Link>
+        </div>
       </td>
     </tr>
   );
@@ -66,18 +96,9 @@ function TabelaPendencia({ titulo, itens, vazio }: { titulo: string; itens: Movi
       {itens.length === 0 ? (
         <p className="mt-1 text-sm text-ink-dim">{vazio}</p>
       ) : (
-        <div className="tbl-wrap tbl-cards mt-1">
+        <div className="tbl-wrap tbl-cards tbl-acoes-fixas mt-1">
           <table>
-            <thead>
-              <tr>
-                <th>Tipo</th>
-                <th>Data</th>
-                <th>NF</th>
-                <th>Origem/Destino</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
+            <CabecalhoMovimentacoes />
             <tbody>
               {itens.map((m) => (
                 <LinhaTabela key={m.id} mov={m} />
@@ -125,15 +146,11 @@ export default async function RelatoriosPage({
   ).toString();
 
   return (
-    <main className="mx-auto max-w-5xl xl:max-w-7xl space-y-6 p-6">
+    <main className="mx-auto w-full max-w-7xl space-y-6">
       <div className="page-header">
         <div>
-          <nav aria-label="Caminho" className="text-xs text-ink-dim">
-            <Link href="/admin" className="hover:text-ink">Início</Link>
-            <span className="mx-1.5" aria-hidden>/</span>
-            <span>Relatórios</span>
-          </nav>
-          <h1 className="page-title mt-1">Relatório de movimentação</h1>
+          <h1 className="page-title">Relatório de movimentação</h1>
+          <p className="page-sub">Recebimentos e remetidos com filtros, gráficos e exportação para PDF e Excel.</p>
         </div>
       </div>
 
@@ -232,11 +249,27 @@ export default async function RelatoriosPage({
         </div>
       </form>
 
-      <p className="text-sm text-ink-muted">
-        {filtros.dataInicio || filtros.dataFim
-          ? `Período: ${fmtDataIso(filtros.dataInicio) ?? 'desde o início'} até ${fmtDataIso(filtros.dataFim) ?? 'hoje'}`
-          : 'Período: todo o histórico'}
-      </p>
+      <div className="filtros-ativos" aria-label="Filtros aplicados">
+        <span className="filtros-ativos-rotulo">Mostrando:</span>
+        <span className="chip-filtro">
+          {filtros.dataInicio || filtros.dataFim
+            ? `${fmtDataIso(filtros.dataInicio) ?? 'desde o início'} até ${fmtDataIso(filtros.dataFim) ?? 'hoje'}`
+            : 'Todo o histórico'}
+        </span>
+        {filtros.tipo && <span className="chip-filtro">{filtros.tipo === 'RECEBIMENTO' ? 'Recebimentos' : 'Remetidos'}</span>}
+        {filtros.status && <span className="chip-filtro">{STATUS_TEXTO[filtros.status] ?? filtros.status}</span>}
+        {filtros.perfil && <span className="chip-filtro">Perfil {filtros.perfil}</span>}
+        {filtros.material && <span className="chip-filtro">{filtros.material}</span>}
+        {filtros.classificacao && <span className="chip-filtro">{filtros.classificacao}</span>}
+        {filtros.origemDestino && <span className="chip-filtro">{filtros.origemDestino}</span>}
+        {filtros.numeroDocumento && <span className="chip-filtro">NF {filtros.numeroDocumento}</span>}
+        {filtros.placa && <span className="chip-filtro">Placa {filtros.placa}</span>}
+        {temFiltro && (
+          <Link href="/admin/relatorios" className="filtros-ativos-limpar">
+            Limpar filtros
+          </Link>
+        )}
+      </div>
 
       <div className="rel-indicators">
         <div className="stat-tile">
@@ -254,7 +287,7 @@ export default async function RelatoriosPage({
         </div>
         <div className="stat-tile">
           <p className="stat-label">Toneladas</p>
-          <p className="stat-value">{fmtPeso(resumo.toneladas)}</p>
+          <p className="stat-value">{fmtToneladas(resumo.toneladas)}</p>
           <p className="stat-unit">t</p>
         </div>
       </div>
@@ -276,28 +309,16 @@ export default async function RelatoriosPage({
           </div>
         </div>
         <div className="card">
-          <div className="tbl-wrap tbl-cards">
+          <div className="tbl-wrap tbl-cards tbl-acoes-fixas">
             <table>
-              <thead>
-                <tr>
-                  <th>Tipo</th>
-                  <th>Data</th>
-                  <th>Hora</th>
-                  <th>NF</th>
-                  <th>Origem/Destino</th>
-                  <th>Caminhão</th>
-                  <th>Responsável</th>
-                  <th>Status</th>
-                  <th></th>
-                </tr>
-              </thead>
+              <CabecalhoMovimentacoes />
               <tbody>
                 {ordenarPorSituacao(movimentacoes).map((m) => (
                   <LinhaTabela key={m.id} mov={m} />
                 ))}
                 {movimentacoes.length === 0 && (
                   <tr>
-                    <td colSpan={9}>
+                    <td colSpan={8}>
                       <EstadoVazio titulo="Nada encontrado" texto="Nenhuma movimentação com esses filtros." />
                     </td>
                   </tr>

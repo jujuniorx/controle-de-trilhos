@@ -1,3 +1,4 @@
+import { textoAuditoria } from '@/lib/ui/textoAuditoria';
 import { requireDono } from '@/lib/services/requireAdmin';
 import { listarAuditoria } from '@/lib/services/auditoria';
 
@@ -8,7 +9,7 @@ export default async function AuditoriaPage() {
   const registros = await listarAuditoria(200);
 
   return (
-    <main className="mx-auto max-w-5xl space-y-4 p-4 md:p-6">
+    <main className="mx-auto w-full max-w-7xl space-y-6">
       <div>
         <h1 className="font-condensed text-2xl font-bold uppercase tracking-wide text-ink">Auditoria</h1>
         <p className="text-sm text-ink-muted">Exclusões e mudanças de contas: quem fez, o quê e quando (últimos 200).</p>
@@ -36,7 +37,7 @@ export default async function AuditoriaPage() {
                 </td>
                 <td data-label="Quem" className="p-3">{r.usuarioNome}</td>
                 <td data-label="Ação" className="p-3 font-semibold">{r.acao}</td>
-                <td data-label="Detalhe" className="p-3">{r.descricao}</td>
+                <td data-label="Detalhe" className="p-3">{textoAuditoria(r.descricao)}</td>
               </tr>
             ))}
           </tbody>

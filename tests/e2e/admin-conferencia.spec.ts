@@ -63,7 +63,7 @@ test.describe('Administrativo — conferência e peso real', () => {
 
     await entrarNoAdmin(page);
     const row = page.locator('tr', { has: page.getByRole('cell', { name: nf }) });
-    await row.getByRole('link', { name: 'Ver detalhes' }).click();
+    await row.getByRole('link', { name: 'Conferir' }).click();
     await page.waitForURL('**/admin/recebimentos/**');
     const movimentacaoId = page.url().split('/recebimentos/')[1];
 
@@ -104,7 +104,7 @@ test.describe('Administrativo — conferência e peso real', () => {
 
     await entrarNoAdmin(page);
     const row = page.locator('tr', { has: page.getByRole('cell', { name: nf }) });
-    await row.getByRole('link', { name: 'Ver detalhes' }).click();
+    await row.getByRole('link', { name: 'Conferir' }).click();
     await page.waitForURL('**/admin/recebimentos/**');
     const movimentacaoId = page.url().split('/recebimentos/')[1];
 

@@ -35,7 +35,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
   const portaria = await buscarChegadaDoRecebimento(mov.id).catch(() => null);
 
   return (
-    <main className="mx-auto max-w-3xl xl:max-w-5xl space-y-4 p-6">
+    <main className="mx-auto w-full max-w-3xl xl:max-w-5xl space-y-4">
       <div>
         <Link href="/admin" className="back-link">
           ← Voltar à lista

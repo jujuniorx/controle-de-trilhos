@@ -52,7 +52,7 @@ export default async function ImprimirUsina({
   const titulo = setor === 'todos' ? 'Relatório da usina' : TITULO_RELATORIO[setor];
 
   return (
-    <main className="mx-auto max-w-5xl space-y-4 p-4">
+    <main className="mx-auto w-full max-w-6xl space-y-4">
       <style>{`
         @media print {
           body * { visibility: hidden; }
