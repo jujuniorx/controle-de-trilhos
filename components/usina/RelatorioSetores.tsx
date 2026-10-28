@@ -191,7 +191,7 @@ export function EstoqueTlsBloco({ linhas, cor }: { linhas: LinhaRelatorio[]; cor
   return (
     <section className="overflow-hidden rounded-xl border border-slate-200 bg-white break-inside-avoid">
       <header className="px-4 py-2.5 text-white" style={{ background: cor }}>
-        <span className="text-sm font-bold">Estoque de TLS (no dia)</span>
+        <span className="text-sm font-bold">Estoque de TLS</span>
       </header>
       <div className="overflow-x-auto p-4">
         <table className="w-full border-collapse text-[13px]">

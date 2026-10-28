@@ -294,7 +294,7 @@ function desenharEstoqueTls(p: PaginaPdf, linhas: LinhaRelatorio[], x: number, t
   p.arredondado(x, base, w, h, 9, BRANCO, LINHA);
   p.arredondado(x, topo - 22, w, 22, 9, hex(cor));
   p.retangulo(x, topo - 22, w, 8, hex(cor));
-  p.texto('Estoque de TLS (no dia)', x + 10, topo - 14, 8, 'negrito', BRANCO);
+  p.texto('Estoque de TLS', x + 10, topo - 14, 8, 'negrito', BRANCO);
   // Tabela: perfil, malha paulista, malha norte, FIPS e total (as malhas ainda sem lançamento separado).
   const colunas = [x + 10, x + w * 0.36, x + w * 0.55, x + w * 0.72, x + w * 0.88];
   const cabecalho = ['Perfil', 'Malha Paulista', 'Malha Norte', 'FIPS', 'Total'];
