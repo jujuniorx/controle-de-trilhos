@@ -50,8 +50,8 @@ function TabelaSerra({ serra, colunas = TODAS }: { serra: SerraRelatorio; coluna
           <th className="pb-1 text-left font-semibold"> </th>
           {grupos.map((g) => (
             <Fragment key={g.rotulo}>
-              <th className="pb-1 text-center font-semibold">Barras</th>
-              <th className="pb-1 text-center font-semibold leading-tight">Metros<br /><span className="font-normal normal-case">(est.)</span></th>
+              <th className="pb-1 pl-2 text-center font-semibold">Barras</th>
+              <th className="pb-1 pl-2 text-center font-semibold leading-tight">Metros<br /><span className="font-normal normal-case">(est.)</span></th>
             </Fragment>
           ))}
         </tr>
