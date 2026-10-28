@@ -26,7 +26,11 @@ export async function informativoDoAno(ano: number, dia: string) {
   const inicio = new Date(Date.UTC(ano, 0, 1));
   const fim = new Date(Date.UTC(ano + 1, 0, 1));
   const [geracoes, composicoes, recolhidos, recebidosSistema, historico, movs] = await Promise.all([
-    prisma.geracaoDia.findMany({ where: { data: { gte: inicio, lt: fim } }, select: { data: true, carregamentoM: true, deixadaViaM: true } }),
+    // Os metros da geração estão nas carretas (GeracaoCarreta); as colunas do dia são legado e só valem sem carretas.
+    prisma.geracaoDia.findMany({
+      where: { data: { gte: inicio, lt: fim } },
+      select: { data: true, carregamentoM: true, deixadaViaM: true, carretas: { select: { carregamentoM: true, deixadaViaM: true } } },
+    }),
     prisma.composicaoDia.findMany({ where: { data: { gte: inicio, lt: fim } }, select: { data: true, ativo: true, barras: true } }),
     prisma.recolhimentoSerra.findMany({ where: { data: { gte: inicio, lt: fim } }, select: { data: true, unidades: true } }),
     prisma.grupo.findMany({
@@ -57,7 +61,9 @@ export async function informativoDoAno(ano: number, dia: string) {
   };
 
   for (const g of geracoes) {
-    const v = Number(g.carregamentoM ?? 0) + Number(g.deixadaViaM ?? 0);
+    const v = g.carretas.length > 0
+      ? g.carretas.reduce((t, c) => t + Number(c.carregamentoM ?? 0) + Number(c.deixadaViaM ?? 0), 0)
+      : Number(g.carregamentoM ?? 0) + Number(g.deixadaViaM ?? 0);
     meses[mesDe(g.data)].geracao += v;
     tocar(g.data).geracao += v;
   }
