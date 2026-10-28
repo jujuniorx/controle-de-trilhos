@@ -1540,8 +1540,15 @@ html[data-tema="escuro"] .portaria-shell, html[data-tema="escuro"] .portaria-tel
    O Pátio trabalha num tablet Android, de luva e em pé: campos com 16 px (sem
    zoom do iPhone), alvos de toque de 44 px, selos e linhas de medida legíveis
    a distância de braço, e a barra de abas visível também no tablet. */
-.patio-shell, .patio-tela { --rotulo-patio: #5b6a80; }
-.area-patio .patio-tela, .patio-shell { --rotulo-patio: #9aa9bb; }
+/* Rótulos: escuro por padrão no Pátio; no tema claro usam o tom escuro (o antigo vencia sempre). */
+html:not([data-tema]) .patio-shell, html[data-tema="escuro"] .patio-shell { --rotulo-patio: #9aa9bb; }
+html[data-tema="claro"] .patio-shell { --rotulo-patio: #3f4b5c; }
+/* Botão principal: azul claro com texto escuro no escuro; azul forte com texto branco no claro (contraste acima de 4,5:1). */
+html:not([data-tema]) .patio-shell .btn-primary, html[data-tema="escuro"] .patio-shell .btn-primary { background: #4F9BE0; color: #06121F; }
+html[data-tema="claro"] .patio-shell .btn-primary { background: #0F5FCC; color: #fff; }
+/* Faixa de sincronização/offline: texto legível e sempre visível ao rolar. */
+.patio-shell .faixa-sync { position: sticky; top: 0; z-index: 30; font-size: .9rem; }
+.patio-shell .aviso-offline { font-size: .9rem; }
 
 .patio-shell input, .patio-shell select, .patio-shell textarea { font-size: 16px; min-height: 48px; }
 .patio-shell input[type="checkbox"], .patio-shell input[type="radio"] { min-height: 0; }

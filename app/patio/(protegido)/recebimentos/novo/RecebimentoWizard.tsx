@@ -586,14 +586,14 @@ export function RecebimentoWizard({
           <div className="field">
             <label htmlFor="f-origem">Origem *</label>
             <input id="f-origem"
-              aria-invalid={Boolean(errosDados.origem)} className="h-11 uppercase" value={dados.origem} onChange={(e) => setDados({ ...dados, origem: e.target.value })} />
+              aria-invalid={Boolean(errosDados.origem)} className="h-12 uppercase" placeholder="Ex.: EVANGELISTA-SP" autoComplete="off" value={dados.origem} onChange={(e) => setDados({ ...dados, origem: e.target.value.toLocaleUpperCase('pt-BR') })} />
             {errosDados.origem && <p className="text-sm text-bad">{errosDados.origem}</p>}
           </div>
           <p className="text-sm text-ink-dim">Transporte: Caminhão (único suportado nesta etapa)</p>
 
           <div className="rounded-lg border-2 p-3" style={{ borderColor: 'var(--b1)', background: 'color-mix(in srgb, var(--b0) 40%, transparent)' }}>
             <p className="text-sm font-semibold text-primary">Placas * — informe ao menos uma</p>
-            <p className="text-xs text-ink-dim">A placa da carreta é a informação mais usada na operação.</p>
+            <p className="text-sm text-ink-dim">A placa da carreta é a informação mais usada na operação.</p>
             {errosDados.placaCavalo === MSG_PELO_MENOS_UMA_PLACA && (
               <p className="mt-1 text-sm text-bad">{errosDados.placaCavalo}</p>
             )}
@@ -604,7 +604,9 @@ export function RecebimentoWizard({
                 id="f-carreta"
                 aria-invalid={Boolean(errosDados.placaCarreta)}
                 maxLength={7}
-                className="h-11 text-lg font-semibold uppercase"
+                className="h-12 text-lg font-semibold uppercase"
+                placeholder="ABC1D23 ou ABC1234"
+                autoCapitalize="characters"
                 value={dados.placaCarreta}
                 onChange={(e) => setDados({ ...dados, placaCarreta: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
               />
@@ -618,14 +620,16 @@ export function RecebimentoWizard({
                   id="f-carreta2"
                 aria-invalid={Boolean(errosDados.placaCarreta2)}
                   maxLength={7}
-                  className="h-11 text-lg font-semibold uppercase"
+                  className="h-12 text-lg font-semibold uppercase"
+                  placeholder="ABC1D23 ou ABC1234"
+                  autoCapitalize="characters"
                   value={dados.placaCarreta2}
                   onChange={(e) => setDados({ ...dados, placaCarreta2: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
                 />
                 {errosDados.placaCarreta2 && <p className="text-sm text-bad">{errosDados.placaCarreta2}</p>}
               </div>
             ) : (
-              <button type="button" className="mt-2 text-sm text-primary underline" onClick={() => setMostrarCarreta2(true)}>
+              <button type="button" className="btn btn-ghost mt-2 h-11" onClick={() => setMostrarCarreta2(true)}>
                 + Adicionar segunda carreta
               </button>
             )}
@@ -636,7 +640,9 @@ export function RecebimentoWizard({
                 id="f-cavalo"
                 aria-invalid={Boolean(errosDados.placaCavalo)}
                 maxLength={7}
-                className="h-11 uppercase"
+                className="h-12 uppercase"
+                placeholder="ABC1D23 ou ABC1234"
+                autoCapitalize="characters"
                 value={dados.placaCavalo}
                 onChange={(e) => setDados({ ...dados, placaCavalo: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
               />
@@ -650,10 +656,11 @@ export function RecebimentoWizard({
             <label htmlFor="f-transportadora">Transportadora (opcional)</label>
             <input
               id="f-transportadora"
-              className="h-11"
-              placeholder="Nome da empresa transportadora, não o veículo"
+              className="h-12 uppercase"
+              placeholder="Nome da empresa, não o veículo"
+              autoComplete="off"
               value={dados.transportadora}
-              onChange={(e) => setDados({ ...dados, transportadora: e.target.value })}
+              onChange={(e) => setDados({ ...dados, transportadora: e.target.value.toLocaleUpperCase('pt-BR') })}
             />
           </div>
           <div className="field">
@@ -681,7 +688,7 @@ export function RecebimentoWizard({
                 <span className="grupo-title">
                   Grupo {i + 1} — {g.perfil} — {g.tipoMaterial}
                 </span>
-                <button className="text-sm text-bad" onClick={() => removerGrupo(g.clientId)}>
+                <button type="button" className="btn btn-ghost h-11 px-4 text-bad" onClick={() => removerGrupo(g.clientId)}>
                   Excluir
                 </button>
               </div>

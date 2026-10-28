@@ -80,7 +80,7 @@ export function IndicadorSincronizacao() {
   }, []);
 
   return (
-    <div role="status" aria-live="polite" className="border-b border-line bg-surface text-xs text-ink-muted">
+    <div role="status" aria-live="polite" className="faixa-sync border-b border-line bg-surface text-sm text-ink-muted">
       {!online && (
         <div className="aviso-offline">
           <strong>Sem internet.</strong> Pode continuar lançando: tudo fica salvo neste aparelho e é enviado

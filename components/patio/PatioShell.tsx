@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import Link from 'next/link';
 import { IndicadorSincronizacao } from '@/components/IndicadorSincronizacao';
 import { InstalarApp } from '@/components/InstalarApp';
 import { NavegacaoTopo } from '@/components/ui/NavegacaoTopo';
@@ -9,6 +8,7 @@ import { BarraAbas, type Aba } from '@/components/ui/BarraAbas';
 import { GestosApp } from '@/components/ui/GestosApp';
 import { AquecerOffline } from '@/components/patio/AquecerOffline';
 import { NavPatio } from '@/components/patio/NavPatio';
+import { TrocarAreaLink } from '@/components/patio/TrocarAreaLink';
 import { ICONE_CARGA, ICONE_INICIO, ICONE_PILHAS, ICONE_RECEBER, ICONE_SAIDAS, ICONE_TROCAR_AREA } from '@/components/patio/icones';
 
 /**
@@ -32,10 +32,10 @@ export function PatioShell({ children }: { children: ReactNode }) {
         </div>
         <NavPatio className="flex flex-1 flex-col gap-0.5 py-2" />
         <div className="ct-sidebar-footer">
-          <Link href="/" className="ct-sair">
+          <TrocarAreaLink className="ct-sair">
             {ICONE_TROCAR_AREA(15)}
             Trocar área
-          </Link>
+          </TrocarAreaLink>
         </div>
       </aside>
 
@@ -46,9 +46,9 @@ export function PatioShell({ children }: { children: ReactNode }) {
             <Logo size={28} subtitle="Pátio" />
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <Link href="/" aria-label="Trocar área" title="Trocar área" className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-line text-ink hover:bg-surface-2 active:scale-95">
+            <TrocarAreaLink rotulo="Trocar área" className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-line text-ink hover:bg-surface-2 active:scale-95">
               {ICONE_TROCAR_AREA(20)}
-            </Link>
+            </TrocarAreaLink>
             <AlternarTema padrao="escuro" />
           </div>
         </header>

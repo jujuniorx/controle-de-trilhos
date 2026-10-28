@@ -111,7 +111,7 @@ export function AtivarAvisos({
       {situacao === 'ligado' && (
         <div className="flex items-center justify-between gap-2">
           <span className="badge badge-ok">Avisos ligados</span>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => void desligar()}>
+          <button type="button" className="btn btn-ghost h-11" onClick={() => void desligar()}>
             Desligar
           </button>
         </div>

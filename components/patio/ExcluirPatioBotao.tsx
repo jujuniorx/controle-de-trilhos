@@ -39,7 +39,7 @@ export function ExcluirPatioBotao({ nome, oQue, alvoId, aoConfirmar }: ExcluirPa
   if (!aberto) {
     return (
       <button type="button" className="btn btn-ghost btn-sm text-bad" onClick={() => setAberto(true)}>
-        Excluir
+        Excluir (pede motivo)
       </button>
     );
   }
@@ -49,7 +49,7 @@ export function ExcluirPatioBotao({ nome, oQue, alvoId, aoConfirmar }: ExcluirPa
       <p className="text-sm font-medium text-ink">
         Você tem certeza que quer excluir {oQue} ({nome})?
       </p>
-      <p className="text-xs text-ink-muted">Ele sai da lista do Pátio. O dono pode restaurar pela lixeira.</p>
+      <p className="text-sm text-ink-muted">Ele sai da lista do Pátio. O dono pode restaurar pela lixeira.</p>
       <label className="block space-y-1">
         <span className="text-sm font-medium text-ink">Motivo da exclusão</span>
         <textarea
