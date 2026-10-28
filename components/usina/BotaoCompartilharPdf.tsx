@@ -11,8 +11,9 @@ async function svgParaPng(blobSvg: Blob): Promise<Blob> {
   if (!medida) throw new Error('svg sem medidas');
   const largura = Number(medida[1]);
   const altura = Number(medida[2]);
-  const urlSvg = URL.createObjectURL(new Blob([texto], { type: 'image/svg+xml' }));
-  try {
+  // Endereco data: (nao blob:): a politica de imagens do site (img-src 'self' data:) bloqueia blob:.
+  const urlSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(texto)}`;
+  {
     const imagem = await new Promise<HTMLImageElement>((ok, falha) => {
       const img = new Image();
       img.onload = () => ok(img);
@@ -31,8 +32,6 @@ async function svgParaPng(blobSvg: Blob): Promise<Blob> {
     const png = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, 'image/png'));
     if (!png) throw new Error('png falhou');
     return png;
-  } finally {
-    URL.revokeObjectURL(urlSvg);
   }
 }
 
