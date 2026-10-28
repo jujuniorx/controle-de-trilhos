@@ -36,22 +36,32 @@ export function textoDireita(p: PaginaPdf, texto: string, xDireita: number, y: n
   p.texto(texto, xDireita - larguraTexto(texto, tamanho, fonte), y, tamanho, fonte, c);
 }
 
-/** Valor alinhado à direita com partes separadas por ' / ', cada parte na sua cor (ex.: W61 e W62). */
-function valorDireitaComCores(p: PaginaPdf, valor: string, cores: string[] | undefined, xDireita: number, y: number, tamanho: number, fonte: 'normal' | 'negrito', corPadrao: Cor) {
+/** Texto centralizado em xCentro. */
+function textoCentro(p: PaginaPdf, texto: string, xCentro: number, y: number, tamanho: number, fonte: 'normal' | 'negrito', c: Cor) {
+  p.texto(texto, xCentro - larguraTexto(texto, tamanho, fonte) / 2, y, tamanho, fonte, c);
+}
+
+/** Valor centralizado em xCentro com partes separadas por ' / ', cada parte na sua cor. */
+function valorCentroComCores(p: PaginaPdf, valor: string, cores: string[] | undefined, xCentro: number, y: number, tamanho: number, fonte: 'normal' | 'negrito', corPadrao: Cor) {
   const partes = valor.split(' / ');
   if (!cores || partes.length !== cores.length) {
-    textoDireita(p, valor, xDireita, y, tamanho, fonte, corPadrao);
+    textoCentro(p, valor, xCentro, y, tamanho, fonte, corPadrao);
     return;
   }
-  let x = xDireita;
-  for (let i = partes.length - 1; i >= 0; i--) {
-    textoDireita(p, partes[i]!, x, y, tamanho, fonte, hex(cores[i]!));
-    x -= larguraTexto(partes[i]!, tamanho, fonte);
-    if (i > 0) {
-      textoDireita(p, ' / ', x, y, tamanho, fonte, CINZA);
-      x -= larguraTexto(' / ', tamanho, fonte);
+  let total = 0;
+  partes.forEach((pt, i) => {
+    total += larguraTexto(pt, tamanho, fonte);
+    if (i < partes.length - 1) total += larguraTexto(' / ', tamanho, fonte);
+  });
+  let x = xCentro - total / 2;
+  partes.forEach((pt, i) => {
+    p.texto(pt, x, y, tamanho, fonte, hex(cores[i]!));
+    x += larguraTexto(pt, tamanho, fonte);
+    if (i < partes.length - 1) {
+      p.texto(' / ', x, y, tamanho, fonte, CINZA);
+      x += larguraTexto(' / ', tamanho, fonte);
     }
-  }
+  });
 }
 
 /** Tabela da serra: W61 e W62 nas linhas; Dia, Semana e Mês com barras e metros, cada composição na sua cor. */
@@ -77,19 +87,19 @@ function desenharTabelaSerra(p: PaginaPdf, serra: SerraRelatorio, x: number, top
     p.arredondado(x0, baseCaixa, x1 - x0, topo - 26 - baseCaixa, 4, g.chave === 'mes' ? hex('#f1f5f9') : BRANCO, LINHA);
   });
   let y = topo - 32;
-  grupos.forEach((g, gi) => textoDireita(p, g.rotulo, fimG(gi, 1), y, 6.5, 'negrito', CINZA));
+  grupos.forEach((g, gi) => textoCentro(p, g.rotulo, (fimG(gi, 0) + fimG(gi, 1)) / 2 - colW / 2, y, 6.5, 'negrito', CINZA));
   y -= 9;
   grupos.forEach((_, gi) => {
-    textoDireita(p, 'Barras', fimG(gi, 0), y, 6, 'negrito', CINZA);
+    textoCentro(p, 'Barras', fimG(gi, 0) - colW / 2, y, 6, 'negrito', CINZA);
     // "Metros" e "est." em duas linhas, para não encostar em "Barras".
-    textoDireita(p, 'Metros', fimG(gi, 1), y, 6, 'negrito', CINZA);
-    textoDireita(p, 'est.', fimG(gi, 1), y - 7, 5.5, 'normal', CINZA);
+    textoCentro(p, 'Metros', fimG(gi, 1) - colW / 2, y, 6, 'negrito', CINZA);
+    textoCentro(p, 'est.', fimG(gi, 1) - colW / 2, y - 7, 5.5, 'normal', CINZA);
   });
   y -= 14;
   p.linha(x + 8, y, x + w - 8, y, LINHA, 0.6);
   const medidas = (m: { barras: number; metros: number }, gi: number, cor: Cor) => {
-    textoDireita(p, String(m.barras), fimG(gi, 0), y, 8.5, 'negrito', cor);
-    textoDireita(p, fmtMetrosPdf(m.metros), fimG(gi, 1), y, 8.5, 'negrito', cor);
+    textoCentro(p, String(m.barras), fimG(gi, 0) - colW / 2, y, 8.5, 'negrito', cor);
+    textoCentro(p, fmtMetrosPdf(m.metros), fimG(gi, 1) - colW / 2, y, 8.5, 'negrito', cor);
   };
   serra.linhas.forEach((l, i) => {
     y -= 11;
@@ -209,7 +219,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
     const xr = xDe(c);
     p.arredondado(xr - 52, fimLinhas, 60, topo - 26 - fimLinhas, 4, c === 'mes' ? hex('#f1f5f9') : BRANCO, LINHA);
   });
-  ativas.forEach((c) => textoDireita(p, nomeDe[c], xDe(c), yCabecalho, 6.5, 'negrito', CINZA));
+  ativas.forEach((c) => textoCentro(p, nomeDe[c], xDe(c) - 22, yCabecalho, 6.5, 'negrito', CINZA));
   p.linha(x + 8, yPrimeiraLinha - 6, xMes + 2, yPrimeiraLinha - 6, LINHA, 0.6);
   let y = yPrimeiraLinha - 6;
   s.linhas.forEach((linha) => {
@@ -221,7 +231,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
     p.texto(linha.rotulo, x + 8, y, 8, 'normal', TINTA);
     ativas.forEach((c) => {
       const valor = c === 'dia' ? linha.dia : c === 'semana' ? linha.semana : linha.mes;
-      valorDireitaComCores(p, valor, linha.cores, xDe(c), y, 9, 'negrito', c === 'mes' ? hex(s.cor) : TINTA);
+      valorCentroComCores(p, valor, linha.cores, xDe(c) - 22, y, 9, 'negrito', c === 'mes' ? hex(s.cor) : TINTA);
     });
   });
 
@@ -303,16 +313,18 @@ function desenharEstoqueTls(p: PaginaPdf, linhas: LinhaRelatorio[], x: number, t
   const colunas = [x + 10, x + w * 0.36, x + w * 0.55, x + w * 0.72, x + w * 0.88];
   const cabecalho = ['Perfil', 'Malha Paulista', 'Malha Norte', 'FIPS', 'Total'];
   const yCab = topo - 36;
-  cabecalho.forEach((t, j) => p.texto(t, colunas[j], yCab, 6.5, 'negrito', CINZA));
+  // Colunas numéricas centralizadas entre a coluna atual e a próxima (a última vai até a borda direita do cartão).
+  const centros = [0, (colunas[1] + colunas[2]) / 2, (colunas[2] + colunas[3]) / 2, (colunas[3] + colunas[4]) / 2, (colunas[4] + x + w - 8) / 2];
+  cabecalho.forEach((t, j) => (j === 0 ? p.texto(t, colunas[0], yCab, 6.5, 'negrito', CINZA) : textoCentro(p, t, centros[j]!, yCab, 6.5, 'negrito', CINZA)));
   p.linha(x + 8, yCab - 5, x + w - 8, yCab - 5, LINHA, 0.6);
   itens.forEach((l, i) => {
     const y = yCab - 18 - i * 14;
     p.texto(l.perfil ?? l.rotulo, colunas[0], y, 8, 'negrito', TINTA);
     const malhas = l.malhas ?? ['—', '—', '—'];
-    p.texto(malhas[0], colunas[1], y, 8, 'normal', TINTA);
-    p.texto(malhas[1], colunas[2], y, 8, 'normal', TINTA);
-    p.texto(malhas[2], colunas[3], y, 8, 'normal', TINTA);
-    p.texto(l.dia, colunas[4], y, 9, 'negrito', TINTA);
+    textoCentro(p, malhas[0], centros[1]!, y, 8, 'normal', TINTA);
+    textoCentro(p, malhas[1], centros[2]!, y, 8, 'normal', TINTA);
+    textoCentro(p, malhas[2], centros[3]!, y, 8, 'normal', TINTA);
+    textoCentro(p, l.dia, centros[4]!, y, 9, 'negrito', TINTA);
   });
 }
 

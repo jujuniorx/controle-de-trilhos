@@ -29,13 +29,18 @@ export function desenharTrilheiros(p: PaginaPdf, t: TrilheirosRelatorio, x: numb
   const col = { trilheiro: 10, bo: 96, diasBo: 180, partida: 278, diasPartida: 364, local: 462, barras: 540, obs: 628 };
   const yCabecalho = compacto ? topo - 36 : topo - 38;
   const rotulo = (texto: string, dx: number) => p.texto(texto, x + dx, yCabecalho, 6.5, 'negrito', CINZA);
+  // Colunas de datas, dias e barras centralizadas na própria coluna (TRILHEIRO, LOCAL e OBSERVAÇÃO ficam à esquerda).
+  const cen = { bo: 138, diasBo: 229, partida: 321, diasPartida: 413, barras: 584 };
+  const centro = (texto: string, xc: number, y: number, tamanho: number, fonte: 'normal' | 'negrito', c: Cor) =>
+    p.texto(texto, x + xc - larguraTexto(texto, tamanho, fonte) / 2, y, tamanho, fonte, c);
+  const rotuloC = (texto: string, xc: number) => centro(texto, xc, yCabecalho, 6.5, 'negrito', CINZA);
   rotulo('TRILHEIRO', col.trilheiro);
-  rotulo('B.O.', col.bo);
-  rotulo('DIAS DESDE B.O.', col.diasBo);
-  rotulo('PARTIDA', col.partida);
-  rotulo('DIAS DESDE PARTIDA', col.diasPartida);
+  rotuloC('B.O.', cen.bo);
+  rotuloC('DIAS DESDE B.O.', cen.diasBo);
+  rotuloC('PARTIDA', cen.partida);
+  rotuloC('DIAS DESDE PARTIDA', cen.diasPartida);
   rotulo('LOCAL', col.local);
-  rotulo('BARRAS DESC. / TOTAL', col.barras);
+  rotuloC('BARRAS DESC. / TOTAL', cen.barras);
   rotulo('OBSERVAÇÃO', col.obs);
   p.linha(x + 8, yCabecalho - 6, x + w - 8, yCabecalho - 6, LINHA, 0.6);
 
@@ -49,10 +54,10 @@ export function desenharTrilheiros(p: PaginaPdf, t: TrilheirosRelatorio, x: numb
     const y = primeiraBase - i * altLinha;
     if (i % 2 === 1) p.retangulo(x + 4, y - (compacto ? 10 : 14), w - 8, altLinha - 2, ZEBRA);
     p.texto(e.trilheiro, x + col.trilheiro, y, 10, 'negrito', TINTA);
-    p.texto(brDaIso(e.bo), x + col.bo, y, 9, 'normal', TINTA);
-    p.texto(e.giroDias == null ? '—' : String(e.giroDias), x + col.diasBo, y, 10, 'negrito', TINTA);
-    p.texto(brDaIso(e.partida), x + col.partida, y, 9, 'normal', TINTA);
-    p.texto(e.diasDesdePartida == null ? '—' : String(e.diasDesdePartida), x + col.diasPartida, y, 10, 'negrito', TINTA);
+    centro(brDaIso(e.bo), cen.bo, y, 9, 'normal', TINTA);
+    centro(e.giroDias == null ? '—' : String(e.giroDias), cen.diasBo, y, 10, 'negrito', TINTA);
+    centro(brDaIso(e.partida), cen.partida, y, 9, 'normal', TINTA);
+    centro(e.diasDesdePartida == null ? '—' : String(e.diasDesdePartida), cen.diasPartida, y, 10, 'negrito', TINTA);
     if (e.local) {
       // Etiqueta do local: texto centralizado na horizontal e na vertical.
       const tamanho = 8;
@@ -67,7 +72,7 @@ export function desenharTrilheiros(p: PaginaPdf, t: TrilheirosRelatorio, x: numb
     } else {
       p.texto('—', x + col.local, y, 9, 'normal', CINZA);
     }
-    p.texto(`${e.descarregadas} / ${e.total}`, x + col.barras, y, 10, 'negrito', COR_TRILHEIROS);
+    centro(`${e.descarregadas} / ${e.total}`, cen.barras, y, 10, 'negrito', COR_TRILHEIROS);
     const linhas = e.observacao ? quebrarLinhas(e.observacao, 7.5, w - col.obs - 16) : [];
     const maxLinhas = 3;
     const espaco = 8.5;
