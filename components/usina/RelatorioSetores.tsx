@@ -32,8 +32,8 @@ function TabelaSerra({ serra, colunas = TODAS }: { serra: SerraRelatorio; coluna
   ].filter((g) => colunas.includes(g.chave));
   const celula = (m: MedidaSerra) => (
     <>
-      <td className="whitespace-nowrap py-1 pl-2 text-right font-semibold tabular-nums">{m.barras}</td>
-      <td className="whitespace-nowrap py-1 pl-2 text-right font-semibold tabular-nums">{fmtMetros(m.metros)}</td>
+      <td className="whitespace-nowrap py-1 pl-2 text-center font-semibold tabular-nums">{m.barras}</td>
+      <td className="whitespace-nowrap py-1 pl-2 text-center font-semibold tabular-nums">{fmtMetros(m.metros)}</td>
     </>
   );
   return (
@@ -50,8 +50,8 @@ function TabelaSerra({ serra, colunas = TODAS }: { serra: SerraRelatorio; coluna
           <th className="pb-1 text-left font-semibold"> </th>
           {grupos.map((g) => (
             <Fragment key={g.rotulo}>
-              <th className="pb-1 text-right font-semibold">Barras</th>
-              <th className="pb-1 text-right font-semibold leading-tight">Metros<br /><span className="font-normal normal-case">(est.)</span></th>
+              <th className="pb-1 text-center font-semibold">Barras</th>
+              <th className="pb-1 text-center font-semibold leading-tight">Metros<br /><span className="font-normal normal-case">(est.)</span></th>
             </Fragment>
           ))}
         </tr>
@@ -103,9 +103,9 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
       <thead>
         <tr className="text-[11px] uppercase tracking-wide text-slate-500">
           <th className="pb-1 text-left font-semibold"> </th>
-          {mostraDia && <th className="pb-1 text-right font-semibold">Dia</th>}
-          {mostraSem && <th className="pb-1 text-right font-semibold">Semana</th>}
-          {mostraMes && <th className="pb-1 text-right font-semibold">No mês</th>}
+          {mostraDia && <th className="pb-1 text-center font-semibold">Dia</th>}
+          {mostraSem && <th className="pb-1 text-center font-semibold">Semana</th>}
+          {mostraMes && <th className="pb-1 text-center font-semibold">No mês</th>}
         </tr>
       </thead>
       <tbody>
@@ -118,9 +118,9 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
             )}
           <tr className="border-t border-slate-100">
             <td className="py-1 text-slate-700">{l.rotulo}</td>
-            {mostraDia && <td className="py-1 text-right font-medium tabular-nums text-slate-900"><ValorComCores valor={l.dia} cores={l.cores} corPadrao="#0f172a" /></td>}
-            {mostraSem && <td className="py-1 text-right font-medium tabular-nums text-slate-900"><ValorComCores valor={l.semana} cores={l.cores} corPadrao="#0f172a" /></td>}
-            {mostraMes && <td className="py-1 text-right font-bold tabular-nums"><ValorComCores valor={l.mes} cores={l.cores} corPadrao={s.cor} /></td>}
+            {mostraDia && <td className="py-1 text-center font-medium tabular-nums text-slate-900"><ValorComCores valor={l.dia} cores={l.cores} corPadrao="#0f172a" /></td>}
+            {mostraSem && <td className="py-1 text-center font-medium tabular-nums text-slate-900"><ValorComCores valor={l.semana} cores={l.cores} corPadrao="#0f172a" /></td>}
+            {mostraMes && <td className="py-1 text-center font-bold tabular-nums"><ValorComCores valor={l.mes} cores={l.cores} corPadrao={s.cor} /></td>}
           </tr>
           </Fragment>
         ))}
@@ -143,7 +143,7 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
         <tr className="text-[10px] uppercase tracking-wide text-slate-500">
           <th className="pb-1 text-left font-semibold"> </th>
           {s.grade.colunas.map((c) => (
-            <th key={c} className="pb-1 text-right font-semibold">{c}</th>
+            <th key={c} className="pb-1 text-center font-semibold">{c}</th>
           ))}
         </tr>
       </thead>
@@ -152,7 +152,7 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
           <tr key={l.rotulo} className="border-t border-slate-100">
             <td className="py-1 font-semibold text-slate-700">{l.rotulo}</td>
             {l.valores.map((v, i) => (
-              <td key={i} className="py-1 text-right tabular-nums" style={{ color: s.cor }}>{v}</td>
+              <td key={i} className="py-1 text-center tabular-nums" style={{ color: s.cor }}>{v}</td>
             ))}
           </tr>
         ))}
@@ -187,7 +187,7 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
 export function EstoqueTlsBloco({ linhas, cor }: { linhas: LinhaRelatorio[]; cor: string }) {
   // A primeira linha da seção traz o rótulo "secao"; por isso filtra pelo perfil, não pela seção.
   const itens = linhas.filter((l) => l.perfil);
-  const celula = 'py-2 text-right font-semibold tabular-nums';
+  const celula = 'py-2 text-center font-semibold tabular-nums';
   return (
     <section className="overflow-hidden rounded-xl border border-slate-200 bg-white break-inside-avoid">
       <header className="px-4 py-2.5 text-white" style={{ background: cor }}>
@@ -198,10 +198,10 @@ export function EstoqueTlsBloco({ linhas, cor }: { linhas: LinhaRelatorio[]; cor
           <thead>
             <tr className="border-b-2 border-slate-200 text-[10px] uppercase tracking-wide text-slate-500">
               <th className="pb-2 text-left font-semibold">Perfil</th>
-              <th className="pb-2 text-right font-semibold">Malha Paulista</th>
-              <th className="pb-2 text-right font-semibold">Malha Norte</th>
-              <th className="pb-2 text-right font-semibold">FIPS</th>
-              <th className="pb-2 text-right font-semibold">Total</th>
+              <th className="pb-2 text-center font-semibold">Malha Paulista</th>
+              <th className="pb-2 text-center font-semibold">Malha Norte</th>
+              <th className="pb-2 text-center font-semibold">FIPS</th>
+              <th className="pb-2 text-center font-semibold">Total</th>
             </tr>
           </thead>
           <tbody>
@@ -400,24 +400,24 @@ export function EquipesGeracao({ equipes, cor }: { equipes: EquipeGeracaoRelator
           <thead>
             <tr className="text-[11px] uppercase tracking-wide text-slate-500">
               <th className="pb-1 text-left font-semibold">Equipe</th>
-              <th className="pb-1 text-right font-semibold">Carregado (m)</th>
-              <th className="pb-1 text-right font-semibold">Deixado na via (m)</th>
-              <th className="pb-1 text-right font-semibold">Barras</th>
+              <th className="pb-1 text-center font-semibold">Carregado (m)</th>
+              <th className="pb-1 text-center font-semibold">Deixado na via (m)</th>
+              <th className="pb-1 text-center font-semibold">Barras</th>
             </tr>
           </thead>
           <tbody>
             {equipes.map((e) => (
               <tr key={e.rotulo} className="border-t border-slate-100">
                 <td className="py-2 font-semibold text-slate-900">{e.rotulo}</td>
-                <td className="py-2 text-right tabular-nums">
+                <td className="py-2 text-center tabular-nums">
                   <span className="font-bold" style={{ color: cor }}>{fmtM(e.semana.carregamentoM)}</span>
                   <span className="block text-[11px] text-slate-500">dia {fmtM(e.dia.carregamentoM)}</span>
                 </td>
-                <td className="py-2 text-right tabular-nums">
+                <td className="py-2 text-center tabular-nums">
                   <span className="font-bold" style={{ color: cor }}>{fmtM(e.semana.deixadaViaM)}</span>
                   <span className="block text-[11px] text-slate-500">dia {fmtM(e.dia.deixadaViaM)}</span>
                 </td>
-                <td className="py-2 text-right tabular-nums">
+                <td className="py-2 text-center tabular-nums">
                   <span className="font-bold" style={{ color: cor }}>{e.semana.quantidade}</span>
                   <span className="block text-[11px] text-slate-500">dia {e.dia.quantidade}</span>
                 </td>
