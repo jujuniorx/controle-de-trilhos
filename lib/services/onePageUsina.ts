@@ -61,7 +61,7 @@ export interface DadosRelatorio {
   /** Nome da coluna "do dia" com o dia da semana, ex.: "Do dia (sexta-feira, 23/10)". */
   rotuloDia: string;
   /** Linhas do cartão de topo; quando existem (trilheiros), trocam Do dia / Da semana / No mês. */
-  resumo: { rotulo: string; cor: string; dia: string; semana: string; mes: string; grupo: string; linhas?: { rotulo: string; valor: string }[] }[];
+  resumo: { rotulo: string; cor: string; dia: string; semana: string; mes: string; grupo: string; linhas?: { rotulo: string; valor: string }[]; legenda?: string }[];
   setores: SetorRelatorio[];
   equipesGeracao: EquipeGeracaoRelatorio[];
   /** Observação de cada setor por dia, da segunda a domingo da semana: chave "AAAA-MM-DD|setor". */
@@ -204,6 +204,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         mes: '',
         // Barras carregadas sobre o total que o trilheiro tem no giro (ex.: 10/40).
         linhas: trilRel.equipes.map((e) => ({ rotulo: e.trilheiro, valor: `${e.descarregadas}/${e.total}` })),
+        legenda: 'Desc. / Env.',
         grupo: 'Trilheiros',
       },
     ],

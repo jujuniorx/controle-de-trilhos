@@ -222,11 +222,14 @@ export function EstoqueTlsBloco({ linhas, cor }: { linhas: LinhaRelatorio[]; cor
 }
 
 /** Indicador de setor: o valor do dia e o da semana em blocos separados. */
-export function Resumo({ rotulo, cor, dia, semana, mes, mensal = false, linhas, colunas = TODAS, rotuloDia = 'Do dia' }: { rotulo: string; cor: string; dia: string; semana: string; mes: string; mensal?: boolean; linhas?: { rotulo: string; valor: string }[]; colunas?: Coluna[]; rotuloDia?: string }) {
+export function Resumo({ rotulo, cor, dia, semana, mes, mensal = false, linhas, colunas = TODAS, rotuloDia = 'Do dia', legenda }: { rotulo: string; cor: string; dia: string; semana: string; mes: string; mensal?: boolean; linhas?: { rotulo: string; valor: string }[]; colunas?: Coluna[]; rotuloDia?: string; legenda?: string }) {
   if (linhas && linhas.length > 0) {
     return (
       <div className="rounded-lg border border-slate-200 bg-white p-4" style={{ borderTop: `3px solid ${cor}` }}>
-        <p className="text-[11px] font-bold uppercase tracking-wide text-slate-600">{rotulo}</p>
+        <div className="flex items-baseline justify-between gap-2">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-slate-600">{rotulo}</p>
+          {legenda && <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{legenda}</span>}
+        </div>
         <dl className="mt-2 divide-y divide-slate-100 text-sm">
           {linhas.map((l) => (
             <div key={l.rotulo} className="flex items-baseline justify-between gap-2 py-1">

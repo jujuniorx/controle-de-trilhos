@@ -260,11 +260,12 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
 }
 
 /** Cartão do topo (Do dia, Da semana, No mês) em três linhas iguais: rótulo à esquerda, valor à direita. */
-export function desenharResumoCartao(p: PaginaPdf, r: { rotulo: string; cor: string; dia: string; semana: string; mes: string; linhas?: { rotulo: string; valor: string }[] }, x: number, topo: number, w: number, altura: number, colunas: Coluna[] = TODAS_COLUNAS) {
+export function desenharResumoCartao(p: PaginaPdf, r: { rotulo: string; cor: string; dia: string; semana: string; mes: string; linhas?: { rotulo: string; valor: string }[]; legenda?: string }, x: number, topo: number, w: number, altura: number, colunas: Coluna[] = TODAS_COLUNAS) {
   p.arredondado(x + 1, topo - altura - 1.2, w, altura, 9, SOMBRA);
   p.arredondado(x, topo - altura, w, altura, 9, BRANCO, LINHA);
   p.arredondado(x + 8, topo - 15, 6, 6, 3, hex(r.cor));
   p.texto(r.rotulo.toUpperCase(), x + 18, topo - 14, 7, 'negrito', TINTA);
+  if (r.legenda) textoDireita(p, r.legenda, x + w - 8, topo - 14, 6, 'negrito', CINZA);
   desenharLinhasResumo(p, r, x, topo, w, colunas);
 }
 
@@ -376,6 +377,7 @@ function montarPaginasUsina(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 
     p.arredondado(x, topoRes - altRes, wRes, altRes, 9, BRANCO, LINHA);
     p.arredondado(x + 8, topoRes - 15, 6, 6, 3, hex(r.cor));
     p.texto(r.rotulo.toUpperCase(), x + 18, topoRes - 14, 7, 'negrito', TINTA);
+    if (r.legenda) textoDireita(p, r.legenda, x + wRes - 8, topoRes - 14, 6, 'negrito', CINZA);
     if (mensal && r.linhas?.length) {
       desenharLinhasResumo(p, r, x, topoRes, wRes, colunas, diario ? 'Do dia' : d.rotuloDia);
       return;
