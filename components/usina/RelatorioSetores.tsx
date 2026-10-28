@@ -207,7 +207,7 @@ export function EstoqueTlsBloco({ linhas, cor }: { linhas: LinhaRelatorio[]; cor
               {malhasDe(l).map((v, j) => (
                 <td key={j} className="py-2 text-center tabular-nums text-slate-700">{v}</td>
               ))}
-              <td className="py-2 text-center font-semibold tabular-nums" style={{ color: cor }}>{totalDe(l)}</td>
+              <td className="py-2 text-center tabular-nums text-slate-700">{totalDe(l)}</td>
             </tr>
           ))}
         </tbody>
