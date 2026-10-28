@@ -62,7 +62,7 @@ export function GraficoBarras({
         {marcas.map((m) => (
           <g key={m}>
             <line x1={margemEsq} x2={largura - 6} y1={yDe(m)} y2={yDe(m)} stroke="#0001" />
-            <text x={margemEsq - 4} y={yDe(m) + 3} textAnchor="end" fontSize="11" fill="#555">
+            <text x={margemEsq - 4} y={yDe(m) + 3} textAnchor="end" fontSize="14" fill="#555">
               {fmt(m)}
             </text>
           </g>
@@ -80,7 +80,7 @@ export function GraficoBarras({
                     <title>{`${r} · ${s.nome}: ${fmt(v)}${unidade}`}</title>
                   </rect>
                   {mostraValor && v > 0 && (
-                    <text x={x + (barra - 0.5) / 2} y={y - 4} textAnchor="middle" fontSize="11" fontWeight="600" fill={cor}>
+                    <text x={x + (barra - 0.5) / 2} y={y - 4} textAnchor="middle" fontSize="14" fontWeight="600" fill={cor}>
                       {fmt(v)}
                     </text>
                   )}
@@ -88,7 +88,7 @@ export function GraficoBarras({
               );
             })}
             {(rotulos.length <= 10 || i % (rotulos.length > 20 ? 5 : 2) === 0 || i === rotulos.length - 1) && (
-              <text x={margemEsq + i * grupo + grupo / 2} y={altura - 6} textAnchor="middle" fontSize="11" fontWeight={destaque === i ? 700 : 400} fill={destaque === undefined || destaque === i ? '#555' : '#aaa'}>
+              <text x={margemEsq + i * grupo + grupo / 2} y={altura - 6} textAnchor="middle" fontSize="14" fontWeight={destaque === i ? 700 : 400} fill={destaque === undefined || destaque === i ? '#555' : '#aaa'}>
                 {r}
               </text>
             )}

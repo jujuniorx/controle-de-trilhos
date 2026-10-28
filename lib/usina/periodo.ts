@@ -83,7 +83,7 @@ export function rotuloPeriodo(data: string, modo: ModoRelatorio): { titulo: stri
 
 /** Seletor semanal/diário: dois links que trocam o formato mantendo o dia e o setor. */
 export function linksModo(base: string, modoAtual: ModoRelatorio, params: Record<string, string>, comMensal = false): { modo: ModoRelatorio; rotulo: string; href: string; ativo: boolean }[] {
-  const modos: ModoRelatorio[] = comMensal ? ['semanal', 'diario', 'mensal'] : ['semanal', 'diario'];
+  const modos: ModoRelatorio[] = comMensal ? ['diario', 'semanal', 'mensal'] : ['diario', 'semanal'];
   const rotulos: Record<ModoRelatorio, string> = { semanal: 'Semanal', diario: 'Diário', mensal: 'Mensal' };
   return modos.map((modo) => {
     const qs = new URLSearchParams({ ...params, modo }).toString();

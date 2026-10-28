@@ -85,7 +85,8 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
         </header>
         <div className={largo ? 'grid items-start gap-6 p-4 lg:grid-cols-2' : 'space-y-3 p-4'}>
           <TabelaSerra serra={s.serra} colunas={mensal ? ['mes'] : colunas} />
-          {s.grafico && (
+          {/* No mensal o gráfico seria da semana e contradiria o mês: fica só a tabela. */}
+          {s.grafico && !mensal && (
             <GraficoBarras
               titulo={s.grafico.titulo}
               rotulos={rotulosDias}
