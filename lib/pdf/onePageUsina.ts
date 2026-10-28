@@ -464,14 +464,16 @@ export function gerarOnePageUsinaSvg(
     const { p, p2 } = montarPaginasUsina(d, tril, modo, colunasEscolhidas, observacoes);
     const altP = p.alturaUtil(H);
     const altP2 = p2.alturaUtil(H);
-    const total = alturaFoto + altP + altP2 + ALTURA_RODAPE;
+    // A segunda página começa logo depois da primeira (sem a margem de topo dela no meio): a primeira linha fica a 14 da última da primeira.
+    const topoP2 = alturaFoto + altP - 32;
+    const total = topoP2 + altP2 + ALTURA_RODAPE;
     const rodape = new PaginaPdf().retangulo(0, 0, L, ALTURA_RODAPE, BRANCO);
     desenharRodape(rodape, d, modo, 0);
     return (
       `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1320" height="${Math.round((total * 1320) / L)}" viewBox="0 0 ${L} ${total.toFixed(2)}">` +
       foto.conteudoSvg(alturaFoto) +
       `<g transform="translate(0 ${alturaFoto.toFixed(2)})">${p.conteudoSvg(H)}</g>` +
-      `<g transform="translate(0 ${(alturaFoto + altP).toFixed(2)})">${p2.conteudoSvg(H)}</g>` +
+      `<g transform="translate(0 ${topoP2.toFixed(2)})">${p2.conteudoSvg(H)}</g>` +
       `<g transform="translate(0 ${(total - ALTURA_RODAPE).toFixed(2)})">${rodape.conteudoSvg(ALTURA_RODAPE)}</g>` +
       '</svg>'
     );
