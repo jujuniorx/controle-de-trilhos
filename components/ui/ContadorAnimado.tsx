@@ -25,5 +25,5 @@ export function ContadorAnimado({ valor, duracaoMs = 900 }: { valor: number; dur
     return () => cancelAnimationFrame(quadro);
   }, [valor, duracaoMs]);
 
-  return <span style={{ fontVariantNumeric: 'tabular-nums' }}>{exibido}</span>;
+  return <span style={{ fontVariantNumeric: 'tabular-nums' }}>{exibido.toLocaleString('pt-BR')}</span>;
 }

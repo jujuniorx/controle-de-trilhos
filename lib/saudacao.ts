@@ -28,7 +28,7 @@ export function saudacaoCompleta(agora: Date = new Date()): string {
 const FRASES_POR_MOMENTO: Record<string, string[]> = {
   madrugada: ['Boa madrugada', 'Que madrugada produtiva'],
   manha: ['Bom dia', 'Bom dia, bora render', 'Boa manhã de trabalho'],
-  tarde: ['Boa tarde', 'Bom trabalho na tarde', 'Boa tarde, seguimos firme'],
+  tarde: ['Boa tarde', 'Boa tarde, bom trabalho', 'Boa tarde, seguimos firme'],
   noite: ['Boa noite', 'Boa noite, bom descanso'],
   segunda: ['Boa segunda', 'Bora começar a semana', 'Segunda de trilhos no lugar'],
   sexta: ['Boa sexta', 'Feliz sexta-feira', 'Chegamos na sexta'],
