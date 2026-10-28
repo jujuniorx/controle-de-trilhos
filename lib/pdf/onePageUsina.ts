@@ -137,15 +137,19 @@ export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yB
 /** Gráfico do dia (uma barra por série) com a observação do setor logo acima. Só no PDF diário. */
 function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, base: number, w: number, rotulos: string[], destaque?: number, limiteTopo?: number) {
   if (!s.grafico) return;
-  // Observação embaixo do cartão, com "Obs:" na frente, em quantas linhas for preciso; a legenda fica logo acima dela e o gráfico logo acima da legenda.
-  let linhas: string[] = [];
-  if (s.observacao) {
-    const trechos = s.observacao.includes('\n') ? s.observacao.split('\n') : [`Obs: ${s.observacao}`];
-    linhas = trechos.flatMap((t) => quebrarLinhas(t, 7, w - 16));
-  }
-  // A primeira linha fica em cima (y maior); a última mais perto da base do cartão.
-  linhas.forEach((linha, i) => p.texto(linha, x + 8, base + 6 + (linhas.length - 1 - i) * 8, 7, 'normal', CINZA));
-  const yLegenda = base + 6 + linhas.length * 8 + 6;
+  // Campo de observação: caixa com o rótulo OBSERVAÇÃO, igual às caixas de colunas, em todos os setores.
+  const texto = s.observacao?.trim() ?? '';
+  const trechos = texto ? (texto.includes('\n') ? texto.split('\n') : [texto]) : ['Sem observação registrada neste dia.'];
+  const linhas = trechos.flatMap((t) => quebrarLinhas(t, 7, w - 28));
+  const caixaBase = base + 4;
+  const textoBase = caixaBase + 5;
+  const alturaCaixa = 8 + linhas.length * 8 + 6;
+  const caixaTopo = caixaBase + alturaCaixa;
+  p.arredondado(x + 6, caixaBase, w - 12, alturaCaixa, 4, hex('#f8fafc'), LINHA);
+  p.texto('OBSERVAÇÃO', x + 12, caixaTopo - 8, 5.5, 'negrito', CINZA);
+  // A primeira linha fica em cima; o texto não tem "Obs:" na frente.
+  linhas.forEach((linha, i) => p.texto(linha, x + 12, textoBase + (linhas.length - 1 - i) * 8, 7, 'normal', texto ? TINTA : CINZA));
+  const yLegenda = caixaTopo + 8;
   let lx = x + 8;
   for (const serie of s.grafico.series) {
     p.retangulo(lx, yLegenda, 6, 6, hex(serie.cor));

@@ -1,20 +1,21 @@
-// Observação do dia de um setor, mostrada dentro do próprio cartão do setor (tela diária).
-const CHAVE_SETOR: Record<string, string> = {
+// Chave de cada setor nas observações do dia (setor sem observação própria usa esta).
+export const CHAVE_SETOR: Record<string, string> = {
   'Estaleiro de solda': 'estaleiro',
   'Geração de trilho': 'geracao',
   'Recolhimento serra': 'serra',
   'Caminhão de solda': 'caminhao',
 };
 
-export function ObservacaoDoDia({ titulo, observacoes, data }: { titulo: string; observacoes: Record<string, string>; data: string }) {
-  const chave = CHAVE_SETOR[titulo];
-  if (!chave) return null;
-  const texto = observacoes[`${data}|${chave}`]?.trim() ?? '';
+/** Campo de observação do cartão: mesmo estilo das caixas de colunas, em todos os setores. */
+export function CampoObservacao({ texto }: { texto: string }) {
+  const t = texto.trim();
   return (
-    <p className="whitespace-pre-line text-[13px] leading-snug text-slate-700">
-      <span className="font-bold text-slate-900">Obs:</span>{' '}
-      {texto || <span className="italic text-slate-400">sem observação registrada neste dia.</span>}
-    </p>
+    <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Observação</p>
+      <p className={`mt-1 whitespace-pre-line text-[13px] leading-snug ${t ? 'text-slate-700' : 'italic text-slate-400'}`}>
+        {t || 'Sem observação registrada neste dia.'}
+      </p>
+    </div>
   );
 }
 
