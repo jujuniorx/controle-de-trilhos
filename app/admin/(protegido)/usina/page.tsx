@@ -130,7 +130,8 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         {SETORES.map(([valor, rotulo]) => (
           <a key={valor} className="btn btn-ghost btn-sm" href={`#${valor}`}>{rotulo}</a>
         ))}
-        <details className="relative ml-auto">
+        <a className="btn btn-ghost btn-sm ml-auto" href={`/admin/usina/relatorio-gerencial?data=${data}`}>Relatório gerencial</a>
+        <details className="relative">
           <summary className="btn btn-secondary btn-sm cursor-pointer list-none">
             <IconeImprimir size={14} /> Imprimir
           </summary>
