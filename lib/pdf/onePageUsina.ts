@@ -323,7 +323,8 @@ function montarPaginasUsina(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 
   const setoresBase = diario
     ? d.setores.map((s) => ({
         ...s,
-        observacao: d.observacoes[`${d.data}|${chaveSetor[s.titulo] ?? ''}`] || undefined,
+        // Preserva a observação que o setor já traz (equipes da geração, W61/W62 da serra); só usa a do setor se ele não tiver.
+        observacao: s.observacao ?? (d.observacoes[`${d.data}|${chaveSetor[s.titulo] ?? ''}`] || undefined),
       }))
     : d.setores;
   // O estoque de TLS sai do cartao do estaleiro e vai para uma faixa propria, embaixo da linha de setores.
