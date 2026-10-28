@@ -302,8 +302,8 @@ export async function salvarTrilheirosSemanaAction(_: ResultadoUsina | undefined
   const semana = dataDoForm(formData.get('semana'));
   if (!semana) return { ok: false, erro: 'Semana inválida.' };
   const dias = await trilheirosDaSemana(semana);
-  // B.O., partida, local e observação: uma informação por trilheiro (vale para os dias da semana dele).
-  const porTrilheiro = {} as Record<(typeof TRILHEIROS)[number], { bo: string | null; partida: string | null; local: string | null; observacao: string | null }>;
+  // B.O., partida e local: uma informação por trilheiro (vale para os dias da semana dele). A observação é de cada dia.
+  const porTrilheiro = {} as Record<(typeof TRILHEIROS)[number], { bo: string | null; partida: string | null; local: string | null }>;
   for (const t of TRILHEIROS) {
     const bo = String(formData.get(`bo_${t}`) ?? '').trim();
     const partida = String(formData.get(`partida_${t}`) ?? '').trim();
@@ -313,7 +313,6 @@ export async function salvarTrilheirosSemanaAction(_: ResultadoUsina | undefined
       bo: bo === '' ? null : bo,
       partida: partida === '' ? null : partida,
       local: texto(formData.get(`local_${t}`), 60),
-      observacao: texto(formData.get(`obs_${t}`), 500),
     };
   }
 
@@ -339,7 +338,7 @@ export async function salvarTrilheirosSemanaAction(_: ResultadoUsina | undefined
           total,
           // A programação do dia não é mais lançada aqui: mantém o que já estava salvo.
           programacao: d.trilheiros[t].programacao,
-          observacao: info.observacao,
+          observacao: texto(formData.get(`obs_${t}_${d.data}`), 500),
         },
       });
     }

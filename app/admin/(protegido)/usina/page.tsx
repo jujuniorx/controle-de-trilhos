@@ -100,7 +100,6 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
     const data = somarDiasPagina(est.semana, i);
     return { data, rotulo: `${['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'][i]} ${br(data)}` };
   });
-  const obsSemana = Object.fromEntries(TRILHEIROS.map((t) => [t, primeiroDaSemana(t, 'observacao')]));
   const totalSemana = diasSemana.reduce((t, d) => ({ soldas: t.soldas + (d.soldas ?? 0), cortes: t.cortes + (d.cortes ?? 0) }), { soldas: 0, cortes: 0 });
   const escalaLegada = !escalaSalva && est.escala.trim() !== '';
 
@@ -438,10 +437,6 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                     <label htmlFor={`local_${t}`}>Local atual</label>
                     <input id={`local_${t}`} name={`local_${t}`} defaultValue={localSemana[t] ?? ''} className="h-11" placeholder="Ex.: EFH" />
                   </div>
-                  <div className="field">
-                    <label htmlFor={`obs_${t}`}>Observação</label>
-                    <input id={`obs_${t}`} name={`obs_${t}`} defaultValue={obsSemana[t] ?? ''} className="h-11" />
-                  </div>
                 </div>
                 <div className="tbl-wrap">
                   <table className="w-full text-sm">
@@ -450,6 +445,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                         <th className="py-2">Dia</th>
                         <th className="py-2 text-right">Total do giro</th>
                         <th className="py-2 text-right">Descarregadas</th>
+                        <th className="py-2 pl-3 text-left">Observação</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -461,6 +457,9 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                           </td>
                           <td className="py-2 text-right">
                             <input name={`desc_${t}_${d.data}`} inputMode="numeric" defaultValue={d.trilheiros[t].descarregadas ?? ''} className="h-11 w-24 text-right" aria-label={`Descarregadas ${t} ${br(d.data)}`} />
+                          </td>
+                          <td className="py-2 pl-3">
+                            <input name={`obs_${t}_${d.data}`} defaultValue={d.trilheiros[t].observacao ?? ''} className="h-11 w-full min-w-[12rem]" aria-label={`Observação ${t} ${br(d.data)}`} />
                           </td>
                         </tr>
                       ))}
