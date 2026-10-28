@@ -119,9 +119,8 @@ export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yB
       const h = (Math.max(0, v) / topo) * altura;
       if (h <= 0) return;
       const bx = x + i * gw + gw / 2 - (g.series.length * bw) / 2 + si * bw;
-      // Com dia escolhido, o resto da semana fica em cinza e só o dia escolhido tem a cor da série.
-      const cor = destaque === undefined || i === destaque ? hex(s.cor) : hex('#cbd5e1');
-      p.retangulo(bx, yBase, bw * 0.9, h, cor);
+      // Todos os dias mantêm a cor da série; o dia escolhido se destaca pelo nome em negrito.
+      p.retangulo(bx, yBase, bw * 0.9, h, hex(s.cor));
     });
   });
   p.linha(x, yBase, x + w, yBase, LINHA, 0.6);
