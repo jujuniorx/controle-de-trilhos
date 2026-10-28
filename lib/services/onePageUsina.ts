@@ -111,7 +111,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
     caminhoesDoPeriodo('semana', data),
     prisma.composicaoDia.findMany({
       where: { data: { gte: new Date(`${inicio}T00:00:00Z`), lte: new Date(`${fim}T00:00:00Z`) } },
-      select: { data: true, ativo: true, barras: true },
+      select: { data: true, ativo: true, barras: true, observacao: true },
     }),
     prisma.composicaoDia.findMany({
       where: { data: { gte: new Date(`${mes.inicio}T00:00:00Z`), lte: new Date(`${data}T00:00:00Z`) } },
@@ -120,6 +120,10 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
   ]);
 
   // Serra (modelo do informativo): barras de W61 e W62 × 10,5 m, estimativa em metros.
+  // Observação de cada composição no dia (W61 e W62), digitada no formulário da serra.
+  const observacoesSerra = serraSem
+    .filter((r) => iso(r.data) === data && r.observacao && r.observacao.trim())
+    .map((r) => `${r.ativo}: ${r.observacao!.trim()}`);
   const barrasDia = (ativo: string) => serraSem.filter((r) => r.ativo === ativo && iso(r.data) === data).reduce((t, r) => t + (r.barras ?? 0), 0);
   const barrasSemana = (ativo: string) => serraSem.filter((r) => r.ativo === ativo).reduce((t, r) => t + (r.barras ?? 0), 0);
   const barrasMes = (ativo: string) => serraMesRows.filter((r) => r.ativo === ativo).reduce((t, r) => t + (r.barras ?? 0), 0);
@@ -243,6 +247,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       {
         titulo: 'Recolhimento serra',
         cor: CORES_SETOR.serra,
+        observacao: observacoesSerra.length ? observacoesSerra.join('\n') : undefined,
         serra: {
           linhas: COMPOSICOES.map((a, i) => ({
             ativo: a,
