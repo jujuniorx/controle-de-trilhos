@@ -9,7 +9,7 @@ import { ErroRegraNegocio } from '@/lib/services/errors';
 export async function excluirMovimentacaoAction(id: string, motivo: string): Promise<{ ok: boolean; erro?: string }> {
   const sessao = await requireAdmin();
   const motivoLimpo = (motivo ?? '').trim();
-  if (motivoLimpo.length < 3) return { ok: false, erro: 'Escreva o motivo da exclusão (pelo menos 3 letras).' };
+  if (motivoLimpo.length < 10) return { ok: false, erro: 'Escreva o motivo da exclusão com pelo menos 10 letras.' };
   try {
     const { rotulo, tipo } = await excluirMovimentacao(id, sessao);
     await registrarAuditoria(

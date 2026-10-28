@@ -24,7 +24,7 @@ export function ExcluirPatioBotao({ nome, oQue, alvoId, aoConfirmar }: ExcluirPa
   const [pendente, iniciar] = useTransition();
 
   function confirmar() {
-    if (motivo.trim().length < 3) {
+    if (motivo.trim().length < 10) {
       setErro('Escreva o motivo da exclusão.');
       return;
     }

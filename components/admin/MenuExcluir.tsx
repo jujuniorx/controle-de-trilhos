@@ -129,7 +129,7 @@ export function MenuExcluir() {
               <button type="button" className="btn btn-secondary" onClick={() => setConfirmar(null)} disabled={pendente}>
                 Cancelar
               </button>
-              <button type="button" className="btn btn-danger" onClick={excluir} disabled={pendente || motivo.trim().length < 3}>
+              <button type="button" className="btn btn-danger" onClick={excluir} disabled={pendente || motivo.trim().length < 10}>
                 {pendente ? 'Excluindo…' : 'Excluir'}
               </button>
             </div>

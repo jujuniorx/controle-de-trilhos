@@ -43,7 +43,7 @@ export function BotaoExcluirMovimentacao({ id, rotulo }: { id: string; rotulo: s
         <button
           type="button"
           className="btn btn-sm text-bad"
-          disabled={pendente || motivo.trim().length < 3}
+          disabled={pendente || motivo.trim().length < 10}
           onClick={() =>
             iniciar(async () => {
               setErro('');
