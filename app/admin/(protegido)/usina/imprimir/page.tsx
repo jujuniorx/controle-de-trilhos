@@ -1,3 +1,4 @@
+import { ObservacoesSetorRelatorio, CHAVE_SETOR } from '@/components/usina/ObservacoesSetorRelatorio';
 import { montarDadosRelatorio, montarTrilheirosRelatorio, CORES_SETOR } from '@/lib/services/onePageUsina';
 import { Setor, Resumo, TrilheirosBloco, EquipesGeracao } from '@/components/usina/RelatorioSetores';
 import { ehIsoValido, modoValido, linksModo, rotuloPeriodo, colunasValidas, TODAS_COLUNAS, type Coluna } from '@/lib/usina/periodo';
@@ -119,6 +120,7 @@ export default async function ImprimirUsina({
               {setores.map((s) => (
                 <div key={s.titulo}>
                   <Setor s={s} rotulosDias={dados.rotulosDias} largo colunas={colunas} />
+                  {CHAVE_SETOR[s.titulo] !== 'caminhao' && <ObservacoesSetorRelatorio titulo={s.titulo} observacoes={dados.observacoes} />}
                 </div>
               ))}
             </div>
@@ -128,6 +130,7 @@ export default async function ImprimirUsina({
             {setores.map((s) => (
               <div key={s.titulo}>
                 <Setor s={s} rotulosDias={dados.rotulosDias} largo colunas={colunas} />
+                {CHAVE_SETOR[s.titulo] !== 'caminhao' && <ObservacoesSetorRelatorio titulo={s.titulo} observacoes={dados.observacoes} />}
               </div>
             ))}
           </div>
