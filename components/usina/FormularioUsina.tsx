@@ -17,7 +17,19 @@ export function FormularioUsina({
   children: ReactNode;
   rotuloBotao?: string;
 }) {
-  const [estado, acaoForm, pendente] = useActionState(acao, undefined);
+  // Se o sistema foi atualizado com a tela aberta, a ação antiga não existe mais no servidor.
+  // Sem este tratamento, o erro cai na tela "Não deu para carregar" e o que foi digitado se perde.
+  const acaoSegura = async (estadoAnterior: ResultadoFormUsina | undefined, formData: FormData): Promise<ResultadoFormUsina> => {
+    try {
+      return await acao(estadoAnterior, formData);
+    } catch {
+      return {
+        ok: false,
+        erro: 'Não foi salvo: esta tela está desatualizada. Recarregue a página (F5) e lance de novo.',
+      };
+    }
+  };
+  const [estado, acaoForm, pendente] = useActionState(acaoSegura, undefined);
   return (
     <form action={acaoForm} className="space-y-3">
       {children}
