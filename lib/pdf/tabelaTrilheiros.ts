@@ -50,9 +50,13 @@ export function desenharTrilheiros(p: PaginaPdf, t: TrilheirosRelatorio, x: numb
     p.texto('Nenhum trilheiro com lançamento neste período.', x + col.trilheiro, primeiraBase, 9, 'normal', CINZA);
     return;
   }
+  // A altura de cada linha cresce com o tamanho da observação: nenhum texto é cortado.
+  const espacoObs = 8.5;
+  let y = primeiraBase;
   t.equipes.forEach((e, i) => {
-    const y = primeiraBase - i * altLinha;
-    if (i % 2 === 1) p.retangulo(x + 4, y - (compacto ? 10 : 14), w - 8, altLinha - 2, ZEBRA);
+    const linhasObs = e.observacao ? quebrarLinhas(e.observacao, 7.5, w - col.obs - 16) : [];
+    const alt = Math.max(altLinha, linhasObs.length * espacoObs + 14);
+    if (i % 2 === 1) p.retangulo(x + 4, y - (compacto ? 10 : 14), w - 8, alt - 2, ZEBRA);
     p.texto(e.trilheiro, x + col.trilheiro, y, 10, 'negrito', TINTA);
     centro(brDaIso(e.bo), cen.bo, y, 9, 'normal', TINTA);
     centro(e.giroDias == null ? '—' : String(e.giroDias), cen.diasBo, y, 10, 'negrito', TINTA);
@@ -74,10 +78,8 @@ export function desenharTrilheiros(p: PaginaPdf, t: TrilheirosRelatorio, x: numb
       centro('—', 501, y, 9, 'normal', CINZA);
     }
     centro(`${e.descarregadas} / ${e.total}`, cen.barras, y, 10, 'negrito', COR_TRILHEIROS);
-    const linhas = e.observacao ? quebrarLinhas(e.observacao, 7.5, w - col.obs - 16) : [];
-    const maxLinhas = 3;
-    const espaco = 8.5;
-    linhas.slice(0, maxLinhas).forEach((linha, k) => p.texto(linha, x + col.obs, y + 9 - k * espaco, 7.5, 'normal', CINZA));
+    linhasObs.forEach((linha, k) => p.texto(linha, x + col.obs, y + 9 - k * espacoObs, 7.5, 'normal', CINZA));
+    y -= alt;
   });
 }
 
