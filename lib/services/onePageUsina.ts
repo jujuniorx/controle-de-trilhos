@@ -5,7 +5,6 @@ import {
   TRILHEIROS,
   BARRAS_POR_TRILHEIRO,
   COMPOSICOES,
-  LIDERES,
   rotuloComposicao,
   ROTULO_TLS,
 } from '@/lib/services/usina';
@@ -88,11 +87,10 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
     where: { data: new Date(`${data}T00:00:00Z`) },
     select: { lider: true, observacao: true },
   });
-  // Na foto, as equipes aparecem como Equipe 1, 2 e 3, na ordem do cadastro (Alécio, Bruno, Reginaldo).
-  const observacoesGeracao = LIDERES.map((l, i) => {
-    const e = equipesDia.find((x) => x.lider === l.valor);
-    return e?.observacao && e.observacao.trim() ? `Equipe ${i + 1}: ${e.observacao.trim()}` : null;
-  }).filter((x): x is string => x !== null);
+  const rotuloEquipe: Record<string, string> = { ALECIO: 'Alécio', BRUNO: 'Bruno', REGINALDO: 'Reginaldo' };
+  const observacoesGeracao = equipesDia
+    .filter((e) => e.observacao && e.observacao.trim())
+    .map((e) => `${rotuloEquipe[e.lider] ?? e.lider}: ${e.observacao!.trim()}`);
   const { inicio, fim } = intervaloDoPeriodo('semana', data);
   const mes = intervaloDoPeriodo('mes', data);
   const dias = serie.rotulos.length;
