@@ -9,7 +9,6 @@ export const NAV_ITEMS = [
   { href: '/admin/relatorios', label: 'Relatórios' },
   { href: '/admin/informativo', label: 'Informativo' },
   { href: '/admin/portaria', label: 'Portaria' },
-  { href: '/admin/serra', label: 'Serra' },
   { href: '/admin/usina', label: 'Usina' },
 ] as const;
 
@@ -42,11 +41,6 @@ const ICONES_NAV: Record<string, ReactNode> = {
   '/admin/portaria': (
     <svg width="18" height="18" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
       <path d="M3 7h11v9H3zM14 10h4l3 3v3h-7M7 18.5a1.5 1.5 0 1 0 0-.01M17 18.5a1.5 1.5 0 1 0 0-.01" />
-    </svg>
-  ),
-  '/admin/serra': (
-    <svg width="18" height="18" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
-      <path d="M2 20l7-11 4 6 3-4 6 9zM9 9l1.5-2 1.5 2" />
     </svg>
   ),
   '/admin/usina': (

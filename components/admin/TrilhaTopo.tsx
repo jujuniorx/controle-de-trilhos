@@ -15,7 +15,6 @@ const SECOES: Record<string, string> = {
   '/admin/lixeira': 'Lixeira',
   '/admin/pilhas': 'Pilhas do pátio',
   '/admin/auditoria': 'Auditoria',
-  '/admin/serra': 'Serra',
   '/admin/trocar-senha': 'Trocar minha senha',
 };
 
