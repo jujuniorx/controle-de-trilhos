@@ -12,6 +12,8 @@ import { DescarregadoBotao } from '@/components/patio/DescarregadoBotao';
 import { CarregadoBotao } from '@/components/patio/CarregadoBotao';
 import { normalizarLocal } from '@/lib/domain/local';
 import { chavePublicaPush } from '@/lib/services/push';
+import { ExcluirPatioBotao } from '@/components/patio/ExcluirPatioBotao';
+import { excluirChegadaPatioAction } from './recebimentos/actions';
 import { ICONE_CARGA, ICONE_RECEBER, ICONE_SAIDAS } from '@/components/patio/icones';
 
 const atraso = (n: number) => ({ '--i': n }) as CSSProperties;
@@ -154,6 +156,9 @@ export default async function PatioHomePage() {
                 <span className="patio-card-seta">{SETA_CARD}</span>
               </Link>
               <CarregadoBotao id={c.id} />
+              <div className="flex justify-end">
+                <ExcluirPatioBotao nome={c.placaCarreta || c.placaCavalo || 'caminhão'} oQue="esta chegada" alvoId={c.id} aoConfirmar={excluirChegadaPatioAction} />
+              </div>
             </div>
           ))}
         </section>
@@ -179,6 +184,9 @@ export default async function PatioHomePage() {
                 <span className="patio-card-seta">{SETA_CARD}</span>
               </Link>
               {!c.descarregadaEm && <DescarregadoBotao id={c.id} cargaDescarga={c.cargaDescarga} />}
+              <div className="flex justify-end">
+                <ExcluirPatioBotao nome={c.placaCarreta || c.placaCavalo || 'caminhão'} oQue="esta chegada" alvoId={c.id} aoConfirmar={excluirChegadaPatioAction} />
+              </div>
             </div>
           ))}
         </section>
