@@ -60,8 +60,6 @@ function Donut({ titulo, itens, vazio }: { titulo: string; itens: ItemRanking[];
                   </circle>
                 );
               })}
-              {/* Luz que dá a volta no anel o tempo todo (decorativa: não recebe toque nem leitor de tela). */}
-              <circle className="donut-orbita" cx="21" cy="21" r="15.9155" fill="none" strokeWidth="5.5" strokeDasharray="5 95" aria-hidden="true" />
             </g>
             <text x="21" y="20.5" textAnchor="middle" className="donut-total">{fmtPeso(total)}</text>
             <text x="21" y="25.5" textAnchor="middle" className="donut-unidade">toneladas</text>
