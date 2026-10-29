@@ -5,6 +5,7 @@ import {
   TRILHEIROS,
   BARRAS_POR_TRILHEIRO,
   COMPOSICOES,
+  LIDERES,
   rotuloComposicao,
   ROTULO_TLS,
 } from '@/lib/services/usina';
@@ -85,12 +86,13 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
   // Observação de cada equipe de geração no dia (Alécio, Bruno, Reginaldo).
   const equipesDia = await prisma.geracaoDia.findMany({
     where: { data: new Date(`${data}T00:00:00Z`) },
-    select: { lider: true, observacao: true },
+    select: { lider: true, observacao: true, local: true },
   });
   const rotuloEquipe: Record<string, string> = { ALECIO: 'Alécio', BRUNO: 'Bruno', REGINALDO: 'Reginaldo' };
-  const observacoesGeracao = equipesDia
-    .filter((e) => e.observacao && e.observacao.trim())
-    .map((e) => `${rotuloEquipe[e.lider] ?? e.lider}: ${e.observacao!.trim()}`);
+  // Ordem fixa do cadastro (Alécio, Bruno, Reginaldo) e o local da equipe no dia, entre parênteses.
+  const observacoesGeracao = LIDERES.map((l) => equipesDia.find((e) => e.lider === l.valor))
+    .filter((e): e is NonNullable<typeof e> => !!e && !!e.observacao && e.observacao.trim() !== '')
+    .map((e) => `${rotuloEquipe[e.lider] ?? e.lider}${e.local ? ` (${e.local})` : ''}: ${e.observacao!.trim()}`);
   const { inicio, fim } = intervaloDoPeriodo('semana', data);
   const mes = intervaloDoPeriodo('mes', data);
   const dias = serie.rotulos.length;

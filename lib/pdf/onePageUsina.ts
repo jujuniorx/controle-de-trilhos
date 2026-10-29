@@ -357,7 +357,7 @@ function montarPaginasUsina(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 
   const chaveSetor: Record<string, string> = { 'Estaleiro de solda': 'estaleiro', 'Geração de trilho': 'geracao', 'Recolhimento serra': 'serra' };
   // Na foto, as equipes da geração aparecem como Equipe 1, 2 e 3 (o sistema continua mostrando os nomes).
   const EQUIPE_NA_FOTO: Record<string, string> = { Alécio: 'Equipe 1', Bruno: 'Equipe 2', Reginaldo: 'Equipe 3' };
-  const equipesNaFoto = (t: string) => t.replace(/^(Alécio|Bruno|Reginaldo):/gm, (_, nome: string) => `${EQUIPE_NA_FOTO[nome]}:`);
+  const equipesNaFoto = (t: string) => t.replace(/^(Alécio|Bruno|Reginaldo)( \([^)]*\))?:/gm, (_, nome: string, local: string | undefined) => `${EQUIPE_NA_FOTO[nome]}${local ?? ''}:`);
   const setoresBase = diario
     ? d.setores.map((s) => {
         // Preserva a observação que o setor já traz (equipes da geração, W61/W62 da serra); só usa a do setor se ele não tiver.
