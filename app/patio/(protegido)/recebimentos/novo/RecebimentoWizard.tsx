@@ -161,7 +161,8 @@ const MSG_PELO_MENOS_UMA_PLACA =
 function validarDados(d: Dados) {
   const erros: Partial<Record<keyof Dados, string>> = {};
   if (!d.data) erros.data = 'Informe a data da descarga.';
-  if (d.numeroDocumento && !NF_REGEX.test(d.numeroDocumento)) erros.numeroDocumento = MSG_NF_INVALIDA;
+  if (!d.numeroDocumento.trim()) erros.numeroDocumento = 'Informe a nota fiscal.';
+  else if (!NF_REGEX.test(d.numeroDocumento)) erros.numeroDocumento = MSG_NF_INVALIDA;
   if (!d.origem.trim()) erros.origem = 'Informe a origem do material.';
   // Nenhuma placa é individualmente obrigatória — a regra é "pelo menos uma das três".
   if (!d.placaCavalo && !d.placaCarreta && !d.placaCarreta2) {
@@ -571,7 +572,7 @@ export function RecebimentoWizard({
             {errosDados.data && <p className="text-sm text-bad">{errosDados.data}</p>}
           </div>
           <div className="field">
-            <label htmlFor="f-nf">Nota fiscal (se já souber)</label>
+            <label htmlFor="f-nf">Nota fiscal *</label>
             <input
               id="f-nf"
               aria-invalid={Boolean(errosDados.numeroDocumento)}

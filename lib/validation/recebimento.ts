@@ -61,7 +61,8 @@ const MSG_PELO_MENOS_UMA_PLACA =
 export const dadosCarregamentoSchema = z
   .object({
     data: z.string().min(1, 'Informe a data do recebimento.'),
-    numeroDocumento: nfOpcional,
+    // Recebimento: a NF é obrigatória (o Pátio tem a nota em mãos). Remetido continua opcional.
+    numeroDocumento: z.string().trim().min(1, 'Informe a nota fiscal.').regex(NF_REGEX, MSG_NF_INVALIDA),
     origem: z.string().trim().min(1, 'Informe a origem do material.').transform((v) => v.replace(/\s+/g, ' ').toLocaleUpperCase('pt-BR')),
     // Nenhuma placa é individualmente obrigatória — a regra é "pelo menos uma
     // das três" (refine abaixo). Um cavalo pode puxar até 2 carretas; a 2ª é opcional.
