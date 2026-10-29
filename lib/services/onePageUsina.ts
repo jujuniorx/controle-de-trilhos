@@ -312,7 +312,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
               porDia: ((serie.caminhao as Record<string, number[]>)[c.caminhao] ?? []).map(String),
             },
             {
-              rotulo: `${nome} · Corte (und)`,
+              rotulo: `${nome} · Solda reprovada (und)`,
               dia: `${d?.periodo.perda ?? 0}`,
               semana: `${c.periodo.perda}`,
               mes: `${c.mes.perda}`,

@@ -319,7 +319,7 @@ export function CaminhoesBloco({ s, modo, colunas = TODAS }: { s: SetorRelatorio
             </div>
             <div className="mt-2 grid grid-cols-2 gap-2">
               {bloco('Solda (UND)', c.solda)}
-              {bloco('Corte (UND)', c.corte)}
+              {bloco('Solda reprovada (UND)', c.corte)}
             </div>
             {diario && c.observacao && <p className="mt-2 text-[12px] leading-snug text-slate-600">{c.observacao}</p>}
           </div>

@@ -350,7 +350,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                       <tr className="text-left text-ink-muted">
                         <th className="py-2">Dia</th>
                         <th className="py-2 text-right">Produção</th>
-                        <th className="py-2 text-right">Perda</th>
+                        <th className="py-2 text-right">Solda reprovada</th>
                         <th className="py-2">Local</th>
                         <th className="py-2">Início (macro 1)</th>
                         <th className="py-2">Término (macro 9)</th>

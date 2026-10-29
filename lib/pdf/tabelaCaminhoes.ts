@@ -77,7 +77,7 @@ export function desenharCaminhoes(
     p.texto(texto, meio - larguraTexto(texto, 7, 'negrito') / 2, yGrupo, 7, 'negrito', TINTA);
   };
   centroGrupo('SOLDA (UND)', 'solda');
-  centroGrupo('CORTE (UND)', 'corte');
+  centroGrupo('SOLDA REPROVADA (UND)', 'corte');
   p.texto('CAMINHÃO', x + 10, yCabecalho, 6.5, 'negrito', CINZA);
   ordem.forEach((n) => centro(NOME[n.split('-')[1] as Coluna], posicao(n), yCabecalho, 6.5, 'negrito', CINZA));
   // LOCAL centralizado na coluna (entre xLocal e xObs).
