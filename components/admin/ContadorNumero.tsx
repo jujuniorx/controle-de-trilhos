@@ -1,20 +1,14 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
+import { fmtToneladas } from '@/lib/format';
 
 /**
- * Número que conta do valor anterior até o novo (do zero na primeira vez).
+ * Toneladas que contam do valor anterior até o novo (do zero na primeira vez).
+ * A formatação é feita aqui dentro: função não pode vir do servidor como prop.
  * Usa requestAnimationFrame e respeita "reduzir movimento": nesse caso vai direto ao valor.
  */
-export function ContadorNumero({
-  valor,
-  formatar,
-  duracao = 900,
-}: {
-  valor: number;
-  formatar: (n: number) => string;
-  duracao?: number;
-}) {
+export function ContadorNumero({ valor, duracao = 900 }: { valor: number; duracao?: number }) {
   const [atual, setAtual] = useState(valor);
   const anterior = useRef(0);
 
@@ -39,5 +33,5 @@ export function ContadorNumero({
     return () => cancelAnimationFrame(frame);
   }, [valor, duracao]);
 
-  return <>{formatar(atual)}</>;
+  return <>{fmtToneladas(atual)}</>;
 }

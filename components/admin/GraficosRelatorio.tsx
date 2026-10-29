@@ -63,7 +63,7 @@ function Donut({ titulo, itens, vazio }: { titulo: string; itens: ItemRanking[];
               })}
             </g>
             <text x="21" y="20.5" textAnchor="middle" className="donut-total">
-              <ContadorNumero valor={total} formatar={fmtPeso} />
+              <ContadorNumero valor={total} />
             </text>
             <text x="21" y="25.5" textAnchor="middle" className="donut-unidade">toneladas</text>
           </svg>
