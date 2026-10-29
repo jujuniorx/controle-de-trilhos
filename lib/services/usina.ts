@@ -330,6 +330,22 @@ export async function salvarComposicao(data: string, ativo: (typeof COMPOSICOES)
   });
 }
 
+/** Grava várias composições (dia x cidade) numa única transação: uma ida ao banco, como nos trilheiros. */
+export async function salvarComposicoesDias(
+  lista: { data: string; ativo: (typeof COMPOSICOES)[number]; barras: number | null; jacares: number | null; observacao: string | null }[],
+) {
+  if (lista.length === 0) return;
+  await prisma.$transaction(
+    lista.map(({ data, ativo, barras, jacares, observacao }) =>
+      prisma.composicaoDia.upsert({
+        where: { data_ativo: { data: dataBanco(data), ativo } },
+        update: { barras, jacares, observacao },
+        create: { data: dataBanco(data), ativo, barras, jacares, observacao },
+      }),
+    ),
+  );
+}
+
 // ─── Caminhão de solda (CW01 e CW02; CW03 entra depois) ───────────────────────
 export const CAMINHOES_ATIVOS = ['CW01', 'CW02'] as const;
 

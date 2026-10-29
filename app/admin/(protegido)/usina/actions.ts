@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { salvarEstaleiroDia, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, geracaoDaSemana, salvarGeracaoDia, salvarEstoqueTlsMalhas, salvarBarrasCurtasMalhas, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, MALHAS_TLS, type TipoTlsValor, type MalhaTlsValor } from '@/lib/services/usina';
 import { ITENS_ESCALA, escalaVazia, gravarEscala, statusValido, cfgDeObjeto } from '@/lib/usina/escala';
-import { salvarComposicao, salvarCaminhao, salvarGiro, trilheirosDaSemana, salvarTrilheirosDias, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
+import { salvarComposicao, salvarComposicoesDias, salvarCaminhao, salvarGiro, trilheirosDaSemana, salvarTrilheirosDias, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
 import { ehIsoValido } from '@/lib/usina/periodo';
 import { salvarObservacaoSetor } from '@/lib/services/observacaoSetor';
@@ -271,15 +271,18 @@ export async function salvarSerraSemanaAction(_: ResultadoUsina | undefined, for
   const semana = dataDoForm(formData.get('semana'));
   if (!semana) return { ok: false, erro: 'Semana inválida.' };
   const dias = await composicoesDaSemana(semana);
+  const lista: { data: string; ativo: (typeof COMPOSICOES)[number]; barras: number | null; jacares: number | null; observacao: string | null }[] = [];
   for (const d of dias) {
     for (const ativo of COMPOSICOES) {
       const barras = inteiro(formData.get(`barras_${ativo}_${d.data}`));
       const jacares = inteiro(formData.get(`jacares_${ativo}_${d.data}`));
       if (barras === 'invalido' || jacares === 'invalido') return { ok: false, erro: 'Use só números inteiros na serra.' };
       const observacao = texto(formData.get(`obs_${ativo}_${d.data}`), 500);
-      await salvarComposicao(d.data, ativo, barras, jacares, observacao);
+      lista.push({ data: d.data, ativo, barras, jacares, observacao });
     }
   }
+  // Tudo numa transação só: gravar dia a dia estourava o tempo do servidor quando o banco estava lento.
+  await salvarComposicoesDias(lista);
   await salvarObservacoesDoSetor(formData, semana, 'serra');
   atualizar();
   return { ok: true };
