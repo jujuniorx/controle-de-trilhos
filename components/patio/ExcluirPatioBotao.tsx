@@ -39,7 +39,7 @@ export function ExcluirPatioBotao({ nome, oQue, alvoId, aoConfirmar }: ExcluirPa
   if (!aberto) {
     return (
       <button type="button" className="btn btn-ghost btn-sm text-bad" onClick={() => setAberto(true)}>
-        Excluir (pede motivo)
+        Excluir
       </button>
     );
   }
