@@ -14,6 +14,15 @@ function hojeSP(): string {
 
 const ANIMACAO = `
   .inf-barra { transform-box: fill-box; transform-origin: 50% 100%; animation: inf-cresce 0.9s cubic-bezier(.2,.8,.2,1) both; }
+  /* Depois de crescer, as barras ficam numa onda de brilho (o atraso de cada uma faz a onda andar)
+     e um radar varre o gráfico. */
+  @media (prefers-reduced-motion: no-preference) {
+    .inf-barra { animation: inf-cresce 0.9s cubic-bezier(.2,.8,.2,1) both, inf-onda 3.2s ease-in-out infinite; }
+    .inf-radar { animation: inf-radar 6.5s cubic-bezier(.45,.05,.55,.95) 1.6s infinite both; }
+  }
+  .inf-radar { opacity: 0; pointer-events: none; }
+  @keyframes inf-onda { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.28) saturate(1.15); } }
+  @keyframes inf-radar { 0% { transform: translateX(0); opacity: 0; } 12%, 80% { opacity: 1; } 100% { transform: translateX(var(--inf-dist)); opacity: 0; } }
   .inf-valor { opacity: 0; animation: inf-surge 0.5s ease forwards; }
   .inf-grade { transform-box: fill-box; transform-origin: 0% 50%; animation: inf-desliza 0.8s ease both; }
   .inf-eixo { opacity: 0; animation: inf-surge 0.5s ease forwards; }
@@ -32,6 +41,7 @@ const ANIMACAO = `
     body { background: #ffffff !important; color: #111827 !important; }
     .card { box-shadow: none !important; border: 1px solid #d1d5db; }
     .inf-barra, .inf-valor, .inf-grade, .inf-eixo, .inf-legenda, .inf-cartao { animation: none !important; opacity: 1 !important; transform: none !important; }
+    .inf-radar { display: none; }
   }
   /* Celular: gráfico com rolagem lateral (texto legível), cartões e entrada animados. PC não muda. */
   @media (max-width: 767px) {
@@ -241,6 +251,14 @@ function GraficoBarras({ W, H, mobile, indices, series, max, passo, eixoRotulo, 
   const fonteMes = mobile ? 12 : 11;
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={`${rotulo} por mês, em ${eixoRotulo}`}>
+      <defs>
+        <linearGradient id={`inf-radar-${mobile ? 'm' : 'p'}`} x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stopColor="#60a5fa" stopOpacity="0" />
+          <stop offset="0.75" stopColor="#60a5fa" stopOpacity="0.12" />
+          <stop offset="0.97" stopColor="#93c5fd" stopOpacity="0.45" />
+          <stop offset="1" stopColor="#93c5fd" stopOpacity="0" />
+        </linearGradient>
+      </defs>
       {Array.from({ length: Math.floor(max / passo) + 1 }, (_, k) => k * passo).map((v, k) => (
         <g key={v}>
           <line className="inf-grade" style={{ animationDelay: `${k * 90}ms` }} x1={x0} x2={W - 8} y1={y(v)} y2={y(v)} stroke="currentColor" strokeOpacity={v === 0 ? 0.6 : 0.12} />
@@ -248,6 +266,16 @@ function GraficoBarras({ W, H, mobile, indices, series, max, passo, eixoRotulo, 
         </g>
       ))}
       <text x={4} y={topoPlot - 10} fontSize={fonteEixo} fill="currentColor" fillOpacity="0.7">{eixoRotulo}</text>
+      <rect
+        className="inf-radar"
+        aria-hidden="true"
+        x={x0 - plotW * 0.18}
+        y={topoPlot}
+        width={plotW * 0.18}
+        height={ph}
+        fill={`url(#inf-radar-${mobile ? 'm' : 'p'})`}
+        style={{ ['--inf-dist' as string]: `${plotW * 1.18}px` }}
+      />
       {indices.map((mi, k) => {
         const mes = MESES[mi];
         const gx = x0 + k * gw;
