@@ -1,16 +1,15 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState } from 'react';
 import Link from 'next/link';
 import { TelaEntrada } from '@/components/ui/TelaEntrada';
-import { IconeOlho } from '@/components/icones/Icones';
+import { CampoSenha } from '@/components/ui/CampoSenha';
 import { loginPortariaAction, type EstadoLoginPortaria } from './actions';
 
 const ESTADO_INICIAL: EstadoLoginPortaria = {};
 
 export default function LoginPortariaPage() {
   const [estado, formAction, enviando] = useActionState(loginPortariaAction, ESTADO_INICIAL);
-  const [mostrarSenha, setMostrarSenha] = useState(false);
   return (
     <TelaEntrada area="area-admin">
       <div className="portaria-tela">
@@ -23,19 +22,7 @@ export default function LoginPortariaPage() {
           </div>
           <div className="field">
             <label htmlFor="senha">Senha</label>
-            <div className="flex gap-2">
-              <input id="senha" name="senha" type={mostrarSenha ? 'text' : 'password'} required className="h-12 min-w-0 flex-1" autoComplete="current-password" />
-              <button
-                type="button"
-                className="btn btn-ghost h-12 w-12 flex-none px-0"
-                onClick={() => setMostrarSenha((m) => !m)}
-                aria-pressed={mostrarSenha}
-                aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
-                title={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
-              >
-                <IconeOlho size={22} ocultar={mostrarSenha} />
-              </button>
-            </div>
+            <CampoSenha id="senha" name="senha" required autoComplete="current-password" className="h-12" />
           </div>
           <button type="submit" disabled={enviando} className="btn btn-primary h-12 w-full">
             {enviando ? 'Entrando...' : 'Entrar'}

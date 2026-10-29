@@ -3,6 +3,7 @@
 import { useActionState } from 'react';
 import Link from 'next/link';
 import { TelaEntrada } from '@/components/ui/TelaEntrada';
+import { CampoSenha } from '@/components/ui/CampoSenha';
 import { loginAction, type EstadoLogin } from './actions';
 
 const ESTADO_INICIAL: EstadoLogin = {};
@@ -23,7 +24,7 @@ export default function LoginPage() {
 
         <div className="field">
           <label htmlFor="senha">Senha</label>
-          <input id="senha" name="senha" type="password" required className="h-12" />
+          <CampoSenha id="senha" name="senha" required autoComplete="current-password" />
         </div>
 
         <button type="submit" disabled={enviando} className="btn btn-primary h-12 w-full">

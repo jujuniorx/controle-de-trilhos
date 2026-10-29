@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
+import { CampoSenha } from '@/components/ui/CampoSenha';
 import Link from 'next/link';
 import { TelaEntrada } from '@/components/ui/TelaEntrada';
 import { useOnlineStatus } from '@/lib/hooks/useOnlineStatus';
@@ -27,16 +28,15 @@ export default function AcessoPatioPage() {
       <form action={formAction} className="mt-4 space-y-4">
         <div className="field">
           <label htmlFor="pin">Código de acesso</label>
-          <input
+          {/* 18 px: abaixo de 16 px o iPhone dá zoom e não volta sozinho. */}
+          <CampoSenha
             id="pin"
             name="pin"
-            type="password"
             inputMode="numeric"
             autoComplete="one-time-code"
             maxLength={12}
             required
             autoFocus
-            /* 18 px: abaixo de 16 px o iPhone dá zoom e não volta sozinho. */
             className="h-14 text-center tracking-[.4em]"
             style={{ fontSize: '18px' }}
           />

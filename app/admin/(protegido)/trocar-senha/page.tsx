@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
+import { CampoSenha } from '@/components/ui/CampoSenha';
 import Link from 'next/link';
 import { trocarSenhaAction, type EstadoTrocarSenha } from './actions';
 
@@ -24,18 +25,18 @@ export default function TrocarSenhaPage() {
         <form action={formAction} className="mt-4 space-y-4">
           <div className="field">
             <label htmlFor="senhaAtual">Senha atual *</label>
-            <input id="senhaAtual" name="senhaAtual" type="password" required className="h-12" />
+            <CampoSenha id="senhaAtual" name="senhaAtual" required autoComplete="current-password" />
           </div>
 
           <div className="field">
             <label htmlFor="novaSenha">Nova senha *</label>
-            <input id="novaSenha" name="novaSenha" type="password" required className="h-12" />
+            <CampoSenha id="novaSenha" name="novaSenha" required autoComplete="new-password" />
             <p className="hint">Mínimo 8 caracteres, com ao menos uma letra e um número.</p>
           </div>
 
           <div className="field">
             <label htmlFor="confirmacao">Confirmar nova senha *</label>
-            <input id="confirmacao" name="confirmacao" type="password" required className="h-12" />
+            <CampoSenha id="confirmacao" name="confirmacao" required autoComplete="new-password" />
           </div>
 
           <button type="submit" disabled={enviando} className="btn btn-primary h-12 w-full">
