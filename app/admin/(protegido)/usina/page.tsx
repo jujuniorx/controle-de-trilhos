@@ -371,10 +371,10 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                             <input name={`local_${c}_${d.data}`} defaultValue={d.caminhoes[c].local ?? ''} className="h-11 w-36" aria-label={`Local ${c} ${br(d.data)}`} />
                           </td>
                           <td className="py-2">
-                            <input name={`inicio_${c}_${d.data}`} defaultValue={d.caminhoes[c].inicioMacro1 ?? ''} className="h-11 w-24" placeholder="07:00" aria-label={`Início ${c} ${br(d.data)}`} />
+                            <input inputMode="numeric" maxLength={5} name={`inicio_${c}_${d.data}`} defaultValue={d.caminhoes[c].inicioMacro1 ?? ''} className="h-11 w-24" placeholder="07:00" aria-label={`Início ${c} ${br(d.data)}`} />
                           </td>
                           <td className="py-2">
-                            <input name={`termino_${c}_${d.data}`} defaultValue={d.caminhoes[c].terminoMacro9 ?? ''} className="h-11 w-24" placeholder="17:00" aria-label={`Término ${c} ${br(d.data)}`} />
+                            <input inputMode="numeric" maxLength={5} name={`termino_${c}_${d.data}`} defaultValue={d.caminhoes[c].terminoMacro9 ?? ''} className="h-11 w-24" placeholder="17:00" aria-label={`Término ${c} ${br(d.data)}`} />
                           </td>
                           <td className="py-2">
                             <input name={`obs_${c}_${d.data}`} defaultValue={d.caminhoes[c].observacao ?? ''} className="h-11 w-64" aria-label={`Observação ${c} ${br(d.data)}`} />

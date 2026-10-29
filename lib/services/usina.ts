@@ -546,7 +546,8 @@ export async function trilheirosDaSemana(semana: string) {
             descarregadas: r?.descarregadas ?? null,
             total: base?.total ?? null,
             programacao: base?.programacao ?? null,
-            observacao: base?.observacao ?? null,
+            // A observação é só do dia: nunca herda do registro anterior (senão a semana inteira regrava o mesmo texto).
+            observacao: r?.observacao ?? null,
           },
         ];
       }),
