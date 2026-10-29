@@ -37,11 +37,11 @@ export function CarretaNaPortaria({ id, ordemDia, placaCarreta, placaCavalo, ori
             {placaCarreta || 'Sem placa da carreta'}
             {placaCavalo && <span className="text-ink-muted"> · cavalo {placaCavalo}</span>}
           </p>
-          <p className="text-sm text-ink">
-            <span className="text-ink-muted">Destino:</span> <strong>{destino || 'não informado'}</strong>
+          <p className="text-lg font-bold uppercase tracking-wide text-ink">
+            {origem ? <>Vem de {origem}</> : <span className="text-warn">Origem não informada</span>}
           </p>
-          <p className="text-sm text-ink">
-            <span className="text-ink-muted">Origem:</span> <strong>{origem || 'não informada'}</strong>
+          <p className="text-lg font-bold uppercase tracking-wide text-ink">
+            {destino ? <>Vai para {destino}</> : <span className="text-warn">Destino não informado</span>}
           </p>
           {detalhe && <p className="text-sm text-ink-muted">{detalhe}</p>}
         </div>

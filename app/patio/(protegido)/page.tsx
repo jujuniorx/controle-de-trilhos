@@ -150,8 +150,11 @@ export default async function PatioHomePage() {
             <div key={c.id} className="card space-y-3 border-2 border-warn">
               <Link href={`/patio/recebimentos/novo?chegada=${c.id}`} className="patio-card-link transition hover:brightness-110">
                 <span className="min-w-0">
-                  <span className="block font-medium text-ink">{c.ordemDia ? `Caminhão nº ${c.ordemDia} — ` : ''}{c.placaCarreta || c.placaCavalo || 'Caminhão'}{c.origem ? ` — ${c.origem}` : ''}</span>
-                  <span className="block text-sm text-ink-muted">Descarregado. Esta carreta vai carregar{c.destinoCarga ? ` para ${c.destinoCarga}` : ''}.</span>
+                  <span className="block font-medium text-ink">{c.ordemDia ? `Caminhão nº ${c.ordemDia} — ` : ''}{c.placaCarreta || c.placaCavalo || 'Caminhão'}</span>
+                  <span className="mt-1 block text-lg font-bold uppercase tracking-wide text-ink">
+                    {c.destinoCarga ? <>Vai para {normalizarLocal(c.destinoCarga)}</> : <span className="text-warn">Destino não informado</span>}
+                  </span>
+                  <span className="block text-sm text-ink-muted">Descarregado. Esta carreta vai carregar.</span>
                 </span>
                 <span className="patio-card-seta">{SETA_CARD}</span>
               </Link>
@@ -171,7 +174,10 @@ export default async function PatioHomePage() {
             <div key={c.id} className={`card space-y-3 border-2 ${c.descarregadaEm ? 'border-warn' : 'border-ok'}`}>
               <Link href={`/patio/recebimentos/novo?chegada=${c.id}`} className="patio-card-link transition hover:brightness-110">
                 <span className="min-w-0">
-                  <span className="block font-medium text-ink">{c.ordemDia ? `Caminhão nº ${c.ordemDia} — ` : ''}{c.placaCarreta || c.placaCavalo || 'Caminhão'}{c.origem ? ` — ${c.origem}` : ''}</span>
+                  <span className="block font-medium text-ink">{c.ordemDia ? `Caminhão nº ${c.ordemDia} — ` : ''}{c.placaCarreta || c.placaCavalo || 'Caminhão'}</span>
+                  <span className="mt-1 block text-lg font-bold uppercase tracking-wide text-ink">
+                    {c.origem ? <>Vem de {normalizarLocal(c.origem)}</> : <span className="text-warn">Origem não informada</span>}
+                  </span>
                   <span className="block text-sm text-ink-muted">
                     {[c.transportadora, c.materialPrevisto].filter(Boolean).join(' · ') || 'Toque para registrar a descarga'}
                   </span>
