@@ -12,6 +12,7 @@ import { DescarregadoBotao } from '@/components/patio/DescarregadoBotao';
 import { CarregadoBotao } from '@/components/patio/CarregadoBotao';
 import { normalizarLocal } from '@/lib/domain/local';
 import { chavePublicaPush } from '@/lib/services/push';
+import { SoSemInternet } from '@/components/patio/SoSemInternet';
 import { ExcluirPatioBotao } from '@/components/patio/ExcluirPatioBotao';
 import { excluirChegadaPatioAction } from './recebimentos/actions';
 import { ICONE_CARGA, ICONE_RECEBER, ICONE_SAIDAS } from '@/components/patio/icones';
@@ -100,21 +101,23 @@ export default async function PatioHomePage() {
 
       {/* Os atalhos vêm antes da lista: quem chega para lançar algo novo não precisa rolar o pátio inteiro. */}
       <div className="acoes-patio !mt-0">
-        <Link href="/patio/recebimentos/novo" className="acao-patio acao-patio-principal" style={atraso(0)}>
-          {ICONE_RECEBER(30)}
-          <strong>Nova descarga</strong>
-          <span>Caminhão chegando com trilhos para o pátio.</span>
-        </Link>
-        <Link href="/patio/remetidos" className="acao-patio" style={atraso(1)}>
-          {aguardando > 0 && (
-            <em className="acao-patio-aviso">
-              {aguardando} {aguardando === 1 ? 'aguardando' : 'aguardando chegada'}
-            </em>
-          )}
-          {ICONE_CARGA(30)}
-          <strong>Cargas</strong>
-          <span>Cadastrar saída e confirmar carregamentos.</span>
-        </Link>
+        <SoSemInternet>
+          <Link href="/patio/recebimentos/novo" className="acao-patio acao-patio-principal" style={atraso(0)}>
+            {ICONE_RECEBER(30)}
+            <strong>Nova descarga</strong>
+            <span>Caminhão chegando com trilhos para o pátio.</span>
+          </Link>
+          <Link href="/patio/remetidos" className="acao-patio" style={atraso(1)}>
+            {aguardando > 0 && (
+              <em className="acao-patio-aviso">
+                {aguardando} {aguardando === 1 ? 'aguardando' : 'aguardando chegada'}
+              </em>
+            )}
+            {ICONE_CARGA(30)}
+            <strong>Cargas</strong>
+            <span>Cadastrar saída e confirmar carregamentos.</span>
+          </Link>
+        </SoSemInternet>
         <Link href="/patio/saidas" className="acao-patio" style={atraso(2)}>
           {ICONE_SAIDAS(30)}
           <strong>Já saíram</strong>
