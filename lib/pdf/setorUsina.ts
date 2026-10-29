@@ -83,7 +83,8 @@ function desenharGradeDiaria(p: PaginaPdf, linhas: LinhaRelatorio[], cor: string
   });
 }
 
-export function gerarSetorUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio, setor: SetorPdf, modo: 'semanal' | 'diario' = 'semanal', colunas: Coluna[] = TODAS_COLUNAS): Buffer {
+/** Monta a folha de um setor (mesma arte para PDF e para imagem). */
+export function montarPaginaSetor(d: DadosRelatorio, tril: TrilheirosRelatorio, setor: SetorPdf, modo: 'semanal' | 'diario' = 'semanal', colunas: Coluna[] = TODAS_COLUNAS): PaginaPdf {
   const p = new PaginaPdf();
   p.retangulo(0, 0, L, H, BRANCO);
   p.retangulo(0, H - 5, L, 5, NAVY);
@@ -148,7 +149,16 @@ export function gerarSetorUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio,
   p.texto(`Emitido em ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`, M, 18, 6.5, 'normal', CINZA);
   textoDireita(p, 'Controle de Trilhos · Usina', L - M, 18, 6.5, 'negrito', CINZA);
 
-  return montarPdfVarias([p], `${TITULO_RELATORIO[setor]} ${d.data}`, A4_PAISAGEM);
+  return p;
+}
+
+export function gerarSetorUsinaPdf(d: DadosRelatorio, tril: TrilheirosRelatorio, setor: SetorPdf, modo: 'semanal' | 'diario' = 'semanal', colunas: Coluna[] = TODAS_COLUNAS): Buffer {
+  return montarPdfVarias([montarPaginaSetor(d, tril, setor, modo, colunas)], `${TITULO_RELATORIO[setor]} ${d.data}`, A4_PAISAGEM);
+}
+
+/** Imagem SVG de um setor (vira PNG no navegador, como o relatório gerencial). */
+export function gerarSetorUsinaSvg(d: DadosRelatorio, tril: TrilheirosRelatorio, setor: SetorPdf, modo: 'semanal' | 'diario' = 'semanal', colunas: Coluna[] = TODAS_COLUNAS): string {
+  return montarPaginaSetor(d, tril, setor, modo, colunas).svg(L, H);
 }
 
 /** Cabeçalho comum das páginas do gerencial diário. */

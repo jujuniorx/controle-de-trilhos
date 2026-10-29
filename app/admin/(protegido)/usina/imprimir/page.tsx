@@ -65,12 +65,21 @@ export default async function ImprimirUsina({
 
       <div className="sem-impressao flex flex-wrap items-center gap-3">
         {setor !== 'todos' && (
-          <BotaoCompartilharPdf
-            url={`/api/usina/imprimir/pdf?data=${data}&setor=${setor}&modo=${modo}&col=${colunas.join(',')}`}
-            nomeArquivo={`${setor}-usina-${data}.pdf`}
-            titulo={titulo}
-            rotulo="Baixar PDF"
-          />
+          <>
+            <BotaoCompartilharPdf
+              url={`/api/usina/imprimir/pdf?data=${data}&setor=${setor}&modo=${modo}&formato=svg&col=${colunas.join(',')}`}
+              nomeArquivo={`${setor}-usina-${data}.png`}
+              titulo={titulo}
+              rotulo="Imagem do setor"
+              png
+            />
+            <BotaoCompartilharPdf
+              url={`/api/usina/imprimir/pdf?data=${data}&setor=${setor}&modo=${modo}&col=${colunas.join(',')}`}
+              nomeArquivo={`${setor}-usina-${data}.pdf`}
+              titulo={titulo}
+              rotulo="Baixar PDF"
+            />
+          </>
         )}
         <div className="flex overflow-hidden rounded-lg border border-line" role="group" aria-label="Formato do relatório">
           {linksModo('/admin/usina/imprimir', modo, { data, setor }).map((l) => (

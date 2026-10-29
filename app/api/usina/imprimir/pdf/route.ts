@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { montarDadosRelatorio, montarTrilheirosRelatorio } from '@/lib/services/onePageUsina';
-import { gerarSetorUsinaPdf, SETORES_PDF, type SetorPdf } from '@/lib/pdf/setorUsina';
+import { gerarSetorUsinaPdf, gerarSetorUsinaSvg, SETORES_PDF, type SetorPdf } from '@/lib/pdf/setorUsina';
 import { colunasValidas, ehIsoValido, modoValido } from '@/lib/usina/periodo';
 
 function hojeSP(): string {
@@ -19,7 +19,19 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ erro: 'Setor inválido.' }, { status: 400 });
   }
   const [dados, tril] = await Promise.all([montarDadosRelatorio(data), montarTrilheirosRelatorio(data)]);
-  const pdf = gerarSetorUsinaPdf(dados, tril, setor as SetorPdf, (modoValido(params.get('modo') ?? undefined) === 'diario' ? 'diario' : 'semanal'), colunasValidas(params.getAll('col')));
+  const pdf = gerarSetorUsinaPdf(dados, tril, setor as SetorPdf, modoSetor, colunasSetor);
+  const modoSetor = modoValido(params.get('modo') ?? undefined) === 'diario' ? 'diario' : 'semanal';
+  const colunasSetor = colunasValidas(params.getAll('col'));
+  if (params.get('formato') === 'svg') {
+    const svg = gerarSetorUsinaSvg(dados, tril, setor as SetorPdf, modoSetor, colunasSetor);
+    return new NextResponse(svg, {
+      headers: {
+        'Content-Type': 'image/svg+xml; charset=utf-8',
+        'Content-Disposition': `inline; filename="${setor}-usina-${data}.svg"`,
+        'Cache-Control': 'private, no-store',
+      },
+    });
+  }
   return new NextResponse(new Uint8Array(pdf), {
     headers: {
       'Content-Type': 'application/pdf',
