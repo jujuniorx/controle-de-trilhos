@@ -6,15 +6,35 @@ export const CHAVE_SETOR: Record<string, string> = {
   'Caminhão de solda': 'caminhao',
 };
 
-/** Campo de observação do cartão: mesmo estilo das caixas de colunas, em todos os setores. */
+/** Campo de observação do cartão: uma linha por pessoa ou item, com o nome em destaque e espaço entre elas. */
 export function CampoObservacao({ texto }: { texto: string }) {
-  const t = texto.trim();
+  const linhas = texto
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
   return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+    <div className="rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3">
       <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Observação</p>
-      <p className={`mt-1 whitespace-pre-line text-[13px] leading-snug ${t ? 'text-slate-700' : 'italic text-slate-400'}`}>
-        {t || 'Sem observação registrada neste dia.'}
-      </p>
+      {linhas.length === 0 ? (
+        <p className="mt-2 text-[13px] italic text-slate-400">Sem observação registrada neste dia.</p>
+      ) : (
+        <ul className="mt-2 space-y-2 text-[13px] leading-relaxed text-slate-700">
+          {linhas.map((l, i) => {
+            const m = l.match(/^([^:]{1,30}):\s*(.+)$/);
+            return (
+              <li key={i}>
+                {m ? (
+                  <>
+                    <span className="font-semibold text-slate-900">{m[1]}:</span> {m[2]}
+                  </>
+                ) : (
+                  l
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }
