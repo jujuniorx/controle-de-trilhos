@@ -20,16 +20,17 @@ export function CampoObservacao({ texto }: { texto: string }) {
       ) : (
         <ul className="mt-2 space-y-2 text-[13px] leading-relaxed text-slate-700">
           {linhas.map((l, i) => {
-            const m = l.match(/^([^:]{1,30}):\s*(.+)$/);
+            // "Alécio (ZEV): texto" -> nome, local em etiqueta e texto embaixo.
+            const m = l.match(/^([^:(]{1,30}?)\s*(?:\(([^)]{1,30})\))?:\s*(.+)$/);
+            if (!m) return <li key={i}>{l}</li>;
+            const [, nome, local, texto] = m;
             return (
-              <li key={i}>
-                {m ? (
-                  <>
-                    <span className="font-semibold text-slate-900">{m[1]}:</span> {m[2]}
-                  </>
-                ) : (
-                  l
-                )}
+              <li key={i} className="rounded-md bg-white px-2.5 py-2 ring-1 ring-slate-200">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-bold text-slate-900">{nome}</span>
+                  {local && <span className="rounded-md bg-slate-900 px-2 py-0.5 text-[11px] font-bold text-white">{local}</span>}
+                </div>
+                <p className={`mt-1 ${texto === 'Sem observação.' ? 'italic text-slate-400' : 'text-slate-700'}`}>{texto}</p>
               </li>
             );
           })}

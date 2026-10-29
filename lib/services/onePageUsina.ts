@@ -89,10 +89,15 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
     select: { lider: true, observacao: true, local: true },
   });
   const rotuloEquipe: Record<string, string> = { ALECIO: 'Alécio', BRUNO: 'Bruno', REGINALDO: 'Reginaldo' };
-  // Ordem fixa do cadastro (Alécio, Bruno, Reginaldo) e o local da equipe no dia, entre parênteses.
+  // Ordem fixa do cadastro (Alécio, Bruno, Reginaldo). Cada equipe com lançamento no dia aparece com o local,
+  // mesmo sem observação. Formato: "Nome (LOCAL): observação".
   const observacoesGeracao = LIDERES.map((l) => equipesDia.find((e) => e.lider === l.valor))
-    .filter((e): e is NonNullable<typeof e> => !!e && !!e.observacao && e.observacao.trim() !== '')
-    .map((e) => `${rotuloEquipe[e.lider] ?? e.lider}${e.local ? ` (${e.local})` : ''}: ${e.observacao!.trim()}`);
+    .filter((e): e is NonNullable<typeof e> => !!e && (!!e.local?.trim() || !!e.observacao?.trim()))
+    .map((e) => {
+      const local = e.local?.trim();
+      const texto = e.observacao?.trim() || 'Sem observação.';
+      return `${rotuloEquipe[e.lider] ?? e.lider}${local ? ` (${local})` : ''}: ${texto}`;
+    });
   const { inicio, fim } = intervaloDoPeriodo('semana', data);
   const mes = intervaloDoPeriodo('mes', data);
   const dias = serie.rotulos.length;
