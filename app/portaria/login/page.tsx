@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react';
 import Link from 'next/link';
 import { TelaEntrada } from '@/components/ui/TelaEntrada';
+import { IconeOlho } from '@/components/icones/Icones';
 import { loginPortariaAction, type EstadoLoginPortaria } from './actions';
 
 const ESTADO_INICIAL: EstadoLoginPortaria = {};
@@ -24,8 +25,15 @@ export default function LoginPortariaPage() {
             <label htmlFor="senha">Senha</label>
             <div className="flex gap-2">
               <input id="senha" name="senha" type={mostrarSenha ? 'text' : 'password'} required className="h-12 min-w-0 flex-1" autoComplete="current-password" />
-              <button type="button" className="btn btn-ghost h-12 px-4" onClick={() => setMostrarSenha((m) => !m)} aria-pressed={mostrarSenha}>
-                {mostrarSenha ? 'Ocultar' : 'Mostrar'}
+              <button
+                type="button"
+                className="btn btn-ghost h-12 w-12 flex-none px-0"
+                onClick={() => setMostrarSenha((m) => !m)}
+                aria-pressed={mostrarSenha}
+                aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+                title={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+              >
+                <IconeOlho size={22} ocultar={mostrarSenha} />
               </button>
             </div>
           </div>
