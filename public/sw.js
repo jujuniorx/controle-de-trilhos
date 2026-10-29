@@ -89,9 +89,15 @@ self.addEventListener('fetch', (event) => {
 
         return response;
       })
-      .catch(() => {
-        // Fall back to cache if network fails
-        return caches.match(event.request);
+      .catch(async () => {
+        // Sem rede: usa a cópia guardada. Se não houver, mostra a página offline
+        // (devolver undefined aqui faz o Safari exibir "Returned response is null").
+        const guardada = await caches.match(event.request);
+        if (guardada) return guardada;
+        if (event.request.mode === 'navigate') {
+          return (await caches.match('/offline.html')) || Response.error();
+        }
+        return Response.error();
       })
   );
 });
