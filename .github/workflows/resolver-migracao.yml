@@ -13,8 +13,10 @@ jobs:
         with: { node-version: 22 }
       - run: npm install --no-audit --no-fund
       - name: marcar migracao falha como aplicada (colunas ja existem em producao)
+        continue-on-error: true
         run: npx prisma migrate resolve --applied 20261026080000_trilheiro_partida_local
       - name: marcar migracao estoque TLS malha como aplicada (tabela ja existe em producao)
+        continue-on-error: true
         run: npx prisma migrate resolve --applied 20261028120000_estoque_tls_malha
       - name: aplicar migracoes pendentes
         run: npx prisma migrate deploy
