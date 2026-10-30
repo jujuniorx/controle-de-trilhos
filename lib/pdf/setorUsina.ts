@@ -137,12 +137,10 @@ export function montarPaginaSetor(d: DadosRelatorio, tril: TrilheirosRelatorio, 
   if (setor === 'trilheiros') {
     const altTril = Math.min(alturaDisponivel, 60 + Math.max(1, tril.equipes.length) * 40 + 12);
     desenharTrilheiros(p, tril, M, topoCorpo, L - 2 * M, altTril);
-  } else if (modo === 'diario') {
-    const s = d.setores.find((x) => x.titulo === TITULO_SETOR[setor]);
-    if (s) desenharGradeDiaria(p, s.linhas, s.cor, d.rotulosDias, M, topoCorpo, L - 2 * M, TITULO_SETOR[setor], colunas);
   } else {
+    // Mesmo cartão do relatório gerencial (tabela DIA/NO MÊS, gráfico e observação), ocupando a folha.
     const s = d.setores.find((x) => x.titulo === TITULO_SETOR[setor]);
-    if (s) desenharSetor(p, s, M, topoCorpo, L - 2 * M, Math.min(alturaDisponivel, 340), true, d.rotulosDias, false, colunas);
+    if (s) desenharSetor(p, s, M, topoCorpo, L - 2 * M, Math.min(alturaDisponivel, 420), true, d.rotulosDias, false, colunas);
   }
 
   p.linha(M, 30, L - M, 30, LINHA, 0.6);
