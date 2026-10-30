@@ -147,44 +147,17 @@ export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yB
 function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, base: number, w: number, rotulos: string[], destaque?: number, limiteTopo?: number) {
   if (!s.grafico) return;
   // Campo de observação: caixa com o rótulo OBSERVAÇÃO, igual às caixas de colunas, em todos os setores.
-  // Mesmo visual da tela: cada linha "Nome (LOCAL): texto" vira um bloco com o nome, a etiqueta do local e o texto embaixo.
-  const RE_LINHA = /^([^:(]{1,30}?)\s*(?:\(([^)]{1,30})\))?:\s*(.+)$/;
-  const entradas = (s.observacao ?? '').split('\n').map((l) => l.trim()).filter(Boolean);
-  const itens = entradas.length
-    ? entradas.map((l) => {
-        const m = l.match(RE_LINHA);
-        return m ? { nome: m[1], local: m[2], texto: m[3] } : { nome: undefined, local: undefined, texto: l };
-      })
-    : [{ nome: undefined, local: undefined, texto: 'Sem observação registrada neste dia.' }];
-  const larguraBloco = w - 24;
-  const blocos = itens.map((it) => ({ ...it, linhas: quebrarLinhas(it.texto, 7, larguraBloco - 16) }));
-  const alturaBloco = (b: { nome?: string; linhas: string[] }) => 6 + (b.nome ? 11 : 0) + b.linhas.length * 8 + 4;
-  const alturaCaixa = 14 + blocos.reduce((t, b) => t + alturaBloco(b) + 4, 0) + 2;
+  const texto = s.observacao?.trim() ?? '';
+  const trechos = texto ? (texto.includes('\n') ? texto.split('\n') : [texto]) : ['Sem observação registrada neste dia.'];
+  const linhas = trechos.flatMap((t) => quebrarLinhas(t, 7, w - 28));
   const caixaBase = base + 4;
+  const textoBase = caixaBase + 5;
+  const alturaCaixa = 8 + linhas.length * 8 + 6;
   const caixaTopo = caixaBase + alturaCaixa;
   p.arredondado(x + 6, caixaBase, w - 12, alturaCaixa, 4, hex('#f8fafc'), LINHA);
   p.texto('OBSERVAÇÃO', x + 12, caixaTopo - 8, 5.5, 'negrito', CINZA);
-  let topoBloco = caixaTopo - 14;
-  for (const b of blocos) {
-    const hB = alturaBloco(b);
-    const yB = topoBloco - hB;
-    p.arredondado(x + 12, yB, larguraBloco, hB, 3, BRANCO, LINHA);
-    const yNome = topoBloco - 6 - 7;
-    let yTexto = yNome;
-    if (b.nome) {
-      p.texto(b.nome, x + 18, yNome, 7.5, 'negrito', TINTA);
-      if (b.local) {
-        const larguraNome = larguraTexto(b.nome, 7.5, 'negrito');
-        const larguraEtiqueta = larguraTexto(b.local, 6, 'negrito') + 8;
-        const xEtiqueta = x + 18 + larguraNome + 6;
-        p.arredondado(xEtiqueta, yNome - 3, larguraEtiqueta, 10, 4, hex('#0f172a'));
-        p.texto(b.local, xEtiqueta + 4, yNome - 0.2, 6, 'negrito', BRANCO);
-      }
-      yTexto = yNome - 11;
-    }
-    b.linhas.forEach((linha, k) => p.texto(linha, x + 18, yTexto - k * 8, 7, 'normal', b.nome ? TINTA : CINZA));
-    topoBloco = yB - 4;
-  }
+  // A primeira linha fica em cima; o texto não tem "Obs:" na frente.
+  linhas.forEach((linha, i) => p.texto(linha, x + 12, textoBase + (linhas.length - 1 - i) * 8, 7, 'normal', texto ? TINTA : CINZA));
   const yLegenda = caixaTopo + 8;
   let lx = x + 8;
   for (const serie of s.grafico.series) {
