@@ -625,3 +625,18 @@ model RecebimentoSerraHistorico {
   @@index([cidade])
 }
 
+
+// Estoque de perfis (TR68, UIC60, ...), talas e barras lisas. Começa sem saldo: o Admin lança o que existe.
+// Quantidade em toneladas e em metros, como a planilha de controle. A baixa das lisas e talas do TLS vem depois.
+model EstoqueItem {
+  id           String   @id @default(cuid())
+  tipo         String   // PERFIL | TALA | LISA
+  nome         String
+  fabricante   String?
+  quantidadeT  Decimal  @default(0) @db.Decimal(12, 3)
+  quantidadeM  Decimal  @default(0) @db.Decimal(12, 2)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@index([tipo])
+}
