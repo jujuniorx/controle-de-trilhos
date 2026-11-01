@@ -1631,3 +1631,14 @@ html[data-tema="claro"] .patio-shell .btn-primary { background: #0F5FCC; color: 
     box-shadow: inset 0 -1px 0 color-mix(in srgb, white 8%, transparent);
   }
 }
+
+/* Menu lateral com vidro: mesmas cores do gradiente do admin, com transparência e desfoque. */
+@supports (backdrop-filter: blur(1px)) {
+  .ct-sidebar {
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
+  }
+  :is(html:not([data-tema]) .area-admin, html[data-tema="claro"] .area-admin) .ct-sidebar {
+    background: linear-gradient(180deg, rgb(11 27 49 / 0.74), rgb(9 21 36 / 0.74));
+  }
+}
