@@ -1612,3 +1612,22 @@ html[data-tema="claro"] .patio-shell .btn-primary { background: #0F5FCC; color: 
 [aria-invalid="true"] { border-color: var(--bad) !important; }
 [aria-invalid="true"]:focus { outline-color: var(--bad) !important; }
 
+
+/* ── Efeito de vidro (cartões e barra superior) ─────────────────────────────
+   Imita o expo-glass-effect com CSS: superfície translúcida + desfoque do fundo.
+   Sem suporte a backdrop-filter, continua com a cor sólida de antes. */
+@supports (backdrop-filter: blur(1px)) {
+  .card {
+    background: color-mix(in srgb, var(--surface) 72%, transparent);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    backdrop-filter: blur(16px) saturate(160%);
+    border-color: color-mix(in srgb, var(--line) 80%, white 20%);
+    box-shadow: var(--card-shadow), inset 0 1px 0 color-mix(in srgb, white 14%, transparent);
+  }
+  .ct-topbar {
+    background: color-mix(in srgb, var(--surface) 70%, transparent);
+    -webkit-backdrop-filter: blur(18px) saturate(170%);
+    backdrop-filter: blur(18px) saturate(170%);
+    box-shadow: inset 0 -1px 0 color-mix(in srgb, white 8%, transparent);
+  }
+}
