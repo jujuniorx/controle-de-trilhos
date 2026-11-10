@@ -37,11 +37,10 @@ function IconePortaria() {
 function IconeProducao() {
   return (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M2 17h8.5M13.5 17H22" />
-      <path d="M2 20h20" strokeWidth="1.2" />
-      <path d="M6 20v1.5M18 20v1.5" strokeWidth="1.2" />
-      <path d="M11.2 17l.8-4.2.8 4.2" />
-      <path d="M12 6v2.2M8.8 7.2l1.3 1.3M15.2 7.2l-1.3 1.3M6.5 10.5h1.6M15.9 10.5h1.6" strokeWidth="1.4" />
+      <path d="M3 10.5h18M3 13.5h18" />
+      <path d="M7 13.5v2.5M17 13.5v2.5" strokeWidth="1.4" />
+      <path d="M12 1.8v2.2M5.6 4.4l1.5 1.5M18.4 4.4l-1.5 1.5M2.2 9.2l2 .6M21.8 9.2l-2 .6" strokeWidth="1.5" />
+      <path d="M2.2 14.8l2-.6M21.8 14.8l-2 .6M5.6 19.6l1.5-1.5M18.4 19.6l-1.5-1.5M12 22.2v-2.2" strokeWidth="1.5" />
     </svg>
   );
 }
