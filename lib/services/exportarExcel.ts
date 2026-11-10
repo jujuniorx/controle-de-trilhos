@@ -188,10 +188,7 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
       ], 11);
       const linha = sheet.addRow(sanear(valores));
       const r = linha.number;
-      const kgm = KG_POR_METRO[grupos[0].perfil];
       const totalMetros = Number(valores[23]);
-      // Peso = metros x kg/m do perfil (em toneladas). Sem kg/m cadastrado, fica o peso calculado pelo sistema.
-      if (kgm) linha.getCell(13).value = { formula: `X${r}*${kgm}/1000`, result: Math.round(totalMetros * kgm) / 1000 };
       linha.getCell(17).value = { formula: `SUM(N${r}:P${r})`, result: Number(valores[16]) };
       linha.getCell(22).value = { formula: `SUM(R${r}:U${r})`, result: Number(valores[21]) };
       linha.getCell(24).value = { formula: `Q${r}+V${r}+W${r}`, result: totalMetros };
