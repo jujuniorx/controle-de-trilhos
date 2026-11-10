@@ -197,6 +197,7 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
   }
 
   formatarColunasDeData(sheet);
+  adicionarTotaisRecebidos(sheet);
   formatarRecebidos(sheet);
 }
 
@@ -225,6 +226,37 @@ const COLUNAS_RECEBIDOS = [
 
 /** kg por metro de cada perfil (peso = metros x kg/m). TR45, TR50 e TR57 são os nominais padrão, a confirmar. */
 const KG_POR_METRO: Record<string, number> = { TR45: 45, TR50: 50, TR57: 57, TR60: 60, UIC60: 60, TR68: 68 };
+
+/** Linha de totais no fim da aba (igual à planilha da Paula): SUBTOTAL das colunas, e as somas dos grupos. */
+function adicionarTotaisRecebidos(sheet: ExcelJS.Worksheet) {
+  const primeira = 3;
+  const ultima = sheet.rowCount;
+  if (ultima < primeira) return;
+  const r = ultima + 1;
+  const linha = sheet.addRow([]);
+  const letra = (c: number) => sheet.getColumn(c).letter;
+  const valorDe = (c: number): number => {
+    let total = 0;
+    for (let n = primeira; n <= ultima; n++) {
+      const v = sheet.getRow(n).getCell(c).value as unknown;
+      const numero = typeof v === 'number' ? v : typeof v === 'object' && v !== null && 'result' in v ? Number((v as { result: unknown }).result) : 0;
+      total += Number.isFinite(numero) ? numero : 0;
+    }
+    return total;
+  };
+  for (const c of [13, 14, 15, 16, 18, 19, 20, 21, 23]) {
+    const l = letra(c);
+    linha.getCell(c).value = { formula: `SUBTOTAL(9,${l}${primeira}:${l}${ultima})`, result: valorDe(c) };
+  }
+  const q = valorDe(14) + valorDe(15) + valorDe(16);
+  const v = valorDe(18) + valorDe(19) + valorDe(20) + valorDe(21);
+  const w = valorDe(23);
+  linha.getCell(17).value = { formula: `SUM(N${r}:P${r})`, result: q };
+  linha.getCell(22).value = { formula: `R${r}+S${r}+T${r}+U${r}`, result: v };
+  linha.getCell(24).value = { formula: `Q${r}+V${r}+W${r}`, result: q + v + w };
+  linha.font = { name: 'Calibri', size: 11, bold: true };
+  linha.border = { top: { style: 'medium' }, bottom: { style: 'medium' } };
+}
 
 /** Faixas mescladas, cores e larguras da planilha de referência (Recebido 2026). */
 function formatarRecebidos(sheet: ExcelJS.Worksheet) {
