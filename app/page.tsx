@@ -44,38 +44,20 @@ export default function Home() {
         <h1 className="home-titulo">Controle de Trilhos</h1>
         <p className="home-frase">Recebimento, remessa e conferência de trilhos.</p>
 
-        <div className="home-cards">
-          <Link href="/patio/acesso" className="entrada-card" style={atraso(0)}>
-            <span className="entrada-card-icone">
-              <IconeCaminhao />
-            </span>
-            <span className="entrada-card-texto">
-              <strong>Pátio</strong>
-              <small>Registrar recebimentos e remetidos</small>
-            </span>
-            <span className="entrada-card-seta" aria-hidden="true">→</span>
+        <nav className="home-grade" aria-label="Setores">
+          <Link href="/patio/acesso" className="setor-tile" style={atraso(0)} aria-label="Pátio: registrar recebimentos e remetidos">
+            <span className="setor-tile-icone"><IconeCaminhao /></span>
+            <span className="setor-tile-nome">Pátio</span>
           </Link>
-          <Link href="/portaria/login" className="entrada-card" style={atraso(1)}>
-            <span className="entrada-card-icone">
-              <IconePortaria />
-            </span>
-            <span className="entrada-card-texto">
-              <strong>Portaria</strong>
-              <small>Dados do motorista e liberar carretas</small>
-            </span>
-            <span className="entrada-card-seta" aria-hidden="true">→</span>
+          <Link href="/portaria/login" className="setor-tile" style={atraso(1)} aria-label="Portaria: dados do motorista e liberar carretas">
+            <span className="setor-tile-icone"><IconePortaria /></span>
+            <span className="setor-tile-nome">Portaria</span>
           </Link>
-          <Link href="/admin/login" className="entrada-card" style={atraso(2)}>
-            <span className="entrada-card-icone">
-              <IconeGrafico />
-            </span>
-            <span className="entrada-card-texto">
-              <strong>Administrativo</strong>
-              <small>Conferir, relatórios e gráficos</small>
-            </span>
-            <span className="entrada-card-seta" aria-hidden="true">→</span>
+          <Link href="/admin/login" className="setor-tile" style={atraso(2)} aria-label="Administrativo: conferir, relatórios e gráficos">
+            <span className="setor-tile-icone"><IconeGrafico /></span>
+            <span className="setor-tile-nome">Administrativo</span>
           </Link>
-        </div>
+        </nav>
 
         <BotaoInstalar className="home-instalar" />
         <Link href="/privacidade" className="home-privacidade">

@@ -1612,3 +1612,12 @@ html[data-tema="claro"] .patio-shell .btn-primary { background: #0F5FCC; color: 
 [aria-invalid="true"] { border-color: var(--bad) !important; }
 [aria-invalid="true"]:focus { outline-color: var(--bad) !important; }
 
+
+/* Grade de setores na tela inicial: um quadrado por setor, icone e nome curto */
+.home-grade { margin-top: 28px; width: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 14px; }
+.setor-tile { aspect-ratio: 1 / 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 14px; border-radius: 18px; border: 1px solid rgba(255, 255, 255, .12); background: rgba(255, 255, 255, .05); color: inherit; text-decoration: none; transition: transform .25s ease, background .25s ease, border-color .25s ease, box-shadow .25s ease; }
+.setor-tile:hover { transform: translateY(-3px); background: rgba(255, 255, 255, .1); border-color: #5b9bd5; box-shadow: 0 12px 32px rgba(15, 95, 204, .3); }
+.setor-tile:active { transform: scale(.97); }
+.setor-tile-icone { width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #2f6fb8, #0f5fcc); }
+.setor-tile-nome { font-family: var(--font-barlow-cond), sans-serif; font-size: 1.05rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; text-align: center; }
+html[data-tema="claro"] .home-entrada .setor-tile { color: var(--h-texto); background: var(--h-card); border-color: var(--h-borda); box-shadow: 0 6px 20px rgba(19, 32, 47, .08); }
