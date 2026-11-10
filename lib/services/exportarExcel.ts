@@ -196,6 +196,7 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
       const kgmPerfil = KG_POR_METRO[grupos[0].perfil];
       if (kgmPerfil) {
         linha.getCell(13).value = { formula: `X${r}*${kgmPerfil / 1000}`, result: Number(valores[12]) };
+        linha.getCell(13).numFmt = '#,##0.000';
       }
     }
     pintarSePendente(sheet, primeiraLinha, mov.status);
@@ -256,6 +257,7 @@ function adicionarTotaisRecebidos(sheet: ExcelJS.Worksheet) {
   const q = valorDe(14) + valorDe(15) + valorDe(16);
   const v = valorDe(18) + valorDe(19) + valorDe(20) + valorDe(21);
   const w = valorDe(23);
+  linha.getCell(13).numFmt = '#,##0.000';
   linha.getCell(17).value = { formula: `SUM(N${r}:P${r})`, result: q };
   linha.getCell(22).value = { formula: `R${r}+S${r}+T${r}+U${r}`, result: v };
   linha.getCell(24).value = { formula: `Q${r}+V${r}+W${r}`, result: q + v + w };
