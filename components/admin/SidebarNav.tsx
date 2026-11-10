@@ -7,7 +7,6 @@ import { usePathname } from 'next/navigation';
 export const NAV_ITEMS = [
   { href: '/admin', label: 'Pendências' },
   { href: '/admin/relatorios', label: 'Relatórios' },
-  { href: '/admin/informativo', label: 'Informativo' },
   { href: '/admin/portaria', label: 'Portaria' },
   { href: '/admin/usina', label: 'Usina' },
   { href: '/admin/estoque', label: 'Estoque' },
