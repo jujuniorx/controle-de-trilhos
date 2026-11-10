@@ -247,7 +247,7 @@ function formatarRecebidos(sheet: ExcelJS.Worksheet) {
   larguras.forEach((w, i) => (sheet.getColumn(i + 1).width = w));
   // Sucata (V) e Total (X) em vermelho, como na planilha de referência.
   for (let n = 3; n <= sheet.rowCount; n++) {
-    for (const col of [22, 24]) {
+    for (const col of [17, 22, 24]) {
       const cell = sheet.getRow(n).getCell(col);
       cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF0000' } };
