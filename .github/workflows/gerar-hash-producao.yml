@@ -1,0 +1,27 @@
+name: gerar-hash-producao
+
+# Gera o hash Argon2id do PIN da Produção e mostra no resumo da execução.
+# Copie o valor para a variável PRODUCAO_PIN_HASH na Vercel (ambiente Production) e faça Redeploy.
+on:
+  workflow_dispatch:
+    inputs:
+      pin:
+        description: 'PIN da Produção'
+        required: true
+        default: '1234'
+
+jobs:
+  gerar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - name: gerar hash
+        env:
+          PIN: ${{ inputs.pin }}
+        run: |
+          HASH=$(node -e "require('argon2').hash(process.env.PIN).then(h=>process.stdout.write(h))")
+          { echo "## Hash do PIN da Produção"; echo; echo '```'; echo "$HASH"; echo '```'; echo; echo "Copie para PRODUCAO_PIN_HASH na Vercel e faça Redeploy."; } >> "$GITHUB_STEP_SUMMARY"
