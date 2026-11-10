@@ -34,6 +34,18 @@ function IconePortaria() {
   );
 }
 
+function IconeProducao() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M2 17h20M2 20h20" />
+      <path d="M6 17v-2.5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2V17" />
+      <path d="M12 12.5V6" />
+      <path d="M9.5 4.2 12 1.5l2.5 2.7" />
+      <path d="M17.5 4v2.5M19.5 6.5 21 5" />
+    </svg>
+  );
+}
+
 export default function Home() {
   return (
     <main className="home-entrada">
@@ -52,6 +64,10 @@ export default function Home() {
           <Link href="/portaria/login" className="setor-tile" style={atraso(1)} aria-label="Portaria: dados do motorista e liberar carretas">
             <span className="setor-tile-icone"><IconePortaria /></span>
             <span className="setor-tile-nome">Portaria</span>
+          </Link>
+          <Link href="/producao/login" className="setor-tile" style={atraso(3)} aria-label="Produção: registrar as soldas do turno">
+            <span className="setor-tile-icone"><IconeProducao /></span>
+            <span className="setor-tile-nome">Produção</span>
           </Link>
           <Link href="/admin/login" className="setor-tile" style={atraso(2)} aria-label="Administrativo: conferir, relatórios e gráficos">
             <span className="setor-tile-icone"><IconeGrafico /></span>
