@@ -338,11 +338,14 @@ function aplicarBordas(sheet: ExcelJS.Worksheet) {
   }
 }
 
-/** Valor da coluna "Tipo" do MATERIAL na planilha: NOVO, TAMPÃO, REEMPREGO G1, SUCATA. */
+/**
+ * Valor da coluna "Tipo" do MATERIAL na planilha: NOVO, REEMPREGO G1/G2/G3, SUCATA.
+ * Igual à planilha da Paula: reemprego mostra a classificação, não "TAMPÃO" (o sistema marca
+ * todo reemprego G1/G2/G3 como tampão, o que não corresponde à planilha).
+ */
 function rotuloMaterial(g: Grupo): string {
   if (g.tipoMaterial === 'NOVO') return 'NOVO';
   if (g.tipoMaterial === 'SUCATA') return 'SUCATA';
-  if (g.tampao) return 'TAMPÃO';
   return g.classificacao ? `REEMPREGO ${g.classificacao}` : 'REEMPREGO';
 }
 
