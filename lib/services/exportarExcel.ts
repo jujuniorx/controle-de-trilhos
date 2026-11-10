@@ -192,6 +192,11 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
       linha.getCell(17).value = { formula: `SUM(N${r}:P${r})`, result: Number(valores[16]) };
       linha.getCell(22).value = { formula: `SUM(R${r}:U${r})`, result: Number(valores[21]) };
       linha.getCell(24).value = { formula: `Q${r}+V${r}+W${r}`, result: totalMetros };
+      // Peso (t) = total de metros da linha x fator do perfil (kg/m / 1000), como na planilha da Paula.
+      const kgmPerfil = KG_POR_METRO[grupos[0].perfil];
+      if (kgmPerfil) {
+        linha.getCell(13).value = { formula: `X${r}*${kgmPerfil / 1000}`, result: Number(valores[12]) };
+      }
     }
     pintarSePendente(sheet, primeiraLinha, mov.status);
   }
