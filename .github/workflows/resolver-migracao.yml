@@ -18,5 +18,8 @@ jobs:
       - name: marcar migracao estoque TLS malha como aplicada (tabela ja existe em producao)
         continue-on-error: true
         run: npx prisma migrate resolve --applied 20261028120000_estoque_tls_malha
+      - name: marcar migracao barras curtas malha como aplicada (tabela ja existe em producao)
+        continue-on-error: true
+        run: npx prisma migrate resolve --applied 20261028150000_barras_curtas_malha
       - name: aplicar migracoes pendentes
         run: npx prisma migrate deploy
