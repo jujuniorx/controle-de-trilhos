@@ -97,6 +97,11 @@ function formatarColunasDeData(sheet: ExcelJS.Worksheet) {
  * Proteção contra injeção de fórmula: texto que começa com = + @ ou - (ou tab/CR) vira fórmula no Excel.
  * Um apóstrofo na frente faz a célula ficar como texto. O traço isolado ("-") é marcador da planilha e fica como está.
  */
+/** Colunas numéricas em branco viram 0: a planilha precisa mostrar todos os totais, mesmo sem movimento. */
+function zerarNumericas<T>(valores: (T | null)[], aPartirDe: number): (T | number)[] {
+  return valores.map((v, i) => (i >= aPartirDe && v == null ? 0 : (v as T)));
+}
+
 function sanear<T>(valores: T[]): T[] {
   return valores.map((v) =>
     typeof v === 'string' && v !== '-' && /^[=+@\t\r-]/.test(v) ? (`'${v}` as unknown as T) : v,
@@ -182,7 +187,7 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
 
       const fabricantes = unicos(novos.map((g) => upper(g.fabricante)));
 
-      sheet.addRow(sanear([
+      sheet.addRow(sanear(zerarNumericas([
         ...base,
         descricaoPerfil(grupos[0].perfil),
         fabricantes.length > 0 ? fabricantes.join(' / ') : '-',
@@ -203,7 +208,7 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         somaOuNull(sucatas.map(metros), arredondar2),
         somaOuNull(novos.map(metros), arredondar2),
         arredondar2(grupos.reduce((acc, g) => acc + metros(g), 0)),
-      ]));
+      ], 11)));
     }
     pintarSePendente(sheet, primeiraLinha, mov.status);
   }
