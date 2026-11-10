@@ -128,32 +128,9 @@ function agruparPorPerfil(grupos: Grupo[]): Grupo[][] {
 }
 
 function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRelatorio[]) {
-  aplicarCabecalho(sheet, [
-    'Dia',
-    'Mês',
-    'Ano',
-    'Tipo do documento',
-    'Número',
-    'Tipo de transporte',
-    'Placa',
-    'Qtd. de vagões',
-    'Origem',
-    'Descrição do perfil',
-    'Fabricante',
-    'Qtd. de peças',
-    'Peso (Ton.)',
-    'G1',
-    'G2',
-    'G3',
-    'Total',
-    'SC-1',
-    'SC-2 - L',
-    'SC-3',
-    'Em Classificação',
-    'Total',
-    'Novo',
-    'Total',
-  ]);
+  // Igual à planilha de referência: faixas de grupo na linha 1 (mescladas em formatarRecebidos) e nomes na linha 2.
+  sheet.addRow(FAIXAS_RECEBIDOS);
+  sheet.addRow(COLUNAS_RECEBIDOS);
 
   // Recebidos em ordem crescente de data (dia 1 em cima, último dia embaixo), como a planilha da empresa.
   const cronologico = [...movimentacoes].sort(
@@ -187,7 +164,7 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
 
       const fabricantes = unicos(novos.map((g) => upper(g.fabricante)));
 
-      sheet.addRow(sanear(zerarNumericas([
+      const valores = zerarNumericas([
         ...base,
         descricaoPerfil(grupos[0].perfil),
         fabricantes.length > 0 ? fabricantes.join(' / ') : '-',
@@ -208,13 +185,22 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         somaOuNull(sucatas.map(metros), arredondar2),
         somaOuNull(novos.map(metros), arredondar2),
         arredondar2(grupos.reduce((acc, g) => acc + metros(g), 0)),
-      ], 11)));
+      ], 11);
+      const linha = sheet.addRow(sanear(valores));
+      const r = linha.number;
+      const kgm = KG_POR_METRO[grupos[0].perfil];
+      const totalMetros = Number(valores[23]);
+      // Peso = metros x kg/m do perfil (em toneladas). Sem kg/m cadastrado, fica o peso calculado pelo sistema.
+      if (kgm) linha.getCell(13).value = { formula: `X${r}*${kgm}/1000`, result: Math.round(totalMetros * kgm) / 1000 };
+      linha.getCell(17).value = { formula: `SUM(N${r}:P${r})`, result: Number(valores[16]) };
+      linha.getCell(22).value = { formula: `SUM(R${r}:U${r})`, result: Number(valores[21]) };
+      linha.getCell(24).value = { formula: `Q${r}+V${r}+W${r}`, result: totalMetros };
     }
     pintarSePendente(sheet, primeiraLinha, mov.status);
   }
 
   formatarColunasDeData(sheet);
-  aplicarCoresRecebidos(sheet);
+  formatarRecebidos(sheet);
 }
 
 /** Movimentação ainda pendente de conferência: a linha inteira fica amarela, para mostrar o que falta. */
@@ -229,16 +215,46 @@ function pintarSePendente(sheet: ExcelJS.Worksheet, primeiraLinha: number, statu
   }
 }
 
-/** Coluna 22 é "Total" (sucata) em Recebidos — colorir em vermelho com fundo amarelo. */
-function aplicarCoresRecebidos(sheet: ExcelJS.Worksheet) {
-  sheet.eachRow((row, rowNum) => {
-    if (rowNum === 1) return; // pula cabeçalho
-    const cellTotal = row.getCell(22); // coluna 22 = "Total" (sucata)
-    if (cellTotal.value != null) {
-      cellTotal.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFF0000' } }; // vermelho
-      cellTotal.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // fundo amarelo
+const FAIXAS_RECEBIDOS = [
+  'DATA', '', '', 'DOCUMENTOS', '', 'TRANSPORTE', '', '', 'DESCRIÇÃO', 'MATERIAL', '', '', '',
+  'REEMPREGO', '', '', '', 'SUCATA', '', '', '', '', 'NOVO', 'TOTAL',
+];
+
+const COLUNAS_RECEBIDOS = [
+  'Dia', 'Mês', 'Ano', 'Tipo do documento', 'Número', 'Tipo de transporte', 'Placa', 'Qtd. de vagões', 'Origem',
+  'Descrição do perfil', 'Fabricante', 'Qtd. de peças', 'Peso (Ton.)', 'G1', 'G2', 'G3', 'Total', 'SC-1', 'SC-2 - L', 'SC-3',
+  'Em Classificação', 'Total', 'Novo', 'Total',
+];
+
+/** kg por metro de cada perfil (peso = metros x kg/m). TR45, TR50 e TR57 são os nominais padrão, a confirmar. */
+const KG_POR_METRO: Record<string, number> = { TR45: 45, TR50: 50, TR57: 57, TR60: 60, UIC60: 60, TR68: 68 };
+
+/** Faixas mescladas, cores e larguras da planilha de referência (Recebido 2026). */
+function formatarRecebidos(sheet: ExcelJS.Worksheet) {
+  const faixas: [string, string][] = [['A1', 'C1'], ['D1', 'E1'], ['F1', 'H1'], ['J1', 'M1'], ['N1', 'Q1'], ['R1', 'V1']];
+  for (const [de, ate] of faixas) sheet.mergeCells(`${de}:${ate}`);
+  const AZUL = 'FF2F5597';
+  for (const linha of [1, 2]) {
+    const row = sheet.getRow(linha);
+    row.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+    row.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+    row.eachCell({ includeEmpty: true }, (cell) => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: AZUL } };
+    });
+  }
+  sheet.getRow(2).height = 36;
+  const larguras = [6, 6, 7, 14, 12, 13, 12, 10, 20, 16, 16, 10, 11, 10, 10, 10, 10, 10, 10, 10, 12, 10, 11, 12];
+  larguras.forEach((w, i) => (sheet.getColumn(i + 1).width = w));
+  // Sucata (V) e Total (X) em vermelho, como na planilha de referência.
+  for (let n = 3; n <= sheet.rowCount; n++) {
+    for (const col of [22, 24]) {
+      const cell = sheet.getRow(n).getCell(col);
+      cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF0000' } };
     }
-  });
+  }
+  sheet.views = [{ state: 'frozen', ySplit: 2 }];
+  sheet.autoFilter = { from: { row: 2, column: 1 }, to: { row: 2, column: 24 } };
 }
 
 /** Aplica bordas em todas as células da planilha. */
