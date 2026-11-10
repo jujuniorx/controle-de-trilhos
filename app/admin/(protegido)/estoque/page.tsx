@@ -12,6 +12,13 @@ const COR_TIPO: Record<TipoEstoque, string> = { PERFIL: '#3b82f6', TALA: '#f9731
 
 const fmtM = (v: number) => fmtToneladas(v);
 
+/** Explica cada tipo em uma frase, para quem preenche entender sem perguntar. */
+const EXPLICA_TIPO: Record<TipoEstoque, string> = {
+  PERFIL: 'Perfis em estoque, contados em toneladas e em metros.',
+  TALA: 'Peças que unem os trilhos. Cada TLS novo usa 2 talas.',
+  LISA: 'Barras sem furos. Cada TLS novo usa 9 barras lisas.',
+};
+
 function Campos({ item, tipoFixo }: { item?: ItemEstoque; tipoFixo?: TipoEstoque }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
@@ -38,10 +45,12 @@ function Campos({ item, tipoFixo }: { item?: ItemEstoque; tipoFixo?: TipoEstoque
       <div className="field">
         <label htmlFor={`t-${item?.id ?? 'novo'}`}>Quantidade (t)</label>
         <input id={`t-${item?.id ?? 'novo'}`} name="quantidadeT" inputMode="decimal" defaultValue={item ? String(item.quantidadeT).replace('.', ',') : ''} placeholder="0" className="h-11" />
+        <p className="text-xs text-ink-muted">Peso total que tem no pátio. Use vírgula para decimais (ex.: 12,5).</p>
       </div>
       <div className="field">
         <label htmlFor={`m-${item?.id ?? 'novo'}`}>Quantidade (m)</label>
         <input id={`m-${item?.id ?? 'novo'}`} name="quantidadeM" inputMode="decimal" defaultValue={item ? String(item.quantidadeM).replace('.', ',') : ''} placeholder="0" className="h-11" />
+        <p className="text-xs text-ink-muted">Comprimento total em metros. Se não souber, deixe 0.</p>
       </div>
     </div>
   );
@@ -68,6 +77,7 @@ export default async function EstoquePage() {
         </div>
         <div className="card">
           <p className="kv-label">Total em toneladas</p>
+          <p className="text-xs text-ink-muted">Soma de todos os itens</p>
           <p className="text-2xl font-semibold tabular-nums text-accent">
             <ContadorNumero valor={totalT} /> t
           </p>
@@ -80,7 +90,8 @@ export default async function EstoquePage() {
 
       <details className="card">
         <summary className="cursor-pointer font-semibold">Adicionar item ao estoque</summary>
-        <div className="mt-4">
+        <div className="mt-4 space-y-3">
+          <p className="text-sm text-ink-muted">Cadastre cada item com a quantidade que existe hoje. Depois você pode editar quando quiser. Campos vazios viram zero.</p>
           <FormularioUsina acao={salvarItemEstoqueAction} rotuloBotao="Adicionar">
             <Campos />
           </FormularioUsina>
@@ -92,9 +103,12 @@ export default async function EstoquePage() {
         const maxT = Math.max(0, ...grupo.map((i) => i.quantidadeT));
         return (
           <section key={tipo} className="space-y-4" aria-labelledby={`estoque-${tipo}`}>
-            <h2 id={`estoque-${tipo}`} className="section-title">{ROTULO_TIPO_ESTOQUE[tipo]}</h2>
+            <div>
+              <h2 id={`estoque-${tipo}`} className="section-title">{ROTULO_TIPO_ESTOQUE[tipo]}</h2>
+              <p className="text-sm text-ink-muted">{EXPLICA_TIPO[tipo]}</p>
+            </div>
             {grupo.length === 0 ? (
-              <p className="text-sm text-ink-muted">Nenhum item cadastrado ainda.</p>
+              <p className="text-sm text-ink-muted">Nenhum item cadastrado ainda. Use "Adicionar item ao estoque" no topo para cadastrar.</p>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {grupo.map((item) => {
