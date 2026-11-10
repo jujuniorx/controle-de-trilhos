@@ -430,17 +430,46 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         ...manuais,
         '',
       ]));
-      // Toneladas = metros x kg/m do perfil (igual à referência). Sucata/diversos sem metro ficam como estão.
-      if (!diversos && kgm) {
+      // Toneladas: peso real da balança quando informado (como na planilha da Paula, que guarda pesos pesados).
+      // Sem peso informado, metros x kg/m do perfil (estimativa). Sucata/diversos sem metro ficam como estão.
+      const pesoReal = grupos.every((g) => g.pesoInformado != null);
+      if (!diversos && kgm && !pesoReal) {
         const r = linha.number;
         linha.getCell(16).value = { formula: `O${r}*${kgm}/1000`, result: Math.round(metrosGrupo * kgm) / 1000 };
       }
+      linha.getCell(16).numFmt = '#,##0.000';
     }
     pintarSePendente(sheet, primeiraLinha, mov.status);
   }
 
   formatarColunasDeData(sheet);
+  adicionarTotaisRemetidos(sheet);
   formatarRemetidos(sheet);
+}
+
+/** Linha de totais no fim da aba de remetidos (igual à planilha da Paula): SUBTOTAL de Peças, Metros e Ton. */
+function adicionarTotaisRemetidos(sheet: ExcelJS.Worksheet) {
+  const primeira = 3;
+  const ultima = sheet.rowCount;
+  if (ultima < primeira) return;
+  const linha = sheet.addRow([]);
+  const letra = (c: number) => sheet.getColumn(c).letter;
+  const valorDe = (c: number): number => {
+    let total = 0;
+    for (let n = primeira; n <= ultima; n++) {
+      const v = sheet.getRow(n).getCell(c).value as unknown;
+      const numero = typeof v === 'number' ? v : typeof v === 'object' && v !== null && 'result' in v ? Number((v as { result: unknown }).result) : 0;
+      total += Number.isFinite(numero) ? numero : 0;
+    }
+    return total;
+  };
+  for (const c of [14, 15, 16]) {
+    const l = letra(c);
+    linha.getCell(c).value = { formula: `SUBTOTAL(9,${l}${primeira}:${l}${ultima})`, result: valorDe(c) };
+  }
+  linha.getCell(16).numFmt = '#,##0.000';
+  linha.font = { name: 'Calibri', size: 11, bold: true };
+  linha.border = { top: { style: 'medium' }, bottom: { style: 'medium' } };
 }
 
 /**
