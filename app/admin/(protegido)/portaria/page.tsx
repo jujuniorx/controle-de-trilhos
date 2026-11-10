@@ -28,7 +28,8 @@ interface Linha {
   encerrada: boolean;
   etapas: { rotulo: string; em: Date | null }[];
   saidaPor: string | null;
-  acoes: ReactNode;
+  ver: ReactNode;
+  menu: ReactNode;
 }
 
 const soAlfanumerico = (s: string) => s.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
@@ -91,12 +92,12 @@ export default async function AdminPortariaPage({
         { rotulo: 'Saiu', em: c.saidaEm },
       ],
       saidaPor: c.saidaPor,
-      acoes: (
+      ver: c.movimentacaoId ? (
+        <Link href={`/admin/recebimentos/${c.movimentacaoId}`} className="btn btn-ghost btn-sm">Ver detalhes</Link>
+      ) : null,
+      menu: (
         <>
-          <a href={`/portaria/pdf-chegada/${c.id}`} download className="btn btn-ghost btn-sm">PDF</a>
-          {c.movimentacaoId && (
-            <Link href={`/admin/recebimentos/${c.movimentacaoId}`} className="btn btn-ghost btn-sm">Ver</Link>
-          )}
+          <a href={`/portaria/pdf-chegada/${c.id}`} download className="btn btn-ghost btn-sm">Baixar PDF</a>
           <BotaoApagar
             rotulo="Apagar"
             aviso="Apagar esta chegada de vez? Não dá para desfazer."
@@ -120,18 +121,18 @@ export default async function AdminPortariaPage({
         { rotulo: 'Saiu', em: m.saidaPortariaEm },
       ],
       saidaPor: m.saidaPortariaPor,
-      acoes: (
+      ver: <Link href={`/admin/remetidos/${m.id}`} className="btn btn-ghost btn-sm">Ver detalhes</Link>,
+      menu: (
         <>
-          <a href={`/portaria/pdf/${m.id}`} download className="btn btn-ghost btn-sm">PDF</a>
-          <Link href={`/admin/remetidos/${m.id}`} className="btn btn-ghost btn-sm">Ver</Link>
-          <BotaoExcluirMovimentacao id={m.id} rotulo={m.destino || 'Remetido'} />
+          <a href={`/portaria/pdf/${m.id}`} download className="btn btn-ghost btn-sm">Baixar PDF</a>
           {dono && (
             <BotaoApagar
-              rotulo="Limpar"
+              rotulo="Limpar dados da Portaria"
               aviso="Apagar motorista, placas, horários e observação da Portaria deste remetido? O remetido em si continua."
               acao={limparDadosPortariaAction.bind(null, m.id)}
             />
           )}
+          <BotaoExcluirMovimentacao id={m.id} rotulo={m.destino || 'Remetido'} />
         </>
       ),
     })),
@@ -169,53 +170,47 @@ export default async function AdminPortariaPage({
           texto={q ? 'Tente outra placa, cidade ou motorista.' : 'Os lançamentos da Portaria aparecem aqui.'}
         />
       ) : (
-        <div className="tbl-wrap tbl-acoes-fixas card p-0">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-line text-left text-ink-muted">
-                <th className="px-3 py-2">Tipo</th>
-                <th className="px-3 py-2">Placa</th>
-                <th className="px-3 py-2">Motorista</th>
-                <th className="px-3 py-2">Cidade</th>
-                <th className="px-3 py-2">Situação</th>
-                <th className="px-3 py-2">Horários</th>
-                <th className="px-3 py-2 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visiveis.map((l) => (
-                <tr key={l.key} className="border-b border-line align-top last:border-0">
-                  <td className="px-3 py-2">
-                    <span className="badge badge-muted">{l.tipo}</span>
-                  </td>
-                  <td className="px-3 py-2 font-semibold text-ink">
-                    {l.placas.length > 0 ? (
-                      <span className="placas">{l.placas.map((p) => <span key={p}>{p}</span>)}</span>
-                    ) : (
-                      '—'
-                    )}
-                  </td>
-                  <td className="px-3 py-2 min-w-[10rem]">{l.motorista || '—'}</td>
-                  <td className="px-3 py-2 min-w-[8rem]">{l.cidade || '—'}</td>
-                  <td className="px-3 py-2">
-                    <span className={`badge whitespace-nowrap ${l.badge}`}>{l.status}</span>
-                    {l.saidaPor && <p className="mt-1 text-xs text-ink-muted">por {l.saidaPor}</p>}
-                  </td>
-                  <td className="px-3 py-2 text-xs text-ink-muted">
-                    {l.etapas.map((e) => (
-                      <p key={e.rotulo} className="whitespace-nowrap">
-                        {e.rotulo}: <span className={e.em ? 'text-ink' : ''}>{hora(e.em)}</span>
-                      </p>
-                    ))}
-                  </td>
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    <div className="flex flex-nowrap justify-end gap-1">{l.acoes}</div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {visiveis.map((l) => (
+            <li key={l.key} className="card flex flex-col gap-3 p-4">
+              <div className="flex items-center justify-between gap-2">
+                <span className="badge badge-muted">{l.tipo}</span>
+                <span className={`badge whitespace-nowrap ${l.badge}`}>{l.status}</span>
+              </div>
+
+              <div className="min-w-0">
+                <p className="truncate text-lg font-semibold text-ink">{l.motorista || 'Sem motorista'}</p>
+                <p className="truncate text-sm text-ink-muted">{l.cidade || 'Sem cidade'}</p>
+              </div>
+
+              {l.placas.length > 0 ? (
+                <span className="placas">{l.placas.map((p) => <span key={p}>{p}</span>)}</span>
+              ) : (
+                <span className="text-sm text-ink-muted">Sem placa</span>
+              )}
+
+              <ul className="space-y-1 text-xs text-ink-muted">
+                {l.etapas.map((e) => (
+                  <li key={e.rotulo} className="flex justify-between gap-2">
+                    <span>{e.rotulo}</span>
+                    <span className={e.em ? 'text-ink' : ''}>{hora(e.em)}</span>
+                  </li>
+                ))}
+              </ul>
+              {l.saidaPor && <p className="text-xs text-ink-muted">Saída por {l.saidaPor}</p>}
+
+              <div className="mt-auto flex items-center justify-between gap-2 border-t border-line pt-3">
+                {l.ver ?? <span />}
+                <details className="relative">
+                  <summary className="btn btn-ghost btn-sm cursor-pointer list-none">Mais</summary>
+                  <div className="absolute right-0 z-10 mt-2 flex w-56 flex-col items-stretch gap-1 rounded-lg border border-line bg-surface p-2 shadow-lg">
+                    {l.menu}
+                  </div>
+                </details>
+              </div>
+            </li>
+          ))}
+        </ul>
       )}
     </main>
   );
