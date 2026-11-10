@@ -37,15 +37,12 @@ const STATUS_TEXTO: Record<string, string> = {
 };
 
 export default async function AdminHomePage() {
-  const { nome, role } = await requireAdmin();
-  // O dono vê a saudação na Visão geral; aqui a tela vai direto ao que precisa conferir.
-  const mostrarSaudacao = role !== 'DONO';
+  const { nome } = await requireAdmin();
   const primeiroNome = nome.trim().split(' ')[0] ?? nome;
   const [movimentacoes, aguardandoChegada] = await Promise.all([listarPendentesConferencia(), listarAguardandoChegada()]);
 
   return (
     <main className="mx-auto w-full max-w-7xl space-y-6">
-      {mostrarSaudacao && (
       <section className="saudacao-hero">
         <FundoTrilhos />
         <div className="saudacao-hero-texto">
@@ -59,7 +56,6 @@ export default async function AdminHomePage() {
           </p>
         </div>
       </section>
-      )}
 
       <div className="boas-vindas">
         <h1 className="page-title">Movimentações pendentes de conferência</h1>
