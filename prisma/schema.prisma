@@ -640,3 +640,37 @@ model EstoqueItem {
 
   @@index([tipo])
 }
+
+// Produção (soldadora de trilhos). Um registro por dia. As soldas de um dia que não completam 12 passam para o dia seguinte.
+model ProducaoDia {
+  id           String   @id @default(cuid())
+  data         DateTime @unique @db.Date
+  soldadores   String
+  lider        String
+  perfil       String
+  fabricante   String
+  sobraEntrada Int      @default(0)
+  totalSoldas  Int      @default(0)
+  tlsFormados  Int      @default(0)
+  sobraSaida   Int      @default(0)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  linhas       ProducaoLinha[]
+}
+
+model ProducaoLinha {
+  id                 String      @id @default(cuid())
+  diaId              String
+  dia                ProducaoDia @relation(fields: [diaId], references: [id], onDelete: Cascade)
+  hora               String
+  soldas             Int         @default(0)
+  cortes             Int         @default(0)
+  justificativaCorte String?
+  paradaInicio       String?
+  paradaMinutos      Int?
+  paradaDescricao    String?
+  perfil             String
+  fabricante         String
+
+  @@unique([diaId, hora])
+}
