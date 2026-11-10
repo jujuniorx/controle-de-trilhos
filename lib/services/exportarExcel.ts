@@ -257,6 +257,34 @@ function formatarRecebidos(sheet: ExcelJS.Worksheet) {
   sheet.autoFilter = { from: { row: 2, column: 1 }, to: { row: 2, column: 24 } };
 }
 
+const FAIXAS_REMETIDOS = [
+  'DATA', '', '', 'DOCUMENTO', '', '', 'TRANSPORTE', '', 'DESCRIÇÃO', '', 'MATERIAL', '', '', 'QUANTIDADE', '', '', 'BAIXA', '', '', '',
+];
+
+const COLUNAS_REMETIDOS = [
+  'Dia', 'Mês', 'Ano', 'Tipo', 'Num. N.F.', 'Reserva/Pedido', 'Tipo', 'Placa', 'Destino / Transportadora', 'Perfil', 'Tipo',
+  'Marca', 'Tipo', 'Peças', 'Metros', 'Ton', 'Reserva', 'Depósito Destino', 'Considerar real meta', 'Obs',
+];
+
+/** Faixas mescladas, cores, larguras e painel congelado da aba de remetidos (igual à referência Remetido 2026). */
+function formatarRemetidos(sheet: ExcelJS.Worksheet) {
+  const faixas: [string, string][] = [['A1', 'C1'], ['D1', 'F1'], ['G1', 'H1'], ['I1', 'J1'], ['K1', 'M1'], ['N1', 'P1'], ['Q1', 'T1']];
+  for (const [de, ate] of faixas) sheet.mergeCells(`${de}:${ate}`);
+  for (const linha of [1, 2]) {
+    const row = sheet.getRow(linha);
+    row.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+    row.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+    row.eachCell({ includeEmpty: true }, (cell) => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2F5597' } };
+    });
+  }
+  sheet.getRow(2).height = 36;
+  const larguras = [6, 6, 7, 12, 12, 14, 12, 12, 24, 16, 14, 12, 12, 10, 11, 10, 12, 16, 16, 14];
+  larguras.forEach((w, i) => (sheet.getColumn(i + 1).width = w));
+  sheet.views = [{ state: 'frozen', ySplit: 2 }];
+  sheet.autoFilter = { from: { row: 2, column: 1 }, to: { row: 2, column: 20 } };
+}
+
 /** Aplica bordas em todas as células da planilha. */
 function aplicarBordas(sheet: ExcelJS.Worksheet) {
   // Percorre todas as colunas da aba (inclusive as vazias): sem isso, células sem valor ficam sem contorno.
@@ -303,27 +331,9 @@ function agruparPorPerfilEMaterial(grupos: Grupo[]): Grupo[][] {
 }
 
 function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRelatorio[]) {
-  aplicarCabecalho(sheet, [
-    'Dia',
-    'Mês',
-    'Ano',
-    'Tipo do documento',
-    'Nº NF',
-    'Reserva/Pedido',
-    'Tipo de transporte',
-    'Placa',
-    'Destino/Transportadora',
-    'Perfil',
-    'Tipo de material',
-    'Marca',
-    'Tipo de remetido',
-    'Peças',
-    'Metros',
-    'Toneladas',
-    'Baixa — Reserva',
-    'Depósito destino',
-    'Considerar real meta',
-  ]);
+  // Igual à planilha de referência (Remetido 2026): faixas na linha 1 e nomes na linha 2.
+  sheet.addRow(FAIXAS_REMETIDOS);
+  sheet.addRow(COLUNAS_REMETIDOS);
 
   // Remetidos em ordem crescente de data, igual aos recebidos (para copiar e colar na planilha da empresa).
   const cronologicoRemetidos = [...movimentacoes].sort(
@@ -354,7 +364,7 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
 
     if (mov.grupos.length === 0) {
       // Pré-cadastro ainda aguardando o Pátio confirmar a chegada — sem grupos ainda.
-      sheet.addRow(sanear([...base, '', '', '', tipoRemetido, null, null, null, ...manuais]));
+      sheet.addRow(sanear([...base, '', '', '', tipoRemetido, null, null, null, ...manuais, '']));
       pintarSePendente(sheet, primeiraLinha, mov.status);
       continue;
     }
@@ -370,22 +380,31 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
         arredondar3,
       );
 
-      sheet.addRow(sanear([
+      const metrosGrupo = arredondar2(grupos.reduce((acc, g) => acc + Number(g.metrosTotal), 0));
+      const kgm = KG_POR_METRO[grupos[0].perfil];
+      const linha = sheet.addRow(sanear([
         ...base,
         descricaoPerfil(grupos[0].perfil),
         rotuloMaterial(grupos[0]),
         marcas.length > 0 ? marcas.join(' / ') : 'N/A',
         tipoRemetido,
         diversos ? '-' : grupos.reduce((acc, g) => acc + pecasDoGrupo(g.medicoes), 0),
-        diversos ? '-' : arredondar2(grupos.reduce((acc, g) => acc + Number(g.metrosTotal), 0)),
+        diversos ? '-' : metrosGrupo,
         diversos ? (toneladas ?? '-') : toneladas,
         ...manuais,
+        '',
       ]));
+      // Toneladas = metros x kg/m do perfil (igual à referência). Sucata/diversos sem metro ficam como estão.
+      if (!diversos && kgm) {
+        const r = linha.number;
+        linha.getCell(16).value = { formula: `O${r}*${kgm}/1000`, result: Math.round(metrosGrupo * kgm) / 1000 };
+      }
     }
     pintarSePendente(sheet, primeiraLinha, mov.status);
   }
 
   formatarColunasDeData(sheet);
+  formatarRemetidos(sheet);
 }
 
 /**
@@ -396,7 +415,7 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
  */
 function aplicarFontePadrao(sheet: ExcelJS.Worksheet) {
   sheet.eachRow((row, rowNum) => {
-    if (rowNum === 1) return; // pula cabeçalho
+    if (rowNum <= 2) return; // pula cabeçalho (duas linhas)
     row.font = { ...row.font, name: 'Calibri', size: 11 };
     row.height = 18; // altura padronizada
   });
