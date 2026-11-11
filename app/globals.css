@@ -2201,3 +2201,82 @@ html[data-tema="pastel"] .stat-value {
   background-clip: text;
   color: transparent;
 }
+
+/* ============================================================
+   CARDS E MOVIMENTO POR TEMA (cada tema tem a sua forma).
+   Referências: Escuro = app do pátio (cards sólidos, chips âmbar);
+   Vidro = Glassy Dashboard (painéis de vidro, luz varrendo);
+   Azul = @_code_and_chill_ (cards finos, linha de luz no topo);
+   Pastel = Dashboard V15 (cards bem arredondados, quique suave);
+   Claro = base limpa e sóbria (sombra leve, entrada discreta).
+   ============================================================ */
+
+/* Escuro: cards sólidos, entrada rápida de baixo para cima */
+html[data-tema="escuro"] .card,
+html[data-tema="escuro"] .stat-tile {
+  background: #1E2227 !important;
+  border: 1px solid #2C3139;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  animation: ct-sobe-escuro .32s cubic-bezier(.2,.7,.2,1) both;
+  transition: transform .18s ease, border-color .18s ease;
+}
+html[data-tema="escuro"] .card:hover,
+html[data-tema="escuro"] .stat-tile:hover { transform: translateY(-2px); border-color: rgba(255,122,26,.4); }
+@keyframes ct-sobe-escuro { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* Claro: cards brancos, sombra leve, só fade */
+html[data-tema="claro"] .card,
+html[data-tema="claro"] .stat-tile {
+  background: #FFFFFF !important;
+  border: 1px solid #E3E8EF;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(15,27,45,.05), 0 4px 14px rgba(15,27,45,.04);
+  animation: ct-fade-claro .25s ease-out both;
+  transition: box-shadow .2s ease;
+}
+html[data-tema="claro"] .card:hover,
+html[data-tema="claro"] .stat-tile:hover { box-shadow: 0 2px 4px rgba(15,27,45,.06), 0 10px 24px rgba(15,27,45,.08); }
+@keyframes ct-fade-claro { from { opacity: 0; } to { opacity: 1; } }
+
+/* Azul-marinho: cards finos com linha de luz no topo, entrada pela esquerda */
+html[data-tema="azul"] .card,
+html[data-tema="azul"] .stat-tile {
+  background: linear-gradient(180deg, #13223A, #0E1A2E) !important;
+  border: 1px solid #1E3352;
+  border-top: 2px solid #3B82F6;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.4);
+  animation: ct-entra-azul .4s cubic-bezier(.2,.7,.2,1) both;
+  transition: border-color .2s ease, transform .2s ease;
+}
+html[data-tema="azul"] .card:hover,
+html[data-tema="azul"] .stat-tile:hover { transform: translateX(3px); border-color: #3B82F6; }
+@keyframes ct-entra-azul { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+
+/* Pastel: cards bem arredondados, entrada com um quique suave */
+html[data-tema="pastel"] .card,
+html[data-tema="pastel"] .stat-tile {
+  background: linear-gradient(160deg, rgba(255,255,255,.95), rgba(246,240,255,.9)) !important;
+  border: 1px solid #E2D6FA;
+  border-radius: 28px;
+  box-shadow: 0 14px 40px rgba(124,92,224,.14);
+  animation: ct-quica-pastel .6s cubic-bezier(.3,1.4,.5,1) both;
+  transition: transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s ease;
+}
+html[data-tema="pastel"] .card:hover,
+html[data-tema="pastel"] .stat-tile:hover { transform: translateY(-4px); box-shadow: 0 20px 44px rgba(124,92,224,.2); }
+@keyframes ct-quica-pastel { 0% { opacity: 0; transform: translateY(18px) scale(.96); } 100% { opacity: 1; transform: none; } }
+
+/* Vidro: painéis de vidro com desfoque, entrada com nitidez gradual */
+html[data-tema="vidro"] .card,
+html[data-tema="vidro"] .stat-tile {
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  animation: ct-nitido-vidro .5s ease-out both;
+}
+@keyframes ct-nitido-vidro { from { opacity: 0; filter: blur(6px); } to { opacity: 1; filter: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-tema] .card, html[data-tema] .stat-tile { animation: none !important; transition: none !important; }
+}
