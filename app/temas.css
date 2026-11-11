@@ -549,7 +549,7 @@ html[data-tema]:root .abertura { background: var(--v-bg) !important; color: var(
 
 /* Tela inicial: os quatro setores sempre em 2 x 2 (no celular nao sobra um sozinho embaixo) */
 html[data-tema]:root .home-entrada .home-grade { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; max-width: 360px; margin-inline: auto; }
-html[data-tema]:root .home-entrada .setor-tile-nome { font-size: clamp(.9rem, 3.6vw, 1.05rem); overflow-wrap: anywhere; }
+html[data-tema]:root .home-entrada .setor-tile-nome { font-size: clamp(.82rem, 3.4vw, 1.05rem); letter-spacing: .02em; overflow-wrap: normal; white-space: nowrap; }
 @media (max-width: 480px) {
   html[data-tema]:root .home-entrada { padding-top: max(72px, calc(env(safe-area-inset-top, 0px) + 64px)) !important; }
 }
