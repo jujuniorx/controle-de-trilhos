@@ -2164,3 +2164,11 @@ html[data-tema="azul"] .pagina-admin h1 {
   html[data-tema="vidro"] .pagina-admin h1,
   html[data-tema="azul"] .pagina-admin h1 { animation: none; }
 }
+
+/* Números das métricas com largura fixa (não "dançam" ao mudar), nos temas com vidro e azul. */
+html[data-tema="vidro"] .stat-value,
+html[data-tema="azul"] .stat-value,
+html[data-tema="vidro"] .card table td,
+html[data-tema="azul"] .card table td {
+  font-variant-numeric: tabular-nums;
+}
