@@ -840,3 +840,41 @@ html[data-tema]:root :is(.inicio-cartao, .inicio-resumo, .motivos-campo, .motivo
   html[data-tema]:root :is(.inicio-resumos, .inicio-grade, .hora-lista) > * { animation: none; }
   html[data-tema]:root :is(.inicio-cartao, .inicio-resumo, .motivos-campo, .motivos-item):active { transform: none; }
 }
+
+/* Usina: faixa de setores (acompanha a rolagem e marca o setor da tela) e acoes do topo */
+html[data-tema]:root .setores-nav {
+  position: sticky; top: 8px; z-index: 20; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); padding: 5px;
+  border-radius: 16px; background: var(--v-menu); border: 1px solid var(--v-menu-line); box-shadow: 0 10px 28px rgba(0, 0, 0, .22);
+}
+html[data-tema]:root .setores-marca {
+  position: absolute; top: 5px; bottom: 5px; left: 5px; width: calc((100% - 10px) / var(--n)); border-radius: 12px; background: var(--v-btn);
+  transform: translateX(calc(var(--ativo) * 100%)); transition: transform .32s cubic-bezier(.2, .8, .2, 1);
+}
+html[data-tema]:root .setores-item {
+  position: relative; z-index: 1; display: grid; place-items: center; min-height: 40px; padding: 4px 6px; border-radius: 12px; text-align: center;
+  font-size: .86rem; font-weight: 700; line-height: 1.15; color: var(--ink-muted); text-decoration: none; transition: color .2s ease;
+}
+html[data-tema]:root .setores-item:hover { color: var(--ink); }
+html[data-tema]:root .setores-item[aria-current="true"] { color: var(--v-btn-ink); }
+html[data-tema]:root .setores-item:focus-visible { outline: 2px solid var(--v-focus); outline-offset: 2px; }
+html[data-tema]:root .setores-curto { display: none; }
+html[data-tema]:root :is(#estaleiro, #geracao, #composicoes, #caminhao, #trilheiros) { scroll-margin-top: 130px; }
+html[data-tema]:root .usina-acoes { display: flex; flex-wrap: wrap; gap: 8px; }
+html[data-tema]:root .usina-imprimir { position: relative; }
+html[data-tema]:root .usina-imprimir > summary::-webkit-details-marker { display: none; }
+html[data-tema]:root .usina-imprimir > summary { display: inline-flex; align-items: center; gap: 8px; }
+html[data-tema]:root .usina-imprimir-menu {
+  position: absolute; right: 0; z-index: 30; margin-top: 8px; min-width: 220px; padding: 6px; display: flex; flex-direction: column; gap: 2px;
+  border-radius: 14px; background: var(--v-menu); border: 1px solid var(--v-menu-line); box-shadow: var(--v-menu-shadow);
+}
+html[data-tema]:root .usina-imprimir-menu a { padding: 10px 12px; border-radius: 10px; color: var(--ink); text-decoration: none; }
+html[data-tema]:root .usina-imprimir-menu a:hover { background: var(--v-side-hover); }
+@media (min-width: 768px) { html[data-tema]:root .setores-nav { top: 62px; } }
+@media (max-width: 640px) {
+  html[data-tema]:root .setores-longo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  html[data-tema]:root .setores-curto { display: inline; }
+  html[data-tema]:root .setores-item { font-size: .76rem; padding: 4px 2px; min-height: 42px; }
+  html[data-tema]:root .usina-acoes { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+  html[data-tema]:root .usina-acoes > a, html[data-tema]:root .usina-imprimir > summary { width: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) { html[data-tema]:root .setores-marca { transition: none; } }
