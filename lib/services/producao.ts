@@ -16,6 +16,20 @@ export function paradaEmHoraMin(minutos: number | null | undefined): string {
   if (!minutos) return '';
   return `${Math.floor(minutos / 60)}:${String(minutos % 60).padStart(2, '0')}`;
 }
+
+/** Ate 3 paradas por hora, igual a planilha de papel. */
+export const MAX_PARADAS_HORA = 3;
+export interface Parada { inicio: string | null; minutos: number; descricao: string | null }
+
+/** As paradas ficam guardadas como texto JSON na linha da hora. */
+export function paradasDaLinha(texto: string | null | undefined): Parada[] {
+  try {
+    const v = JSON.parse(texto || '[]');
+    return Array.isArray(v) ? v.filter((p) => p && typeof p.minutos === 'number') : [];
+  } catch {
+    return [];
+  }
+}
 export const METROS_POR_TLS = 312;
 export const PERFIS_PRODUCAO = ['TR60', 'TR68', 'UIC60'] as const;
 export const FABRICANTES_PRODUCAO = ['Nippon', 'Evraz', 'Pangang', 'Arcelormittal', 'UHCX'] as const;
@@ -25,9 +39,7 @@ export interface LinhaProducao {
   soldas: number;
   cortes: number;
   justificativaCorte: string | null;
-  paradaInicio: string | null;
-  paradaMinutos: number | null;
-  paradaDescricao: string | null;
+  paradas: Parada[];
   perfil: string;
   fabricante: string;
 }
@@ -73,7 +85,7 @@ export async function recalcularAPartir(desde: Date): Promise<void> {
 
 /** Grava ou corrige o dia e refaz as contas dos dias seguintes. */
 export async function salvarDiaProducao(dados: DadosDia): Promise<void> {
-  const linhas = dados.linhas.filter((l) => l.soldas > 0 || l.cortes > 0 || l.paradaMinutos);
+  const linhas = dados.linhas.filter((l) => l.soldas > 0 || l.cortes > 0 || l.paradas.length > 0);
   await prisma.producaoDia.upsert({
     where: { data: dados.data },
     create: { data: dados.data, soldadores: dados.soldadores, lider: dados.lider, perfil: dados.perfil, fabricante: dados.fabricante },
@@ -81,7 +93,19 @@ export async function salvarDiaProducao(dados: DadosDia): Promise<void> {
   });
   const dia = await prisma.producaoDia.findUniqueOrThrow({ where: { data: dados.data } });
   await prisma.producaoLinha.deleteMany({ where: { diaId: dia.id } });
-  if (linhas.length) await prisma.producaoLinha.createMany({ data: linhas.map((l) => ({ ...l, diaId: dia.id })) });
+  if (linhas.length)
+    await prisma.producaoLinha.createMany({
+      data: linhas.map((l) => ({
+        diaId: dia.id,
+        hora: l.hora,
+        soldas: l.soldas,
+        cortes: l.cortes,
+        justificativaCorte: l.justificativaCorte,
+        perfil: l.perfil,
+        fabricante: l.fabricante,
+        paradas: JSON.stringify(l.paradas),
+      })),
+    });
   await recalcularAPartir(dados.data);
   // A Usina (Estaleiro de solda) recebe as soldas e os cortes do dia lancados na Producao.
   const soldas = dados.linhas.reduce((t, l) => t + l.soldas, 0);

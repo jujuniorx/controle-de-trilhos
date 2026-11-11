@@ -666,9 +666,7 @@ model ProducaoLinha {
   soldas             Int         @default(0)
   cortes             Int         @default(0)
   justificativaCorte String?
-  paradaInicio       String?
-  paradaMinutos      Int?
-  paradaDescricao    String?
+  paradas            String      @default("[]")
   perfil             String
   fabricante         String
 

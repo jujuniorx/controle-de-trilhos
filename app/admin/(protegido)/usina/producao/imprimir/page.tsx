@@ -1,4 +1,4 @@
-import { SOLDAS_POR_TLS, buscarDia, horasDoDia } from '@/lib/services/producao';
+import { SOLDAS_POR_TLS, buscarDia, horasDoDia, paradasDaLinha } from '@/lib/services/producao';
 import { BotaoImprimirPagina } from '@/components/producao/BotaoImprimirPagina';
 
 export const dynamic = 'force-dynamic';
@@ -39,7 +39,7 @@ export default async function ImprimirProducaoPage({ searchParams }: { searchPar
 
   const totalSoldas = dia?.totalSoldas ?? 0;
   const totalCortes = horas.reduce((t, h) => t + (porHora.get(h)?.cortes ?? 0), 0);
-  const totalParadaMin = horas.reduce((t, h) => t + (porHora.get(h)?.paradaMinutos ?? 0), 0);
+  const totalParadaMin = horas.reduce((t, h) => t + paradasDaLinha(porHora.get(h)?.paradas).reduce((s, p) => s + p.minutos, 0), 0);
   const maiorHora = Math.max(1, ...horas.map((h) => porHora.get(h)?.soldas ?? 0));
 
   let acumulado = 0;
@@ -116,9 +116,9 @@ export default async function ImprimirProducaoPage({ searchParams }: { searchPar
                 <td className="py-2 pr-2">{l?.perfil ?? '—'}</td>
                 <td className="py-2 pr-2">{l?.fabricante ?? '—'}</td>
                 <td className="py-2 pr-2 text-right tabular-nums">{l?.cortes || '—'}</td>
-                <td className="py-2 pr-2 whitespace-nowrap">{l?.paradaMinutos ? `${l.paradaInicio ?? ''} · ${l.paradaMinutos} min` : '—'}</td>
+                <td className="py-2 pr-2 whitespace-nowrap">{paradasDaLinha(l?.paradas).map((p) => `${p.inicio ?? '—'} · ${p.minutos} min`).join(' / ') || '—'}</td>
                 <td className="py-2">
-                  {[l?.paradaDescricao, l?.justificativaCorte && `Corte: ${l.justificativaCorte}`].filter(Boolean).join(' · ') || '—'}
+                  {[...paradasDaLinha(l?.paradas).map((p) => p.descricao), l?.justificativaCorte && `Corte: ${l.justificativaCorte}`].filter(Boolean).join(' · ') || '—'}
                 </td>
               </tr>
             ))}
