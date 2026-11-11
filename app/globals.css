@@ -2409,3 +2409,12 @@ html[data-tema="claro"] .entrada-marca-frase { color: #4a5b70; }
   .planilha-producao table { page-break-inside: auto; }
   .planilha-producao tr { page-break-inside: avoid; }
 }
+
+/* Lista aberta dos selects (filtros, formularios): segue o tema, com texto legivel */
+select option { background: var(--surface-2, #1c1f24); color: var(--ink, #f2f3f5); }
+html[data-tema="claro"] select option { background: #ffffff; color: #13202f; }
+html[data-tema="pastel"] select option { background: #ffffff; color: #2b1d4d; }
+html[data-tema="escuro"] select option { background: #0b0b0c; color: #fafafa; }
+html[data-tema="vidro"] select option { background: #1a120c; color: #fff4ea; }
+html[data-tema="azul"] select option { background: #0e1a2e; color: #e8f1fc; }
+select option:checked, select option:hover { background: var(--primary, #3b82f6); color: #fff; }
