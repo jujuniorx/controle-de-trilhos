@@ -681,21 +681,34 @@ body {
 html:not([data-tema]) .area-patio,
 html[data-tema="escuro"] .area-patio,
 html[data-tema="escuro"] .area-admin {
-  --g0: #0C1015; --g1: #10161D; --g2: #151B23; --g3: #1C242E; --g4: #2A3441; --g5: #3A4757; --g6: #556270;
-  --b0: #10243A; --b1: #16314D; --b2: #2D74C7; --b3: #4F9BE0; --b4: #4F9BE0; --b5: #7FB2F0; --b6: #B3D1EF;
-  --t1: #E8EDF3; --t2: #9AA7B8; --t3: #7D8A9C;
-  --ln: #222C37; --ln2: #2A3441;
+  --g0: #111316; --g1: #16181C; --g2: #1C1F24; --g3: #23272E; --g4: #2E333C; --g5: #3D434E; --g6: #5C6370;
+  --b0: #2A1A0E; --b1: #3D2513; --b2: #E8731F; --b3: #FF7A1A; --b4: #FF7A1A; --b5: #FFA15C; --b6: #FFD2B0;
+  --t1: #F2F3F5; --t2: #A3A9B4; --t3: #7E8592;
+  --ln: #2A2E36; --ln2: #343943;
   --ok: #34B27B; --ok-bg: rgba(52,178,123,.16);
-  --warn: #F2A93B; --warn-bg: rgba(242,169,59,.16);
+  --warn: #F5C24A; --warn-bg: rgba(245,194,74,.14);
   --err: #E5584B; --err-bg: rgba(229,88,75,.16);
-  --primary: #4F9BE0; --primary-dark: #2D74C7; --primary-light: #E8F2FC;
-  --surface: #151B23; --surface-2: #1C242E; --surface-3: #2A3441;
-  --ink: #E8EDF3; --ink-muted: #9AA7B8; --ink-dim: #7D8A9C;
-  --ok-light: rgba(52,178,123,.16); --warn-light: rgba(242,169,59,.16);
+  --primary: #FF7A1A; --primary-dark: #E8731F; --primary-light: #FFF1E6;
+  --surface: #1C1F24; --surface-2: #23272E; --surface-3: #2E333C;
+  --ink: #F2F3F5; --ink-muted: #A3A9B4; --ink-dim: #7E8592;
+  --ok-light: rgba(52,178,123,.16); --warn-light: rgba(245,194,74,.14);
   --bad: #E5584B; --bad-light: rgba(229,88,75,.16);
-  --line: #222C37; --line-2: #2A3441;
-  --background: #0C1015; --foreground: #E8EDF3;
-  --on-primary: #06121F;
+  --line: #2A2E36; --line-2: #343943;
+  --background: #111316; --foreground: #F2F3F5;
+  --on-primary: #1A0F05;
+  --card-shadow: 0 10px 28px rgba(0,0,0,.35);
+}
+
+/* Escuro: cards escuros arredondados, como na referência do app do pátio. */
+html[data-tema="escuro"] .card,
+html[data-tema="escuro"] .stat-tile {
+  background: linear-gradient(180deg, #22252B, #1D2026) !important;
+  border: 1px solid #2E333C;
+  border-radius: 20px;
+}
+html[data-tema="escuro"] .card:hover,
+html[data-tema="escuro"] .stat-tile:hover {
+  border-color: rgba(255,122,26,.35);
 }
 
 html:not([data-tema]) .area-admin,
