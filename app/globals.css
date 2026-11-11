@@ -2140,3 +2140,27 @@ html[data-tema="pastel"] .ct-sidebar-nav a[data-active="true"] { background: tra
 @media (prefers-reduced-motion: reduce) {
   .ct-sidebar-nav::before, .ct-sidebar-nav a { animation: none !important; transition: none !important; }
 }
+
+/* ============================================================
+   Brilho nos títulos (Vidro e Azul-marinho), só CSS.
+   Isolado no fim do arquivo para ser fácil de remover.
+   ============================================================ */
+html[data-tema="vidro"] .pagina-admin h1,
+html[data-tema="azul"] .pagina-admin h1 {
+  background: linear-gradient(100deg, var(--t1, #fff) 0%, var(--primary, #7cc4ff) 45%, var(--t1, #fff) 90%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: ct-brilho-titulo 9s ease-in-out infinite;
+}
+
+@keyframes ct-brilho-titulo {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-tema="vidro"] .pagina-admin h1,
+  html[data-tema="azul"] .pagina-admin h1 { animation: none; }
+}
