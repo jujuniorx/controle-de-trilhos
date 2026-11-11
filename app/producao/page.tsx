@@ -22,6 +22,17 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
   const dia = await buscarDia(data);
   const horas = horasDoDia(data);
   const porHora = new Map((dia?.linhas ?? []).map((l) => [l.hora, l]));
+  // Trocas salvas: a hora em que o trilho ou a marca mudou em relacao a hora anterior.
+  const trocaPerfilHora = new Map<string, string>();
+  const trocaFabricanteHora = new Map<string, string>();
+  let perfilAnterior = dia?.perfil ?? PERFIS_PRODUCAO[0];
+  let fabricanteAnterior = dia?.fabricante ?? FABRICANTES_PRODUCAO[0];
+  for (const hora of horas) {
+    const l = porHora.get(hora);
+    if (!l) continue;
+    if (l.perfil !== perfilAnterior) { trocaPerfilHora.set(hora, l.perfil); perfilAnterior = l.perfil; }
+    if (l.fabricante !== fabricanteAnterior) { trocaFabricanteHora.set(hora, l.fabricante); fabricanteAnterior = l.fabricante; }
+  }
 
   return (
     <main className="mx-auto w-full max-w-3xl space-y-6 px-4 py-6">
@@ -58,6 +69,12 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div className="field"><label htmlFor={`soldas_${hora}`}>Soldas</label><input id={`soldas_${hora}`} name={`soldas_${hora}`} inputMode="numeric" defaultValue={l?.soldas || ''} className="h-11" /></div>
                   <div className="field"><label htmlFor={`cortes_${hora}`}>Cortes</label><input id={`cortes_${hora}`} name={`cortes_${hora}`} inputMode="numeric" defaultValue={l?.cortes || ''} className="h-11" /></div>
+                  <div className="field"><label htmlFor={`troca_perfil_${hora}`}>Trocou o trilho para</label>
+                    <select id={`troca_perfil_${hora}`} name={`troca_perfil_${hora}`} defaultValue={trocaPerfilHora.get(hora) ?? ''} className="h-11"><option value="">Mantém</option>{PERFIS_PRODUCAO.map((p) => <option key={p} value={p}>{p}</option>)}</select>
+                  </div>
+                  <div className="field"><label htmlFor={`troca_fabricante_${hora}`}>Trocou a marca para</label>
+                    <select id={`troca_fabricante_${hora}`} name={`troca_fabricante_${hora}`} defaultValue={trocaFabricanteHora.get(hora) ?? ''} className="h-11"><option value="">Mantém</option>{FABRICANTES_PRODUCAO.map((f) => <option key={f} value={f}>{f}</option>)}</select>
+                  </div>
                   {/* Sem campo próprio: o motivo do corte vai na descrição da parada. O texto já salvo continua guardado. */}
                   <input type="hidden" name={`justificativa_${hora}`} value={l?.justificativaCorte ?? ''} />
                   <div className="overflow-x-auto sm:col-span-2">

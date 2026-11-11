@@ -46,7 +46,14 @@ export async function salvarProducaoAction(formData: FormData): Promise<void> {
   const perfilAntes = diaAntes?.perfil ?? perfil;
   const fabricanteAntes = diaAntes?.fabricante ?? fabricante;
 
+  // Trocas de trilho/marca dentro de cada hora: valem dali em diante (ate a proxima troca).
+  let perfilTrocado: string | undefined;
+  let fabricanteTrocado: string | undefined;
   const linhas: LinhaProducao[] = horas.map((hora) => {
+    const pTroca = texto(formData.get(`troca_perfil_${hora}`), 10);
+    const fTroca = texto(formData.get(`troca_fabricante_${hora}`), 30);
+    if ((PERFIS_PRODUCAO as readonly string[]).includes(pTroca)) perfilTrocado = pTroca;
+    if ((FABRICANTES_PRODUCAO as readonly string[]).includes(fTroca)) fabricanteTrocado = fTroca;
     const cortes = inteiro(formData.get(`cortes_${hora}`));
     const paradas = Array.from({ length: MAX_PARADAS_HORA }, (_, i) => i + 1)
       .map((n) => ({
@@ -61,8 +68,8 @@ export async function salvarProducaoAction(formData: FormData): Promise<void> {
       cortes,
       justificativaCorte: cortes > 0 ? texto(formData.get(`justificativa_${hora}`), 200) || null : null,
       paradas,
-      perfil: valorDaHora(hora, horaTrocaPerfil, perfil, perfilAntes, linhasAntes.get(hora)?.perfil),
-      fabricante: valorDaHora(hora, horaTrocaFabricante, fabricante, fabricanteAntes, linhasAntes.get(hora)?.fabricante),
+      perfil: perfilTrocado ?? valorDaHora(hora, horaTrocaPerfil, perfil, perfilAntes, linhasAntes.get(hora)?.perfil),
+      fabricante: fabricanteTrocado ?? valorDaHora(hora, horaTrocaFabricante, fabricante, fabricanteAntes, linhasAntes.get(hora)?.fabricante),
     };
   });
 
