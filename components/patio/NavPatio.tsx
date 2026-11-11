@@ -1,9 +1,10 @@
 'use client';
 
-import { useLayoutEffect, useRef } from 'react';
+import { useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ICONE_CARGA, ICONE_INICIO, ICONE_RECEBER, ICONE_SAIDAS } from '@/components/patio/icones';
+import { usePilulaMenu } from '@/lib/ui/usePilulaMenu';
 
 const ITENS = [
   { href: '/patio', rotulo: 'Início', icone: ICONE_INICIO, exato: true },
@@ -17,15 +18,8 @@ export function NavPatio({ className }: { className?: string }) {
   const pathname = usePathname().replace(/\/$/, '') || '/';
   const navRef = useRef<HTMLElement>(null);
 
-  // Mesma pílula do menu do Administrativo: mede o item ativo e desliza a pílula até ele.
-  useLayoutEffect(() => {
-    const nav = navRef.current;
-    const ativo = nav?.querySelector<HTMLElement>('a[data-active="true"]');
-    if (!nav || !ativo) return;
-    nav.style.setProperty('--pilula-y', `${ativo.offsetTop}px`);
-    nav.style.setProperty('--pilula-h', `${ativo.offsetHeight}px`);
-    nav.style.setProperty('--pilula-on', '1');
-  }, [pathname]);
+  // Mesma pílula do menu do Administrativo: desliza até o item ativo.
+  usePilulaMenu(navRef, pathname);
 
   return (
     <nav ref={navRef} className={`ct-sidebar-nav ${className ?? ''}`} aria-label="Seções do Pátio">

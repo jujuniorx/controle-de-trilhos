@@ -5,6 +5,8 @@ import { RegistrarServiceWorker } from "@/components/RegistrarServiceWorker";
 import { AberturaApp } from "@/components/AberturaApp";
 import { TEMA_COOKIE, TEMA_PADRAO, temaValido } from "@/lib/tema/tema";
 import "./globals.css";
+// Camada final dos temas (referencias visuais): precisa vir depois do globals.css.
+import "./temas.css";
 
 const barlow = Barlow({
   variable: "--font-barlow",

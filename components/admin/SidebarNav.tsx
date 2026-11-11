@@ -1,8 +1,9 @@
 'use client';
 
-import { useLayoutEffect, useRef, type CSSProperties, type ReactNode } from 'react';
+import { useRef, type CSSProperties, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { usePilulaMenu } from '@/lib/ui/usePilulaMenu';
 
 export const NAV_ITEMS = [
   { href: '/admin', label: 'Pendências' },
@@ -89,15 +90,8 @@ export function SidebarNav({ onNavigate, className, dono }: { onNavigate?: () =>
   const pathname = usePathname();
   const navRef = useRef<HTMLElement>(null);
 
-  // Pílula que desliza até o item ativo: mede a posição do link ativo e grava em variáveis CSS.
-  useLayoutEffect(() => {
-    const nav = navRef.current;
-    const ativo = nav?.querySelector<HTMLElement>('a[data-active="true"]');
-    if (!nav || !ativo) return;
-    nav.style.setProperty('--pilula-y', `${ativo.offsetTop}px`);
-    nav.style.setProperty('--pilula-h', `${ativo.offsetHeight}px`);
-    nav.style.setProperty('--pilula-on', '1');
-  }, [pathname, dono]);
+  // Pílula que desliza até o item ativo (mede de novo se o menu mudar de tamanho ou o tema trocar).
+  usePilulaMenu(navRef, `${pathname}|${dono ? 1 : 0}`);
 
   function item(i: { href: string; label: string }, ordem: number) {
     const ativo = i.href === '/admin' ? pathname === '/admin' : pathname === i.href || pathname.startsWith(`${i.href}/`);
