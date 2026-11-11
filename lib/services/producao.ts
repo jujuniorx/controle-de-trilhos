@@ -2,6 +2,20 @@ import { prisma } from '@/lib/db';
 
 /** Soldas que formam 1 TLS. Todo TLS tem 312 m. */
 export const SOLDAS_POR_TLS = 12;
+
+/** Tempo de parada no papel e na tela: "0:23" = 23 min, "1:05" = 65 min. Numero puro tambem vale (minutos). */
+export function minutosDaParada(valor: string | null | undefined): number {
+  const texto = (valor ?? '').trim();
+  const hm = /^(\d{1,2}):(\d{1,2})$/.exec(texto);
+  if (hm) return Number(hm[1]) * 60 + Math.min(Number(hm[2]), 59);
+  const n = Math.floor(Number(texto.replace(',', '.')));
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+export function paradaEmHoraMin(minutos: number | null | undefined): string {
+  if (!minutos) return '';
+  return `${Math.floor(minutos / 60)}:${String(minutos % 60).padStart(2, '0')}`;
+}
 export const METROS_POR_TLS = 312;
 export const PERFIS_PRODUCAO = ['TR60', 'TR68', 'UIC60'] as const;
 export const FABRICANTES_PRODUCAO = ['Nippon', 'Evraz', 'Pangang', 'Arcelormittal', 'UHCX'] as const;

@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { COOKIE_PRODUCAO, cookieProducaoValido } from '@/lib/services/producaoAcesso';
-import { FABRICANTES_PRODUCAO, PERFIS_PRODUCAO, buscarDia, horasDoDia, salvarDiaProducao, type LinhaProducao } from '@/lib/services/producao';
+import { FABRICANTES_PRODUCAO, PERFIS_PRODUCAO, buscarDia, horasDoDia, minutosDaParada, salvarDiaProducao, type LinhaProducao } from '@/lib/services/producao';
 
 /** Valor de uma hora: antes da troca fica o que ja estava registrado; a partir da troca, o novo valor. */
 function valorDaHora(hora: string, horaTroca: string, novo: string, antes: string, registrado: string | undefined): string {
@@ -48,7 +48,7 @@ export async function salvarProducaoAction(formData: FormData): Promise<void> {
 
   const linhas: LinhaProducao[] = horas.map((hora) => {
     const cortes = inteiro(formData.get(`cortes_${hora}`));
-    const minutos = inteiro(formData.get(`parada_${hora}`));
+    const minutos = minutosDaParada(String(formData.get(`parada_${hora}`) ?? ''));
     return {
       hora,
       soldas: inteiro(formData.get(`soldas_${hora}`)),
