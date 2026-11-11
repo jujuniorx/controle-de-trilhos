@@ -2387,3 +2387,16 @@ html[data-tema="pastel"] .home-entrada .home-instalar { background: var(--h-card
 html[data-tema="pastel"] .home-entrada .home-privacidade { color: var(--h-muted); background: rgba(255, 255, 255, .8); }
 /* Home no Escuro: mancha preta, sem o azul-escuro */
 html[data-tema="escuro"] .home-entrada .home-conteudo::before { background: radial-gradient(closest-side, rgba(0, 0, 0, .92) 35%, transparent); }
+
+/* Telas de entrada (setor e login) seguem o tema: painel da marca e formulario */
+html[data-tema="escuro"] .entrada-marca { background: linear-gradient(155deg, #000000, #0b0b0c 70%, #141416); color: #FAFAFA; }
+html[data-tema="escuro"] .entrada-marca-frase { color: #A1A1AA; }
+html[data-tema="escuro"] .entrada-form { background: #000000; }
+html[data-tema="vidro"] .entrada-marca { background: linear-gradient(155deg, #1c120c, #0b0a09 70%, #140d08); color: #FFF4EA; }
+html[data-tema="vidro"] .entrada-marca-frase { color: #E9C9A8; }
+html[data-tema="vidro"] .entrada-form { background: radial-gradient(55% 45% at 50% 42%, rgba(255, 122, 26, .14), transparent 72%), #0b0a09; }
+html[data-tema="pastel"] .entrada-marca { background: linear-gradient(155deg, #e9ddfb, #f7f2ff 70%, #fbeaf6); color: #2b1d4d; }
+html[data-tema="pastel"] .entrada-marca-frase { color: #5d4f80; }
+html[data-tema="pastel"] .entrada-form { background: radial-gradient(55% 45% at 50% 42%, rgba(184, 156, 248, .22), transparent 72%), #f7f2ff; }
+html[data-tema="claro"] .entrada-marca { background: linear-gradient(155deg, #e9eff7, #f4f7fb 70%, #ffffff); color: #13202f; }
+html[data-tema="claro"] .entrada-marca-frase { color: #4a5b70; }
