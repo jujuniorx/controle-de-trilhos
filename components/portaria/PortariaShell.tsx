@@ -7,7 +7,6 @@ import { AlternarTema } from '@/components/ui/AlternarTema';
 import { BotaoSair } from '@/components/admin/BotaoSair';
 import { GestosApp } from '@/components/ui/GestosApp';
 import { BarraAbas, type Aba } from '@/components/ui/BarraAbas';
-import { NavPortaria } from './NavPortaria';
 import { ICONE_RECEBIMENTOS, ICONE_REMETIDOS, ICONE_TROCAR } from './icones';
 
 const ABAS: Aba[] = [
@@ -65,28 +64,15 @@ export function PortariaShell({ nome, sair, children }: { nome: string; sair: ()
         </div>
       </header>
 
-      <aside className="ct-sidebar hidden w-[248px] flex-none flex-col lg:flex">
-        <div className="ct-sidebar-logo">
-          <Logo size={32} subtitle="Portaria" />
-        </div>
-        <NavPortaria className="flex flex-1 flex-col gap-0.5 py-2" />
-        <div className="ct-sidebar-footer">
-          <div className="ct-user">
-            <span className="ct-user-avatar" aria-hidden="true">{iniciais}</span>
-            <div className="ct-user-dados">
-              <span className="ct-user-nome">{nome}</span>
-              <span className="ct-user-papel">Portaria</span>
-            </div>
-          </div>
-          <div className="ct-user-acoes">
-            <BotaoSair acao={sair} />
-          </div>
-        </div>
-      </aside>
+      {/* Sem menu lateral: a navegação é a barra de baixo, em todas as telas. */}
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="ct-topbar hidden h-[52px] flex-none items-center justify-between gap-3 px-6 lg:flex">
-          <NavegacaoTopo inicioArea="/portaria" />
+          <div className="flex min-w-0 items-center gap-3">
+            <Logo size={30} subtitle="Portaria" />
+            <span className="h-6 w-px flex-none bg-line" aria-hidden="true" />
+            <NavegacaoTopo inicioArea="/portaria" />
+          </div>
           <div className="flex items-center gap-3">
             <AlternarTema />
             <MenuConta nome={nome} iniciais={iniciais} sair={sair} />

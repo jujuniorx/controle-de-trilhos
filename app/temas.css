@@ -610,4 +610,64 @@ html[data-tema]:root details.card[open] > summary::after { transform: translateY
   html[data-tema]:root .patio-shell .ct-topbar .ct-logo-text .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
 
+
+/* ======================================================================
+   NAVEGACAO "BOLINHA QUE SOBE" — barra flutuante no rodape, em todas as telas.
+   Os icones ficam numa barra arredondada; o item ativo sobe numa bolinha na cor
+   do botao do tema, e a bolinha desliza de um item para o outro.
+   ====================================================================== */
+html[data-tema]:root .ct-sidebar { display: none !important; }
+html[data-tema]:root .com-abas { padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)) !important; }
+
+html[data-tema]:root .barra-bolha {
+  position: fixed !important; z-index: 60; top: auto !important; right: auto !important;
+  left: 50% !important; bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important; transform: translateX(-50%);
+  width: min(calc(100% - 24px), calc(var(--n) * 100px)); height: 66px; margin: 0 !important; padding: 0 6px !important;
+  display: grid !important; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); align-items: stretch;
+  border-radius: 24px !important; background: var(--v-menu) !important; border: 1px solid var(--v-menu-line) !important;
+  box-shadow: var(--v-menu-shadow) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+}
+@media (max-width: 767px) { html[data-tema]:root .barra-bolha[data-largura="larga"] { display: none !important; } }
+@media (min-width: 768px) { html[data-tema]:root .barra-bolha[data-largura="celular"] { display: none !important; } }
+
+html[data-tema]:root .barra-bolha .bolha {
+  position: absolute; z-index: 0; top: -21px; width: 54px; height: 54px; margin-left: -27px; border-radius: 50%;
+  left: calc(6px + (100% - 12px) / var(--n) * (var(--ativo) + .5));
+  background: var(--v-btn); box-shadow: 0 0 0 6px var(--v-menu), var(--v-btn-shadow);
+  transition: left .5s cubic-bezier(.3, 1.3, .5, 1), opacity .25s ease;
+}
+html[data-tema]:root .barra-bolha[data-tem-ativo="false"] .bolha { opacity: 0; }
+
+html[data-tema]:root .barra-bolha .aba {
+  position: relative; z-index: 1; min-width: 0; min-height: 0 !important; height: 100%; margin: 0; padding: 0 2px 9px !important;
+  display: flex !important; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px;
+  border: 0 !important; border-radius: 16px; background: transparent !important; box-shadow: none !important;
+  color: var(--ink-muted) !important; font: inherit; text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+html[data-tema]:root .barra-bolha .aba::before, html[data-tema]:root .barra-bolha .aba::after { display: none !important; }
+html[data-tema]:root .barra-bolha .aba-icone { display: grid; place-items: center; width: 30px; height: 30px; transform: none; transition: transform .5s cubic-bezier(.3, 1.4, .5, 1), color .25s ease; }
+html[data-tema]:root .barra-bolha .aba-icone svg { width: 24px !important; height: 24px !important; }
+html[data-tema]:root .barra-bolha .aba-rotulo {
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: .72rem !important; font-weight: 650 !important; letter-spacing: .01em; transition: color .25s ease;
+}
+html[data-tema]:root .barra-bolha .aba:hover { color: var(--ink) !important; }
+html[data-tema]:root .barra-bolha .aba:focus-visible { outline: 2px solid var(--v-focus); outline-offset: -4px; }
+html[data-tema]:root .barra-bolha .aba[data-ativa="true"] .aba-icone { transform: translateY(-22px); color: var(--v-btn-ink); }
+html[data-tema]:root .barra-bolha .aba[data-ativa="true"] .aba-rotulo { color: var(--ink) !important; font-weight: 800 !important; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  html[data-tema]:root .barra-bolha .aba:not([data-ativa="true"]):hover .aba-icone { transform: translateY(-3px); }
+}
+html[data-tema]:root .barra-bolha .aba:active .aba-icone { transform: scale(.9); }
+html[data-tema]:root .barra-bolha .aba[data-ativa="true"]:active .aba-icone { transform: translateY(-22px) scale(.92); }
+@media (max-width: 420px) {
+  html[data-tema]:root .barra-bolha { padding: 0 2px !important; }
+  html[data-tema]:root .barra-bolha .aba-rotulo { font-size: .66rem !important; letter-spacing: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-tema]:root .barra-bolha .bolha, html[data-tema]:root .barra-bolha .aba-icone { transition: none; }
+}
+/* Folha "Mais" e avisos que ficavam colados no rodape sobem acima da barra */
+html[data-tema]:root .aviso-sucesso { bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important; z-index: 70 !important; }
+
 }

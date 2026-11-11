@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { NavegacaoTopo } from '@/components/ui/NavegacaoTopo';
 import { MobileNav } from './MobileNav';
-import { SidebarNav } from './SidebarNav';
+import { ICONES_NAV as ICONES_MENU, NAV_ITEMS, NAV_ITEMS_DONO } from './SidebarNav';
 import { Logo } from '@/components/ui/Logo';
 import { MenuExcluir } from '@/components/admin/MenuExcluir';
 import { InstalarApp } from '@/components/InstalarApp';
@@ -80,6 +80,31 @@ function abasDoAdmin(): Aba[] {
   ];
 }
 
+/** Lista completa para telas largas (sem menu lateral): todas as seções na barra de baixo. */
+function abasLargasDoAdmin(dono: boolean): Aba[] {
+  const itens = [...(dono ? [{ href: '/admin/dono', label: 'Visão geral' }] : []), ...NAV_ITEMS, ...(dono ? NAV_ITEMS_DONO : [])];
+  return itens.map((i) => ({ href: i.href, rotulo: i.label, icone: ICONES_MENU[i.href] }));
+}
+
+/** Menu da conta no topo (telas largas): nome, trocar senha e sair. */
+function MenuContaAdmin({ nome, iniciais, papel }: { nome: string; iniciais: string; papel: string }) {
+  return (
+    <details className="portaria-menu">
+      <summary className="portaria-avatar" aria-label={`Conta de ${nome}`}>
+        {iniciais}
+      </summary>
+      <div className="portaria-menu-painel">
+        <p className="portaria-menu-nome">{nome}</p>
+        <p className="portaria-menu-papel">{papel}</p>
+        <Link href="/admin/trocar-senha" className="portaria-menu-item">
+          Trocar minha senha
+        </Link>
+        <BotaoSair className="portaria-menu-sair" />
+      </div>
+    </details>
+  );
+}
+
 function iniciaisDe(nome: string): string {
   return nome
     .split(' ')
@@ -104,40 +129,20 @@ export function AdminShell({ nome, ehDono = false, children }: { nome: string; e
         </div>
       </header>
 
-      <aside className="ct-sidebar hidden w-[248px] flex-none flex-col md:sticky md:top-0 md:flex md:h-dvh md:overflow-y-auto">
-        <div className="ct-sidebar-logo">
-          <Logo size={32} subtitle="Administração" />
-        </div>
-        <SidebarNav dono={ehDono} className="flex flex-1 flex-col gap-0.5 py-2" />
-        <div className="ct-sidebar-footer">
-          <div className="ct-user">
-            <span className="ct-user-avatar" aria-hidden="true">{iniciaisDe(nome) || '?'}</span>
-            <div className="ct-user-dados">
-              <span className="ct-user-nome">{nome}</span>
-              <span className="ct-user-papel">{ehDono ? 'Dono do sistema' : 'Administrativo'}</span>
-            </div>
-          </div>
-          <div className="ct-user-acoes">
-            <Link href="/admin/trocar-senha" className="ct-user-link">
-              Trocar minha senha
-            </Link>
-            <BotaoSair />
-          </div>
-        </div>
-      </aside>
+      {/* Sem menu lateral: a navegação é a barra de baixo, em todas as telas. */}
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="ct-topbar sticky top-0 z-30 hidden h-[52px] flex-none items-center justify-between gap-3 px-6 md:flex">
           <div className="flex min-w-0 items-center gap-3">
+            <Logo size={30} subtitle="Administração" />
+            <span className="h-6 w-px flex-none bg-line" aria-hidden="true" />
             <NavegacaoTopo inicioArea="/admin" />
             <TrilhaTopo />
           </div>
           <div className="flex items-center gap-3">
             <AlternarTema />
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-sm font-bold text-white">
-              {iniciaisDe(nome) || '?'}
-            </span>
             <span className="text-sm font-semibold text-ink">{nome}</span>
+            <MenuContaAdmin nome={nome} iniciais={iniciaisDe(nome) || '?'} papel={ehDono ? 'Dono do sistema' : 'Administrativo'} />
           </div>
         </header>
         <InstalarApp />
@@ -146,7 +151,8 @@ export function AdminShell({ nome, ehDono = false, children }: { nome: string; e
           <SwipeAdmin rotas={ROTAS_SWIPE}>{children}</SwipeAdmin>
         </main>
       </div>
-      <BarraAbas abas={abasDoAdmin()} raiz="/admin" />
+      <BarraAbas abas={abasDoAdmin()} raiz="/admin" largura="celular" />
+      <BarraAbas abas={abasLargasDoAdmin(ehDono)} raiz="/admin" largura="larga" />
     </div>
   );
 }

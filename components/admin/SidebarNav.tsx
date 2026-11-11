@@ -23,7 +23,7 @@ export const NAV_ITEMS_DONO = [
 
 const tracos = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
 
-const ICONES_NAV: Record<string, ReactNode> = {
+export const ICONES_NAV: Record<string, ReactNode> = {
   '/admin': (
     <svg width="18" height="18" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
       <path d="M4 13l3-8h10l3 8M4 13v6h16v-6M4 13h4l1 2h6l1-2h4" />

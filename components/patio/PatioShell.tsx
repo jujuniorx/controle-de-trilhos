@@ -7,7 +7,6 @@ import { AlternarTema } from '@/components/ui/AlternarTema';
 import { BarraAbas, type Aba } from '@/components/ui/BarraAbas';
 import { GestosApp } from '@/components/ui/GestosApp';
 import { AquecerOffline } from '@/components/patio/AquecerOffline';
-import { NavPatio } from '@/components/patio/NavPatio';
 import { TrocarAreaLink } from '@/components/patio/TrocarAreaLink';
 import { ICONE_CARGA, ICONE_INICIO, ICONE_RECEBER, ICONE_SAIDAS, ICONE_TROCAR_AREA } from '@/components/patio/icones';
 
@@ -25,25 +24,12 @@ const ABAS: Aba[] = [
 export function PatioShell({ children }: { children: ReactNode }) {
   return (
     <div className="area-patio patio-shell com-abas flex min-h-screen flex-col bg-background xl:flex-row">
-      <aside className="ct-sidebar hidden w-[240px] flex-none flex-col xl:flex">
-        <div className="ct-sidebar-logo">
-          <Logo size={32} subtitle="Pátio" />
-        </div>
-        <NavPatio className="flex flex-1 flex-col gap-0.5 py-2" />
-        <div className="ct-sidebar-footer">
-          <TrocarAreaLink className="ct-sair">
-            {ICONE_TROCAR_AREA(15)}
-            Trocar área
-          </TrocarAreaLink>
-        </div>
-      </aside>
+      {/* Sem menu lateral: a navegação é a barra de baixo, em todas as telas. */}
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="ct-topbar flex min-h-[52px] flex-none flex-wrap items-center gap-2 px-4 py-2">
           <NavegacaoTopo inicioArea="/patio" />
-          <div className="xl:hidden">
-            <Logo size={28} subtitle="Pátio" />
-          </div>
+          <Logo size={28} subtitle="Pátio" />
           <div className="ml-auto flex items-center gap-2">
             <TrocarAreaLink rotulo="Trocar área" className="ct-nav-btn inline-flex h-11 w-11 items-center justify-center rounded-xl border border-line text-ink hover:bg-surface-2 active:scale-95">
               {ICONE_TROCAR_AREA(20)}
