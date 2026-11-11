@@ -14,6 +14,7 @@ export const MOTIVOS_PARADA = [
   'Manutenção da boleteira 2',
   'Manutenção da linha de produção',
   'Troca da escova',
+  'Troca de perfil e alinhamento das facas',
   'Manutenção do pórtico 1.2.3',
   'Manutenção na Schlatter',
   'Manutenção preventiva na Schlatter',
