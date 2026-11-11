@@ -61,7 +61,7 @@ export function CelulasParada({ hora, n, inicioPadrao, minutosPadrao }: Props) {
 
   return (
     <>
-      <td className="py-1 pr-2">
+      <td className="py-1 pr-2 celula-parada" data-label="Início">
         <input
           aria-label={`Parada ${n}: início da parada às ${hora}`}
           id={`parada_inicio_${id}`}
@@ -72,7 +72,7 @@ export function CelulasParada({ hora, n, inicioPadrao, minutosPadrao }: Props) {
           className="h-11 w-full"
         />
       </td>
-      <td className="py-1 pr-2">
+      <td className="py-1 pr-2 celula-parada" data-label="Fim">
         <input
           aria-label={`Parada ${n}: fim da parada às ${hora}`}
           id={`parada_fim_${id}`}
@@ -83,7 +83,7 @@ export function CelulasParada({ hora, n, inicioPadrao, minutosPadrao }: Props) {
           className="h-11 w-full"
         />
       </td>
-      <td className="py-1 pr-2">
+      <td className="py-1 pr-2 celula-parada" data-label="Tempo de parada">
         <output
           htmlFor={`parada_inicio_${id} parada_fim_${id}`}
           aria-label={`Parada ${n}: tempo de parada às ${hora}`}

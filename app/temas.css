@@ -671,3 +671,16 @@ html[data-tema]:root .barra-bolha .aba[data-ativa="true"]:active .aba-icone { tr
 html[data-tema]:root .aviso-sucesso { bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important; z-index: 70 !important; }
 
 }
+
+/* Producao, celular: cada parada vira um cartao (Inicio e Fim lado a lado, Tempo e Descricao embaixo), sem rolagem para o lado */
+@media (max-width: 640px) {
+  html[data-tema]:root .tabela-paradas { min-width: 0 !important; display: block; width: 100%; }
+  html[data-tema]:root .tabela-paradas thead { display: none; }
+  html[data-tema]:root .tabela-paradas tbody { display: grid; gap: 12px; }
+  html[data-tema]:root .tabela-paradas tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; padding: 10px; border: 1px solid var(--v-side-line, var(--line)); border-radius: 12px; }
+  html[data-tema]:root .tabela-paradas td.celula-parada { display: flex; flex-direction: column; gap: 4px; padding: 0 !important; min-width: 0; }
+  html[data-tema]:root .tabela-paradas td.celula-parada::before { content: attr(data-label); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-muted); }
+  html[data-tema]:root .tabela-paradas td.celula-descricao { grid-column: 1 / -1; }
+  html[data-tema]:root .tabela-paradas td.celula-parada input, html[data-tema]:root .tabela-paradas td.celula-parada .parada-tempo { width: 100% !important; }
+  html[data-tema]:root .tabela-paradas th:nth-child(-n + 3) { width: auto; }
+}
