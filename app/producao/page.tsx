@@ -52,7 +52,7 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
             const l = porHora.get(hora);
             return (
               <details key={hora} className="card" open={Boolean(l)}>
-                <summary className="cursor-pointer font-semibold">{hora} {l ? `· ${l.soldas} soldas` : ''}</summary>
+                <summary className="cursor-pointer font-semibold">{`${hora} às ${String(Number(hora.slice(0, 2)) + 1).padStart(2, '0')}:00`} {l ? `· ${l.soldas} soldas` : ''}</summary>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div className="field"><label htmlFor={`soldas_${hora}`}>Soldas</label><input id={`soldas_${hora}`} name={`soldas_${hora}`} inputMode="numeric" defaultValue={l?.soldas || ''} className="h-11" /></div>
                   <div className="field"><label htmlFor={`cortes_${hora}`}>Cortes</label><input id={`cortes_${hora}`} name={`cortes_${hora}`} inputMode="numeric" defaultValue={l?.cortes || ''} className="h-11" /></div>
