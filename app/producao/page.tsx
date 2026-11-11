@@ -19,21 +19,6 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
   const dia = await buscarDia(data);
   const horas = horasDoDia(data);
   const porHora = new Map((dia?.linhas ?? []).map((l) => [l.hora, l]));
-  // Trocas já salvas: toda vez que o trilho ou o fabricante muda em relação à hora anterior.
-  const trocasSalvas: { hora: string; perfil: string; fabricante: string }[] = [];
-  let perfilAnterior = dia?.perfil ?? PERFIS_PRODUCAO[0];
-  let fabricanteAnterior = dia?.fabricante ?? FABRICANTES_PRODUCAO[0];
-  for (const hora of horas) {
-    const l = porHora.get(hora);
-    if (!l) continue;
-    if (l.perfil !== perfilAnterior || l.fabricante !== fabricanteAnterior) {
-      trocasSalvas.push({ hora, perfil: l.perfil, fabricante: l.fabricante });
-      perfilAnterior = l.perfil;
-      fabricanteAnterior = l.fabricante;
-    }
-  }
-  const SLOTS_TROCA = 4;
-  const slots = Array.from({ length: SLOTS_TROCA }, (_, i) => trocasSalvas[i] ?? null);
 
   return (
     <main className="mx-auto w-full max-w-3xl space-y-6 px-4 py-6">
@@ -56,26 +41,6 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
               <select id="fabricante" name="fabricante" defaultValue={dia?.fabricante ?? FABRICANTES_PRODUCAO[0]} className="h-11">{FABRICANTES_PRODUCAO.map((f) => <option key={f} value={f}>{f}</option>)}</select>
             </div>
           </div>
-        </section>
-
-        <section className="card space-y-4">
-          <div>
-            <h2 className="section-title">Trocas de trilho e fabricante</h2>
-            <p className="text-sm text-ink-muted">Escolha a hora em que o trilho ou o fabricante mudou. Vale dali em diante. Deixe em branco o que não mudou.</p>
-          </div>
-          {slots.map((troca, i) => (
-            <div key={i} className="grid gap-3 sm:grid-cols-3">
-              <div className="field"><label htmlFor={`troca_hora_${i}`}>Hora da troca</label>
-                <select id={`troca_hora_${i}`} name={`troca_hora_${i}`} defaultValue={troca?.hora ?? ''} className="h-11"><option value="">Nenhuma</option>{horas.map((h) => <option key={h} value={h}>{h}</option>)}</select>
-              </div>
-              <div className="field"><label htmlFor={`troca_perfil_${i}`}>Trilho</label>
-                <select id={`troca_perfil_${i}`} name={`troca_perfil_${i}`} defaultValue={troca?.perfil ?? ''} className="h-11"><option value="">Mantém</option>{PERFIS_PRODUCAO.map((p) => <option key={p} value={p}>{p}</option>)}</select>
-              </div>
-              <div className="field"><label htmlFor={`troca_fabricante_${i}`}>Fabricante</label>
-                <select id={`troca_fabricante_${i}`} name={`troca_fabricante_${i}`} defaultValue={troca?.fabricante ?? ''} className="h-11"><option value="">Mantém</option>{FABRICANTES_PRODUCAO.map((f) => <option key={f} value={f}>{f}</option>)}</select>
-              </div>
-            </div>
-          ))}
         </section>
 
         <section className="space-y-3">

@@ -27,25 +27,7 @@ export async function salvarProducaoAction(formData: FormData): Promise<void> {
   const perfil = (PERFIS_PRODUCAO as readonly string[]).includes(perfilTopo) ? perfilTopo : PERFIS_PRODUCAO[0];
   const fabricante = (FABRICANTES_PRODUCAO as readonly string[]).includes(fabricanteTopo) ? fabricanteTopo : FABRICANTES_PRODUCAO[0];
 
-  // Trocas de trilho e fabricante (menu do topo): cada hora herda o que valia na hora anterior.
-  const trocas = new Map<string, { perfil?: string; fabricante?: string }>();
-  for (let i = 0; i < 4; i++) {
-    const hora = texto(formData.get(`troca_hora_${i}`), 5);
-    if (!hora) continue;
-    const pTroca = texto(formData.get(`troca_perfil_${i}`), 10);
-    const fTroca = texto(formData.get(`troca_fabricante_${i}`), 30);
-    const atual = trocas.get(hora) ?? {};
-    if ((PERFIS_PRODUCAO as readonly string[]).includes(pTroca)) atual.perfil = pTroca;
-    if ((FABRICANTES_PRODUCAO as readonly string[]).includes(fTroca)) atual.fabricante = fTroca;
-    trocas.set(hora, atual);
-  }
-
-  let perfilAtual = perfil;
-  let fabricanteAtual = fabricante;
   const linhas: LinhaProducao[] = horasDoDia(dataDia).map((hora) => {
-    const troca = trocas.get(hora);
-    if (troca?.perfil) perfilAtual = troca.perfil;
-    if (troca?.fabricante) fabricanteAtual = troca.fabricante;
     const cortes = inteiro(formData.get(`cortes_${hora}`));
     const minutos = inteiro(formData.get(`parada_${hora}`));
     return {
@@ -56,8 +38,8 @@ export async function salvarProducaoAction(formData: FormData): Promise<void> {
       paradaInicio: minutos > 0 ? texto(formData.get(`parada_inicio_${hora}`), 5) || null : null,
       paradaMinutos: minutos > 0 ? minutos : null,
       paradaDescricao: minutos > 0 ? texto(formData.get(`parada_descricao_${hora}`), 200) || null : null,
-      perfil: perfilAtual,
-      fabricante: fabricanteAtual,
+      perfil,
+      fabricante,
     };
   });
 
