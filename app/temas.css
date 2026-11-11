@@ -554,4 +554,60 @@ html[data-tema]:root .home-entrada .setor-tile-nome { font-size: clamp(.82rem, 3
   html[data-tema]:root .home-entrada { padding-top: max(72px, calc(env(safe-area-inset-top, 0px) + 64px)) !important; }
 }
 
+
+/* ======================================================================
+   CELULAR — revisao tela a tela (375 px)
+   ====================================================================== */
+/* Nada pode criar rolagem para o lado. O texto escondido para leitor de tela
+   (sr-only) dentro de tabelas com rolagem escapava do quadro e alargava a pagina. */
+html, body { overflow-x: clip; }
+html[data-tema]:root :is(.tbl-wrap, [class*="overflow-x-auto"]) { position: relative; }
+
+/* Pendencias: titulo nao passa por baixo do botao Relatorios */
+@media (max-width: 640px) {
+  html[data-tema]:root .boas-vindas { display: flex !important; flex-direction: column; align-items: flex-start; gap: 10px; }
+  html[data-tema]:root .boas-vindas > a { position: static !important; }
+}
+
+/* Relatorios: as duas datas uma embaixo da outra no celular, para a data caber inteira */
+@media (max-width: 440px) {
+  html[data-tema]:root .filtros-form { grid-template-columns: minmax(0, 1fr) !important; }
+}
+
+/* Campo de data: um icone so. No Chrome o icone nativo fica invisivel por cima do desenhado
+   (continua abrindo o calendario); no iPhone, que nao tem icone nativo, vale o desenhado. */
+html[data-tema]:root input[type="date"] { position: relative; }
+html[data-tema]:root input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute; right: 0; top: 0; width: 44px; height: 100%; margin: 0; padding: 0; opacity: 0; cursor: pointer;
+}
+
+/* Textos cinza fixos (slate) passam a seguir o tema: no Ambar, Azul e Escuro ficavam apagados */
+html[data-tema]:root :is(.text-slate-400, .text-slate-500, .text-slate-600) { color: var(--ink-muted) !important; }
+
+/* Botao sem variante (ex.: Redefinir senha, Desativar) aparecia so como texto */
+html[data-tema]:root .btn:not(.btn-primary):not(.btn-ghost):not(.btn-secondary):not(.btn-danger) {
+  background: var(--v-ghost) !important; color: var(--v-ghost-ink) !important; border: 1px solid var(--v-ghost-line) !important; padding-inline: 16px;
+}
+
+/* Blocos que abrem e fecham (horas da Producao, Adicionar item do Estoque): seta propria, no lugar do triangulo do navegador */
+html[data-tema]:root details.card > summary { list-style: none; display: flex; align-items: center; gap: 10px; min-height: 28px; }
+html[data-tema]:root details.card > summary::-webkit-details-marker { display: none; }
+html[data-tema]:root details.card > summary::after {
+  content: ""; margin-left: auto; flex: none; width: 9px; height: 9px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; opacity: .65;
+  transform: translateY(-2px) rotate(45deg); transition: transform .25s cubic-bezier(.2, .8, .2, 1);
+}
+html[data-tema]:root details.card[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
+
+/* Barra do topo no celular: o seletor de tema mostra so a amostra de cor, para caber numa linha */
+@media (max-width: 480px) {
+  html[data-tema]:root .ct-topbar .tema-rotulo { display: none; }
+  html[data-tema]:root .ct-topbar .tema-botao { padding: 0 8px 0 9px; gap: 6px; }
+  /* Patio: sem o desenho da marca no topo (o nome continua), para tudo caber numa linha */
+  html[data-tema]:root .patio-shell .ct-topbar .ct-logo-mark > svg { display: none; }
+  html[data-tema]:root .patio-shell .ct-topbar { flex-wrap: nowrap !important; }
+  html[data-tema]:root .patio-shell .ct-topbar .ct-logo-text { min-width: 0; }
+  html[data-tema]:root .patio-shell .ct-topbar .ct-logo-text .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
+
 }
