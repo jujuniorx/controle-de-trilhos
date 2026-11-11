@@ -85,3 +85,21 @@ export function IconeOlho({ ocultar = false, ...props }: Props & { ocultar?: boo
     </Base>
   );
 }
+
+/** Confirmação (item escolhido, ação concluída). */
+export function IconeCheck(props: Props) {
+  return (
+    <Base {...props}>
+      <path d="m5 12.5 4.5 4.5L19 7.5" />
+    </Base>
+  );
+}
+
+/** Seta para baixo de menus que abrem. */
+export function IconeSeta(props: Props) {
+  return (
+    <Base {...props}>
+      <path d="m6 9 6 6 6-6" />
+    </Base>
+  );
+}

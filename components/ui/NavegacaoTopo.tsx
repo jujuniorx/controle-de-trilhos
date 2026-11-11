@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 const RAIZES = ['/patio', '/admin', '/portaria'];
 
 const estiloBotao =
-  'inline-flex h-10 w-10 flex-none items-center justify-center rounded-xl border border-line text-ink hover:bg-surface-2 active:scale-95';
+  'ct-nav-btn inline-flex h-10 w-10 flex-none items-center justify-center rounded-xl border border-line text-ink hover:bg-surface-2 active:scale-95';
 
 /**
  * Botões fixos do topo: Voltar e Início.
@@ -27,7 +27,7 @@ export function NavegacaoTopo({ inicioArea, className = '' }: { inicioArea: '/pa
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       {!naRaiz && (
-        <button type="button" onClick={voltar} aria-label="Voltar" className={estiloBotao}>
+        <button type="button" onClick={voltar} aria-label="Voltar" title="Voltar" className={`${estiloBotao} ct-nav-voltar`}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M15 6l-6 6 6 6" />
           </svg>

@@ -45,7 +45,7 @@ export function PatioShell({ children }: { children: ReactNode }) {
             <Logo size={28} subtitle="Pátio" />
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <TrocarAreaLink rotulo="Trocar área" className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-line text-ink hover:bg-surface-2 active:scale-95">
+            <TrocarAreaLink rotulo="Trocar área" className="ct-nav-btn inline-flex h-11 w-11 items-center justify-center rounded-xl border border-line text-ink hover:bg-surface-2 active:scale-95">
               {ICONE_TROCAR_AREA(20)}
             </TrocarAreaLink>
             <AlternarTema />

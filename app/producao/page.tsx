@@ -5,6 +5,7 @@ import { FABRICANTES_PRODUCAO, MAX_PARADAS_HORA, PERFIS_PRODUCAO, SOLDAS_POR_TLS
 import { TrocaTopo } from '@/components/producao/TrocaTopo';
 import { salvarProducaoAction } from './actions';
 import { AlternarTema } from '@/components/ui/AlternarTema';
+import { BotaoEnviar } from '@/components/ui/BotaoEnviar';
 
 export const dynamic = 'force-dynamic';
 
@@ -87,7 +88,7 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
           })}
         </section>
 
-        <button type="submit" className="btn btn-primary h-12 w-full">Salvar o dia</button>
+        <BotaoEnviar className="btn btn-primary h-12 w-full" enviando="Salvando…">Salvar o dia</BotaoEnviar>
       </form>
     </main>
   );
