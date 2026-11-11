@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { COOKIE_PRODUCAO, cookieProducaoValido } from '@/lib/services/producaoAcesso';
 import { RascunhoAutomatico } from '@/components/producao/RascunhoAutomatico';
+import { MotivosParada } from '@/components/producao/MotivosParada';
 import { FABRICANTES_PRODUCAO, MAX_PARADAS_HORA, PERFIS_PRODUCAO, SOLDAS_POR_TLS, buscarDia, horasDoDia, paradaEmHoraMin, paradasDaLinha } from '@/lib/services/producao';
 import { TrocaTopo } from '@/components/producao/TrocaTopo';
 import { salvarProducaoAction } from './actions';
@@ -82,7 +83,7 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
                   <input type="hidden" name={`justificativa_${hora}`} value={l?.justificativaCorte ?? ''} />
                   <div className="overflow-x-auto sm:col-span-2">
                     <p className="mb-2 text-sm font-semibold">Paradas desta hora (até {MAX_PARADAS_HORA}), como na planilha</p>
-                    <p className="mb-2 text-xs text-ink-muted">Escolha a hora em que a parada começou e a hora em que terminou. O tempo de parada aparece sozinho. Se teve corte, escreva o motivo na descrição da parada.</p>
+                    <p className="mb-2 text-xs text-ink-muted">Escolha a hora em que a parada começou e a hora em que terminou. O tempo de parada aparece sozinho. Escolha os motivos da parada (pode marcar mais de um). Se não estiver na lista, escreva no campo Outro.</p>
                     <table className="tabela-paradas w-full text-sm">
                       <thead className="text-xs uppercase text-ink-muted">
                         <tr className="border-b border-line">
@@ -98,7 +99,7 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
                           return (
                             <tr key={n} className="border-b border-line">
                               <CelulasParada data={dataTexto} hora={hora} n={n} inicioPadrao={p?.inicio ?? ''} minutosPadrao={p?.minutos ?? 0} />
-                              <td className="py-1 celula-parada celula-descricao" data-label="Descrição"><input aria-label={`Parada ${n}: descrição às ${hora}`} id={`parada_descricao_${hora}_${n}`} name={`parada_descricao_${hora}_${n}`} defaultValue={p?.descricao ?? ''} className="h-11 w-full" /></td>
+                              <td className="py-1 celula-parada celula-descricao" data-label="Descrição"><MotivosParada data={dataTexto} hora={hora} n={n} descricaoPadrao={p?.descricao ?? ''} /></td>
                             </tr>
                           );
                         })}

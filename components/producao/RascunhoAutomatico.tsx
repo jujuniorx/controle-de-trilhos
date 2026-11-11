@@ -144,7 +144,7 @@ export function RascunhoAutomatico({ data, horas }: { data: string; horas: strin
         const campos = JSON.parse(salvo) as Record<string, string>;
         for (const [nome, valor] of Object.entries(campos)) {
           // Inicio e fim das paradas voltam pelo proprio componente da parada (que guarda cada um separado).
-          if (/^parada_(inicio|fim)_/.test(nome)) continue;
+          if (/^parada_(inicio|fim|descricao)_/.test(nome)) continue;
           const el = form.elements.namedItem(nome);
           if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement) {
             definirValor(el, valor);
