@@ -38,7 +38,7 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
   return (
     <main className="mx-auto w-full max-w-3xl space-y-6 px-4 py-6">
       <div className="flex justify-end">
-        <AlternarTema padrao="escuro" />
+        <AlternarTema padrao="vidro" />
       </div>
       <h1 className="font-condensed text-2xl font-bold uppercase tracking-wide">Produção do dia</h1>
       {params.ok === '1' && <p role="status" className="rounded-lg border border-ok/40 bg-ok/10 p-3 text-sm">Dia salvo. Soldas: {dia?.totalSoldas ?? 0}, TLS formados: {dia?.tlsFormados ?? 0}, sobra para amanhã: {dia?.sobraSaida ?? 0} de {SOLDAS_POR_TLS}.</p>}

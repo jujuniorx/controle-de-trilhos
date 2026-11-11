@@ -48,7 +48,7 @@ export function PatioShell({ children }: { children: ReactNode }) {
             <TrocarAreaLink rotulo="Trocar área" className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-line text-ink hover:bg-surface-2 active:scale-95">
               {ICONE_TROCAR_AREA(20)}
             </TrocarAreaLink>
-            <AlternarTema padrao="escuro" />
+            <AlternarTema padrao="claro" />
           </div>
         </header>
         <GestosApp />
