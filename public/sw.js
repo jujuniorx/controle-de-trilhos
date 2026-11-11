@@ -2,14 +2,15 @@
 // tablet que rodou a versão anterior ainda tem esse conteúdo gravado em disco no
 // cache 'trilhos-app-shell-v1'. Trocar o nome faz o handler de `activate` abaixo
 // apagar o cache antigo inteiro na próxima ativação — é o que completa a correção.
-const CACHE_NAME = 'trilhos-app-shell-v3';
+// v4: manifesto por tema (/manifest.webmanifest) e icones por tema (public/icons/<tema>).
+const CACHE_NAME = 'trilhos-app-shell-v4';
 // Telas do Pátio (HTML) guardadas para uso sem internet. NUNCA inclui /admin.
 const PATIO_CACHE = 'trilhos-patio-v1';
 const APP_SHELL = [
   '/',
   '/patio/acesso',
   '/admin/login',
-  '/manifest.json',
+  '/manifest.webmanifest',
   '/offline.html',
 ];
 
@@ -39,7 +40,7 @@ self.addEventListener('activate', (event) => {
 
 // Exact public shell URLs — safe to cache at runtime because they carry no
 // session-specific content (same set precached at INSTALL time above).
-const RUNTIME_CACHEABLE_EXACT = ['/', '/patio/acesso', '/admin/login', '/manifest.json', '/offline.html'];
+const RUNTIME_CACHEABLE_EXACT = ['/', '/patio/acesso', '/admin/login', '/manifest.webmanifest', '/offline.html'];
 
 // Only static, non-authenticated assets may be cached at runtime. In
 // particular, this must NEVER match authenticated page HTML/RSC payloads

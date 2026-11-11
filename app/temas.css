@@ -542,4 +542,8 @@ html[data-tema]:root .parada-tempo {
 }
 html[data-tema]:root .parada-tempo[data-aviso="true"] { font-size: .78rem; font-weight: 700; color: var(--warn); border-color: color-mix(in srgb, var(--warn) 55%, transparent); background: var(--warn-bg); }
 
+
+/* Abertura do app instalado: fundo do tema, no lugar do azul fixo */
+html[data-tema]:root .abertura { background: var(--v-bg) !important; color: var(--ink) !important; }
+
 }

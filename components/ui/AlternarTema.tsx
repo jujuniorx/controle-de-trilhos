@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { IconeCheck, IconeSeta } from '@/components/icones/Icones';
-import { ROTULOS_TEMA, TEMA_COOKIE, TEMA_PADRAO, TEMAS, temaValido, type Tema } from '@/lib/tema/tema';
+import { COR_APP, ROTULOS_TEMA, TEMA_COOKIE, TEMA_PADRAO, TEMAS, iconesDoTema, temaValido, type Tema } from '@/lib/tema/tema';
 
 /**
  * Seletor de tema do sistema. A escolha vale para todas as áreas: grava o cookie e
@@ -12,6 +12,20 @@ import { ROTULOS_TEMA, TEMA_COOKIE, TEMA_PADRAO, TEMAS, temaValido, type Tema } 
  * É um menu próprio (não o <select> do navegador): cada opção mostra uma amostra das
  * cores do tema, e o menu segue o visual do tema atual.
  */
+/**
+ * Troca na hora o ícone da aba, o ícone do iPhone, a cor da barra do sistema e o
+ * manifesto do app instalado, para a marca acompanhar o tema escolhido.
+ */
+function trocarIconesDoApp(tema: Tema) {
+  const icones = iconesDoTema(tema);
+  document.querySelectorAll<HTMLLinkElement>('link[rel="icon"]').forEach((l) => { l.href = icones.favicon; });
+  document.querySelectorAll<HTMLLinkElement>('link[rel="apple-touch-icon"]').forEach((l) => { l.href = icones.apple; });
+  document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((m) => { m.content = COR_APP[tema]; });
+  // Novo endereço faz o navegador ler o manifesto de novo (com o cookie do tema já gravado).
+  const manifesto = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
+  if (manifesto) manifesto.href = `/manifest.webmanifest?tema=${tema}`;
+}
+
 export function AlternarTema({ padrao = TEMA_PADRAO, className = '' }: { padrao?: Tema; className?: string }) {
   const [tema, setTema] = useState<Tema>(padrao);
   const [aberto, setAberto] = useState(false);
@@ -70,6 +84,7 @@ export function AlternarTema({ padrao = TEMA_PADRAO, className = '' }: { padrao?
       document.documentElement.dataset.tema = proximo;
       document.cookie = `${TEMA_COOKIE}=${proximo}; path=/; max-age=31536000; samesite=lax`;
       setTema(proximo);
+      trocarIconesDoApp(proximo);
     };
     // Troca com o circulo que se expande a partir do seletor (como no Sales Dashboard).
     // Sem suporte ou com "reduzir movimento", troca direto.

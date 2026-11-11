@@ -23,3 +23,18 @@ export const ROTULOS_TEMA: Record<Tema, string> = {
 export function temaValido(valor: string | undefined | null): Tema | undefined {
   return (TEMAS as readonly string[]).includes(valor ?? '') ? (valor as Tema) : undefined;
 }
+
+/** Cor da barra do sistema e do fundo da abertura do app, por tema. */
+export const COR_APP: Record<Tema, string> = {
+  claro: '#ededeb',
+  escuro: '#000000',
+  azul: '#050a1c',
+  pastel: '#efe6ff',
+  vidro: '#4f4843',
+};
+
+/** Ícones do app por tema (pasta public/icons/<tema>). */
+export function iconesDoTema(tema: Tema) {
+  const pasta = `/icons/${tema}`;
+  return { favicon: `${pasta}/favicon-48.png`, apple: `${pasta}/apple-touch-icon.png` };
+}
