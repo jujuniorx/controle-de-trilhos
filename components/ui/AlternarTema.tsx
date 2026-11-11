@@ -13,10 +13,6 @@ export function AlternarTema({ padrao, className = '' }: { padrao: Tema; classNa
   const [tema, setTema] = useState<Tema>(padrao);
 
   useEffect(() => {
-    // Sem escolha salva (sem cookie), a área usa o padrão dela. Isso também
-    // desfaz o tema de outra área que ficou gravado no <html> na navegação.
-    const temCookie = /(?:^|;\s*)ct_tema=/.test(document.cookie);
-    if (!temCookie) document.documentElement.dataset.tema = padrao;
     setTema(temaValido(document.documentElement.dataset.tema) ?? padrao);
   }, [padrao]);
 

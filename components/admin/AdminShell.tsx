@@ -99,7 +99,7 @@ export function AdminShell({ nome, ehDono = false, children }: { nome: string; e
           <NavegacaoTopo inicioArea="/admin" />
         </div>
         <div className="flex items-center gap-3">
-          <AlternarTema padrao="vidro" />
+          <AlternarTema padrao="claro" />
           <span className="ct-user-avatar" aria-hidden="true">{iniciaisDe(nome) || '?'}</span>
         </div>
       </header>
@@ -133,7 +133,7 @@ export function AdminShell({ nome, ehDono = false, children }: { nome: string; e
             <TrilhaTopo />
           </div>
           <div className="flex items-center gap-3">
-            <AlternarTema padrao="vidro" />
+            <AlternarTema padrao="claro" />
             <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-sm font-bold text-white">
               {iniciaisDe(nome) || '?'}
             </span>
