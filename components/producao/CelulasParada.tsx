@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 /** Converte "HH:MM" em minutos do dia. Vazio ou inválido vira null. */
 function paraMinutos(hora: string): number | null {
@@ -31,6 +31,7 @@ function horaMais(inicio: string, minutos: number): string {
 }
 
 interface Props {
+  data: string;
   hora: string;
   n: number;
   inicioPadrao: string;
@@ -42,10 +43,29 @@ interface Props {
  * O soldador escolhe o início e o fim no relógio; o tempo (h:min) é calculado
  * sozinho e é o que vai para o servidor, no campo oculto parada_{hora}_{n}.
  */
-export function CelulasParada({ hora, n, inicioPadrao, minutosPadrao }: Props) {
+export function CelulasParada({ data, hora, n, inicioPadrao, minutosPadrao }: Props) {
   const [inicio, setInicio] = useState(inicioPadrao);
   const [fim, setFim] = useState(inicioPadrao && minutosPadrao ? horaMais(inicioPadrao, minutosPadrao) : '');
   const [mexeu, setMexeu] = useState(false);
+  // Chave deste campo no aparelho: o inicio e o fim ficam guardados a cada troca, para voltarem se a pagina recarregar.
+  const chaveParada = `producao-parada-${data}-${hora}-${n}`;
+
+  useEffect(() => {
+    try {
+      const salvo = localStorage.getItem(chaveParada);
+      if (!salvo) return;
+      const v = JSON.parse(salvo) as { inicio?: unknown; fim?: unknown };
+      if (typeof v.inicio === 'string') setInicio(v.inicio);
+      if (typeof v.fim === 'string') setFim(v.fim);
+      setMexeu(true);
+    } catch {
+      /* sem armazenamento ou dado ilegivel: segue com o valor do servidor */
+    }
+  }, [chaveParada]);
+
+  const guardar = (i: string, f: string) => {
+    try { localStorage.setItem(chaveParada, JSON.stringify({ inicio: i, fim: f })); } catch { /* sem armazenamento */ }
+  };
 
   const calculado = tempoEntre(inicio, fim);
   // Parada antiga, salva só com o tempo (sem início): mantém o tempo até alguém mexer nos horários.
@@ -68,7 +88,7 @@ export function CelulasParada({ hora, n, inicioPadrao, minutosPadrao }: Props) {
           name={`parada_inicio_${id}`}
           type="time"
           value={inicio}
-          onChange={(e) => { setInicio(e.target.value); setMexeu(true); }}
+          onChange={(e) => { setInicio(e.target.value); setMexeu(true); guardar(e.target.value, fim); }}
           className="h-11 w-full"
         />
       </td>
@@ -79,7 +99,7 @@ export function CelulasParada({ hora, n, inicioPadrao, minutosPadrao }: Props) {
           name={`parada_fim_${id}`}
           type="time"
           value={fim}
-          onChange={(e) => { setFim(e.target.value); setMexeu(true); }}
+          onChange={(e) => { setFim(e.target.value); setMexeu(true); guardar(inicio, e.target.value); }}
           className="h-11 w-full"
         />
       </td>

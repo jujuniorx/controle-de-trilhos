@@ -96,7 +96,7 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
                           const p = paradasDaLinha(l?.paradas)[n - 1];
                           return (
                             <tr key={n} className="border-b border-line">
-                              <CelulasParada hora={hora} n={n} inicioPadrao={p?.inicio ?? ''} minutosPadrao={p?.minutos ?? 0} />
+                              <CelulasParada data={dataTexto} hora={hora} n={n} inicioPadrao={p?.inicio ?? ''} minutosPadrao={p?.minutos ?? 0} />
                               <td className="py-1 celula-parada celula-descricao" data-label="Descrição"><input aria-label={`Parada ${n}: descrição às ${hora}`} id={`parada_descricao_${hora}_${n}`} name={`parada_descricao_${hora}_${n}`} defaultValue={p?.descricao ?? ''} className="h-11 w-full" /></td>
                             </tr>
                           );

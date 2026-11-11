@@ -115,8 +115,15 @@ export function RascunhoAutomatico({ data, horas }: { data: string; horas: strin
         (primeira.campo as HTMLElement | null)?.focus({ preventScroll: true });
         return;
       }
-      // Dia salvo de verdade: o rascunho deste dia sai do aparelho.
-      try { localStorage.removeItem(chave(data)); } catch { /* sem armazenamento: nada a limpar */ }
+      // Dia salvo de verdade: o rascunho deste dia e os inicios/fins das paradas saem do aparelho.
+      try {
+        localStorage.removeItem(chave(data));
+        const prefixo = `producao-parada-${data}-`;
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith(prefixo)) localStorage.removeItem(k);
+        }
+      } catch { /* sem armazenamento: nada a limpar */ }
     };
 
     try {
