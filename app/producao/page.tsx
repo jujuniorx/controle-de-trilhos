@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { COOKIE_PRODUCAO, cookieProducaoValido } from '@/lib/services/producaoAcesso';
 import { FABRICANTES_PRODUCAO, PERFIS_PRODUCAO, SOLDAS_POR_TLS, buscarDia, horasDoDia } from '@/lib/services/producao';
+import { TrocaTopo } from '@/components/producao/TrocaTopo';
 import { salvarProducaoAction } from './actions';
 import { AlternarTema } from '@/components/ui/AlternarTema';
 
@@ -34,12 +35,13 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
             <div className="field"><label htmlFor="data">Data</label><input id="data" name="data" type="date" defaultValue={dataTexto} required className="h-11" /></div>
             <div className="field"><label htmlFor="lider">Líder</label><input id="lider" name="lider" defaultValue={dia?.lider ?? ''} required className="h-11" /></div>
             <div className="field sm:col-span-2"><label htmlFor="soldadores">Soldadores</label><input id="soldadores" name="soldadores" defaultValue={dia?.soldadores ?? ''} placeholder="Nomes dos soldadores do turno" required className="h-11" /></div>
-            <div className="field"><label htmlFor="perfil">Trilho (perfil)</label>
-              <select id="perfil" name="perfil" defaultValue={dia?.perfil ?? PERFIS_PRODUCAO[0]} className="h-11">{PERFIS_PRODUCAO.map((p) => <option key={p} value={p}>{p}</option>)}</select>
-            </div>
-            <div className="field"><label htmlFor="fabricante">Fabricante</label>
-              <select id="fabricante" name="fabricante" defaultValue={dia?.fabricante ?? FABRICANTES_PRODUCAO[0]} className="h-11">{FABRICANTES_PRODUCAO.map((f) => <option key={f} value={f}>{f}</option>)}</select>
-            </div>
+            <TrocaTopo
+              perfis={PERFIS_PRODUCAO}
+              fabricantes={FABRICANTES_PRODUCAO}
+              perfilSalvo={dia?.perfil ?? PERFIS_PRODUCAO[0]}
+              fabricanteSalvo={dia?.fabricante ?? FABRICANTES_PRODUCAO[0]}
+              horas={horas}
+            />
           </div>
         </section>
 
