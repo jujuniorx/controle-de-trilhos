@@ -1864,13 +1864,13 @@ html[data-tema="pastel"] {
   --g5: #cfc6ee;
   --g6: #9d93bf;
 
-  --b0: #ffe9dc;
-  --b1: #ffd3bd;
-  --b2: #f0743a;
-  --b3: #ff7a45;
-  --b4: #e05d2a;
-  --b5: #9a3d17;
-  --b6: #3b1d0c;
+  --b0: #f3ecff;
+  --b1: #e2d4ff;
+  --b2: #b89cf8;
+  --b3: #9b7cf6;
+  --b4: #7c5ce0;
+  --b5: #5a3fb0;
+  --b6: #2f1f6b;
 
   --ok: #2f9e5b;
   --ok-bg: #dff5e7;
@@ -1889,21 +1889,22 @@ html[data-tema="pastel"] {
   --radius-lg: 22px;
 
   --primary: var(--b3);
-  --primary-dark: var(--b1);
+  --primary-dark: var(--b4);
   --primary-light: var(--b0);
   --surface: #ffffff;
-  --surface-2: #f5f1ff;
-  --surface-3: #ece6ff;
-  --background: #faf7ff;
+  --surface-2: #f6f1ff;
+  --surface-3: #ece4ff;
+  --background: #f8f4ff;
   --foreground: var(--t1);
-  --card-shadow: 0 10px 30px rgba(120, 90, 200, .08);
+  --card-shadow: 0 14px 40px rgba(124, 92, 224, .14), 0 2px 6px rgba(124, 92, 224, .06);
 }
 
 html[data-tema="pastel"] body {
   background:
-    radial-gradient(800px 500px at 0% 0%, #ffe3f0 0%, transparent 60%),
-    radial-gradient(700px 500px at 100% 0%, #e4dcff 0%, transparent 60%),
-    linear-gradient(180deg, #f7f3ff 0%, #fdf8ff 100%);
+    radial-gradient(900px 600px at 0% 0%, #ffd9ec 0%, transparent 62%),
+    radial-gradient(800px 600px at 100% 0%, #dcd0ff 0%, transparent 60%),
+    radial-gradient(700px 500px at 60% 100%, #f9e4ff 0%, transparent 65%),
+    linear-gradient(180deg, #f6f0ff 0%, #fdf6fb 100%);
   color: var(--t1);
 }
 
@@ -1917,10 +1918,11 @@ html[data-tema="pastel"] .ct-topbar {
 
 html[data-tema="pastel"] .card,
 html[data-tema="pastel"] .stat-tile {
+  background: linear-gradient(160deg, rgba(255, 255, 255, .92), rgba(246, 240, 255, .85)) !important;
   border: 1px solid var(--ln);
-  border-radius: var(--radius-lg);
+  border-radius: 26px;
   box-shadow: var(--card-shadow);
-  transition: transform .3s ease, box-shadow .3s ease;
+  transition: transform .35s cubic-bezier(.2, .7, .2, 1), box-shadow .35s ease;
 }
 html[data-tema="pastel"] .card:hover,
 html[data-tema="pastel"] .stat-tile:hover {
@@ -1935,9 +1937,9 @@ html[data-tema="pastel"] .ct-sidebar-nav a {
 }
 html[data-tema="pastel"] .ct-sidebar-nav a:hover { transform: scale(1.02); }
 html[data-tema="pastel"] .ct-sidebar-nav a[data-active="true"] {
-  background: var(--b3);
+  background: linear-gradient(120deg, #b89cf8, #f5a3cf);
   color: #fff;
-  box-shadow: 0 8px 20px rgba(255, 122, 69, .35);
+  box-shadow: 0 8px 22px rgba(155, 124, 246, .38);
 }
 
 @keyframes ct-balancar-pastel {
@@ -2177,4 +2179,12 @@ html[data-tema="azul"] .card table td {
 html[data-tema="vidro"] .area-admin,
 html[data-tema="vidro"] .area-admin > main {
   background: transparent !important;
+}
+
+/* Pastel: números de destaque em degradê lilás e rosa. */
+html[data-tema="pastel"] .stat-value {
+  background: linear-gradient(90deg, #7c5ce0, #e06fb0);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
