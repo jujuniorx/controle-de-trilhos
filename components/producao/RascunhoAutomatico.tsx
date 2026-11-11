@@ -1,11 +1,14 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { lerRascunhoAction, salvarRascunhoAction } from '@/app/producao/actions';
 
-type Estado = 'parado' | 'salvando' | 'salvo' | 'erro' | 'recuperado';
+type Estado = 'parado' | 'salvando' | 'salvo' | 'recuperado' | 'erro';
 
-/** Grava no servidor o que foi digitado, para nada se perder ao recarregar ou fechar o app. */
+/** Rascunho guardado no proprio aparelho (tablet, celular ou computador): sobrevive a atualizar, fechar e reabrir. */
+function chave(data: string) {
+  return `producao-rascunho-${data}`;
+}
+
 function definirValor(el: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement, valor: string) {
   const proto =
     el instanceof HTMLSelectElement ? HTMLSelectElement.prototype
@@ -28,15 +31,14 @@ export function RascunhoAutomatico({ data }: { data: string }) {
     const coletar = () => {
       const campos: Record<string, string> = {};
       new FormData(form).forEach((v, k) => {
-        if (typeof v === 'string') campos[k] = v;
+        if (typeof v === 'string' && k !== 'data') campos[k] = v;
       });
       return campos;
     };
 
-    const gravar = async () => {
-      setEstado('salvando');
+    const gravar = () => {
       try {
-        await salvarRascunhoAction(data, coletar());
+        localStorage.setItem(chave(data), JSON.stringify(coletar()));
         if (!cancelado) setEstado('salvo');
       } catch {
         if (!cancelado) setEstado('erro');
@@ -46,18 +48,25 @@ export function RascunhoAutomatico({ data }: { data: string }) {
     const aoMudar = () => {
       if (timer.current) clearTimeout(timer.current);
       setEstado('salvando');
-      timer.current = setTimeout(gravar, 700);
+      timer.current = setTimeout(gravar, 400);
     };
 
     const aoSair = () => {
       if (document.visibilityState !== 'hidden') return;
       if (timer.current) clearTimeout(timer.current);
-      void gravar();
+      gravar();
     };
 
-    lerRascunhoAction(data)
-      .then((campos) => {
-        if (cancelado || !campos) return;
+    // Ao salvar o dia de verdade, o rascunho deste dia sai do aparelho.
+    const aoEnviar = () => {
+      if (timer.current) clearTimeout(timer.current);
+      try { localStorage.removeItem(chave(data)); } catch { /* sem armazenamento: nada a limpar */ }
+    };
+
+    try {
+      const salvo = localStorage.getItem(chave(data));
+      if (salvo) {
+        const campos = JSON.parse(salvo) as Record<string, string>;
         for (const [nome, valor] of Object.entries(campos)) {
           const el = form.elements.namedItem(nome);
           if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement) {
@@ -65,17 +74,21 @@ export function RascunhoAutomatico({ data }: { data: string }) {
           }
         }
         setEstado('recuperado');
-      })
-      .catch(() => {});
+      }
+    } catch {
+      /* rascunho ilegivel ou sem armazenamento: o formulario segue normal */
+    }
 
     form.addEventListener('input', aoMudar);
     form.addEventListener('change', aoMudar);
+    form.addEventListener('submit', aoEnviar);
     document.addEventListener('visibilitychange', aoSair);
     window.addEventListener('pagehide', aoSair);
     return () => {
       cancelado = true;
       form.removeEventListener('input', aoMudar);
       form.removeEventListener('change', aoMudar);
+      form.removeEventListener('submit', aoEnviar);
       document.removeEventListener('visibilitychange', aoSair);
       window.removeEventListener('pagehide', aoSair);
       if (timer.current) clearTimeout(timer.current);
@@ -85,9 +98,9 @@ export function RascunhoAutomatico({ data }: { data: string }) {
   const texto: Record<Estado, string> = {
     parado: '',
     salvando: 'Salvando rascunho…',
-    salvo: 'Rascunho salvo. O que você preencher fica guardado, mesmo se fechar o app.',
-    recuperado: 'Rascunho recuperado. Confira os campos e salve o dia.',
-    erro: 'Não foi possível salvar o rascunho agora. Confira a conexão.',
+    salvo: 'Rascunho salvo neste aparelho. Se atualizar ou fechar, o que foi preenchido volta.',
+    recuperado: 'Rascunho recuperado neste aparelho. Confira os campos e salve o dia.',
+    erro: 'Não foi possível guardar o rascunho neste aparelho.',
   };
 
   return (

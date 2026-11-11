@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { COOKIE_PRODUCAO, cookieProducaoValido } from '@/lib/services/producaoAcesso';
-import { FABRICANTES_PRODUCAO, MAX_PARADAS_HORA, PERFIS_PRODUCAO, apagarRascunhoProducao, buscarDia, horasDoDia, lerRascunhoProducao, minutosDaParada, salvarDiaProducao, salvarRascunhoProducao, type LinhaProducao } from '@/lib/services/producao';
+import { FABRICANTES_PRODUCAO, MAX_PARADAS_HORA, PERFIS_PRODUCAO, buscarDia, horasDoDia, minutosDaParada, salvarDiaProducao, type LinhaProducao } from '@/lib/services/producao';
 
 /** Valor de uma hora: antes da troca fica o que ja estava registrado; a partir da troca, o novo valor. */
 function valorDaHora(hora: string, horaTroca: string, novo: string, antes: string, registrado: string | undefined): string {
@@ -81,25 +81,6 @@ export async function salvarProducaoAction(formData: FormData): Promise<void> {
     fabricante,
     linhas,
   });
-  await apagarRascunhoProducao(data);
   revalidatePath('/producao');
   redirect(`/producao?data=${data}&ok=1`);
-}
-
-/** Rascunho automatico: guarda o que foi digitado, sem gravar o dia. */
-export async function salvarRascunhoAction(data: string, campos: Record<string, string>): Promise<void> {
-  if (!cookieProducaoValido((await cookies()).get(COOKIE_PRODUCAO)?.value)) return;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) return;
-  const limpos: Record<string, string> = {};
-  for (const [k, v] of Object.entries(campos).slice(0, 500)) {
-    if (k === 'data') continue;
-    limpos[k.slice(0, 80)] = String(v).slice(0, 300);
-  }
-  await salvarRascunhoProducao(data, limpos);
-}
-
-export async function lerRascunhoAction(data: string): Promise<Record<string, string> | null> {
-  if (!cookieProducaoValido((await cookies()).get(COOKIE_PRODUCAO)?.value)) return null;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) return null;
-  return lerRascunhoProducao(data);
 }

@@ -658,13 +658,6 @@ model ProducaoDia {
   linhas       ProducaoLinha[]
 }
 
-// Rascunho do formulario da Producao: salvo sozinho enquanto a pessoa preenche, para nao perder nada ao recarregar ou fechar.
-model RascunhoProducao {
-  data         String   @id
-  campos       String
-  atualizadoEm DateTime @updatedAt
-}
-
 model ProducaoLinha {
   id                 String      @id @default(cuid())
   diaId              String

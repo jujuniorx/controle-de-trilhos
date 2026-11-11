@@ -120,27 +120,3 @@ export async function salvarDiaProducao(dados: DadosDia): Promise<void> {
 export async function buscarDia(data: Date) {
   return prisma.producaoDia.findUnique({ where: { data }, include: { linhas: { orderBy: { hora: 'asc' } } } });
 }
-
-/** Guarda o que esta preenchido no formulario do dia (rascunho automatico). */
-export async function salvarRascunhoProducao(data: string, campos: Record<string, string>): Promise<void> {
-  const json = JSON.stringify(campos);
-  await prisma.rascunhoProducao.upsert({
-    where: { data },
-    create: { data, campos: json },
-    update: { campos: json },
-  });
-}
-
-export async function lerRascunhoProducao(data: string): Promise<Record<string, string> | null> {
-  const r = await prisma.rascunhoProducao.findUnique({ where: { data } });
-  if (!r) return null;
-  try {
-    return JSON.parse(r.campos) as Record<string, string>;
-  } catch {
-    return null;
-  }
-}
-
-export async function apagarRascunhoProducao(data: string): Promise<void> {
-  await prisma.rascunhoProducao.deleteMany({ where: { data } });
-}
