@@ -2376,3 +2376,14 @@ html[data-tema="vidro"] .ct-logo-mark .logo-trilho { rx: 4px; }
 html[data-tema="pastel"] .ct-logo-mark .logo-tile { rx: 18px; stroke: #B89CF8; stroke-width: 1.2; }
 html[data-tema="pastel"] .ct-logo-mark .logo-dorm { rx: 3px; }
 html[data-tema="claro"] .ct-logo-mark .logo-tile { rx: 12px; }
+
+/* Home no Pastel: fundo claro (sem a mancha escura do modo noturno) e cartoes lilas */
+html[data-tema="pastel"] .home-entrada .home-conteudo::before { background: radial-gradient(closest-side, rgba(247, 242, 255, .92) 35%, transparent); }
+html[data-tema="pastel"] .home-entrada .fundo-trilhos-via { background: linear-gradient(to bottom, transparent 0, rgba(214, 200, 245, .5) 16%, rgba(190, 172, 232, .9) 100%); }
+html[data-tema="pastel"] .home-entrada .setor-tile { color: var(--h-texto); background: var(--h-card); border-color: var(--h-borda); box-shadow: 0 10px 28px rgba(124, 92, 224, .14); }
+html[data-tema="pastel"] .home-entrada .setor-tile:hover { background: #fff; border-color: #9b7cf6; }
+html[data-tema="pastel"] .home-entrada .setor-tile-nome { color: var(--h-texto); }
+html[data-tema="pastel"] .home-entrada .home-instalar { background: var(--h-card); color: #6b4fd6; border-color: #b89cf8; }
+html[data-tema="pastel"] .home-entrada .home-privacidade { color: var(--h-muted); background: rgba(255, 255, 255, .8); }
+/* Home no Escuro: mancha preta, sem o azul-escuro */
+html[data-tema="escuro"] .home-entrada .home-conteudo::before { background: radial-gradient(closest-side, rgba(0, 0, 0, .92) 35%, transparent); }
