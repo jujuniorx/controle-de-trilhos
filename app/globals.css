@@ -1593,7 +1593,8 @@ html[data-tema="escuro"] .portaria-shell, html[data-tema="escuro"] .portaria-tel
 html:not([data-tema]) .patio-shell, html[data-tema="escuro"] .patio-shell { --rotulo-patio: #9aa9bb; }
 html[data-tema="claro"] .patio-shell { --rotulo-patio: #3f4b5c; }
 /* Botão principal: azul claro com texto escuro no escuro; azul forte com texto branco no claro (contraste acima de 4,5:1). */
-html:not([data-tema]) .patio-shell .btn-primary, html[data-tema="escuro"] .patio-shell .btn-primary { background: #4F9BE0; color: #06121F; }
+html:not([data-tema]) .patio-shell .btn-primary { background: #4F9BE0; color: #06121F; }
+html[data-tema="escuro"] .patio-shell .btn-primary { background: #F5F5F5; color: #000000; }
 html[data-tema="claro"] .patio-shell .btn-primary { background: #0F5FCC; color: #fff; }
 /* Faixa de sincronização/offline: texto legível e sempre visível ao rolar. */
 .patio-shell .faixa-sync { position: sticky; top: 0; z-index: 30; font-size: .9rem; }
