@@ -6,6 +6,7 @@ import { TrocaTopo } from '@/components/producao/TrocaTopo';
 import { salvarProducaoAction } from './actions';
 import { AlternarTema } from '@/components/ui/AlternarTema';
 import { BotaoEnviar } from '@/components/ui/BotaoEnviar';
+import { CelulasParada } from '@/components/producao/CelulasParada';
 
 export const dynamic = 'force-dynamic';
 
@@ -64,7 +65,7 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
                       <thead className="text-xs uppercase text-ink-muted">
                         <tr className="border-b border-line">
                           <th className="py-2 pr-2 text-left">Início da Parada</th>
-                          <th className="py-2 pr-2 text-left">Tempo de Parada</th>
+                          <th className="py-2 pr-2 text-left">Até que horas (tempo calculado)</th>
                           <th className="py-2 text-left">Descrição da Parada</th>
                         </tr>
                       </thead>
@@ -73,8 +74,7 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
                           const p = paradasDaLinha(l?.paradas)[n - 1];
                           return (
                             <tr key={n} className="border-b border-line">
-                              <td className="py-1 pr-2"><input aria-label={`Parada ${n}: início da parada às ${hora}`} id={`parada_inicio_${hora}_${n}`} name={`parada_inicio_${hora}_${n}`} type="time" defaultValue={p?.inicio ?? ''} className="h-11 w-full" /></td>
-                              <td className="py-1 pr-2"><input aria-label={`Parada ${n}: tempo de parada às ${hora}`} id={`parada_${hora}_${n}`} name={`parada_${hora}_${n}`} inputMode="numeric" placeholder="0:23" defaultValue={paradaEmHoraMin(p?.minutos)} className="h-11 w-full" /></td>
+                              <CelulasParada hora={hora} n={n} inicioPadrao={p?.inicio ?? ''} minutosPadrao={p?.minutos || null} />
                               <td className="py-1"><input aria-label={`Parada ${n}: descrição às ${hora}`} id={`parada_descricao_${hora}_${n}`} name={`parada_descricao_${hora}_${n}`} defaultValue={p?.descricao ?? ''} className="h-11 w-full" /></td>
                             </tr>
                           );
