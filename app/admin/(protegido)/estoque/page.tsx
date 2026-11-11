@@ -5,6 +5,7 @@ import { FormularioUsina } from '@/components/usina/FormularioUsina';
 import { BotaoApagarRegistro } from '@/components/usina/BotaoApagarRegistro';
 import { listarEstoque, ROTULO_TIPO_ESTOQUE, TIPOS_ESTOQUE, type ItemEstoque, type TipoEstoque } from '@/lib/services/estoque';
 import { salvarItemEstoqueAction, excluirItemEstoqueAction } from './actions';
+import { EstadoVazio } from '@/components/ui/EstadoVazio';
 
 export const dynamic = 'force-dynamic';
 
@@ -108,7 +109,7 @@ export default async function EstoquePage() {
               <p className="text-sm text-ink-muted">{EXPLICA_TIPO[tipo]}</p>
             </div>
             {grupo.length === 0 ? (
-              <p className="text-sm text-ink-muted">Nenhum item cadastrado ainda. Use "Adicionar item ao estoque" no topo para cadastrar.</p>
+              <EstadoVazio titulo="Nada cadastrado nesta categoria" texto={'Use "Adicionar item ao estoque" no topo para cadastrar.'} />
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {grupo.map((item) => {

@@ -1,5 +1,6 @@
 import { requireDono } from '@/lib/services/requireAdmin';
 import { listarPilhasPatio } from '@/lib/services/pilhasPatio';
+import { EstadoVazio } from '@/components/ui/EstadoVazio';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,7 +39,7 @@ export default async function PilhasDonoPage() {
       </section>
 
       {pilhas.length === 0 ? (
-        <p className="text-sm text-ink-muted">O pátio ainda não cadastrou nenhuma pilha.</p>
+        <EstadoVazio titulo="O pátio ainda não cadastrou nenhuma pilha" />
       ) : (
         <div className="card overflow-x-auto p-0">
           <table className="w-full text-sm">
