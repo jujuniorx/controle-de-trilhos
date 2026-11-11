@@ -58,6 +58,17 @@ export function RascunhoAutomatico({ data, horas }: { data: string; horas: strin
     let cancelado = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
 
+    // Soldas acumuladas do dia ate o fim de cada hora, atualizadas enquanto se digita.
+    const mostrarAcumulado = () => {
+      let total = 0;
+      for (const hora of listaHoras) {
+        const valor = parseInt((form.elements.namedItem(`soldas_${hora}`) as HTMLInputElement | null)?.value ?? '', 10);
+        if (Number.isFinite(valor) && valor > 0) total += valor;
+        const el = document.getElementById(`acum_hora_${hora}`);
+        if (el) el.textContent = `Acumulado até as ${String(Number(hora.slice(0, 2)) + 1).padStart(2, '0')}:00: ${total} soldas`;
+      }
+    };
+
     // Mostra, dentro de cada hora, o que falta. Retorna a primeira hora com falta.
     const mostrarFaltas = () => {
       let primeira: { hora: string; campo: HTMLElement | null } | null = null;
@@ -92,6 +103,7 @@ export function RascunhoAutomatico({ data, horas }: { data: string; horas: strin
 
     const aoMudar = () => {
       mostrarFaltas();
+      mostrarAcumulado();
       if (timer) clearTimeout(timer);
       setEstado('salvando');
       timer = setTimeout(gravar, 400);
@@ -142,6 +154,7 @@ export function RascunhoAutomatico({ data, horas }: { data: string; horas: strin
       /* rascunho ilegivel ou sem armazenamento: o formulario segue normal */
     }
     mostrarFaltas();
+    mostrarAcumulado();
 
     form.addEventListener('input', aoMudar);
     form.addEventListener('change', aoMudar);
