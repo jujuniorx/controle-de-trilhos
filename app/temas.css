@@ -518,4 +518,13 @@ html[data-tema]:root .ct-nav-btn:focus-visible { outline: 2px solid var(--v-focu
   html[data-tema]:root .ct-nav-btn { width: 44px !important; height: 44px !important; }
 }
 
+
+/* Vidro com detalhes laranja (como na referencia): pilula, botao, foco e acentos */
+html[data-tema="vidro"]:root {
+  --v-pill: linear-gradient(90deg, rgba(255, 122, 26, .55), rgba(255, 122, 26, .14)); --v-pill-shadow: 0 8px 26px rgba(255, 122, 26, .30), inset 0 1px 0 rgba(255, 255, 255, .18);
+  --v-pill-icon: rgba(255, 255, 255, .22);
+  --v-btn: linear-gradient(180deg, #ff9a3d, #f2701a); --v-btn-ink: #ffffff; --v-btn-shadow: 0 6px 18px rgba(255, 122, 26, .38);
+  --v-accent: #ff9a3d; --v-focus: #ff9a3d;
+  --pilula-fundo: var(--v-pill); --pilula-sombra: var(--v-pill-shadow);
+}
 }
