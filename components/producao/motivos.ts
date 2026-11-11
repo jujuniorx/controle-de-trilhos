@@ -1,4 +1,4 @@
-export const REUNIAO_DDS = 'Reunião - DDS';
+export const REUNIAO_DDS = 'Reunião - DDS - Prontidão';
 
 /** Motivos mais comuns de parada, na ordem da lista. Quem escolhe pode marcar mais de um. */
 export const MOTIVOS_PARADA = [
