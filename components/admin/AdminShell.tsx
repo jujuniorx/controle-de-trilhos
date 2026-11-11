@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { NavegacaoTopo } from '@/components/ui/NavegacaoTopo';
 import { MobileNav } from './MobileNav';
-import { ICONES_NAV as ICONES_MENU, NAV_ITEMS, NAV_ITEMS_DONO } from './SidebarNav';
+import { ICONES_NAV as ICONES_MENU, NAV_ITEMS, NAV_ITEMS_DONO } from './navItens';
 import { Logo } from '@/components/ui/Logo';
 import { MenuExcluir } from '@/components/admin/MenuExcluir';
 import { InstalarApp } from '@/components/InstalarApp';
