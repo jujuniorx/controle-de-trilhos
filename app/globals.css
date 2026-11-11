@@ -2149,8 +2149,10 @@ html[data-tema="vidro"] .ct-sidebar-nav a[data-active="true"] { background: tran
 html[data-tema="azul"] { --pilula-fundo: linear-gradient(90deg, #2f5bd3, #3b6fe0); --pilula-sombra: 0 6px 18px rgba(47, 91, 211, .35); }
 html[data-tema="azul"] .ct-sidebar-nav a[data-active="true"] { background: transparent !important; box-shadow: none !important; }
 
-html[data-tema="pastel"] { --pilula-fundo: var(--b3); --pilula-sombra: 0 8px 20px rgba(255, 122, 69, .35); }
-html[data-tema="pastel"] .ct-sidebar-nav a[data-active="true"] { background: transparent !important; box-shadow: none !important; }
+/* Pastel: o proprio link ativo e a pilula (sem camada deslizante separada, que ficava desalinhada) */
+html[data-tema="pastel"] .ct-sidebar-nav::before { display: none; }
+html[data-tema="pastel"] .ct-sidebar-nav a { display: flex; align-items: center; }
+html[data-tema="pastel"] .ct-sidebar-nav a[data-active="true"] .nav-icone { background: rgba(255, 255, 255, .28); color: #fff; }
 
 @media (prefers-reduced-motion: reduce) {
   .ct-sidebar-nav::before, .ct-sidebar-nav a { animation: none !important; transition: none !important; }
