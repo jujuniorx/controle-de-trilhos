@@ -57,9 +57,9 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
                   <div className="field"><label htmlFor={`soldas_${hora}`}>Soldas</label><input id={`soldas_${hora}`} name={`soldas_${hora}`} inputMode="numeric" defaultValue={l?.soldas || ''} className="h-11" /></div>
                   <div className="field"><label htmlFor={`cortes_${hora}`}>Cortes</label><input id={`cortes_${hora}`} name={`cortes_${hora}`} inputMode="numeric" defaultValue={l?.cortes || ''} className="h-11" /></div>
                   <div className="field sm:col-span-2"><label htmlFor={`justificativa_${hora}`}>Justificativa do corte</label><input id={`justificativa_${hora}`} name={`justificativa_${hora}`} defaultValue={l?.justificativaCorte ?? ''} placeholder="Obrigatória se houver corte" className="h-11" /></div>
-                  <div className="field"><label htmlFor={`parada_inicio_${hora}`}>Parada: início</label><input id={`parada_inicio_${hora}`} name={`parada_inicio_${hora}`} type="time" defaultValue={l?.paradaInicio ?? ''} className="h-11" /></div>
-                  <div className="field"><label htmlFor={`parada_${hora}`}>Parada: minutos</label><input id={`parada_${hora}`} name={`parada_${hora}`} inputMode="numeric" defaultValue={l?.paradaMinutos || ''} className="h-11" /></div>
-                  <div className="field sm:col-span-2"><label htmlFor={`parada_descricao_${hora}`}>Descrição da parada</label><input id={`parada_descricao_${hora}`} name={`parada_descricao_${hora}`} defaultValue={l?.paradaDescricao ?? ''} className="h-11" /></div>
+                  <div className="field"><label htmlFor={`parada_inicio_${hora}`}>Início da Parada</label><input id={`parada_inicio_${hora}`} name={`parada_inicio_${hora}`} type="time" defaultValue={l?.paradaInicio ?? ''} className="h-11" /></div>
+                  <div className="field"><label htmlFor={`parada_${hora}`}>Tempo de Parada (min)</label><input id={`parada_${hora}`} name={`parada_${hora}`} inputMode="numeric" defaultValue={l?.paradaMinutos || ''} className="h-11" /></div>
+                  <div className="field sm:col-span-2"><label htmlFor={`parada_descricao_${hora}`}>Descrição da Parada</label><input id={`parada_descricao_${hora}`} name={`parada_descricao_${hora}`} defaultValue={l?.paradaDescricao ?? ''} className="h-11" /></div>
                 </div>
               </details>
             );
