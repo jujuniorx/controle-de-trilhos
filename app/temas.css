@@ -414,6 +414,8 @@ html[data-tema]:root select:not([multiple]):not([size]) {
 
 /* Seletor de tema: botao com amostra de cor e menu proprio */
 html[data-tema]:root .ct-seletor-tema { position: relative; display: inline-block; }
+/* Na tela inicial o seletor fica flutuando no canto, fora do fluxo (como antes) */
+html[data-tema]:root .home-entrada .home-tema { position: absolute; top: max(14px, env(safe-area-inset-top, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); z-index: 2; display: block; }
 html[data-tema]:root .tema-botao {
   display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px 0 10px;
   border-radius: 999px; border: 1px solid var(--v-ghost-line); background: var(--v-ghost); color: var(--v-ghost-ink);
