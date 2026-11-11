@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { COOKIE_PRODUCAO, cookieProducaoValido } from '@/lib/services/producaoAcesso';
+import { RascunhoAutomatico } from '@/components/producao/RascunhoAutomatico';
 import { FABRICANTES_PRODUCAO, MAX_PARADAS_HORA, PERFIS_PRODUCAO, SOLDAS_POR_TLS, buscarDia, horasDoDia, paradaEmHoraMin, paradasDaLinha } from '@/lib/services/producao';
 import { TrocaTopo } from '@/components/producao/TrocaTopo';
 import { salvarProducaoAction } from './actions';
@@ -42,7 +43,8 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
       <h1 className="font-condensed text-2xl font-bold uppercase tracking-wide">Produção do dia</h1>
       {params.ok === '1' && <p role="status" className="rounded-lg border border-ok/40 bg-ok/10 p-3 text-sm">Dia salvo. Soldas: {dia?.totalSoldas ?? 0}, TLS formados: {dia?.tlsFormados ?? 0}, sobra para amanhã: {dia?.sobraSaida ?? 0} de {SOLDAS_POR_TLS}.</p>}
 
-      <form action={salvarProducaoAction} className="space-y-6">
+      <form id="form-producao" action={salvarProducaoAction} className="space-y-6">
+        <RascunhoAutomatico data={dataTexto} />
         <section className="card space-y-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="field"><label htmlFor="data">Data</label><input id="data" name="data" type="date" defaultValue={dataTexto} required className="h-11" /></div>
