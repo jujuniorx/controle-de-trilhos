@@ -76,6 +76,7 @@ export function CelulasParada({ hora, n, inicioPadrao, minutosPadrao }: Props) {
         <input
           aria-label={`Parada ${n}: fim da parada às ${hora}`}
           id={`parada_fim_${id}`}
+          name={`parada_fim_${id}`}
           type="time"
           value={fim}
           onChange={(e) => { setFim(e.target.value); setMexeu(true); }}
