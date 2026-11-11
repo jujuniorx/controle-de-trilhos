@@ -2405,21 +2405,77 @@ html[data-tema="claro"] .entrada-marca-conteudo::before { background: radial-gra
 html[data-tema="pastel"] .entrada-marca-conteudo::before { background: radial-gradient(closest-side, rgba(255, 255, 255, .6) 40%, transparent); }
 
 /* Impressao da planilha de producao: so a planilha, sem botoes e em fundo branco */
+.so-impressao { display: none; }
+
+/* ═══════════════════════════════════════════════
+   IMPRESSÃO — Produção do dia sai como documento (folha branca, sem o menu, a barra
+   do topo e as abas do sistema), em uma página A4. Cores fixas: não dependem do tema.
+   ═══════════════════════════════════════════════ */
+@page { size: A4; margin: 12mm; }
+@page producao { size: A4; margin: 0; }
 @media print {
-  @page { size: A4; margin: 12mm; }
-  .no-print { display: none !important; }
-  .planilha-producao { max-width: none !important; padding: 0 !important; zoom: .7; }
-  .planilha-producao section { break-inside: avoid; border: 1px solid #bbb !important; border-radius: 6px !important; padding: 8px !important; margin-bottom: 8px; }
-  .planilha-producao .barra-trilho { border: 1px solid #999 !important; height: 8px !important; }
-  .planilha-producao .barra-fill { background: #2563eb !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .planilha-producao .tabela-impressao table { min-width: 0 !important; font-size: 9.5pt; }
-  .planilha-producao .tabela-impressao th, .planilha-producao .tabela-impressao td { padding: 3px 4px !important; }
-  .planilha-producao .tabela-impressao tr { break-inside: avoid; }
-  .planilha-producao .grid { gap: 6px !important; }
-  .planilha-producao { color: #000 !important; background: #fff !important; }
-  .planilha-producao * { color: #000 !important; background: transparent !important; border-color: #999 !important; box-shadow: none !important; }
-  .planilha-producao table { page-break-inside: auto; }
-  .planilha-producao tr { page-break-inside: avoid; }
+  .no-print, .so-tela { display: none !important; }
+  .ct-sidebar, .ct-topbar, .barra-abas, .ct-seletor-tema, .gesto-puxar, .aviso-offline, .abertura, .aviso-sucesso { display: none !important; }
+  html:has(.planilha-producao), html:has(.planilha-producao) body { background: #fff !important; }
+  html:has(.planilha-producao) body::before, html:has(.planilha-producao) body::after { display: none !important; }
+  html:has(.planilha-producao) body * { animation: none !important; transition: none !important; }
+
+  main.planilha-producao {
+    page: producao; display: block !important; max-width: none !important; width: auto !important; margin: 0 !important;
+    padding: 11mm 12mm 9mm !important; background: #fff !important; font-family: var(--font-barlow), Arial, sans-serif; font-size: 9.5pt; line-height: 1.3;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  main.planilha-producao > * { margin: 0 0 5mm !important; }
+  .planilha-producao, .planilha-producao * {
+    color: #16191f !important; background: transparent !important; box-shadow: none !important; border-color: #d3d8e0 !important;
+    -webkit-backdrop-filter: none !important; backdrop-filter: none !important; text-shadow: none !important; opacity: 1 !important; transform: none !important;
+  }
+  .planilha-producao *::before, .planilha-producao *::after { display: none !important; }
+
+  /* Cabeçalho do documento */
+  main.planilha-producao .so-impressao { display: flex !important; }
+  main.planilha-producao .doc-topo { justify-content: space-between; align-items: flex-end; gap: 10mm; padding-bottom: 4mm; border-bottom: 1.2pt solid #16191f !important; }
+  main.planilha-producao .doc-topo-sistema { font-size: 7.5pt; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #5b6472 !important; margin: 0; }
+  main.planilha-producao .doc-topo-titulo { font-family: var(--font-barlow-cond), var(--font-barlow), Arial, sans-serif; font-size: 22pt; font-weight: 700; line-height: 1.05; text-transform: uppercase; letter-spacing: .02em; margin: 1mm 0; }
+  main.planilha-producao .doc-topo-sub { font-size: 10pt; color: #3c4350 !important; margin: 0; }
+  main.planilha-producao .doc-ficha { display: grid; grid-template-columns: auto auto; gap: 1.5mm 8mm; margin: 0; }
+  main.planilha-producao .doc-ficha div { display: flex; flex-direction: column; }
+  main.planilha-producao .doc-ficha dt { font-size: 6.5pt; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #5b6472 !important; }
+  main.planilha-producao .doc-ficha dd { margin: 0; font-size: 10pt; font-weight: 600; }
+
+  /* Indicadores: quatro caixas numa linha; a primeira em destaque */
+  main.planilha-producao .doc-indicadores { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; gap: 3mm !important; break-inside: avoid; }
+  main.planilha-producao .doc-indicador { border: .8pt solid #d3d8e0 !important; border-radius: 2.5mm !important; padding: 3mm 3.5mm !important; margin: 0 !important; }
+  main.planilha-producao .doc-indicador > * { margin: 0 !important; }
+  main.planilha-producao .doc-rotulo { font-size: 6.5pt; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #5b6472 !important; }
+  main.planilha-producao .doc-valor { font-family: var(--font-barlow-cond), var(--font-barlow), Arial, sans-serif; font-size: 22pt; font-weight: 700; line-height: 1.1; }
+  main.planilha-producao .doc-detalhe { font-size: 7.5pt; color: #5b6472 !important; }
+  main.planilha-producao .doc-indicador:first-child { background: #16191f !important; border-color: #16191f !important; }
+  main.planilha-producao .doc-indicador:first-child * { color: #fff !important; }
+
+  /* Blocos (ritmo e detalhe) */
+  main.planilha-producao .doc-bloco { border: .8pt solid #d3d8e0 !important; border-radius: 2.5mm !important; padding: 3.5mm 4mm !important; break-inside: avoid; overflow: visible !important; }
+  main.planilha-producao .doc-bloco h2 { font-size: 7.5pt; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #5b6472 !important; margin: 0 0 2.5mm !important; padding: 0 !important; border: 0 !important; }
+  main.planilha-producao .doc-ritmo ul { margin: 0 !important; padding: 0; list-style: none; }
+  main.planilha-producao .doc-ritmo-linha { display: grid !important; grid-template-columns: 26mm 1fr 10mm !important; align-items: center; gap: 3mm !important; margin: 0 0 1.3mm !important; font-size: 8.5pt; }
+  main.planilha-producao .doc-ritmo-linha:last-child { margin-bottom: 0 !important; }
+  main.planilha-producao .doc-ritmo-linha > :first-child { color: #3c4350 !important; white-space: nowrap; }
+  main.planilha-producao .doc-ritmo-linha > :last-child { text-align: right; font-weight: 700; }
+  main.planilha-producao .barra-trilho { display: block; height: 2.6mm !important; border: 0 !important; border-radius: 1.3mm !important; background: #e8ebf0 !important; overflow: hidden; }
+  main.planilha-producao .barra-fill { display: block; height: 100%; border-radius: 1.3mm !important; background: #16191f !important; }
+
+  /* Tabela de detalhe */
+  main.planilha-producao .tabela-impressao table { width: 100% !important; min-width: 0 !important; border-collapse: collapse; font-size: 8.5pt; }
+  main.planilha-producao .tabela-impressao th { padding: 1.8mm 2mm !important; font-size: 6.5pt; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #3c4350 !important; background: #eef0f4 !important; border-bottom: .8pt solid #b9c0cb !important; }
+  main.planilha-producao .tabela-impressao td { padding: 1.5mm 2mm !important; border-bottom: .5pt solid #e1e5eb !important; vertical-align: top; }
+  main.planilha-producao .tabela-impressao tbody tr:nth-child(even) td { background: #f7f8fa !important; }
+  main.planilha-producao .tabela-impressao tfoot td { border-top: .8pt solid #16191f !important; border-bottom: 0 !important; font-weight: 700; padding-top: 2mm !important; }
+  main.planilha-producao .tabela-impressao tr { break-inside: avoid; border: 0 !important; }
+  main.planilha-producao .tabela-impressao td:last-child { white-space: normal; overflow-wrap: anywhere; }
+
+  /* Rodapé do documento */
+  main.planilha-producao .doc-rodape { justify-content: space-between; margin: 0 !important; padding-top: 2.5mm; border-top: .5pt solid #d3d8e0 !important; font-size: 7pt; color: #5b6472 !important; }
+  main.planilha-producao .doc-rodape span { color: #5b6472 !important; }
 }
 
 /* Lista aberta dos selects (filtros, formularios): segue o tema, com texto legivel */

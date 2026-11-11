@@ -61,11 +61,13 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
                   <div className="field sm:col-span-2"><label htmlFor={`justificativa_${hora}`}>Justificativa do corte</label><input id={`justificativa_${hora}`} name={`justificativa_${hora}`} defaultValue={l?.justificativaCorte ?? ''} placeholder="Obrigatória se houver corte" className="h-11" /></div>
                   <div className="overflow-x-auto sm:col-span-2">
                     <p className="mb-2 text-sm font-semibold">Paradas desta hora (até {MAX_PARADAS_HORA}), como na planilha</p>
-                    <table className="w-full text-sm">
+                    <p className="mb-2 text-xs text-ink-muted">Escolha a hora em que a parada começou e a hora em que terminou. O tempo de parada aparece sozinho.</p>
+                    <table className="tabela-paradas w-full text-sm">
                       <thead className="text-xs uppercase text-ink-muted">
                         <tr className="border-b border-line">
                           <th className="py-2 pr-2 text-left">Início da Parada</th>
-                          <th className="py-2 pr-2 text-left">Até que horas (tempo calculado)</th>
+                          <th className="py-2 pr-2 text-left">Fim da Parada</th>
+                          <th className="py-2 pr-2 text-left">Tempo de Parada</th>
                           <th className="py-2 text-left">Descrição da Parada</th>
                         </tr>
                       </thead>
@@ -74,7 +76,7 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
                           const p = paradasDaLinha(l?.paradas)[n - 1];
                           return (
                             <tr key={n} className="border-b border-line">
-                              <CelulasParada hora={hora} n={n} inicioPadrao={p?.inicio ?? ''} minutosPadrao={p?.minutos || null} />
+                              <CelulasParada hora={hora} n={n} inicioPadrao={p?.inicio ?? ''} minutosPadrao={p?.minutos ?? 0} />
                               <td className="py-1"><input aria-label={`Parada ${n}: descrição às ${hora}`} id={`parada_descricao_${hora}_${n}`} name={`parada_descricao_${hora}_${n}`} defaultValue={p?.descricao ?? ''} className="h-11 w-full" /></td>
                             </tr>
                           );

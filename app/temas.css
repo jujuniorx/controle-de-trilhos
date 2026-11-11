@@ -531,4 +531,15 @@ html[data-tema="vidro"]:root .ct-user-avatar, html[data-tema="vidro"]:root .ct-t
 html[data-tema="vidro"]:root .tema-amostra[data-amostra="vidro"] { background: linear-gradient(135deg, #5f5751 50%, #ff9a3d 50%); }
 html[data-tema="vidro"]:root ::selection { background: rgba(255, 176, 84, .45); color: #fff; }
 
+
+/* Producao: tabela de paradas (Inicio, Fim, Tempo calculado, Descricao) */
+html[data-tema]:root .tabela-paradas { min-width: 560px; }
+html[data-tema]:root .tabela-paradas th:nth-child(-n + 3) { width: 8.5rem; }
+html[data-tema]:root .parada-tempo {
+  display: flex; align-items: center; justify-content: center; height: 44px; padding: 0 10px; white-space: nowrap;
+  border-radius: var(--v-field-radius); border: 1px dashed var(--v-field-line); background: var(--v-side-hover);
+  font-weight: 800; font-size: 1.05rem; font-variant-numeric: tabular-nums; color: var(--ink);
+}
+html[data-tema]:root .parada-tempo[data-aviso="true"] { font-size: .78rem; font-weight: 700; color: var(--warn); border-color: color-mix(in srgb, var(--warn) 55%, transparent); background: var(--warn-bg); }
+
 }
