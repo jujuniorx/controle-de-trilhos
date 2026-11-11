@@ -808,3 +808,35 @@ html[data-tema]:root .inicio-cartao-selo {
   html[data-tema]:root .inicio-cartao-selo { position: absolute; top: 12px; right: 12px; }
 }
 @media (prefers-reduced-motion: reduce) { html[data-tema]:root .inicio-resumo, html[data-tema]:root .inicio-cartao { transition: none; } }
+
+/* Topo no celular: a marca encolhe em vez de empurrar os botoes da direita */
+@media (max-width: 767px) {
+  html[data-tema]:root .ct-topbar .ct-logo-mark { min-width: 0; }
+  html[data-tema]:root .ct-topbar .ct-logo-text { min-width: 0; }
+  html[data-tema]:root .ct-topbar .ct-logo-text .name, html[data-tema]:root .ct-topbar .ct-logo-text .sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
+
+/* ENTRADA EM SEQUENCIA E TOQUE — vale para todos os setores. So movimento e transparencia (leve em aparelho fraco);
+   cada tema muda a distancia e a curva: Claro quase so aparece, Pastel da uma quicada, os outros sobem. */
+html[data-tema]:root { --ct-dy: 12px; --ct-curva: cubic-bezier(.2, .8, .2, 1); --ct-tempo: .42s; }
+html[data-tema="claro"]:root { --ct-dy: 4px; --ct-tempo: .32s; }
+html[data-tema="pastel"]:root { --ct-dy: 16px; --ct-curva: cubic-bezier(.34, 1.56, .64, 1); --ct-tempo: .5s; }
+html[data-tema="vidro"]:root { --ct-dy: 18px; --ct-tempo: .5s; }
+@keyframes ct-surge { from { opacity: 0; transform: translateY(var(--ct-dy)); } to { opacity: 1; transform: none; } }
+html[data-tema]:root :is(.inicio-resumos, .inicio-grade, .hora-lista) > * {
+  animation: ct-surge var(--ct-tempo) var(--ct-curva) backwards; animation-delay: calc(var(--ordem, 0) * 45ms);
+}
+html[data-tema]:root :is(.inicio-resumos, .inicio-grade, .hora-lista) > :nth-child(2) { --ordem: 1; }
+html[data-tema]:root :is(.inicio-resumos, .inicio-grade, .hora-lista) > :nth-child(3) { --ordem: 2; }
+html[data-tema]:root :is(.inicio-resumos, .inicio-grade, .hora-lista) > :nth-child(4) { --ordem: 3; }
+html[data-tema]:root :is(.inicio-resumos, .inicio-grade, .hora-lista) > :nth-child(5) { --ordem: 4; }
+html[data-tema]:root :is(.inicio-resumos, .inicio-grade, .hora-lista) > :nth-child(6) { --ordem: 5; }
+html[data-tema]:root :is(.inicio-resumos, .inicio-grade, .hora-lista) > :nth-child(n + 7) { --ordem: 6; }
+
+/* Resposta ao toque: o que e clicavel afunda de leve */
+html[data-tema]:root :is(.inicio-cartao, .inicio-resumo, .motivos-campo, .motivos-item):active { transform: scale(.97); transition-duration: .08s; }
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-tema]:root :is(.inicio-resumos, .inicio-grade, .hora-lista) > * { animation: none; }
+  html[data-tema]:root :is(.inicio-cartao, .inicio-resumo, .motivos-campo, .motivos-item):active { transform: none; }
+}

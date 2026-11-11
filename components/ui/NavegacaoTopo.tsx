@@ -9,12 +9,12 @@ const estiloBotao =
   'ct-nav-btn inline-flex h-10 w-10 flex-none items-center justify-center rounded-xl border border-line text-ink hover:bg-surface-2 active:scale-95';
 
 /**
- * Botões fixos do topo: Voltar e Início.
+ * Botões fixos do topo: Voltar e Início (a casinha some com `semInicio`, quando a troca de área está no menu da conta).
  * Necessários porque, instalado como app (principalmente no iPhone), não existe
  * botão do navegador para voltar nem para trocar de área.
  * Voltar some nas telas iniciais de cada área (não há para onde voltar).
  */
-export function NavegacaoTopo({ inicioArea, className = '' }: { inicioArea: '/patio' | '/admin' | '/portaria'; className?: string }) {
+export function NavegacaoTopo({ inicioArea, semInicio = false, className = '' }: { inicioArea: '/patio' | '/admin' | '/portaria'; semInicio?: boolean; className?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const naRaiz = RAIZES.includes(pathname.replace(/\/$/, ''));
@@ -23,6 +23,9 @@ export function NavegacaoTopo({ inicioArea, className = '' }: { inicioArea: '/pa
     if (window.history.length > 1) router.back();
     else router.push(inicioArea);
   }
+
+  // Sem a casinha (a troca de área fica no menu da conta) e na tela inicial da área não há botão nenhum.
+  if (semInicio && naRaiz) return null;
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
@@ -33,11 +36,13 @@ export function NavegacaoTopo({ inicioArea, className = '' }: { inicioArea: '/pa
           </svg>
         </button>
       )}
-      <Link href="/" aria-label="Início: trocar de área" title="Início" className={estiloBotao}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M4 11l8-7 8 7M6 10v10h12V10" />
-        </svg>
-      </Link>
+      {!semInicio && (
+        <Link href="/" aria-label="Início: trocar de área" title="Início" className={estiloBotao}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M4 11l8-7 8 7M6 10v10h12V10" />
+          </svg>
+        </Link>
+      )}
     </div>
   );
 }

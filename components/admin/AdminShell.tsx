@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { NavegacaoTopo } from '@/components/ui/NavegacaoTopo';
-import { MobileNav } from './MobileNav';
 import { ICONES_NAV as ICONES_MENU, NAV_ITEMS, NAV_ITEMS_DONO } from './navItens';
 import { Logo } from '@/components/ui/Logo';
 import { MenuExcluir } from '@/components/admin/MenuExcluir';
@@ -88,7 +87,7 @@ function abasLargasDoAdmin(dono: boolean): Aba[] {
   return itens.map((i) => ({ href: i.href, rotulo: i.label, icone: ICONES_MENU[i.href] }));
 }
 
-/** Menu da conta no topo (telas largas): nome, trocar senha e sair. */
+/** Menu da conta no topo (celular e telas largas): nome, trocar de área, trocar senha e sair. */
 function MenuContaAdmin({ nome, iniciais, papel }: { nome: string; iniciais: string; papel: string }) {
   return (
     <details className="portaria-menu">
@@ -98,6 +97,9 @@ function MenuContaAdmin({ nome, iniciais, papel }: { nome: string; iniciais: str
       <div className="portaria-menu-painel">
         <p className="portaria-menu-nome">{nome}</p>
         <p className="portaria-menu-papel">{papel}</p>
+        <Link href="/" className="portaria-menu-item">
+          Trocar de área
+        </Link>
         <Link href="/admin/trocar-senha" className="portaria-menu-item">
           Trocar minha senha
         </Link>
@@ -121,13 +123,13 @@ export function AdminShell({ nome, ehDono = false, children }: { nome: string; e
     <div className="area-admin com-abas flex min-h-screen flex-col bg-background md:flex-row">
       <GestosApp />
       <header className="ct-topbar relative flex h-14 flex-none items-center justify-between px-3 md:hidden">
-        <div className="flex items-center gap-2">
-          <MobileNav dono={ehDono} />
-          <NavegacaoTopo inicioArea="/admin" />
+        <div className="flex min-w-0 items-center gap-2">
+          <NavegacaoTopo inicioArea="/admin" semInicio />
+          <Logo size={28} subtitle="Administração" />
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-none items-center gap-2">
           <AlternarTema />
-          <span className="ct-user-avatar" aria-hidden="true">{iniciaisDe(nome) || '?'}</span>
+          <MenuContaAdmin nome={nome} iniciais={iniciaisDe(nome) || '?'} papel={ehDono ? 'Dono do sistema' : 'Administrativo'} />
         </div>
       </header>
 
@@ -138,7 +140,7 @@ export function AdminShell({ nome, ehDono = false, children }: { nome: string; e
           <div className="flex min-w-0 items-center gap-3">
             <Logo size={30} subtitle="Administração" />
             <span className="h-6 w-px flex-none bg-line" aria-hidden="true" />
-            <NavegacaoTopo inicioArea="/admin" />
+            <NavegacaoTopo inicioArea="/admin" semInicio />
             <TrilhaTopo />
           </div>
           <div className="flex items-center gap-3">

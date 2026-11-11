@@ -53,10 +53,8 @@ export function PortariaShell({ nome, sair, children }: { nome: string; sair: ()
       <GestosApp />
       <header className="ct-topbar relative flex h-14 flex-none items-center justify-between px-3 lg:hidden">
         <div className="flex items-center gap-2">
-          <div className="min-w-[84px]">
-            <NavegacaoTopo inicioArea="/portaria" />
-          </div>
-          <span className="font-condensed text-base font-bold uppercase tracking-wide text-ink">Portaria</span>
+          <NavegacaoTopo inicioArea="/portaria" semInicio />
+          <Logo size={28} subtitle="Portaria" />
         </div>
         <div className="flex items-center gap-2">
           <AlternarTema />
@@ -71,7 +69,7 @@ export function PortariaShell({ nome, sair, children }: { nome: string; sair: ()
           <div className="flex min-w-0 items-center gap-3">
             <Logo size={30} subtitle="Portaria" />
             <span className="h-6 w-px flex-none bg-line" aria-hidden="true" />
-            <NavegacaoTopo inicioArea="/portaria" />
+            <NavegacaoTopo inicioArea="/portaria" semInicio />
           </div>
           <div className="flex items-center gap-3">
             <AlternarTema />
