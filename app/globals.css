@@ -2280,3 +2280,8 @@ html[data-tema="vidro"] .stat-tile {
 @media (prefers-reduced-motion: reduce) {
   html[data-tema] .card, html[data-tema] .stat-tile { animation: none !important; transition: none !important; }
 }
+
+/* Menu "Mais" dos cards: o painel de ações (Excluir, Baixar PDF) não pode ser cortado pelo card. */
+html[data-tema="vidro"] .card,
+html[data-tema="vidro"] .stat-tile { overflow: visible !important; }
+.card:has(details[open]) { z-index: 30; }
