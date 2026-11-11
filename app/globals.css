@@ -905,7 +905,7 @@ html[data-tema="escuro"] .grafico-area {
 .home-entrada {
   position: relative; overflow: hidden; flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px;
   min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-  background: linear-gradient(160deg, #0b1b31 0%, #0b1118 62%); color: #e8edf2;
+  background: linear-gradient(160deg, var(--home-topo, #0b1b31) 0%, var(--home-base, #0b1118) 62%); color: #e8edf2;
 }
 .home-conteudo { position: relative; z-index: 1; width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; text-align: center; }
 .home-titulo { margin-top: 20px; font-family: var(--font-barlow-cond), sans-serif; font-size: 2.1rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; line-height: 1.05; animation: sobe-fade .7s ease-out .5s backwards; }
@@ -1184,14 +1184,14 @@ html[data-tema="escuro"] .ct-sidebar-nav a[data-active="true"] .nav-icone { back
   position: absolute; left: 0; right: 0; bottom: 0; height: var(--altura-via, 56%); overflow: hidden;
   background: linear-gradient(to bottom, transparent 0, rgba(9, 16, 26, .5) 16%, rgba(7, 12, 19, .92) 100%);
 }
-.via-neblina { position: absolute; left: 0; right: 0; top: 0; height: 22%; background: linear-gradient(to bottom, rgba(150, 190, 235, .13), transparent); }
+.via-neblina { position: absolute; left: 0; right: 0; top: 0; height: 22%; background: linear-gradient(to bottom, var(--via-neblina, rgba(150, 190, 235, .13)), transparent); }
 .via-cena { position: absolute; inset: 0; width: 100%; height: 100%; }
 .via-lastro { fill: url(#lastro-grad); }
-.via-lastro-borda { fill: rgba(150, 175, 205, .13); }
+.via-lastro-borda { fill: var(--via-lastro-borda, rgba(150, 175, 205, .13)); }
 .via-brita { position: absolute; inset: 0; opacity: .7; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.6 -.7'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); -webkit-mask-image: linear-gradient(to top, #000 30%, transparent 85%); mask-image: linear-gradient(to top, #000 30%, transparent 85%); }
 .via-sombra { fill: rgba(0, 0, 0, .5); }
-.via-trilho-corpo { fill: #4a6180; }
-.via-trilho-topo { fill: #e8f1fc; }
+.via-trilho-corpo { fill: var(--via-trilho-corpo, #4a6180); }
+.via-trilho-topo { fill: var(--via-trilho-topo, #e8f1fc); }
 .via-reflexo { fill: none; stroke: #fff; stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 5 95; vector-effect: non-scaling-stroke; filter: drop-shadow(0 0 4px rgba(255, 255, 255, .9)); animation: trilho-reflexo 5s cubic-bezier(.5, 0, 1, .75) infinite; }
 .via-reflexo:nth-of-type(2) { animation-delay: -2.4s; }
 .via-dorm { position: absolute; inset: 0; will-change: transform; animation: via-avanca var(--dur, 5s) linear var(--atraso, 0s) infinite; }
@@ -1401,7 +1401,10 @@ html[data-tema="escuro"] .ct-sidebar-nav a[data-active="true"] .nav-icone { back
 
 /* ── Tela inicial: segue o tema escolhido (claro/escuro), com o botão de trocar ── */
 .home-entrada { --h-texto: #e8edf2; --h-muted: #9fb2c8; --h-card: rgba(10, 20, 34, .72); --h-borda: rgba(255, 255, 255, .14); --h-botao: #c9d6e8; }
-.home-entrada .home-tema { position: absolute; z-index: 2; top: max(14px, env(safe-area-inset-top, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); width: 40px; height: 40px; color: var(--h-botao); background: var(--h-card); border-color: var(--h-borda); }
+/* Seletor de tema da home: pilula visivel com o nome do tema, na cor do tema atual */
+.home-entrada .home-tema { position: absolute; z-index: 2; top: max(14px, env(safe-area-inset-top, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); color: var(--h-botao); background: var(--h-card); border: 1px solid var(--h-borda); border-radius: 999px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 6px 18px rgba(0, 0, 0, .25); }
+.home-entrada .home-tema select { height: 40px; min-width: 150px; padding: 0 36px 0 16px; border: 0; background: transparent; color: var(--h-texto); font-size: .9rem; font-weight: 700; }
+.home-entrada .home-tema select option { color: #111; background: #fff; }
 html[data-tema="claro"] .home-entrada {
   --h-texto: #13202f; --h-muted: #4a5b70; --h-card: rgba(255, 255, 255, .88); --h-borda: rgba(19, 32, 47, .12); --h-botao: #2c3e55;
   background: linear-gradient(160deg, #f7f9fc 0%, #e3ebf4 62%); color: var(--h-texto);
@@ -2335,3 +2338,17 @@ html[data-tema="vidro"] .stat-tile:hover { transform: translateY(-5px); box-shad
 html[data-tema="vidro"] .card,
 html[data-tema="vidro"] .stat-tile { overflow: visible !important; }
 .card:has(details[open]) { z-index: 30; }
+
+/* ───────────────────────────────────────────────
+   FUNDO DA HOME POR TEMA: a linha ferrea, a neblina e o gradiente mudam com o tema escolhido.
+   Padrao (Azul-marinho) = cores originais.
+   ─────────────────────────────────────────────── */
+html[data-tema="azul"] { --home-topo: #0b1b31; --home-base: #0b1118; --via-neblina: rgba(150, 190, 235, .13); --via-lastro-borda: rgba(150, 175, 205, .13); --via-trilho-corpo: #4a6180; --via-trilho-topo: #e8f1fc; }
+html[data-tema="escuro"] { --home-topo: #0a0a0a; --home-base: #000000; --via-neblina: rgba(255, 255, 255, .06); --via-lastro-borda: rgba(255, 255, 255, .08); --via-trilho-corpo: #3a3a40; --via-trilho-topo: #f5f5f5; }
+html[data-tema="escuro"] .home-entrada { --h-card: rgba(12, 12, 14, .82); --h-borda: rgba(255, 255, 255, .18); --h-botao: #fafafa; }
+html[data-tema="vidro"] { --home-topo: #1c120c; --home-base: #0b0a09; --via-neblina: rgba(255, 154, 77, .13); --via-lastro-borda: rgba(255, 160, 90, .12); --via-trilho-corpo: #6b4a33; --via-trilho-topo: #ffd2a8; }
+html[data-tema="claro"] { --home-topo: #e9eff7; --home-base: #f4f7fb; --via-neblina: rgba(120, 150, 190, .18); --via-lastro-borda: rgba(40, 60, 90, .12); --via-trilho-corpo: #9aaec6; --via-trilho-topo: #3e5878; }
+html[data-tema="pastel"] { --home-topo: #e9ddfb; --home-base: #f7f2ff; --via-neblina: rgba(200, 170, 250, .25); --via-lastro-borda: rgba(140, 110, 210, .14); --via-trilho-corpo: #b9a4e8; --via-trilho-topo: #6f55c8; }
+html[data-tema="pastel"] .home-entrada { color: #2b1d4d; --h-texto: #2b1d4d; --h-muted: #5d4f80; --h-card: rgba(255, 255, 255, .85); --h-borda: rgba(90, 60, 160, .15); --h-botao: #4a3a78; }
+html[data-tema="pastel"] .home-entrada .home-titulo { color: var(--h-texto); }
+html[data-tema="pastel"] .home-entrada .home-frase { color: var(--h-muted); }

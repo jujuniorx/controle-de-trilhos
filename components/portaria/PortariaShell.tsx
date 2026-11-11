@@ -60,7 +60,7 @@ export function PortariaShell({ nome, sair, children }: { nome: string; sair: ()
           <span className="font-condensed text-base font-bold uppercase tracking-wide text-ink">Portaria</span>
         </div>
         <div className="flex items-center gap-2">
-          <AlternarTema padrao="claro" />
+          <AlternarTema />
           <MenuConta nome={nome} iniciais={iniciais} sair={sair} />
         </div>
       </header>
@@ -88,7 +88,7 @@ export function PortariaShell({ nome, sair, children }: { nome: string; sair: ()
         <header className="ct-topbar hidden h-[52px] flex-none items-center justify-between gap-3 px-6 lg:flex">
           <NavegacaoTopo inicioArea="/portaria" />
           <div className="flex items-center gap-3">
-            <AlternarTema padrao="claro" />
+            <AlternarTema />
             <MenuConta nome={nome} iniciais={iniciais} sair={sair} />
           </div>
         </header>

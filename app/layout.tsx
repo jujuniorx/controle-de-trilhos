@@ -3,7 +3,7 @@ import { Barlow, Barlow_Condensed, Geist_Mono } from "next/font/google";
 import { cookies } from "next/headers";
 import { RegistrarServiceWorker } from "@/components/RegistrarServiceWorker";
 import { AberturaApp } from "@/components/AberturaApp";
-import { TEMA_COOKIE, temaValido } from "@/lib/tema/tema";
+import { TEMA_COOKIE, TEMA_PADRAO, temaValido } from "@/lib/tema/tema";
 import "./globals.css";
 
 const barlow = Barlow({
@@ -58,9 +58,8 @@ export const viewport: Viewport = {
 export const dynamic = "force-dynamic";
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  // Tema escolhido pelo usuário (claro/escuro). Sem cookie, cada área usa seu
-  // padrão (Admin claro, Pátio escuro) — ver app/globals.css.
-  const tema = temaValido((await cookies()).get(TEMA_COOKIE)?.value);
+  // Tema escolhido pelo usuário; sem escolha, o padrão para todos é o Azul-marinho.
+  const tema = temaValido((await cookies()).get(TEMA_COOKIE)?.value) ?? TEMA_PADRAO;
 
   return (
     <html

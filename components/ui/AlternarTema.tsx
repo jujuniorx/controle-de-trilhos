@@ -1,15 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ROTULOS_TEMA, TEMA_COOKIE, TEMAS, temaValido, type Tema } from '@/lib/tema/tema';
+import { ROTULOS_TEMA, TEMA_COOKIE, TEMA_PADRAO, TEMAS, temaValido, type Tema } from '@/lib/tema/tema';
 
 /**
- * Seletor de tema do sistema. `padrao` é o tema da área quando o usuário ainda não
- * escolheu (Admin = claro, Pátio = escuro). A escolha vale para as duas áreas:
- * grava o cookie e já atualiza o data-tema do <html> na hora, trocando o visual
- * inteiro (cores, cards, menu lateral e animações).
+ * Seletor de tema do sistema. A escolha vale para todas as áreas: grava o cookie e
+ * já atualiza o data-tema do <html> na hora, trocando o visual inteiro (cores, cards,
+ * menu lateral, fundo e animações). Sem escolha, o padrão é o Azul-marinho.
  */
-export function AlternarTema({ padrao, className = '' }: { padrao: Tema; className?: string }) {
+export function AlternarTema({ padrao = TEMA_PADRAO, className = '' }: { padrao?: Tema; className?: string }) {
   const [tema, setTema] = useState<Tema>(padrao);
 
   useEffect(() => {

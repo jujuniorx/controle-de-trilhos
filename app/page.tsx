@@ -49,7 +49,7 @@ export default function Home() {
   return (
     <main className="home-entrada">
       <FundoTrilhos />
-      <AlternarTema padrao="escuro" className="home-tema" />
+      <AlternarTema className="home-tema" />
       <div className="home-conteudo">
         <LogoAnimada size={84} />
         <h1 className="home-titulo">Controle de Trilhos</h1>
