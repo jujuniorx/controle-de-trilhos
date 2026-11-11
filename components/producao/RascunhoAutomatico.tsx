@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type Estado = 'parado' | 'salvando' | 'salvo' | 'recuperado' | 'erro';
 
@@ -19,37 +19,59 @@ function definirValor(el: HTMLInputElement | HTMLSelectElement | HTMLTextAreaEle
   el.dispatchEvent(new Event('change', { bubbles: true }));
 }
 
-/** O que ainda falta preencher: soldas esquecidas e paradas com so o inicio ou so o fim. */
-function avisosDoFormulario(form: HTMLFormElement, horas: string[]): string[] {
-  const avisos: string[] = [];
-  const valor = (id: string) => (document.getElementById(id) as HTMLInputElement | null)?.value?.trim() ?? '';
-  for (const hora of horas) {
-    const soldas = valor(`soldas_${hora}`) || (form.elements.namedItem(`soldas_${hora}`) as HTMLInputElement | null)?.value?.trim() || '';
-    const cortes = (form.elements.namedItem(`cortes_${hora}`) as HTMLInputElement | null)?.value?.trim() || '';
-    let temParada = false;
-    for (let n = 1; n <= 3; n++) {
-      const inicio = (form.elements.namedItem(`parada_inicio_${hora}_${n}`) as HTMLInputElement | null)?.value?.trim() || '';
-      const fim = valor(`parada_fim_${hora}_${n}`);
-      if (inicio || fim) temParada = true;
-      if (inicio && !fim) avisos.push(`Das ${hora}: parada ${n} sem o horário do fim.`);
-      if (!inicio && fim) avisos.push(`Das ${hora}: parada ${n} sem o horário do início.`);
+/** O que falta em cada hora: soldas esquecidas e paradas com so o inicio ou so o fim. */
+function faltasDaHora(form: HTMLFormElement, hora: string): { campo: HTMLElement | null; textos: string[] } {
+  const textos: string[] = [];
+  const campo = (name: string) => form.elements.namedItem(name) as HTMLInputElement | null;
+  const soldas = campo(`soldas_${hora}`)?.value.trim() ?? '';
+  const cortes = campo(`cortes_${hora}`)?.value.trim() ?? '';
+  let temParada = false;
+  let primeiro: HTMLElement | null = null;
+  for (let n = 1; n <= 3; n++) {
+    const inicio = campo(`parada_inicio_${hora}_${n}`)?.value.trim() ?? '';
+    const fim = (document.getElementById(`parada_fim_${hora}_${n}`) as HTMLInputElement | null)?.value.trim() ?? '';
+    if (inicio || fim) temParada = true;
+    if (inicio && !fim) {
+      textos.push(`Parada ${n}: falta o horário do fim.`);
+      primeiro ??= document.getElementById(`parada_fim_${hora}_${n}`);
     }
-    if (!soldas && (cortes || temParada)) avisos.push(`Das ${hora}: falta a quantidade de soldas.`);
+    if (!inicio && fim) {
+      textos.push(`Parada ${n}: falta o horário do início.`);
+      primeiro ??= campo(`parada_inicio_${hora}_${n}`);
+    }
   }
-  return avisos;
+  if (!soldas && (cortes || temParada)) {
+    textos.unshift('Falta a quantidade de soldas.');
+    primeiro = campo(`soldas_${hora}`) ?? primeiro;
+  }
+  return { campo: primeiro, textos };
 }
 
 export function RascunhoAutomatico({ data, horas }: { data: string; horas: string[] }) {
-  const horasKey = horas.join(',');
   const [estado, setEstado] = useState<Estado>('parado');
-  const [avisos, setAvisos] = useState<string[]>([]);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const horasKey = horas.join(',');
 
   useEffect(() => {
     const form = document.getElementById('form-producao') as HTMLFormElement | null;
     if (!form) return;
-    const horas = horasKey.split(',');
+    const listaHoras = horasKey.split(',');
     let cancelado = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    // Mostra, dentro de cada hora, o que falta. Retorna a primeira hora com falta.
+    const mostrarFaltas = () => {
+      let primeira: { hora: string; campo: HTMLElement | null } | null = null;
+      for (const hora of listaHoras) {
+        const aviso = document.getElementById(`aviso_hora_${hora}`);
+        const { campo, textos } = faltasDaHora(form, hora);
+        if (aviso) {
+          aviso.textContent = textos.join(' ');
+          aviso.hidden = textos.length === 0;
+        }
+        if (textos.length && !primeira) primeira = { hora, campo };
+      }
+      return primeira;
+    };
 
     const coletar = () => {
       const campos: Record<string, string> = {};
@@ -69,21 +91,31 @@ export function RascunhoAutomatico({ data, horas }: { data: string; horas: strin
     };
 
     const aoMudar = () => {
-      setAvisos(avisosDoFormulario(form, horas));
-      if (timer.current) clearTimeout(timer.current);
+      mostrarFaltas();
+      if (timer) clearTimeout(timer);
       setEstado('salvando');
-      timer.current = setTimeout(gravar, 400);
+      timer = setTimeout(gravar, 400);
     };
 
     const aoSair = () => {
       if (document.visibilityState !== 'hidden') return;
-      if (timer.current) clearTimeout(timer.current);
+      if (timer) clearTimeout(timer);
       gravar();
     };
 
-    // Ao salvar o dia de verdade, o rascunho deste dia sai do aparelho.
-    const aoEnviar = () => {
-      if (timer.current) clearTimeout(timer.current);
+    // Ao tentar salvar o dia com algo faltando: volta para a hora, abre e mostra o que falta.
+    const aoEnviar = (e: Event) => {
+      if (timer) clearTimeout(timer);
+      const primeira = mostrarFaltas();
+      if (primeira) {
+        e.preventDefault();
+        const bloco = document.getElementById(`hora_${primeira.hora}`) as HTMLDetailsElement | null;
+        if (bloco) bloco.open = true;
+        bloco?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        (primeira.campo as HTMLElement | null)?.focus({ preventScroll: true });
+        return;
+      }
+      // Dia salvo de verdade: o rascunho deste dia sai do aparelho.
       try { localStorage.removeItem(chave(data)); } catch { /* sem armazenamento: nada a limpar */ }
     };
 
@@ -102,8 +134,8 @@ export function RascunhoAutomatico({ data, horas }: { data: string; horas: strin
     } catch {
       /* rascunho ilegivel ou sem armazenamento: o formulario segue normal */
     }
+    mostrarFaltas();
 
-    setAvisos(avisosDoFormulario(form, horas));
     form.addEventListener('input', aoMudar);
     form.addEventListener('change', aoMudar);
     form.addEventListener('submit', aoEnviar);
@@ -116,7 +148,7 @@ export function RascunhoAutomatico({ data, horas }: { data: string; horas: strin
       form.removeEventListener('submit', aoEnviar);
       document.removeEventListener('visibilitychange', aoSair);
       window.removeEventListener('pagehide', aoSair);
-      if (timer.current) clearTimeout(timer.current);
+      if (timer) clearTimeout(timer);
     };
   }, [data, horasKey]);
 
@@ -129,18 +161,8 @@ export function RascunhoAutomatico({ data, horas }: { data: string; horas: strin
   };
 
   return (
-    <div className="space-y-2">
-      {avisos.length > 0 && (
-        <div role="alert" className="rounded-lg border border-bad/40 bg-bad/10 p-3 text-sm text-bad">
-          <p className="font-semibold">Antes de salvar o dia, falta preencher:</p>
-          <ul className="mt-1 list-disc pl-5">
-            {avisos.map((a) => <li key={a}>{a}</li>)}
-          </ul>
-        </div>
-      )}
-      <p role="status" aria-live="polite" className="text-sm text-ink-muted">
-        {texto[estado]}
-      </p>
-    </div>
+    <p role="status" aria-live="polite" className="text-sm text-ink-muted">
+      {texto[estado]}
+    </p>
   );
 }
