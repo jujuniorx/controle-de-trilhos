@@ -2253,7 +2253,7 @@ html[data-tema="azul"] .stat-tile {
   transition: border-color .2s ease, transform .2s ease;
 }
 html[data-tema="azul"] .card:hover,
-html[data-tema="azul"] .stat-tile:hover { transform: translateX(3px); border-color: #3B82F6; }
+html[data-tema="azul"] .stat-tile:hover { transform: translateY(-4px); border-color: #3B82F6; box-shadow: 0 16px 36px rgba(59,130,246,.22); }
 @keyframes ct-entra-azul { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
 
 /* Pastel: cards bem arredondados, entrada com um quique suave */
@@ -2276,8 +2276,24 @@ html[data-tema="vidro"] .stat-tile {
   -webkit-backdrop-filter: blur(14px) saturate(140%);
   backdrop-filter: blur(14px) saturate(140%);
   animation: ct-nitido-vidro .5s ease-out both;
+  transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease;
 }
-@keyframes ct-nitido-vidro { from { opacity: 0; filter: blur(6px); } to { opacity: 1; filter: none; } }
+/* Glassy Dashboard: o painel sobe uns 5px no hover e ganha brilho */
+html[data-tema="vidro"] .card:hover,
+html[data-tema="vidro"] .stat-tile:hover { transform: translateY(-5px); box-shadow: 0 18px 40px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.18); }
+@keyframes ct-nitido-vidro { from { opacity: 0; transform: translateY(12px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+
+/* Troca de tema: circulo que se expande a partir do seletor (referencia Sales Dashboard) */
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+::view-transition-new(root) { animation: ct-vt-circulo .6s cubic-bezier(.4,0,.2,1) both; }
+::view-transition-old(root) { z-index: -1; }
+@keyframes ct-vt-circulo {
+  from { clip-path: circle(0px at var(--vt-x, 95%) var(--vt-y, 30px)); }
+  to { clip-path: circle(150vmax at var(--vt-x, 95%) var(--vt-y, 30px)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-new(root) { animation: none; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   html[data-tema] .card, html[data-tema] .stat-tile { animation: none !important; transition: none !important; }
