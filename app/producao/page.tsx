@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { COOKIE_PRODUCAO, cookieProducaoValido } from '@/lib/services/producaoAcesso';
 import { RascunhoAutomatico } from '@/components/producao/RascunhoAutomatico';
 import { MotivosParada } from '@/components/producao/MotivosParada';
+import { REUNIAO_DDS } from '@/components/producao/motivos';
 import { FABRICANTES_PRODUCAO, MAX_PARADAS_HORA, PERFIS_PRODUCAO, SOLDAS_POR_TLS, buscarDia, horasDoDia, paradaEmHoraMin, paradasDaLinha } from '@/lib/services/producao';
 import { TrocaTopo } from '@/components/producao/TrocaTopo';
 import { salvarProducaoAction } from './actions';
@@ -99,7 +100,7 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
                           return (
                             <tr key={n} className="border-b border-line">
                               <CelulasParada data={dataTexto} hora={hora} n={n} inicioPadrao={p?.inicio ?? ''} minutosPadrao={p?.minutos ?? 0} />
-                              <td className="py-1 celula-parada celula-descricao" data-label="Descrição"><MotivosParada data={dataTexto} hora={hora} n={n} descricaoPadrao={p?.descricao ?? ''} /></td>
+                              <td className="py-1 celula-parada celula-descricao" data-label="Descrição"><MotivosParada data={dataTexto} hora={hora} n={n} descricaoPadrao={p?.descricao ?? ''} padrao={hora === '07:00' && n === 1 ? [REUNIAO_DDS] : []} /></td>
                             </tr>
                           );
                         })}

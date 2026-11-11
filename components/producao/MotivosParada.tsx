@@ -16,9 +16,10 @@ function separar(texto: string) {
 }
 
 /** Descricao da parada: botoes dos motivos (marca quantos forem) e um campo Outro para o que nao estiver na lista. */
-export function MotivosParada({ data, hora, n, descricaoPadrao }: { data: string; hora: string; n: number; descricaoPadrao: string }) {
+export function MotivosParada({ data, hora, n, descricaoPadrao, padrao = [] }: { data: string; hora: string; n: number; descricaoPadrao: string; padrao?: string[] }) {
   const inicial = separar(descricaoPadrao);
-  const [selecionados, setSelecionados] = useState<string[]>(inicial.selecionados);
+  // Motivos que ja vem marcados (ex.: Reuniao - DDS na primeira parada das 07:00) quando ainda nao ha nada salvo.
+  const [selecionados, setSelecionados] = useState<string[]>(descricaoPadrao ? inicial.selecionados : padrao);
   const [outro, setOutro] = useState(inicial.outro);
   const chave = `producao-parada-${data}-${hora}-${n}-motivos`;
 

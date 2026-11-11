@@ -1,5 +1,8 @@
+export const REUNIAO_DDS = 'Reunião - DDS';
+
 /** Motivos mais comuns de parada, na ordem da lista. Quem escolhe pode marcar mais de um. */
 export const MOTIVOS_PARADA = [
+  REUNIAO_DDS,
   'Tala e acabamento',
   'Aguardando acabamento',
   'Aguardando trilho',
