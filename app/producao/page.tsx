@@ -58,10 +58,11 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div className="field"><label htmlFor={`soldas_${hora}`}>Soldas</label><input id={`soldas_${hora}`} name={`soldas_${hora}`} inputMode="numeric" defaultValue={l?.soldas || ''} className="h-11" /></div>
                   <div className="field"><label htmlFor={`cortes_${hora}`}>Cortes</label><input id={`cortes_${hora}`} name={`cortes_${hora}`} inputMode="numeric" defaultValue={l?.cortes || ''} className="h-11" /></div>
-                  <div className="field sm:col-span-2"><label htmlFor={`justificativa_${hora}`}>Justificativa do corte</label><input id={`justificativa_${hora}`} name={`justificativa_${hora}`} defaultValue={l?.justificativaCorte ?? ''} placeholder="Obrigatória se houver corte" className="h-11" /></div>
+                  {/* Sem campo próprio: o motivo do corte vai na descrição da parada. O texto já salvo continua guardado. */}
+                  <input type="hidden" name={`justificativa_${hora}`} value={l?.justificativaCorte ?? ''} />
                   <div className="overflow-x-auto sm:col-span-2">
                     <p className="mb-2 text-sm font-semibold">Paradas desta hora (até {MAX_PARADAS_HORA}), como na planilha</p>
-                    <p className="mb-2 text-xs text-ink-muted">Escolha a hora em que a parada começou e a hora em que terminou. O tempo de parada aparece sozinho.</p>
+                    <p className="mb-2 text-xs text-ink-muted">Escolha a hora em que a parada começou e a hora em que terminou. O tempo de parada aparece sozinho. Se teve corte, escreva o motivo na descrição da parada.</p>
                     <table className="tabela-paradas w-full text-sm">
                       <thead className="text-xs uppercase text-ink-muted">
                         <tr className="border-b border-line">
