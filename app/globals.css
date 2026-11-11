@@ -1955,3 +1955,155 @@ html[data-tema="pastel"] .pagina-admin > * {
   html[data-tema="pastel"] .stat-tile,
   html[data-tema="pastel"] .ct-sidebar-nav a { animation: none; transition: none; transform: none; }
 }
+
+/* ───────────────────────────────────────────────
+   VIDRO, PARTE 2 — cenário de fundo animado, cards e banner de vidro,
+   menu com pílula de vidro e entradas em cascata. Mira o visual do vídeo
+   "Glassy Dashboard": fundo escuro com brilho laranja em movimento, painéis
+   translúcidos com borda de luz, números que entram e itens que sobem em sequência.
+   ─────────────────────────────────────────────── */
+@keyframes ct-orbe-vidro-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(6vw, 4vh) scale(1.12); }
+}
+@keyframes ct-orbe-vidro-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-5vw, -6vh) scale(1.08); }
+}
+@keyframes ct-brilho-vidro {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes ct-entrada-vidro-cascata {
+  from { opacity: 0; transform: translateY(18px) scale(.985); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+@keyframes ct-numero-vidro {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+html[data-tema="vidro"] body {
+  position: relative;
+  isolation: isolate;
+  background: #0a0c0f;
+  background-attachment: scroll;
+}
+/* Cenário: dois focos de luz laranja que flutuam e uma película de ruído. */
+html[data-tema="vidro"] body::before,
+html[data-tema="vidro"] body::after {
+  content: '';
+  position: fixed;
+  pointer-events: none;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(70px);
+}
+html[data-tema="vidro"] body::before {
+  width: 46vw; height: 46vw; min-width: 320px; min-height: 320px;
+  top: -12vw; left: -8vw;
+  background: radial-gradient(circle, rgba(255, 122, 26, .42), rgba(255, 122, 26, 0) 70%);
+  animation: ct-orbe-vidro-1 18s ease-in-out infinite;
+}
+html[data-tema="vidro"] body::after {
+  width: 38vw; height: 38vw; min-width: 280px; min-height: 280px;
+  bottom: -10vw; right: -6vw;
+  background: radial-gradient(circle, rgba(255, 154, 77, .28), rgba(255, 154, 77, 0) 70%);
+  animation: ct-orbe-vidro-2 22s ease-in-out infinite;
+}
+
+/* Painéis de vidro: todos os cards, métricas e o banner de saudação. */
+html[data-tema="vidro"] .card,
+html[data-tema="vidro"] .stat-tile,
+html[data-tema="vidro"] .saudacao-hero,
+html[data-tema="vidro"] .acao-patio {
+  background: linear-gradient(160deg, rgba(255, 255, 255, .085), rgba(255, 255, 255, .025)) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, .12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), 0 18px 50px rgba(0, 0, 0, .45);
+  border-radius: 18px;
+  position: relative;
+  overflow: hidden;
+}
+/* Borda de luz que varre o painel no hover. */
+html[data-tema="vidro"] .card::after,
+html[data-tema="vidro"] .stat-tile::after {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 154, 77, .7) 50%, transparent 70%);
+  background-size: 250% 100%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity .3s ease;
+  pointer-events: none;
+}
+html[data-tema="vidro"] .card:hover::after,
+html[data-tema="vidro"] .stat-tile:hover::after {
+  opacity: 1;
+  animation: ct-brilho-vidro 1.6s linear infinite;
+}
+html[data-tema="vidro"] .card:hover,
+html[data-tema="vidro"] .stat-tile:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 154, 77, .4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 26px 60px rgba(255, 122, 26, .14);
+}
+html[data-tema="vidro"] .card,
+html[data-tema="vidro"] .stat-tile {
+  transition: transform .35s cubic-bezier(.2, .7, .2, 1), box-shadow .35s ease, border-color .35s ease;
+}
+
+/* Banner de saudação: troca o gradiente azul por vidro com brilho laranja. */
+html[data-tema="vidro"] .saudacao-hero {
+  background:
+    radial-gradient(600px 220px at 100% 0%, rgba(255, 122, 26, .35), transparent 70%),
+    linear-gradient(160deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .02)) !important;
+}
+html[data-tema="vidro"] .saudacao-hero-texto::before {
+  background: radial-gradient(closest-side, rgba(8, 9, 11, .55) 40%, transparent) !important;
+}
+
+/* Números e títulos entram em sequência. */
+html[data-tema="vidro"] .stat-value,
+html[data-tema="vidro"] .saudacao-hero-saudacao {
+  animation: ct-numero-vidro .6s ease-out .3s both;
+}
+html[data-tema="vidro"] .stat-tile:nth-child(2) .stat-value { animation-delay: .42s; }
+
+/* Entrada em cascata da tela inteira. */
+html[data-tema="vidro"] .pagina-admin > * {
+  animation: ct-entrada-vidro-cascata .6s cubic-bezier(.2, .7, .2, 1) both;
+}
+html[data-tema="vidro"] .pagina-admin > *:nth-child(2) { animation-delay: .08s; }
+html[data-tema="vidro"] .pagina-admin > *:nth-child(3) { animation-delay: .16s; }
+html[data-tema="vidro"] .pagina-admin > *:nth-child(4) { animation-delay: .24s; }
+
+/* Menu lateral: itens entram um a um e o ativo tem pílula de vidro laranja. */
+html[data-tema="vidro"] .ct-sidebar-nav a {
+  animation: ct-entrada-vidro-cascata .5s cubic-bezier(.2, .7, .2, 1) both;
+  animation-delay: calc(var(--i, 0) * 0ms + 60ms);
+}
+html[data-tema="vidro"] .ct-sidebar-nav a[data-active="true"] {
+  background: linear-gradient(90deg, rgba(255, 122, 26, .42), rgba(255, 122, 26, .08)) !important;
+  border: 1px solid rgba(255, 154, 77, .35);
+  box-shadow: 0 8px 26px rgba(255, 122, 26, .28), inset 0 1px 0 rgba(255, 255, 255, .15);
+}
+html[data-tema="vidro"] .ct-sidebar-nav a:not([data-active="true"]):hover {
+  background: rgba(255, 255, 255, .07);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-tema="vidro"] body::before,
+  html[data-tema="vidro"] body::after,
+  html[data-tema="vidro"] .card::after,
+  html[data-tema="vidro"] .stat-tile::after,
+  html[data-tema="vidro"] .pagina-admin > *,
+  html[data-tema="vidro"] .stat-value,
+  html[data-tema="vidro"] .saudacao-hero-saudacao,
+  html[data-tema="vidro"] .ct-sidebar-nav a { animation: none !important; transition: none !important; }
+}
