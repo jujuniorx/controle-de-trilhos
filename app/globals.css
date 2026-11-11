@@ -257,6 +257,25 @@ h1, h2, h3 {
 ═══════════════════════════════════════════════ */
 .ct-logo-mark { display: inline-flex; align-items: center; gap: 10px; }
 .ct-logo-mark svg { flex-shrink: 0; }
+/* Cores da marca por tema (a logo muda junto com o tema do sistema) */
+.ct-logo-mark .logo-tile { fill: #2c333c; transition: fill .4s ease; }
+.ct-logo-mark .logo-dorm { fill: #3b82c4; transition: fill .4s ease; }
+.ct-logo-mark .logo-trilho { fill: #5b9bd5; transition: fill .4s ease; }
+html[data-tema="escuro"] .ct-logo-mark .logo-tile { fill: #1E2227; }
+html[data-tema="escuro"] .ct-logo-mark .logo-dorm { fill: #FF7A1A; }
+html[data-tema="escuro"] .ct-logo-mark .logo-trilho { fill: #FFB347; }
+html[data-tema="claro"] .ct-logo-mark .logo-tile { fill: #1F3A5F; }
+html[data-tema="claro"] .ct-logo-mark .logo-dorm { fill: #7FA8D6; }
+html[data-tema="claro"] .ct-logo-mark .logo-trilho { fill: #A9C7EA; }
+html[data-tema="azul"] .ct-logo-mark .logo-tile { fill: #0E1A2E; }
+html[data-tema="azul"] .ct-logo-mark .logo-dorm { fill: #3B82F6; }
+html[data-tema="azul"] .ct-logo-mark .logo-trilho { fill: #60A5FA; }
+html[data-tema="vidro"] .ct-logo-mark .logo-tile { fill: rgba(255, 255, 255, .14); }
+html[data-tema="vidro"] .ct-logo-mark .logo-dorm { fill: #FF9A4D; }
+html[data-tema="vidro"] .ct-logo-mark .logo-trilho { fill: #FF7A1A; }
+html[data-tema="pastel"] .ct-logo-mark .logo-tile { fill: #EFE6FF; }
+html[data-tema="pastel"] .ct-logo-mark .logo-dorm { fill: #B89CF8; }
+html[data-tema="pastel"] .ct-logo-mark .logo-trilho { fill: #9B7CF6; }
 .ct-logo-text { line-height: 1; }
 .ct-logo-text .name {
   font-family: var(--font-condensed), sans-serif;
