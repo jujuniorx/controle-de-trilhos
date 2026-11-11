@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db';
 export const SOLDAS_POR_TLS = 12;
 export const METROS_POR_TLS = 312;
 export const PERFIS_PRODUCAO = ['TR60', 'TR68', 'UIC60'] as const;
-export const FABRICANTES_PRODUCAO = ['Nippon', 'Evraz', 'Pangang', 'Arcelormittal', 'UHCX', 'Diversos'] as const;
+export const FABRICANTES_PRODUCAO = ['Nippon', 'Evraz', 'Pangang', 'Arcelormittal', 'UHCX'] as const;
 
 export interface LinhaProducao {
   hora: string;
