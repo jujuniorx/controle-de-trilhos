@@ -44,7 +44,7 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
       {params.ok === '1' && <p role="status" className="rounded-lg border border-ok/40 bg-ok/10 p-3 text-sm">Dia salvo. Soldas: {dia?.totalSoldas ?? 0}, TLS formados: {dia?.tlsFormados ?? 0}, sobra para amanhã: {dia?.sobraSaida ?? 0} de {SOLDAS_POR_TLS}.</p>}
 
       <form id="form-producao" action={salvarProducaoAction} className="space-y-6">
-        <RascunhoAutomatico data={dataTexto} />
+        <RascunhoAutomatico data={dataTexto} horas={horas} />
         <section className="card space-y-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="field"><label htmlFor="data">Data</label><input id="data" name="data" type="date" defaultValue={dataTexto} required className="h-11" /></div>

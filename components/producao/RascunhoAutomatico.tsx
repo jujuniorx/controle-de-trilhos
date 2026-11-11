@@ -19,13 +19,36 @@ function definirValor(el: HTMLInputElement | HTMLSelectElement | HTMLTextAreaEle
   el.dispatchEvent(new Event('change', { bubbles: true }));
 }
 
-export function RascunhoAutomatico({ data }: { data: string }) {
+/** O que ainda falta preencher: soldas esquecidas e paradas com so o inicio ou so o fim. */
+function avisosDoFormulario(form: HTMLFormElement, horas: string[]): string[] {
+  const avisos: string[] = [];
+  const valor = (id: string) => (document.getElementById(id) as HTMLInputElement | null)?.value?.trim() ?? '';
+  for (const hora of horas) {
+    const soldas = valor(`soldas_${hora}`) || (form.elements.namedItem(`soldas_${hora}`) as HTMLInputElement | null)?.value?.trim() || '';
+    const cortes = (form.elements.namedItem(`cortes_${hora}`) as HTMLInputElement | null)?.value?.trim() || '';
+    let temParada = false;
+    for (let n = 1; n <= 3; n++) {
+      const inicio = (form.elements.namedItem(`parada_inicio_${hora}_${n}`) as HTMLInputElement | null)?.value?.trim() || '';
+      const fim = valor(`parada_fim_${hora}_${n}`);
+      if (inicio || fim) temParada = true;
+      if (inicio && !fim) avisos.push(`Das ${hora}: parada ${n} sem o horário do fim.`);
+      if (!inicio && fim) avisos.push(`Das ${hora}: parada ${n} sem o horário do início.`);
+    }
+    if (!soldas && (cortes || temParada)) avisos.push(`Das ${hora}: falta a quantidade de soldas.`);
+  }
+  return avisos;
+}
+
+export function RascunhoAutomatico({ data, horas }: { data: string; horas: string[] }) {
+  const horasKey = horas.join(',');
   const [estado, setEstado] = useState<Estado>('parado');
+  const [avisos, setAvisos] = useState<string[]>([]);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const form = document.getElementById('form-producao') as HTMLFormElement | null;
     if (!form) return;
+    const horas = horasKey.split(',');
     let cancelado = false;
 
     const coletar = () => {
@@ -46,6 +69,7 @@ export function RascunhoAutomatico({ data }: { data: string }) {
     };
 
     const aoMudar = () => {
+      setAvisos(avisosDoFormulario(form, horas));
       if (timer.current) clearTimeout(timer.current);
       setEstado('salvando');
       timer.current = setTimeout(gravar, 400);
@@ -79,6 +103,7 @@ export function RascunhoAutomatico({ data }: { data: string }) {
       /* rascunho ilegivel ou sem armazenamento: o formulario segue normal */
     }
 
+    setAvisos(avisosDoFormulario(form, horas));
     form.addEventListener('input', aoMudar);
     form.addEventListener('change', aoMudar);
     form.addEventListener('submit', aoEnviar);
@@ -93,7 +118,7 @@ export function RascunhoAutomatico({ data }: { data: string }) {
       window.removeEventListener('pagehide', aoSair);
       if (timer.current) clearTimeout(timer.current);
     };
-  }, [data]);
+  }, [data, horasKey]);
 
   const texto: Record<Estado, string> = {
     parado: '',
@@ -104,8 +129,18 @@ export function RascunhoAutomatico({ data }: { data: string }) {
   };
 
   return (
-    <p role="status" aria-live="polite" className="text-sm text-ink-muted">
-      {texto[estado]}
-    </p>
+    <div className="space-y-2">
+      {avisos.length > 0 && (
+        <div role="alert" className="rounded-lg border border-bad/40 bg-bad/10 p-3 text-sm text-bad">
+          <p className="font-semibold">Antes de salvar o dia, falta preencher:</p>
+          <ul className="mt-1 list-disc pl-5">
+            {avisos.map((a) => <li key={a}>{a}</li>)}
+          </ul>
+        </div>
+      )}
+      <p role="status" aria-live="polite" className="text-sm text-ink-muted">
+        {texto[estado]}
+      </p>
+    </div>
   );
 }
