@@ -57,17 +57,30 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
                   <div className="field"><label htmlFor={`soldas_${hora}`}>Soldas</label><input id={`soldas_${hora}`} name={`soldas_${hora}`} inputMode="numeric" defaultValue={l?.soldas || ''} className="h-11" /></div>
                   <div className="field"><label htmlFor={`cortes_${hora}`}>Cortes</label><input id={`cortes_${hora}`} name={`cortes_${hora}`} inputMode="numeric" defaultValue={l?.cortes || ''} className="h-11" /></div>
                   <div className="field sm:col-span-2"><label htmlFor={`justificativa_${hora}`}>Justificativa do corte</label><input id={`justificativa_${hora}`} name={`justificativa_${hora}`} defaultValue={l?.justificativaCorte ?? ''} placeholder="Obrigatória se houver corte" className="h-11" /></div>
-                  <p className="text-sm font-semibold sm:col-span-2">Paradas desta hora (até {MAX_PARADAS_HORA})</p>
-                  {Array.from({ length: MAX_PARADAS_HORA }, (_, i) => i + 1).map((n) => {
-                    const p = paradasDaLinha(l?.paradas)[n - 1];
-                    return (
-                      <div key={n} className="grid gap-3 sm:col-span-2 sm:grid-cols-3">
-                        <div className="field"><label htmlFor={`parada_inicio_${hora}_${n}`}>Parada {n}: início</label><input id={`parada_inicio_${hora}_${n}`} name={`parada_inicio_${hora}_${n}`} type="time" defaultValue={p?.inicio ?? ''} className="h-11" /></div>
-                        <div className="field"><label htmlFor={`parada_${hora}_${n}`}>Tempo (h:min)</label><input id={`parada_${hora}_${n}`} name={`parada_${hora}_${n}`} inputMode="numeric" placeholder="0:23" defaultValue={paradaEmHoraMin(p?.minutos)} className="h-11" /></div>
-                        <div className="field"><label htmlFor={`parada_descricao_${hora}_${n}`}>Descrição</label><input id={`parada_descricao_${hora}_${n}`} name={`parada_descricao_${hora}_${n}`} defaultValue={p?.descricao ?? ''} className="h-11" /></div>
-                      </div>
-                    );
-                  })}
+                  <div className="overflow-x-auto sm:col-span-2">
+                    <p className="mb-2 text-sm font-semibold">Paradas desta hora (até {MAX_PARADAS_HORA}), como na planilha</p>
+                    <table className="w-full text-sm">
+                      <thead className="text-xs uppercase text-ink-muted">
+                        <tr className="border-b border-line">
+                          <th className="py-2 pr-2 text-left">Início da Parada</th>
+                          <th className="py-2 pr-2 text-left">Tempo de Parada</th>
+                          <th className="py-2 text-left">Descrição da Parada</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Array.from({ length: MAX_PARADAS_HORA }, (_, i) => i + 1).map((n) => {
+                          const p = paradasDaLinha(l?.paradas)[n - 1];
+                          return (
+                            <tr key={n} className="border-b border-line">
+                              <td className="py-1 pr-2"><input aria-label={`Parada ${n}: início da parada às ${hora}`} id={`parada_inicio_${hora}_${n}`} name={`parada_inicio_${hora}_${n}`} type="time" defaultValue={p?.inicio ?? ''} className="h-11 w-full" /></td>
+                              <td className="py-1 pr-2"><input aria-label={`Parada ${n}: tempo de parada às ${hora}`} id={`parada_${hora}_${n}`} name={`parada_${hora}_${n}`} inputMode="numeric" placeholder="0:23" defaultValue={paradaEmHoraMin(p?.minutos)} className="h-11 w-full" /></td>
+                              <td className="py-1"><input aria-label={`Parada ${n}: descrição às ${hora}`} id={`parada_descricao_${hora}_${n}`} name={`parada_descricao_${hora}_${n}`} defaultValue={p?.descricao ?? ''} className="h-11 w-full" /></td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </details>
             );
