@@ -2400,6 +2400,9 @@ html[data-tema="pastel"] .entrada-marca-frase { color: #5d4f80; }
 html[data-tema="pastel"] .entrada-form { background: radial-gradient(55% 45% at 50% 42%, rgba(184, 156, 248, .22), transparent 72%), #f7f2ff; }
 html[data-tema="claro"] .entrada-marca { background: linear-gradient(155deg, #e9eff7, #f4f7fb 70%, #ffffff); color: #13202f; }
 html[data-tema="claro"] .entrada-marca-frase { color: #4a5b70; }
+/* Mancha atras do titulo: no claro e no pastel tem que ser clara (a escura apagava o texto) */
+html[data-tema="claro"] .entrada-marca-conteudo::before { background: radial-gradient(closest-side, rgba(255, 255, 255, .8) 40%, transparent); }
+html[data-tema="pastel"] .entrada-marca-conteudo::before { background: radial-gradient(closest-side, rgba(255, 255, 255, .6) 40%, transparent); }
 
 /* Impressao da planilha de producao: so a planilha, sem botoes e em fundo branco */
 @media print {
