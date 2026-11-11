@@ -120,17 +120,17 @@ export default async function ImprimirProducaoPage({ searchParams }: { searchPar
 
       <section className="doc-bloco card tabela-impressao overflow-x-auto p-4">
         <h2 className="section-title mb-3">Detalhe por hora</h2>
-        <table className="w-full min-w-[640px] text-left text-sm">
+        <table className="doc-tabela w-full min-w-[640px] text-left text-sm">
+          <colgroup><col className="c-hora" /><col className="c-num" /><col className="c-num" /><col className="c-txt" /><col className="c-fab" /><col className="c-num" /><col /></colgroup>
           <thead className="text-xs uppercase text-ink-muted">
             <tr className="border-b border-line">
               <th className="py-2 pr-2">Hora</th>
               <th className="py-2 pr-2 text-right">Soldas</th>
-              <th className="py-2 pr-2 text-right">Acumulado</th>
+              <th className="py-2 pr-2 text-right" title="Acumulado">Acum.</th>
               <th className="py-2 pr-2">Trilho</th>
               <th className="py-2 pr-2">Fabricante</th>
               <th className="py-2 pr-2 text-right">Cortes</th>
-              <th className="py-2 pr-2">Parada</th>
-              <th className="py-2">Observação</th>
+              <th className="py-2">Paradas (horário, tempo e motivo)</th>
             </tr>
           </thead>
           <tbody>
@@ -142,9 +142,19 @@ export default async function ImprimirProducaoPage({ searchParams }: { searchPar
                 <td className="py-2 pr-2">{l?.perfil ?? '—'}</td>
                 <td className="py-2 pr-2">{l?.fabricante ?? '—'}</td>
                 <td className="py-2 pr-2 text-right tabular-nums">{l?.cortes || '—'}</td>
-                <td className="py-2 pr-2 whitespace-nowrap">{paradasDaLinha(l?.paradas).map((p) => `${p.inicio ? `${p.inicio} às ${fimDaParada(p.inicio, p.minutos)}` : 'sem horário'} (${p.minutos} min)`).join(' / ') || '—'}</td>
-                <td className="py-2">
-                  {[...paradasDaLinha(l?.paradas).map((p) => p.descricao), l?.justificativaCorte && `Corte: ${l.justificativaCorte}`].filter(Boolean).join(' · ') || '—'}
+                <td className="py-2 doc-paradas">
+                  {paradasDaLinha(l?.paradas).length === 0 && !l?.justificativaCorte ? '—' : (
+                    <>
+                      {paradasDaLinha(l?.paradas).map((p, i) => (
+                        <span key={i} className="doc-parada">
+                          <b>{p.inicio ? `${p.inicio}–${fimDaParada(p.inicio, p.minutos)}` : 'Sem horário'}</b>
+                          {` · ${p.minutos} min`}
+                          {p.descricao ? ` · ${p.descricao}` : ''}
+                        </span>
+                      ))}
+                      {l?.justificativaCorte && <span className="doc-parada">Corte: {l.justificativaCorte}</span>}
+                    </>
+                  )}
                 </td>
               </tr>
             ))}
@@ -157,8 +167,7 @@ export default async function ImprimirProducaoPage({ searchParams }: { searchPar
               <td className="py-2 pr-2" />
               <td className="py-2 pr-2" />
               <td className="py-2 pr-2 text-right tabular-nums">{totalCortes || '—'}</td>
-              <td className="py-2 pr-2 whitespace-nowrap">{tempoParada}</td>
-              <td className="py-2" />
+              <td className="py-2">{totalParadaMin ? `${tempoParada} parado no dia` : 'Sem paradas'}</td>
             </tr>
           </tfoot>
         </table>
