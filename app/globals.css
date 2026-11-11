@@ -2152,7 +2152,7 @@ html[data-tema="azul"] .pagina-admin h1 {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: ct-brilho-titulo 9s ease-in-out infinite;
+  animation: ct-brilho-titulo 2.4s ease-out 1 both;
 }
 
 @keyframes ct-brilho-titulo {
