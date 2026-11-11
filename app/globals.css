@@ -2406,7 +2406,17 @@ html[data-tema="pastel"] .entrada-marca-conteudo::before { background: radial-gr
 
 /* Impressao da planilha de producao: so a planilha, sem botoes e em fundo branco */
 @media print {
+  @page { size: A4; margin: 12mm; }
   .no-print { display: none !important; }
+  .planilha-producao { max-width: none !important; padding: 0 !important; font-size: 10.5pt; }
+  .planilha-producao h1 { font-size: 16pt; }
+  .planilha-producao section { break-inside: avoid; border: 1px solid #bbb !important; border-radius: 6px !important; padding: 8px !important; margin-bottom: 8px; }
+  .planilha-producao .barra-trilho { border: 1px solid #999 !important; height: 8px !important; }
+  .planilha-producao .barra-fill { background: #2563eb !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .planilha-producao .tabela-impressao table { min-width: 0 !important; font-size: 9.5pt; }
+  .planilha-producao .tabela-impressao th, .planilha-producao .tabela-impressao td { padding: 3px 4px !important; }
+  .planilha-producao .tabela-impressao tr { break-inside: avoid; }
+  .planilha-producao .grid { gap: 6px !important; }
   .planilha-producao { color: #000 !important; background: #fff !important; }
   .planilha-producao * { color: #000 !important; background: transparent !important; border-color: #999 !important; box-shadow: none !important; }
   .planilha-producao table { page-break-inside: auto; }

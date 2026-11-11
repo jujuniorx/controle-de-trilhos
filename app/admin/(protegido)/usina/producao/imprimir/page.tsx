@@ -82,8 +82,8 @@ export default async function ImprimirProducaoPage({ searchParams }: { searchPar
             return (
               <li key={hora} className="grid grid-cols-[7.5rem_1fr_3rem] items-center gap-3 text-sm">
                 <span className="whitespace-nowrap text-ink-muted">{hora} às {fimDaHora(hora)}</span>
-                <span className="h-3 overflow-hidden rounded-full bg-surface-2">
-                  <span className="block h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+                <span className="barra-trilho h-3 overflow-hidden rounded-full bg-surface-2">
+                  <span className="barra-fill block h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
                 </span>
                 <span className="text-right font-semibold tabular-nums">{l?.soldas || '—'}</span>
               </li>
@@ -92,7 +92,7 @@ export default async function ImprimirProducaoPage({ searchParams }: { searchPar
         </ul>
       </section>
 
-      <section className="card overflow-x-auto p-4">
+      <section className="card tabela-impressao overflow-x-auto p-4">
         <h2 className="section-title mb-3">Detalhe por hora</h2>
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead className="text-xs uppercase text-ink-muted">
