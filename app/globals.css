@@ -258,24 +258,24 @@ h1, h2, h3 {
 .ct-logo-mark { display: inline-flex; align-items: center; gap: 10px; }
 .ct-logo-mark svg { flex-shrink: 0; }
 /* Cores da marca por tema (a logo muda junto com o tema do sistema) */
-.ct-logo-mark .logo-tile { fill: #2c333c; transition: fill .4s ease; }
-.ct-logo-mark .logo-dorm { fill: #3b82c4; transition: fill .4s ease; }
-.ct-logo-mark .logo-trilho { fill: #5b9bd5; transition: fill .4s ease; }
-html[data-tema="escuro"] .ct-logo-mark .logo-tile { fill: #0B0B0C; }
-html[data-tema="escuro"] .ct-logo-mark .logo-dorm { fill: #A1A1AA; }
-html[data-tema="escuro"] .ct-logo-mark .logo-trilho { fill: #FAFAFA; }
-html[data-tema="claro"] .ct-logo-mark .logo-tile { fill: #1F3A5F; }
-html[data-tema="claro"] .ct-logo-mark .logo-dorm { fill: #7FA8D6; }
-html[data-tema="claro"] .ct-logo-mark .logo-trilho { fill: #A9C7EA; }
-html[data-tema="azul"] .ct-logo-mark .logo-tile { fill: #0E1A2E; }
-html[data-tema="azul"] .ct-logo-mark .logo-dorm { fill: #3B82F6; }
-html[data-tema="azul"] .ct-logo-mark .logo-trilho { fill: #60A5FA; }
-html[data-tema="vidro"] .ct-logo-mark .logo-tile { fill: rgba(255, 255, 255, .14); }
-html[data-tema="vidro"] .ct-logo-mark .logo-dorm { fill: #FF9A4D; }
-html[data-tema="vidro"] .ct-logo-mark .logo-trilho { fill: #FF7A1A; }
-html[data-tema="pastel"] .ct-logo-mark .logo-tile { fill: #EFE6FF; }
-html[data-tema="pastel"] .ct-logo-mark .logo-dorm { fill: #B89CF8; }
-html[data-tema="pastel"] .ct-logo-mark .logo-trilho { fill: #9B7CF6; }
+:is(.ct-logo-mark, .logo-animada) .logo-tile { fill: #2c333c; transition: fill .4s ease; }
+:is(.ct-logo-mark, .logo-animada) .logo-dorm { fill: #3b82c4; transition: fill .4s ease; }
+:is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: #5b9bd5; transition: fill .4s ease; }
+html[data-tema="escuro"] :is(.ct-logo-mark, .logo-animada) .logo-tile { fill: #0B0B0C; }
+html[data-tema="escuro"] :is(.ct-logo-mark, .logo-animada) .logo-dorm { fill: #A1A1AA; }
+html[data-tema="escuro"] :is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: #FAFAFA; }
+html[data-tema="claro"] :is(.ct-logo-mark, .logo-animada) .logo-tile { fill: #1F3A5F; }
+html[data-tema="claro"] :is(.ct-logo-mark, .logo-animada) .logo-dorm { fill: #7FA8D6; }
+html[data-tema="claro"] :is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: #A9C7EA; }
+html[data-tema="azul"] :is(.ct-logo-mark, .logo-animada) .logo-tile { fill: #0E1A2E; }
+html[data-tema="azul"] :is(.ct-logo-mark, .logo-animada) .logo-dorm { fill: #3B82F6; }
+html[data-tema="azul"] :is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: #60A5FA; }
+html[data-tema="vidro"] :is(.ct-logo-mark, .logo-animada) .logo-tile { fill: rgba(255, 255, 255, .14); }
+html[data-tema="vidro"] :is(.ct-logo-mark, .logo-animada) .logo-dorm { fill: #FF9A4D; }
+html[data-tema="vidro"] :is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: #FF7A1A; }
+html[data-tema="pastel"] :is(.ct-logo-mark, .logo-animada) .logo-tile { fill: #EFE6FF; }
+html[data-tema="pastel"] :is(.ct-logo-mark, .logo-animada) .logo-dorm { fill: #B89CF8; }
+html[data-tema="pastel"] :is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: #9B7CF6; }
 .ct-logo-text { line-height: 1; }
 .ct-logo-text .name {
   font-family: var(--font-condensed), sans-serif;
@@ -2369,13 +2369,13 @@ html[data-tema="vidro"] .setor-tile-icone { border-radius: 50%; background: line
 html[data-tema="pastel"] .setor-tile-icone { border-radius: 26px; background: linear-gradient(135deg, #b89cf8, #f5a3cf); box-shadow: 0 10px 22px rgba(155, 124, 246, .35); }
 
 /* Logo por tema: forma e contorno, alem da cor */
-html[data-tema="escuro"] .ct-logo-mark .logo-tile { rx: 4px; stroke: #FAFAFA; stroke-width: 1; }
-html[data-tema="escuro"] .ct-logo-mark .logo-trilho { rx: 0; }
-html[data-tema="vidro"] .ct-logo-mark .logo-tile { rx: 28px; stroke: rgba(255, 154, 77, .6); stroke-width: 1.5; }
-html[data-tema="vidro"] .ct-logo-mark .logo-trilho { rx: 4px; }
-html[data-tema="pastel"] .ct-logo-mark .logo-tile { rx: 18px; stroke: #B89CF8; stroke-width: 1.2; }
-html[data-tema="pastel"] .ct-logo-mark .logo-dorm { rx: 3px; }
-html[data-tema="claro"] .ct-logo-mark .logo-tile { rx: 12px; }
+html[data-tema="escuro"] :is(.ct-logo-mark, .logo-animada) .logo-tile { rx: 4px; stroke: #FAFAFA; stroke-width: 1; }
+html[data-tema="escuro"] :is(.ct-logo-mark, .logo-animada) .logo-trilho { rx: 0; }
+html[data-tema="vidro"] :is(.ct-logo-mark, .logo-animada) .logo-tile { rx: 28px; stroke: rgba(255, 154, 77, .6); stroke-width: 1.5; }
+html[data-tema="vidro"] :is(.ct-logo-mark, .logo-animada) .logo-trilho { rx: 4px; }
+html[data-tema="pastel"] :is(.ct-logo-mark, .logo-animada) .logo-tile { rx: 18px; stroke: #B89CF8; stroke-width: 1.2; }
+html[data-tema="pastel"] :is(.ct-logo-mark, .logo-animada) .logo-dorm { rx: 3px; }
+html[data-tema="claro"] :is(.ct-logo-mark, .logo-animada) .logo-tile { rx: 12px; }
 
 /* Home no Pastel: fundo claro (sem a mancha escura do modo noturno) e cartoes lilas */
 html[data-tema="pastel"] .home-entrada .home-conteudo::before { background: radial-gradient(closest-side, rgba(247, 242, 255, .92) 35%, transparent); }
