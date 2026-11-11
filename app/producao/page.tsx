@@ -5,7 +5,6 @@ import { FABRICANTES_PRODUCAO, PERFIS_PRODUCAO, SOLDAS_POR_TLS, buscarDia, horas
 import { TrocaTopo } from '@/components/producao/TrocaTopo';
 import { salvarProducaoAction } from './actions';
 import { AlternarTema } from '@/components/ui/AlternarTema';
-import { IconeImprimir } from '@/components/icones/Icones';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +27,6 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
         <AlternarTema />
       </div>
       <h1 className="font-condensed text-2xl font-bold uppercase tracking-wide">Produção do dia</h1>
-      <a href={`/producao/imprimir?data=${dataTexto}`} className="btn btn-secondary btn-sm w-fit"><IconeImprimir size={14} /> Imprimir</a>
       {params.ok === '1' && <p role="status" className="rounded-lg border border-ok/40 bg-ok/10 p-3 text-sm">Dia salvo. Soldas: {dia?.totalSoldas ?? 0}, TLS formados: {dia?.tlsFormados ?? 0}, sobra para amanhã: {dia?.sobraSaida ?? 0} de {SOLDAS_POR_TLS}.</p>}
 
       <form action={salvarProducaoAction} className="space-y-6">

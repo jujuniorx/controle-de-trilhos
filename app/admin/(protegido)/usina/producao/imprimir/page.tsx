@@ -1,6 +1,3 @@
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import { COOKIE_PRODUCAO, cookieProducaoValido } from '@/lib/services/producaoAcesso';
 import { SOLDAS_POR_TLS, buscarDia, horasDoDia } from '@/lib/services/producao';
 import { BotaoImprimirPagina } from '@/components/producao/BotaoImprimirPagina';
 
@@ -31,9 +28,8 @@ function Indicador({ rotulo, valor, detalhe }: { rotulo: string; valor: string |
   );
 }
 
-/** Relatorio do dia da Producao, pronto para imprimir: resumo, ritmo por hora e a tabela completa. */
+/** Relatorio do dia da Producao (so Administrativo), pronto para imprimir: resumo, ritmo por hora e a tabela completa. */
 export default async function ImprimirProducaoPage({ searchParams }: { searchParams: Promise<{ data?: string }> }) {
-  if (!cookieProducaoValido((await cookies()).get(COOKIE_PRODUCAO)?.value)) redirect('/producao/login');
   const params = await searchParams;
   const dataTexto = /^\d{4}-\d{2}-\d{2}$/.test(params.data ?? '') ? (params.data as string) : hojeSP();
   const data = new Date(`${dataTexto}T00:00:00Z`);
@@ -56,7 +52,7 @@ export default async function ImprimirProducaoPage({ searchParams }: { searchPar
   return (
     <main className="planilha-producao mx-auto w-full max-w-5xl space-y-6 px-4 py-6">
       <div className="no-print flex flex-wrap items-center justify-between gap-3">
-        <a href={`/producao?data=${dataTexto}`} className="btn btn-ghost btn-sm">Voltar</a>
+        <a href={`/admin/usina?data=${dataTexto}`} className="btn btn-ghost btn-sm">Voltar</a>
         <BotaoImprimirPagina />
       </div>
 
