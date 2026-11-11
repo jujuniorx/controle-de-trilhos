@@ -5,7 +5,7 @@
      escuro  = Sales Dashboard (escuro): preto com detalhes brancos
      azul    = @_code_and_chill_: azul-marinho com brilhos azuis e pilula deslizante
      pastel  = Dashboard V15: degrade lilas e rosa, cards brancos bem redondos
-     vidro   = Glassy Dashboard V30: paineis de vidro sobre fundo desfocado quente
+     vidro   = "Ambar" na tela (Glassy Dashboard V30): paineis de vidro sobre fundo quente, com detalhes laranja
    Como funciona: cada tema so define variaveis (--v-*). As regras do fim do
    arquivo aplicam essas variaveis em todos os componentes, iguais para todos.
    Sem backdrop-filter e sem animacao continua: precisa ser liso em PC comum.
@@ -146,15 +146,17 @@ html[data-tema="vidro"]:root,
 html[data-tema="vidro"]:root :is(.area-admin, .area-patio) {
   color-scheme: dark;
   --g0: #4f4843; --g1: #57504a; --g2: #615953; --g3: #6b635c; --g4: #776e67; --g5: #8a8079; --g6: #a59b93;
-  --b0: #6f6660; --b1: #7b716a; --b2: #e8e2dc; --b3: #ffffff; --b4: #ffffff; --b5: #ffffff; --b6: #ffffff;
+  --b0: #6f6660; --b1: #7b716a; --b2: #e8e2dc; --b3: #ffb054; --b4: #ffb054; --b5: #ffc47a; --b6: #ffd9a8;
   --t1: #ffffff; --t2: rgba(255, 255, 255, .76); --t3: rgba(255, 255, 255, .56); --ln: rgba(255, 255, 255, .13); --ln2: rgba(255, 255, 255, .22);
   --ok: #86efac; --ok-bg: rgba(134, 239, 172, .14); --warn: #fcd34d; --warn-bg: rgba(252, 211, 77, .14); --err: #fca5a5; --err-bg: rgba(252, 165, 165, .16);
   --background: #5f5751; --foreground: #ffffff;
-  --primary: #ffffff; --primary-dark: #e8e2dc; --primary-light: #776e67; --on-primary: #2c2623;
+  --primary: #ffb054; --primary-dark: #f2761b; --primary-light: #776e67; --on-primary: #2a1a0c;
   --surface: #615953; --surface-2: #6b635c; --surface-3: #776e67; --line: var(--ln); --line-2: var(--ln2);
   --ink: #ffffff; --ink-muted: rgba(255, 255, 255, .76); --ink-dim: rgba(255, 255, 255, .56);
 
   --v-bg:
+    radial-gradient(38% 42% at 92% 4%, rgba(255, 138, 40, .30) 0%, transparent 70%),
+    radial-gradient(34% 40% at 4% 100%, rgba(255, 150, 60, .16) 0%, transparent 70%),
     radial-gradient(55% 60% at 18% 20%, #7f746d 0%, transparent 62%),
     radial-gradient(45% 55% at 84% 16%, #71675f 0%, transparent 60%),
     radial-gradient(50% 50% at 72% 88%, #867a71 0%, transparent 60%),
@@ -162,19 +164,19 @@ html[data-tema="vidro"]:root :is(.area-admin, .area-patio) {
     #5f5751;
   --v-card: linear-gradient(160deg, rgba(255, 255, 255, .14), rgba(255, 255, 255, .07)); --v-card-line: rgba(255, 255, 255, .20); --v-radius: 22px;
   --v-shadow: 0 10px 32px rgba(20, 14, 10, .22), inset 0 1px 0 rgba(255, 255, 255, .22);
-  --v-shadow-hover: 0 20px 44px rgba(20, 14, 10, .36), inset 0 1px 0 rgba(255, 255, 255, .34); --v-lift: -5px;
+  --v-shadow-hover: 0 20px 44px rgba(20, 14, 10, .36), 0 0 0 1px rgba(255, 176, 84, .45), inset 0 1px 0 rgba(255, 255, 255, .34); --v-lift: -5px;
   --v-side: rgba(255, 255, 255, .07); --v-side-line: rgba(255, 255, 255, .16); --v-side-ink: rgba(255, 255, 255, .74); --v-side-strong: #ffffff; --v-side-hover: rgba(255, 255, 255, .10);
-  --v-pill: rgba(255, 255, 255, .24); --v-pill-ink: #ffffff; --v-pill-shadow: 0 8px 24px rgba(20, 14, 10, .25), inset 0 1px 0 rgba(255, 255, 255, .35); --v-pill-radius: 14px;
-  --v-icon: rgba(255, 255, 255, .10); --v-pill-icon: rgba(255, 255, 255, .22); --v-icon-radius: 10px;
+  --v-pill: linear-gradient(90deg, #ffb054, #f2761b); --v-pill-ink: #2a1a0c; --v-pill-shadow: 0 10px 26px rgba(242, 118, 27, .38), inset 0 1px 0 rgba(255, 255, 255, .40); --v-pill-radius: 14px;
+  --v-icon: rgba(255, 255, 255, .10); --v-pill-icon: rgba(42, 26, 12, .14); --v-icon-radius: 10px;
   --v-top: rgba(98, 90, 84, .9); --v-top-line: rgba(255, 255, 255, .14);
-  --v-field: rgba(255, 255, 255, .10); --v-field-line: rgba(255, 255, 255, .24); --v-field-radius: 12px; --v-focus: #ffffff;
-  --v-btn: #ffffff; --v-btn-ink: #2c2623; --v-btn-shadow: 0 6px 18px rgba(20, 14, 10, .25); --v-btn-radius: 999px;
+  --v-field: rgba(255, 255, 255, .10); --v-field-line: rgba(255, 255, 255, .24); --v-field-radius: 12px; --v-focus: #ffb054;
+  --v-btn: linear-gradient(180deg, #ffb859, #f2761b); --v-btn-ink: #2a1a0c; --v-btn-shadow: 0 6px 18px rgba(242, 118, 27, .34), inset 0 1px 0 rgba(255, 255, 255, .40); --v-btn-radius: 999px;
   --v-ghost: rgba(255, 255, 255, .10); --v-ghost-ink: #ffffff; --v-ghost-line: rgba(255, 255, 255, .28); --v-sec: rgba(255, 255, 255, .16);
-  --v-hero: linear-gradient(160deg, rgba(255, 255, 255, .20), rgba(255, 255, 255, .08)); --v-hero-ink: #ffffff; --v-hero-sub: rgba(255, 255, 255, .8); --v-hero-line: rgba(255, 255, 255, .26);
+  --v-hero: linear-gradient(120deg, rgba(255, 150, 60, .42), rgba(255, 255, 255, .10) 55%, rgba(255, 255, 255, .06)); --v-hero-ink: #ffffff; --v-hero-sub: rgba(255, 255, 255, .8); --v-hero-line: rgba(255, 190, 120, .40);
   --v-hero-haze: radial-gradient(closest-side, rgba(60, 52, 48, .5) 40%, transparent);
-  --v-accent: #ffffff; --v-scroll: #8a8079;
+  --v-accent: #ffb054; --v-scroll: #8a8079;
   --v-home-haze: radial-gradient(closest-side, rgba(84, 76, 70, .7) 35%, transparent); --v-tile-icon-radius: 50%;
-  --home-topo: #5f5751; --home-base: #5f5751; --via-neblina: rgba(255, 255, 255, .10); --via-lastro-borda: rgba(255, 255, 255, .12); --via-trilho-corpo: #8a7f77; --via-trilho-topo: #ffffff;
+  --home-topo: #5f5751; --home-base: #5f5751; --via-neblina: rgba(255, 255, 255, .10); --via-lastro-borda: rgba(255, 255, 255, .12); --via-trilho-corpo: #8a7f77; --via-trilho-topo: #ffb054;
   --pilula-fundo: var(--v-pill); --pilula-sombra: var(--v-pill-shadow);
 }
 
@@ -276,7 +278,7 @@ html[data-tema="pastel"]:root :is(.ct-logo-mark, .logo-animada) .logo-dorm { fil
 html[data-tema="pastel"]:root :is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: #ffffff; }
 html[data-tema="vidro"]:root :is(.ct-logo-mark, .logo-animada) .logo-tile { fill: rgba(255, 255, 255, .2); stroke: rgba(255, 255, 255, .45); stroke-width: 1.5; }
 html[data-tema="vidro"]:root :is(.ct-logo-mark, .logo-animada) .logo-dorm { fill: rgba(255, 255, 255, .6); }
-html[data-tema="vidro"]:root :is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: #ffffff; }
+html[data-tema="vidro"]:root :is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: #ffb054; }
 
 /* Tela inicial (escolha do setor): mesmo fundo e mesmos cartoes do tema */
 html[data-tema]:root .home-entrada {
@@ -519,12 +521,12 @@ html[data-tema]:root .ct-nav-btn:focus-visible { outline: 2px solid var(--v-focu
 }
 
 
-/* Vidro com detalhes laranja (como na referencia): pilula, botao, foco e acentos */
-html[data-tema="vidro"]:root {
-  --v-pill: linear-gradient(90deg, rgba(255, 122, 26, .55), rgba(255, 122, 26, .14)); --v-pill-shadow: 0 8px 26px rgba(255, 122, 26, .30), inset 0 1px 0 rgba(255, 255, 255, .18);
-  --v-pill-icon: rgba(255, 255, 255, .22);
-  --v-btn: linear-gradient(180deg, #ff9a3d, #f2701a); --v-btn-ink: #ffffff; --v-btn-shadow: 0 6px 18px rgba(255, 122, 26, .38);
-  --v-accent: #ff9a3d; --v-focus: #ff9a3d;
-  --pilula-fundo: var(--v-pill); --pilula-sombra: var(--v-pill-shadow);
-}
+/* Ambar (data-tema="vidro"): detalhes laranja nos pontos de destaque */
+html[data-tema="vidro"]:root :is(.area-admin, .area-patio) main h1::after { background: linear-gradient(90deg, #ffb054, transparent) !important; }
+html[data-tema="vidro"]:root .stat-tile { border-top-color: rgba(255, 176, 84, .55) !important; }
+html[data-tema="vidro"]:root .badge-info { color: #ffc47a !important; background: rgba(255, 176, 84, .16) !important; }
+html[data-tema="vidro"]:root .ct-user-avatar, html[data-tema="vidro"]:root .ct-topbar .bg-primary { background: linear-gradient(180deg, #ffb859, #f2761b) !important; color: #2a1a0c !important; }
+html[data-tema="vidro"]:root .tema-amostra[data-amostra="vidro"] { background: linear-gradient(135deg, #5f5751 50%, #ff9a3d 50%); }
+html[data-tema="vidro"]:root ::selection { background: rgba(255, 176, 84, .45); color: #fff; }
+
 }

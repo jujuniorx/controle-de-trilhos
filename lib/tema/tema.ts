@@ -14,7 +14,8 @@ export const TEMA_PADRAO: Tema = 'azul';
 export const ROTULOS_TEMA: Record<Tema, string> = {
   claro: 'Claro',
   escuro: 'Escuro',
-  vidro: 'Vidro',
+  // O identificador continua 'vidro' para não perder a escolha já salva no cookie de quem usa este tema.
+  vidro: 'Âmbar',
   azul: 'Azul-marinho',
   pastel: 'Pastel',
 };
