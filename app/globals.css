@@ -2012,7 +2012,6 @@ html[data-tema="vidro"] body::after {
   pointer-events: none;
   z-index: -1;
   border-radius: 50%;
-  filter: blur(70px);
 }
 html[data-tema="vidro"] body::before {
   width: 46vw; height: 46vw; min-width: 320px; min-height: 320px;
@@ -2060,7 +2059,7 @@ html[data-tema="vidro"] .stat-tile::after {
 html[data-tema="vidro"] .card:hover::after,
 html[data-tema="vidro"] .stat-tile:hover::after {
   opacity: 1;
-  animation: ct-brilho-vidro 1.6s linear infinite;
+  animation: ct-brilho-vidro .9s ease-out 1 both;
 }
 html[data-tema="vidro"] .card:hover,
 html[data-tema="vidro"] .stat-tile:hover {
@@ -2271,17 +2270,18 @@ html[data-tema="pastel"] .stat-tile:hover { transform: translateY(-4px); box-sha
 @keyframes ct-quica-pastel { 0% { opacity: 0; transform: translateY(18px) scale(.96); } 100% { opacity: 1; transform: none; } }
 
 /* Vidro: painéis de vidro com desfoque, entrada com nitidez gradual */
+/* Sem backdrop-filter nos cards (pesado em PC comum): o vidro vem do gradiente e da borda de luz. */
 html[data-tema="vidro"] .card,
 html[data-tema="vidro"] .stat-tile {
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
   animation: ct-nitido-vidro .5s ease-out both;
   transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease;
 }
 /* Glassy Dashboard: o painel sobe uns 5px no hover e ganha brilho */
 html[data-tema="vidro"] .card:hover,
 html[data-tema="vidro"] .stat-tile:hover { transform: translateY(-5px); box-shadow: 0 18px 40px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.18); }
-@keyframes ct-nitido-vidro { from { opacity: 0; transform: translateY(12px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes ct-nitido-vidro { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 
 /* Troca de tema: circulo que se expande a partir do seletor (referencia Sales Dashboard) */
 ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
