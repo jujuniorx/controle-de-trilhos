@@ -120,7 +120,64 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
         </ul>
       </section>
 
-      <section className="doc-bloco card tabela-impressao overflow-x-auto p-4">
+      {/* Na tela: uma linha por hora, sem rolagem para o lado. A tabela completa fica só para a impressão. */}
+      <section className="so-tela card space-y-3 p-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="section-title">Detalhe por hora</h2>
+          <p className="text-sm text-ink-muted">
+            {totalSoldas} soldas · {totalCortes} {totalCortes === 1 ? 'corte' : 'cortes'} · {totalParadaMin ? `${tempoParada} parado` : 'sem paradas'}
+          </p>
+        </div>
+        <ol className="hora-lista">
+          {linhas.map(({ hora, l, acumulado: acc }, i) => {
+            const paradas = paradasDaLinha(l?.paradas);
+            const anterior = linhas.slice(0, i).reverse().find((x) => x.l)?.l;
+            const trocou = Boolean(l && anterior && (l.perfil !== anterior.perfil || l.fabricante !== anterior.fabricante));
+            const almoco = hora === '12:00' && !l;
+            return (
+              <li key={hora} className="hora-item" data-vazia={l ? undefined : 'true'}>
+                <div className="hora-cabeca">
+                  <div className="hora-quando">
+                    <p className="hora-faixa">{hora} às {fimDaHora(hora)}</p>
+                    {l && (
+                      <p className="hora-trilho" data-trocou={trocou ? 'true' : undefined}>
+                        {trocou ? 'Trocou para ' : ''}{l.perfil} · {l.fabricante}
+                      </p>
+                    )}
+                    {!l && <p className="hora-trilho">{almoco ? 'Almoço' : 'Sem lançamento'}</p>}
+                  </div>
+                  {l && (
+                    <div className="hora-numeros">
+                      {l.cortes > 0 && <span className="hora-cortes">{l.cortes} {l.cortes === 1 ? 'corte' : 'cortes'}</span>}
+                      <p className="hora-soldas"><b>{l.soldas}</b> {l.soldas === 1 ? 'solda' : 'soldas'}</p>
+                      <p className="hora-acum">acumulado {acc}</p>
+                    </div>
+                  )}
+                </div>
+                {(paradas.length > 0 || l?.justificativaCorte) && (
+                  <ul className="hora-paradas">
+                    {paradas.map((p, j) => (
+                      <li key={j} className="hora-parada">
+                        <span className="hora-parada-quando">
+                          <b>{p.inicio ? `${p.inicio} – ${fimDaParada(p.inicio, p.minutos)}` : 'Sem horário'}</b>
+                          <span className="hora-parada-min">{p.minutos} min</span>
+                        </span>
+                        <span className="hora-motivos">
+                          {(p.descricao ?? '').split(';').map((m) => m.trim()).filter(Boolean).map((m) => <span key={m} className="hora-motivo">{m}</span>)}
+                          {!p.descricao && <span className="hora-sem-motivo">Sem motivo informado</span>}
+                        </span>
+                      </li>
+                    ))}
+                    {l?.justificativaCorte && <li className="hora-parada"><span className="hora-motivos"><span className="hora-motivo">Corte: {l.justificativaCorte}</span></span></li>}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+
+      <section className="so-impressao-bloco doc-bloco card tabela-impressao overflow-x-auto p-4">
         <h2 className="section-title mb-3">Detalhe por hora</h2>
         <table className="doc-tabela w-full min-w-[640px] text-left text-sm">
           <colgroup><col className="c-hora" /><col className="c-num" /><col className="c-num" /><col className="c-txt" /><col className="c-fab" /><col className="c-num" /><col /></colgroup>

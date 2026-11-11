@@ -2405,7 +2405,7 @@ html[data-tema="claro"] .entrada-marca-conteudo::before { background: radial-gra
 html[data-tema="pastel"] .entrada-marca-conteudo::before { background: radial-gradient(closest-side, rgba(255, 255, 255, .6) 40%, transparent); }
 
 /* Impressao da planilha de producao: so a planilha, sem botoes e em fundo branco */
-.so-impressao { display: none; }
+.so-impressao, .so-impressao-bloco { display: none; }
 
 /* ═══════════════════════════════════════════════
    IMPRESSÃO — Produção do dia sai como documento (folha branca, sem o menu, a barra
@@ -2434,6 +2434,7 @@ html[data-tema="pastel"] .entrada-marca-conteudo::before { background: radial-gr
 
   /* Cabeçalho do documento */
   main.planilha-producao .so-impressao { display: flex !important; }
+  main.planilha-producao .so-impressao-bloco { display: block !important; }
   main.planilha-producao .doc-topo { justify-content: space-between; align-items: flex-end; gap: 10mm; padding-bottom: 4mm; border-bottom: 1.2pt solid #16191f !important; }
   main.planilha-producao .doc-topo-sistema { font-size: 7.5pt; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #5b6472 !important; margin: 0; }
   main.planilha-producao .doc-topo-titulo { font-family: var(--font-barlow-cond), var(--font-barlow), Arial, sans-serif; font-size: 22pt; font-weight: 700; line-height: 1.05; text-transform: uppercase; letter-spacing: .02em; margin: 1mm 0; }

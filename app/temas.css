@@ -739,3 +739,33 @@ html[data-tema]:root .motivos-rodape { display: grid; grid-template-columns: aut
 }
 @keyframes motivos-sobe { from { transform: translateY(100%); } to { transform: none; } }
 @media (prefers-reduced-motion: reduce) { html[data-tema]:root .motivos-folha[open] { animation: none; } }
+
+/* Administrativo > Producao: detalhe por hora na tela (uma linha por hora, paradas com horario, tempo e motivos) */
+html[data-tema]:root .hora-lista { display: flex; flex-direction: column; }
+html[data-tema]:root .hora-item { padding: 12px 0; border-top: 1px solid var(--v-card-line, var(--line)); }
+html[data-tema]:root .hora-item:first-child { border-top: 0; padding-top: 4px; }
+html[data-tema]:root .hora-item[data-vazia="true"] { opacity: .62; }
+html[data-tema]:root .hora-cabeca { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+html[data-tema]:root .hora-quando { min-width: 0; }
+html[data-tema]:root .hora-faixa { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+html[data-tema]:root .hora-trilho { font-size: .82rem; color: var(--ink-muted); }
+html[data-tema]:root .hora-trilho[data-trocou="true"] { color: var(--warn); font-weight: 700; }
+html[data-tema]:root .hora-numeros { flex: none; text-align: right; }
+html[data-tema]:root .hora-soldas { font-size: .82rem; color: var(--ink-muted); line-height: 1.1; }
+html[data-tema]:root .hora-soldas b { font-size: 1.45rem; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; margin-right: 2px; }
+html[data-tema]:root .hora-acum { font-size: .76rem; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+html[data-tema]:root .hora-cortes {
+  display: inline-block; margin-bottom: 4px; padding: 2px 9px; border-radius: 999px; font-size: .74rem; font-weight: 800;
+  color: var(--warn); background: var(--warn-bg); border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent);
+}
+html[data-tema]:root .hora-paradas { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+html[data-tema]:root .hora-parada {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 8px 10px; border-radius: 12px;
+  background: var(--v-side-hover); border: 1px solid var(--v-field-line);
+}
+html[data-tema]:root .hora-parada-quando { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; font-size: .88rem; font-variant-numeric: tabular-nums; }
+html[data-tema]:root .hora-parada-min { padding: 1px 8px; border-radius: 999px; font-size: .76rem; font-weight: 800; background: var(--v-field); border: 1px solid var(--v-field-line); }
+html[data-tema]:root .hora-motivos { display: flex; flex-wrap: wrap; gap: 4px 6px; min-width: 0; font-size: .86rem; }
+html[data-tema]:root .hora-motivo { overflow-wrap: anywhere; }
+html[data-tema]:root .hora-motivo:not(:last-child)::after { content: ";"; color: var(--ink-muted); }
+html[data-tema]:root .hora-sem-motivo { color: var(--ink-muted); font-style: italic; }
