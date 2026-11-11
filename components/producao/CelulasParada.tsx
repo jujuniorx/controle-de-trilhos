@@ -56,8 +56,8 @@ export function CelulasParada({ hora, n, inicioPadrao, minutosPadrao }: Props) {
   const id = `${hora}_${n}`;
 
   let aviso = '';
-  if (faltaUm) aviso = inicio ? 'Escolha o fim' : 'Escolha o início';
-  else if (iguais) aviso = 'Início e fim iguais';
+  // Parada pela metade (so inicio ou so fim) nao trava nem fica vermelha: some sozinha se nao for completada.
+  if (iguais) aviso = 'Início e fim iguais';
 
   return (
     <>
