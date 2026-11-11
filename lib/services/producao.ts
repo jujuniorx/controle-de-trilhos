@@ -69,6 +69,14 @@ export async function salvarDiaProducao(dados: DadosDia): Promise<void> {
   await prisma.producaoLinha.deleteMany({ where: { diaId: dia.id } });
   if (linhas.length) await prisma.producaoLinha.createMany({ data: linhas.map((l) => ({ ...l, diaId: dia.id })) });
   await recalcularAPartir(dados.data);
+  // A Usina (Estaleiro de solda) recebe as soldas e os cortes do dia lancados na Producao.
+  const soldas = dados.linhas.reduce((t, l) => t + l.soldas, 0);
+  const cortes = dados.linhas.reduce((t, l) => t + l.cortes, 0);
+  await prisma.estaleiroDia.upsert({
+    where: { data: dados.data },
+    create: { data: dados.data, soldas, cortes },
+    update: { soldas, cortes },
+  });
 }
 
 export async function buscarDia(data: Date) {
