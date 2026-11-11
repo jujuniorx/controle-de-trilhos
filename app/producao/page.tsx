@@ -66,7 +66,7 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
             const l = porHora.get(hora);
             return (
               <details key={hora} id={`hora_${hora}`} className="card" open={Boolean(l)}>
-                <summary className="cursor-pointer font-semibold">{`${hora} às ${String(Number(hora.slice(0, 2)) + 1).padStart(2, '0')}:00`} {l ? `· ${l.soldas} soldas` : ''}</summary>
+                <summary className="cursor-pointer font-semibold">{`${hora} às ${String(Number(hora.slice(0, 2)) + 1).padStart(2, '0')}:00`} {hora === '12:00' ? '· Almoço' : l ? `· ${l.soldas} soldas` : ''}</summary>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <p id={`aviso_hora_${hora}`} role="alert" hidden className="rounded-lg border border-bad/40 bg-bad/10 p-3 text-sm font-semibold text-bad sm:col-span-2" />
                   <div className="field"><label htmlFor={`soldas_${hora}`}>Soldas</label><input id={`soldas_${hora}`} name={`soldas_${hora}`} inputMode="numeric" defaultValue={l?.soldas || ''} className="h-11" /></div>
