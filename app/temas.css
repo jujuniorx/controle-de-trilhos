@@ -684,3 +684,58 @@ html[data-tema]:root .aviso-sucesso { bottom: calc(100px + env(safe-area-inset-b
   html[data-tema]:root .tabela-paradas td.celula-parada input, html[data-tema]:root .tabela-paradas td.celula-parada .parada-tempo { width: 100% !important; }
   html[data-tema]:root .tabela-paradas th:nth-child(-n + 3) { width: auto; }
 }
+
+/* Producao: motivos da parada. Campo compacto com os escolhidos; a lista abre numa folha (dialog). */
+html[data-tema]:root .motivos-campo {
+  display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; padding: 6px 12px 6px 8px; cursor: pointer;
+  border-radius: var(--v-field-radius); border: 1px solid var(--v-field-line); background: var(--v-field); color: var(--ink);
+  font: inherit; font-size: .9rem; text-align: left; transition: border-color .15s ease;
+}
+html[data-tema]:root .motivos-campo:hover { border-color: var(--v-focus); }
+html[data-tema]:root .motivos-campo:focus-visible, html[data-tema]:root .motivos-item:focus-visible, html[data-tema]:root .motivos-fechar:focus-visible { outline: 2px solid var(--v-focus); outline-offset: 2px; }
+html[data-tema]:root .motivos-escolhidos { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+html[data-tema]:root .motivos-vazio { padding-left: 4px; color: var(--ink-muted); }
+html[data-tema]:root .motivos-chip {
+  max-width: 100%; padding: 4px 10px; border-radius: 999px; font-size: .8rem; font-weight: 700; line-height: 1.25;
+  background: var(--v-side-hover); border: 1px solid var(--v-field-line); overflow-wrap: anywhere;
+}
+html[data-tema]:root .motivos-seta { flex: none; opacity: .7; }
+
+html[data-tema]:root .motivos-folha {
+  width: min(460px, calc(100vw - 32px)); max-height: min(640px, calc(100dvh - 48px)); margin: auto; padding: 0; overflow: hidden;
+  color: var(--ink); background: var(--v-menu); border: 1px solid var(--v-menu-line); border-radius: 20px; box-shadow: var(--v-menu-shadow);
+}
+html[data-tema]:root .motivos-folha[open] { display: flex; animation: motivos-abre .22s cubic-bezier(.2, .8, .2, 1); }
+html[data-tema]:root .motivos-folha::backdrop { background: rgba(4, 8, 20, .55); backdrop-filter: blur(3px); }
+html[data-tema]:root .motivos-folha-dentro { display: flex; flex-direction: column; min-height: 0; width: 100%; }
+html[data-tema]:root .motivos-topo { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 16px 16px 0 20px; }
+html[data-tema]:root .motivos-sobre { font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); }
+html[data-tema]:root .motivos-titulo { font-size: 1.15rem; font-weight: 800; }
+html[data-tema]:root .motivos-ajuda { padding: 4px 20px 10px; font-size: .82rem; color: var(--ink-muted); }
+html[data-tema]:root .motivos-fechar {
+  display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+  border: 1px solid var(--v-ghost-line); background: var(--v-ghost); color: var(--v-ghost-ink);
+}
+html[data-tema]:root .motivos-lista { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 10px; display: flex; flex-direction: column; gap: 2px; }
+html[data-tema]:root .motivos-item {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 8px 10px; border: 0; border-radius: 12px; cursor: pointer;
+  background: transparent; color: var(--ink); font: inherit; font-size: .95rem; font-weight: 600; text-align: left; transition: background-color .15s ease;
+}
+html[data-tema]:root .motivos-item:hover { background: var(--v-side-hover); }
+html[data-tema]:root .motivos-item[aria-checked="true"] { background: var(--v-side-hover); font-weight: 800; }
+html[data-tema]:root .motivos-caixa {
+  display: grid; place-items: center; flex: none; width: 22px; height: 22px; border-radius: 7px;
+  border: 2px solid var(--v-field-line); color: var(--v-btn-ink); transition: background-color .15s ease, border-color .15s ease;
+}
+html[data-tema]:root .motivos-item[aria-checked="true"] .motivos-caixa { background: var(--v-btn); border-color: transparent; }
+html[data-tema]:root .motivos-outro { padding: 12px 20px 0; }
+html[data-tema]:root .motivos-rodape { display: grid; grid-template-columns: auto 1fr; gap: 10px; padding: 14px 20px calc(16px + env(safe-area-inset-bottom, 0px)); }
+@keyframes motivos-abre { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+
+/* Celular: a folha sobe de baixo e ocupa a largura toda */
+@media (max-width: 640px) {
+  html[data-tema]:root .motivos-folha { width: 100vw; max-width: 100vw; max-height: 86dvh; margin: auto 0 0; border-radius: 22px 22px 0 0; border-bottom: 0; }
+  html[data-tema]:root .motivos-folha[open] { animation-name: motivos-sobe; }
+}
+@keyframes motivos-sobe { from { transform: translateY(100%); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { html[data-tema]:root .motivos-folha[open] { animation: none; } }
