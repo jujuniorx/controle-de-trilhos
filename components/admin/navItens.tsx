@@ -5,11 +5,12 @@ import type { ReactNode } from 'react';
 // arquivo 'use client' nao podem ser lidos no servidor.
 
 export const NAV_ITEMS = [
-  { href: '/admin', label: 'Pendências' },
+  { href: '/admin', label: 'Início' },
+  { href: '/admin/pendencias', label: 'Pendências' },
+  { href: '/admin/producao', label: 'Produção' },
   { href: '/admin/relatorios', label: 'Relatórios' },
   { href: '/admin/portaria', label: 'Portaria' },
   { href: '/admin/usina', label: 'Usina' },
-  { href: '/admin/producao', label: 'Produção' },
   { href: '/admin/estoque', label: 'Estoque' },
 ] as const;
 
@@ -25,6 +26,11 @@ const tracos = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeL
 
 export const ICONES_NAV: Record<string, ReactNode> = {
   '/admin': (
+    <svg width="18" height="18" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
+      <path d="M3 11l9-7 9 7M5 9.5V20h5v-6h4v6h5V9.5" />
+    </svg>
+  ),
+  '/admin/pendencias': (
     <svg width="18" height="18" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
       <path d="M4 13l3-8h10l3 8M4 13v6h16v-6M4 13h4l1 2h6l1-2h4" />
     </svg>

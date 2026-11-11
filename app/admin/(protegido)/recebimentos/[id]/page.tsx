@@ -37,7 +37,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
   return (
     <main className="mx-auto w-full max-w-3xl xl:max-w-5xl space-y-4">
       <div>
-        <Link href="/admin" className="back-link">
+        <Link href="/admin/pendencias" className="back-link">
           ← Voltar à lista
         </Link>
         <div className="page-header mt-1 !mb-0">

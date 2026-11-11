@@ -769,3 +769,42 @@ html[data-tema]:root .hora-motivos { display: flex; flex-wrap: wrap; gap: 4px 6p
 html[data-tema]:root .hora-motivo { overflow-wrap: anywhere; }
 html[data-tema]:root .hora-motivo:not(:last-child)::after { content: ";"; color: var(--ink-muted); }
 html[data-tema]:root .hora-sem-motivo { color: var(--ink-muted); font-style: italic; }
+
+/* Administrativo: tela inicial (resumo do dia e entrada para cada secao) */
+html[data-tema]:root .inicio-resumos { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+html[data-tema]:root .inicio-resumo {
+  display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 16px; border-radius: 18px; text-decoration: none; color: var(--ink);
+  background: var(--v-card); border: 1px solid var(--v-card-line); transition: transform .18s ease, border-color .18s ease;
+}
+html[data-tema]:root .inicio-resumo:hover, html[data-tema]:root .inicio-cartao:hover { border-color: var(--v-focus); transform: translateY(-2px); }
+html[data-tema]:root .inicio-resumo:focus-visible, html[data-tema]:root .inicio-cartao:focus-visible { outline: 2px solid var(--v-focus); outline-offset: 2px; }
+html[data-tema]:root .inicio-resumo-rotulo { font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); }
+html[data-tema]:root .inicio-resumo-valor { font-size: 2.1rem; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+html[data-tema]:root .inicio-resumo[data-alerta="true"] .inicio-resumo-valor { color: var(--warn); }
+html[data-tema]:root .inicio-resumo-detalhe { font-size: .82rem; color: var(--ink-muted); }
+html[data-tema]:root .inicio-grade { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+html[data-tema]:root .inicio-cartao {
+  display: flex; align-items: center; gap: 14px; min-width: 0; min-height: 76px; padding: 14px 16px; border-radius: 18px; text-decoration: none; color: var(--ink);
+  background: var(--v-card); border: 1px solid var(--v-card-line); transition: transform .18s ease, border-color .18s ease;
+}
+html[data-tema]:root .inicio-cartao-icone {
+  display: grid; place-items: center; flex: none; width: 46px; height: 46px; border-radius: 14px;
+  background: var(--v-side-hover); border: 1px solid var(--v-field-line); color: var(--v-side-ink-on, var(--ink));
+}
+html[data-tema]:root .inicio-cartao-icone svg { width: 22px; height: 22px; }
+html[data-tema]:root .inicio-cartao-texto { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+html[data-tema]:root .inicio-cartao-nome { font-weight: 800; }
+html[data-tema]:root .inicio-cartao-descricao { font-size: .82rem; color: var(--ink-muted); }
+html[data-tema]:root .inicio-cartao-selo {
+  flex: none; min-width: 26px; height: 26px; padding: 0 8px; border-radius: 999px; display: grid; place-items: center;
+  font-size: .8rem; font-weight: 800; color: var(--warn); background: var(--warn-bg); border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent);
+}
+@media (max-width: 640px) {
+  html[data-tema]:root .inicio-resumos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html[data-tema]:root .inicio-resumos > :last-child { grid-column: 1 / -1; }
+  html[data-tema]:root .inicio-resumo { padding: 14px; }
+  html[data-tema]:root .inicio-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  html[data-tema]:root .inicio-cartao { flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px; position: relative; }
+  html[data-tema]:root .inicio-cartao-selo { position: absolute; top: 12px; right: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { html[data-tema]:root .inicio-resumo, html[data-tema]:root .inicio-cartao { transition: none; } }

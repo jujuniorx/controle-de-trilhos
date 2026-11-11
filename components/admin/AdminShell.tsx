@@ -14,11 +14,21 @@ import { SwipeAdmin } from './SwipeAdmin';
 import { TrilhaTopo } from './TrilhaTopo';
 
 /** Seções das abas da barra de baixo, na ordem em que o deslizar passa de uma para outra. */
-const ROTAS_SWIPE = ['/admin', '/admin/relatorios', '/admin/portaria', '/admin/usina'];
+const ROTAS_SWIPE = ['/admin', '/admin/pendencias', '/admin/producao', '/admin/portaria', '/admin/usina'];
 
 const tracos = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.9, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
 
 const ICONES_NAV = {
+  casa: (
+    <svg width="24" height="24" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
+      <path d="M3 11l9-7 9 7M5 9.5V20h5v-6h4v6h5V9.5" />
+    </svg>
+  ),
+  producao: (
+    <svg width="24" height="24" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
+      <path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4" />
+    </svg>
+  ),
   inicio: (
     <svg width="24" height="24" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
       <path d="M4 13l3-8h10l3 8M4 13v6h16v-6M4 13h4l1 2h6l1-2h4" />
@@ -61,28 +71,20 @@ const ICONES_NAV = {
 };
 
 function abasDoAdmin(): Aba[] {
-  // Cinco vagas na barra: as seções do dia a dia; o resto (Informativo, Visão geral, Usuários...) fica em Mais.
+  // Cinco seções do dia a dia na barra; as outras são abertas pela tela inicial (e pelo menu do topo).
   return [
-    { href: '/admin', rotulo: 'Pendências', icone: ICONES_NAV.inicio },
-    { href: '/admin/relatorios', rotulo: 'Relatórios', icone: ICONES_NAV.relatorios },
+    { href: '/admin', rotulo: 'Início', icone: ICONES_NAV.casa },
+    { href: '/admin/pendencias', rotulo: 'Pendências', icone: ICONES_NAV.inicio },
+    { href: '/admin/producao', rotulo: 'Produção', icone: ICONES_NAV.producao },
     { href: '/admin/portaria', rotulo: 'Portaria', icone: ICONES_NAV.portaria },
     { href: '/admin/usina', rotulo: 'Usina', icone: ICONES_NAV.usina },
-    {
-      rotulo: 'Mais',
-      icone: (
-        <svg width="24" height="24" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
-          <circle cx="5" cy="12" r="1.2" />
-          <circle cx="12" cy="12" r="1.2" />
-          <circle cx="19" cy="12" r="1.2" />
-        </svg>
-      ),
-    },
   ];
 }
 
 /** Lista completa para telas largas (sem menu lateral): todas as seções na barra de baixo. */
 function abasLargasDoAdmin(dono: boolean): Aba[] {
-  const itens = [...(dono ? [{ href: '/admin/dono', label: 'Visão geral' }] : []), ...NAV_ITEMS, ...(dono ? NAV_ITEMS_DONO : [])];
+  // A Visão geral do dono é aberta pela tela inicial, para a barra não ficar apertada.
+  const itens = [...NAV_ITEMS, ...(dono ? NAV_ITEMS_DONO : [])];
   return itens.map((i) => ({ href: i.href, rotulo: i.label, icone: ICONES_MENU[i.href] }));
 }
 

@@ -39,7 +39,7 @@ export async function enviarAvisosNotaPendente(agora = new Date()): Promise<{ ad
         data: { ultimoAvisoNotaAdminEm: agora },
       });
       if (trocou.count > 0) {
-        await enviarAvisoPush({ titulo: 'Emitir nota fiscal', corpo, url: '/admin' }, 'ADMIN');
+        await enviarAvisoPush({ titulo: 'Emitir nota fiscal', corpo, url: '/admin/pendencias' }, 'ADMIN');
         contagem.admin++;
       }
     }

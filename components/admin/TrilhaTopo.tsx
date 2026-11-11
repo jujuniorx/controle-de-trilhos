@@ -5,7 +5,9 @@ import { usePathname } from 'next/navigation';
 
 /** Nome de cada seção do Administrativo, para a trilha do topo ("Usina / Relatório gerencial"). */
 const SECOES: Record<string, string> = {
-  '/admin': 'Pendências',
+  '/admin': 'Início',
+  '/admin/pendencias': 'Pendências',
+  '/admin/producao': 'Produção',
   '/admin/dono': 'Visão geral',
   '/admin/relatorios': 'Relatórios',
   '/admin/informativo': 'Informativo',
@@ -38,7 +40,7 @@ function montarTrilha(pathname: string): Passo[] {
 
   if (partes[1] === 'recebimentos' || partes[1] === 'remetidos') {
     // Detalhes de movimentação são abertos a partir das Pendências.
-    passos.push({ rotulo: 'Pendências', href: '/admin' });
+    passos.push({ rotulo: 'Pendências', href: '/admin/pendencias' });
     passos.push({ rotulo: partes[1] === 'recebimentos' ? 'Recebimento' : 'Remetido', href: partes[3] ? `${base}/${partes[2]}` : undefined });
   } else if (SECOES[base]) {
     passos.push({ rotulo: SECOES[base], href: base });
