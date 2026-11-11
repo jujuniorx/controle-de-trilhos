@@ -48,8 +48,7 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
         <section className="card space-y-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="field"><label htmlFor="data">Data</label><input id="data" name="data" type="date" defaultValue={dataTexto} required className="h-11" /></div>
-            <div className="field"><label htmlFor="lider">Líder</label><input id="lider" name="lider" defaultValue={dia?.lider ?? ''} required className="h-11" /></div>
-            <div className="field sm:col-span-2"><label htmlFor="soldadores">Soldadores</label><input id="soldadores" name="soldadores" defaultValue={dia?.soldadores ?? ''} placeholder="Nomes dos soldadores do turno" required className="h-11" /></div>
+            <div className="field sm:col-span-2"><label htmlFor="soldadores">Soldador</label><input id="soldadores" name="soldadores" defaultValue={dia?.soldadores ?? ''} placeholder="Nome do soldador" required className="h-11" /></div>
             <TrocaTopo
               perfis={PERFIS_PRODUCAO}
               fabricantes={FABRICANTES_PRODUCAO}

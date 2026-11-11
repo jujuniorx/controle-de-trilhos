@@ -75,8 +75,7 @@ export default async function ImprimirProducaoPage({ searchParams }: { searchPar
           <p className="doc-topo-sub">Usina Triagem Paulista · {dataExtensa(dataTexto)}</p>
         </div>
         <dl className="doc-ficha">
-          <div><dt>Líder</dt><dd>{dia?.lider ?? '—'}</dd></div>
-          <div><dt>Soldadores</dt><dd>{dia?.soldadores ?? '—'}</dd></div>
+          <div><dt>Soldador</dt><dd>{dia?.soldadores ?? '—'}</dd></div>
           <div><dt>Trilho do dia</dt><dd>{dia?.perfil ?? '—'}</dd></div>
           <div><dt>Fabricante</dt><dd>{dia?.fabricante ?? '—'}</dd></div>
         </dl>
@@ -86,7 +85,7 @@ export default async function ImprimirProducaoPage({ searchParams }: { searchPar
         <p className="kv-label">Produção · Usina Triagem Paulista</p>
         <h1 className="font-condensed text-3xl font-bold uppercase tracking-wide">{dataExtensa(dataTexto)}</h1>
         <p className="text-sm text-ink-muted">
-          Líder <strong className="text-ink">{dia?.lider ?? '—'}</strong> · Soldadores <strong className="text-ink">{dia?.soldadores ?? '—'}</strong>
+          Soldador <strong className="text-ink">{dia?.soldadores ?? '—'}</strong>
         </p>
         <p className="text-sm text-ink-muted">
           Trilho do dia <strong className="text-ink">{dia?.perfil ?? '—'}</strong> · Fabricante <strong className="text-ink">{dia?.fabricante ?? '—'}</strong>

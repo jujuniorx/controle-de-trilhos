@@ -76,7 +76,7 @@ export async function salvarProducaoAction(formData: FormData): Promise<void> {
   await salvarDiaProducao({
     data: dataDia,
     soldadores: texto(formData.get('soldadores'), 200),
-    lider: texto(formData.get('lider'), 80),
+    lider: '',
     perfil,
     fabricante,
     linhas,
