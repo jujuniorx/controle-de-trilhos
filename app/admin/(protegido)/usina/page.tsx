@@ -140,7 +140,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
               <a key={valor} className="rounded px-3 py-2 hover:bg-surface-2" href={`/admin/usina/imprimir?data=${data}&setor=${valor}`}>{rotulo}</a>
             ))}
             <a className="rounded px-3 py-2 font-semibold hover:bg-surface-2" href={`/admin/usina/relatorio-gerencial?data=${data}`}>Relatório gerencial</a>
-            <a className="rounded px-3 py-2 font-semibold hover:bg-surface-2" href={`/admin/usina/producao/imprimir?data=${data}`}>Produção do dia</a>
+            <a className="rounded px-3 py-2 font-semibold hover:bg-surface-2" href={`/admin/producao?data=${data}`}>Produção do dia</a>
           </div>
         </details>
       </nav>
