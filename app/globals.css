@@ -1746,3 +1746,212 @@ html[data-tema="vidro"] .pagina-admin > * {
   html[data-tema="vidro"] .stat-tile,
   html[data-tema="vidro"] .ct-sidebar-nav a { animation: none; transition: none; transform: none; }
 }
+
+/* ═══════════════════════════════════════════════
+   TEMA AZUL-MARINHO — fundo azul-noite, cards com brilho azul, menu com pílula
+   deslizante e gráficos em verde/azul. Inspirado no painel "@_code_and_chill_".
+   ═══════════════════════════════════════════════ */
+html[data-tema="azul"] {
+  color-scheme: dark;
+  --g0: #070b16;
+  --g1: #0c1424;
+  --g2: #101b30;
+  --g3: #16233d;
+  --g4: #1d2d4d;
+  --g5: #2c3f63;
+  --g6: #5a6f97;
+
+  --b0: rgba(91, 140, 255, .14);
+  --b1: rgba(91, 140, 255, .26);
+  --b2: #2f5bd3;
+  --b3: #5b8cff;
+  --b4: #8fb0ff;
+  --b5: #bcd0ff;
+  --b6: #e6eeff;
+
+  --ok: #4ade80;
+  --ok-bg: rgba(74, 222, 128, .13);
+  --warn: #fbbf24;
+  --warn-bg: rgba(251, 191, 36, .13);
+  --err: #f87171;
+  --err-bg: rgba(248, 113, 113, .13);
+
+  --t1: #e6ecf8;
+  --t2: #97a6c4;
+  --t3: #5d6b8a;
+  --ln: rgba(120, 150, 220, .14);
+  --ln2: rgba(120, 150, 220, .24);
+
+  --radius: 10px;
+  --radius-lg: 16px;
+
+  --primary: var(--b3);
+  --primary-dark: var(--b1);
+  --primary-light: var(--b0);
+  --surface: #0f1a2e;
+  --surface-2: #142240;
+  --surface-3: #1b2b4d;
+  --background: #070b16;
+  --foreground: var(--t1);
+  --card-shadow: 0 0 0 1px rgba(91, 140, 255, .06), 0 12px 32px rgba(0, 0, 0, .4);
+}
+
+html[data-tema="azul"] body {
+  background:
+    radial-gradient(900px 500px at 85% -15%, rgba(47, 91, 211, .28), transparent 60%),
+    linear-gradient(180deg, #0a1224 0%, #070b16 100%);
+  background-attachment: fixed;
+  color: var(--t1);
+}
+
+html[data-tema="azul"] .ct-sidebar,
+html[data-tema="azul"] .ct-topbar {
+  background: rgba(10, 18, 36, .9);
+  border-color: var(--ln);
+}
+
+html[data-tema="azul"] .card,
+html[data-tema="azul"] .stat-tile {
+  background: linear-gradient(160deg, #132243 0%, #0e1a33 100%);
+  border: 1px solid var(--ln);
+  box-shadow: var(--card-shadow);
+  transition: box-shadow .3s ease, border-color .3s ease, transform .3s ease;
+}
+html[data-tema="azul"] .card:hover,
+html[data-tema="azul"] .stat-tile:hover {
+  border-color: rgba(91, 140, 255, .45);
+  box-shadow: 0 0 0 1px rgba(91, 140, 255, .18), 0 14px 40px rgba(47, 91, 211, .25);
+  transform: translateY(-2px);
+}
+
+html[data-tema="azul"] .ct-sidebar-nav a {
+  transition: background .25s ease, color .25s ease, padding-left .25s ease;
+  border-radius: 10px;
+}
+html[data-tema="azul"] .ct-sidebar-nav a:hover { padding-left: 20px; }
+html[data-tema="azul"] .ct-sidebar-nav a[data-active="true"] {
+  background: linear-gradient(90deg, #2f5bd3, #3b6fe0);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(47, 91, 211, .35);
+}
+
+@keyframes ct-subir-azul {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+html[data-tema="azul"] .pagina-admin > * {
+  animation: ct-subir-azul .5s cubic-bezier(.2, .7, .2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-tema="azul"] .pagina-admin > *,
+  html[data-tema="azul"] .card,
+  html[data-tema="azul"] .stat-tile,
+  html[data-tema="azul"] .ct-sidebar-nav a { animation: none; transition: none; transform: none; }
+}
+
+/* ═══════════════════════════════════════════════
+   TEMA PASTEL — fundo claro lilás/rosa, cards arredondados em tons pastel,
+   destaques em laranja. Inspirado no painel "Dashboard V15".
+   ═══════════════════════════════════════════════ */
+html[data-tema="pastel"] {
+  color-scheme: light;
+  --g0: #faf7ff;
+  --g1: #f3efff;
+  --g2: #ffffff;
+  --g3: #efeaff;
+  --g4: #e2dbf7;
+  --g5: #cfc6ee;
+  --g6: #9d93bf;
+
+  --b0: #ffe9dc;
+  --b1: #ffd3bd;
+  --b2: #f0743a;
+  --b3: #ff7a45;
+  --b4: #e05d2a;
+  --b5: #9a3d17;
+  --b6: #3b1d0c;
+
+  --ok: #2f9e5b;
+  --ok-bg: #dff5e7;
+  --warn: #d68a00;
+  --warn-bg: #fff1cf;
+  --err: #d9423a;
+  --err-bg: #fde0de;
+
+  --t1: #241f36;
+  --t2: #6b6584;
+  --t3: #9a95b3;
+  --ln: #e4ddf7;
+  --ln2: #d5ccf0;
+
+  --radius: 14px;
+  --radius-lg: 22px;
+
+  --primary: var(--b3);
+  --primary-dark: var(--b1);
+  --primary-light: var(--b0);
+  --surface: #ffffff;
+  --surface-2: #f5f1ff;
+  --surface-3: #ece6ff;
+  --background: #faf7ff;
+  --foreground: var(--t1);
+  --card-shadow: 0 10px 30px rgba(120, 90, 200, .08);
+}
+
+html[data-tema="pastel"] body {
+  background:
+    radial-gradient(800px 500px at 0% 0%, #ffe3f0 0%, transparent 60%),
+    radial-gradient(700px 500px at 100% 0%, #e4dcff 0%, transparent 60%),
+    linear-gradient(180deg, #f7f3ff 0%, #fdf8ff 100%);
+  color: var(--t1);
+}
+
+html[data-tema="pastel"] .ct-sidebar,
+html[data-tema="pastel"] .ct-topbar {
+  background: rgba(255, 255, 255, .85);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-color: var(--ln);
+}
+
+html[data-tema="pastel"] .card,
+html[data-tema="pastel"] .stat-tile {
+  border: 1px solid var(--ln);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  transition: transform .3s ease, box-shadow .3s ease;
+}
+html[data-tema="pastel"] .card:hover,
+html[data-tema="pastel"] .stat-tile:hover {
+  transform: translateY(-3px) rotate(-.15deg);
+  box-shadow: 0 16px 36px rgba(120, 90, 200, .14);
+}
+
+html[data-tema="pastel"] .ct-sidebar-nav a {
+  transition: background .3s ease, color .3s ease, transform .3s ease;
+  border-radius: 999px;
+  margin: 2px 10px;
+}
+html[data-tema="pastel"] .ct-sidebar-nav a:hover { transform: scale(1.02); }
+html[data-tema="pastel"] .ct-sidebar-nav a[data-active="true"] {
+  background: var(--b3);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(255, 122, 69, .35);
+}
+
+@keyframes ct-balancar-pastel {
+  0% { opacity: 0; transform: translateY(16px) scale(.98); }
+  70% { opacity: 1; transform: translateY(-2px) scale(1.005); }
+  100% { transform: none; }
+}
+html[data-tema="pastel"] .pagina-admin > * {
+  animation: ct-balancar-pastel .55s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-tema="pastel"] .pagina-admin > *,
+  html[data-tema="pastel"] .card,
+  html[data-tema="pastel"] .stat-tile,
+  html[data-tema="pastel"] .ct-sidebar-nav a { animation: none; transition: none; transform: none; }
+}
