@@ -1621,3 +1621,128 @@ html[data-tema="claro"] .patio-shell .btn-primary { background: #0F5FCC; color: 
 .setor-tile-icone { width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #2f6fb8, #0f5fcc); }
 .setor-tile-nome { font-family: var(--font-barlow-cond), sans-serif; font-size: 1.05rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; text-align: center; }
 html[data-tema="claro"] .home-entrada .setor-tile { color: var(--h-texto); background: var(--h-card); border-color: var(--h-borda); box-shadow: 0 6px 20px rgba(19, 32, 47, .08); }
+
+/* ═══════════════════════════════════════════════
+   SELETOR DE TEMA — ct_tema (cookie, lido em app/layout.tsx)
+   ═══════════════════════════════════════════════ */
+.ct-seletor-tema select {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ct-seletor-tema select:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* ═══════════════════════════════════════════════
+   TEMA VIDRO — cards translúcidos sobre fundo em gradiente, menu lateral de vidro,
+   transições suaves. Inspirado no painel "Glassy Dashboard" (escuro, cinza, laranja).
+   Tokens: mesmos nomes dos temas acima, para o restante do CSS não mudar.
+   ═══════════════════════════════════════════════ */
+html[data-tema="vidro"] {
+  color-scheme: dark;
+  --g0: #0b0d10;
+  --g1: rgba(255, 255, 255, .05);
+  --g2: rgba(255, 255, 255, .07);
+  --g3: rgba(255, 255, 255, .11);
+  --g4: rgba(255, 255, 255, .16);
+  --g5: #4a4f57;
+  --g6: #6b7280;
+
+  --b0: rgba(255, 122, 26, .14);
+  --b1: rgba(255, 122, 26, .28);
+  --b2: #c2410c;
+  --b3: #ff7a1a;
+  --b4: #ff9a4d;
+  --b5: #ffc08a;
+  --b6: #fff1e4;
+
+  --ok: #34d399;
+  --ok-bg: rgba(52, 211, 153, .14);
+  --warn: #fbbf24;
+  --warn-bg: rgba(251, 191, 36, .14);
+  --err: #f87171;
+  --err-bg: rgba(248, 113, 113, .14);
+
+  --t1: #f5f3f0;
+  --t2: #b7b2ab;
+  --t3: #7d7871;
+  --ln: rgba(255, 255, 255, .09);
+  --ln2: rgba(255, 255, 255, .16);
+
+  --radius: 12px;
+  --radius-lg: 18px;
+
+  --primary: var(--b3);
+  --primary-dark: var(--b1);
+  --primary-light: var(--b0);
+  --surface: rgba(20, 20, 24, .58);
+  --surface-2: rgba(255, 255, 255, .06);
+  --surface-3: rgba(255, 255, 255, .1);
+  --background: #0b0d10;
+  --foreground: var(--t1);
+  --card-shadow: 0 10px 40px rgba(0, 0, 0, .35);
+}
+
+html[data-tema="vidro"] body {
+  background:
+    radial-gradient(1100px 600px at 12% -10%, rgba(255, 122, 26, .18), transparent 60%),
+    radial-gradient(900px 600px at 110% 20%, rgba(255, 154, 77, .10), transparent 55%),
+    linear-gradient(180deg, #111418 0%, #0b0d10 100%);
+  background-attachment: fixed;
+  color: var(--t1);
+}
+
+html[data-tema="vidro"] .ct-sidebar,
+html[data-tema="vidro"] .ct-topbar {
+  background: rgba(16, 17, 20, .55);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  border-color: var(--ln);
+}
+
+html[data-tema="vidro"] .card,
+html[data-tema="vidro"] .stat-tile {
+  background: rgba(255, 255, 255, .05);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--ln);
+  box-shadow: var(--card-shadow);
+  transition: transform .25s ease, border-color .25s ease, background .25s ease;
+}
+html[data-tema="vidro"] .card:hover,
+html[data-tema="vidro"] .stat-tile:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 122, 26, .35);
+}
+
+html[data-tema="vidro"] .ct-sidebar-nav a {
+  transition: background .2s ease, color .2s ease, transform .2s ease;
+  border-radius: 10px;
+}
+html[data-tema="vidro"] .ct-sidebar-nav a:hover { transform: translateX(3px); }
+html[data-tema="vidro"] .ct-sidebar-nav a[data-active="true"] {
+  background: linear-gradient(90deg, rgba(255, 122, 26, .28), rgba(255, 122, 26, .06));
+  color: #fff;
+  box-shadow: inset 3px 0 0 var(--b3);
+}
+
+@keyframes ct-entrada-vidro {
+  from { opacity: 0; transform: translateY(8px) scale(.99); }
+  to { opacity: 1; transform: none; }
+}
+html[data-tema="vidro"] .pagina-admin > * {
+  animation: ct-entrada-vidro .45s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-tema="vidro"] .pagina-admin > *,
+  html[data-tema="vidro"] .card,
+  html[data-tema="vidro"] .stat-tile,
+  html[data-tema="vidro"] .ct-sidebar-nav a { animation: none; transition: none; transform: none; }
+}
