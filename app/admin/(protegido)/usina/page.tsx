@@ -21,6 +21,8 @@ const SETORES: [string, string][] = [['estaleiro', 'Estaleiro'], ['geracao', 'Ge
 /** Nomes curtos para a faixa de setores no celular (os cinco numa linha). */
 const SETORES_CURTO: Record<string, string> = { composicoes: 'Serra', caminhao: 'Caminhão' };
 import { SetoresNav } from '@/components/usina/SetoresNav';
+import { NavegacaoSemana } from '@/components/usina/NavegacaoSemana';
+import { FocoDia } from '@/components/usina/FocoDia';
 import { fmtMetros, fmtPeso } from '@/lib/format';
 import { ehIsoValido, faixaSemanaSegSex, type Periodo } from '@/lib/usina/periodo';
 import { FormularioUsina } from '@/components/usina/FormularioUsina';
@@ -80,8 +82,10 @@ const NOME_LANCAMENTO_TLS: Record<string, string> = {
   GB60_REEMPREGO: 'GB 60 REEMPREGO',
 };
 
-export default async function UsinaPage({ searchParams }: { searchParams: Promise<{ periodo?: string; data?: string }> }) {
+export default async function UsinaPage({ searchParams }: { searchParams: Promise<{ periodo?: string; data?: string; setor?: string }> }) {
   const params = await searchParams;
+  // Um setor por vez: o da aba escolhida (Estaleiro quando não vem nenhum).
+  const setor = SETORES.some(([id]) => id === params.setor) ? (params.setor as string) : 'estaleiro';
   const periodo = periodoValido(params.periodo);
   const data = ehIsoValido(params.data) ? params.data : hojeIso();
 
@@ -135,18 +139,21 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         </div>
       </header>
 
-      <form method="get" className="card flex flex-wrap items-end gap-3">
-        <div className="field">
-          <label htmlFor="data">Qualquer dia da semana</label>
-          <input id="data" name="data" type="date" defaultValue={data} className="h-11" />
-        </div>
-        <button type="submit" className="btn btn-ghost h-11">Ver semana</button>
-        <p className="w-full text-sm text-ink-muted">Semana de {faixaSemanaSegSex(data)} (segunda a domingo)</p>
-      </form>
+      <SetoresNav setores={SETORES.map(([id, rotulo]) => ({ id, rotulo, curto: SETORES_CURTO[id] ?? rotulo }))} ativo={setor} data={data} />
 
-      <SetoresNav setores={SETORES.map(([id, rotulo]) => ({ id, rotulo, curto: SETORES_CURTO[id] ?? rotulo }))} />
+      <NavegacaoSemana
+        data={data}
+        setor={setor}
+        faixa={faixaSemanaSegSex(data)}
+        anterior={somarDiasPagina(est.semana, -7)}
+        proxima={somarDiasPagina(est.semana, 7)}
+        hoje={hojeIso()}
+      />
 
+      <FocoDia dias={diasSemana.map((d, i) => ({ data: d.data, nome: NOME_DIA[i].slice(0, 3), numero: d.data.slice(8) }))} inicial={data} hoje={hojeIso()}>
+      <div className="space-y-8">
       {/* ── Estaleiro de solda ─────────────────────────────────────── */}
+      {setor === 'estaleiro' && (
       <section className="space-y-4" aria-labelledby="estaleiro">
         <h2 id="estaleiro" className="section-title scroll-mt-24">Estaleiro de solda</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -172,7 +179,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                 </thead>
                 <tbody>
                   {diasSemana.map((d) => (
-                    <tr key={d.data} className="border-t border-line">
+                    <tr key={d.data} className="border-t border-line" data-dia={d.data}>
                       <td className="py-2 font-medium">{NOME_DIA[diasSemana.indexOf(d)]} {br(d.data)}</td>
                       <td className="py-2 text-right">
                         <input name={`soldas_${d.data}`} inputMode="numeric" defaultValue={d.soldas ?? ''} className="h-11 w-28 text-right" aria-label={`Soldas ${br(d.data)}`} />
@@ -197,7 +204,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         <div className="card space-y-3">
           <p className="font-semibold">Estoque de TLS em {br(data)}</p>
           <FormularioUsina acao={salvarEstoqueTlsAction}>
-            <SeletorDia valor={data} />
+            <SeletorDia valor={data} setor={setor} />
             <div className="grid gap-4 md:grid-cols-2">
               {[
                 { titulo: 'TLS', prefixo: 'malha', valores: est.malhasDoDia },
@@ -257,13 +264,12 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         </div>
       </section>
 
+      )}
+
       {/* ── Geração de trilho ──────────────────────────────────────── */}
-      <details open className="group space-y-4" aria-labelledby="geracao">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 scroll-mt-24">
-          <h2 id="geracao" className="section-title !mb-0">Geração de trilho</h2>
-          <span className="text-sm text-ink-muted group-open:hidden">Mostrar</span>
-          <span className="hidden text-sm text-ink-muted group-open:inline">Minimizar</span>
-        </summary>
+      {setor === 'geracao' && (
+      <section className="space-y-4" aria-labelledby="geracao">
+        <h2 id="geracao" className="section-title">Geração de trilho</h2>
         <div className="grid gap-3 sm:grid-cols-3">
           {ger.porLider.map((l) => (
             <div className="card space-y-2" key={l.valor}>
@@ -287,9 +293,12 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
             />
           </FormularioUsina>
         </div>
-      </details>
+      </section>
+
+      )}
 
       {/* ── Recolhimento serra ─────────────────────────────────────── */}
+      {setor === 'composicoes' && (
       <section className="space-y-4" aria-labelledby="composicoes">
         <h2 id="composicoes" className="section-title scroll-mt-24">Recolhimento serra</h2>
         <div className="card space-y-3">
@@ -311,7 +320,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                 </thead>
                 <tbody>
                   {serraSemana.map((d, i) => (
-                    <tr key={d.data} className="border-t border-line">
+                    <tr key={d.data} className="border-t border-line" data-dia={d.data}>
                       <td className="py-2 font-medium">{NOME_DIA[i]} {br(d.data)}</td>
                       {COMPOSICOES.map((a) => (
                         <Fragment key={a}>
@@ -336,7 +345,10 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         </div>
       </section>
 
+      )}
+
       {/* ── Caminhão de solda ──────────────────────────────────────── */}
+      {setor === 'caminhao' && (
       <section className="space-y-4" aria-labelledby="caminhao">
         <h2 id="caminhao" className="section-title scroll-mt-24">Caminhão de solda</h2>
         <div className="card space-y-3">
@@ -361,7 +373,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                     </thead>
                     <tbody>
                       {caminhoesSemana.map((d, i) => (
-                        <tr key={d.data} className="border-t border-line">
+                        <tr key={d.data} className="border-t border-line" data-dia={d.data}>
                           <td className="py-2 font-medium">{NOME_DIA[i]} {br(d.data)}</td>
                           <td className="py-2 text-right">
                             <input name={`producao_${c}_${d.data}`} inputMode="numeric" defaultValue={d.caminhoes[c].producaoDiaria ?? ''} className="h-11 w-24 text-right" aria-label={`Produção ${c} ${br(d.data)}`} />
@@ -397,7 +409,10 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
         </div>
       </section>
 
+      )}
+
       {/* ── Trilheiros ─────────────────────────────────────────────── */}
+      {setor === 'trilheiros' && (
       <section className="space-y-4" aria-labelledby="trilheiros">
         <h2 id="trilheiros" className="section-title scroll-mt-24">Trilheiros</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -479,7 +494,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                     </thead>
                     <tbody>
                       {trilheirosSemana.map((d, i) => (
-                        <tr key={d.data} className="border-t border-line">
+                        <tr key={d.data} className="border-t border-line" data-dia={d.data}>
                           <td className="py-2 font-medium">{NOME_DIA[i]} {br(d.data)}</td>
                           <td className="py-2 text-right">
                             <input name={`total_${t}_${d.data}`} inputMode="numeric" defaultValue={d.trilheiros[t].total ?? ''} className="h-11 w-24 text-right" aria-label={`Total do giro ${t} ${br(d.data)}`} />
@@ -528,6 +543,9 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           </ul>
         )}
       </section>
+      )}
+      </div>
+      </FocoDia>
     </main>
   );
 }

@@ -16,7 +16,7 @@ export function ObservacoesDoSetor({
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {dias.map((d) => (
-          <label key={d.data} className="field">
+          <label key={d.data} className="field" data-dia={d.data}>
             <span className="text-sm text-ink-muted">{d.rotulo}</span>
             <input
               name={`obsdia_${setor}_${d.data}`}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, type ReactNode } from 'react';
+import { useActionState, useEffect, useState, type ReactNode } from 'react';
 
 export interface ResultadoFormUsina {
   ok: boolean;
@@ -30,14 +30,24 @@ export function FormularioUsina({
     }
   };
   const [estado, acaoForm, pendente] = useActionState(acaoSegura, undefined);
+  // "Sujo" = algo foi mexido e ainda não foi salvo. Avisa na tela e antes de fechar ou recarregar a página.
+  const [sujo, setSujo] = useState(false);
+  useEffect(() => { if (estado?.ok) setSujo(false); }, [estado]);
+  useEffect(() => {
+    if (!sujo) return;
+    const avisar = (e: BeforeUnloadEvent) => { e.preventDefault(); };
+    window.addEventListener('beforeunload', avisar);
+    return () => window.removeEventListener('beforeunload', avisar);
+  }, [sujo]);
   return (
-    <form action={acaoForm} className="space-y-3">
+    <form action={acaoForm} className="space-y-3" data-sujo={sujo ? 'true' : undefined} onInput={() => setSujo(true)} onChange={() => setSujo(true)}>
       {children}
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" className="btn btn-primary h-11" disabled={pendente}>
           {pendente ? 'Salvando...' : rotuloBotao}
         </button>
-        {estado?.ok && <span role="status" className="text-sm text-ok">Salvo.</span>}
+        {sujo && !pendente && <span role="status" className="form-sujo">Alterações ainda não salvas</span>}
+        {estado?.ok && !sujo && <span role="status" className="text-sm text-ok">Salvo.</span>}
         {estado && !estado.ok && <span role="alert" className="text-sm text-bad">{estado.erro}</span>}
       </div>
     </form>

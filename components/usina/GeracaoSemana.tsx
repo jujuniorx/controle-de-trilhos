@@ -192,7 +192,7 @@ export function GeracaoSemana({
                   const x = estado[d.data][l.valor];
                   const n = x.carretas.length;
                   const linhas: ReactNode[] = x.carretas.map((c, idx) => (
-                    <tr key={c.chave} className="border-t border-line">
+                    <tr key={c.chave} className="border-t border-line" data-dia={d.data}>
                       {idx === 0 && celulaDia(d, l, x, n + 1)}
                       <td className="py-2 align-top font-medium">Carreta {idx + 1}</td>
                       <td className="py-2 align-top">
@@ -230,7 +230,7 @@ export function GeracaoSemana({
                   ));
                   // Linha final do dia: adicionar carreta. Sem carretas, ela também abre a célula do dia.
                   const adicionar = (
-                    <tr key={`${d.data}-add`} className={n === 0 ? 'border-t border-line' : undefined}>
+                    <tr key={`${d.data}-add`} className={n === 0 ? 'border-t border-line' : undefined} data-dia={d.data}>
                       {n === 0 && celulaDia(d, l, x, 1)}
                       <td colSpan={6} className="py-2">
                         <button type="button" className="btn btn-ghost h-11" onClick={() => adicionarCarreta(d.data, l.valor)}>
