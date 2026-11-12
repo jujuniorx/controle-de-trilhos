@@ -100,11 +100,15 @@ export async function salvarProducaoAction(formData: FormData): Promise<void> {
  * Envio automático enquanto o soldador preenche: o Administrativo acompanha a Produção ao vivo.
  * Não recarrega a tela nem troca de página; o "Salvar o dia" continua sendo o fechamento.
  */
-export async function sincronizarProducaoAction(formData: FormData): Promise<boolean> {
-  if (!cookieProducaoValido((await cookies()).get(COOKIE_PRODUCAO)?.value)) return false;
+export type ResultadoSincronizacao = { ok: true } | { ok: false; motivo: 'sessao' | 'erro' };
+
+/** Envio automático da tela: diz ao aparelho se o dia chegou ao servidor, para ele não fingir que enviou. */
+export async function sincronizarProducaoAction(formData: FormData): Promise<ResultadoSincronizacao> {
+  if (!cookieProducaoValido((await cookies()).get(COOKIE_PRODUCAO)?.value)) return { ok: false, motivo: 'sessao' };
   try {
-    return Boolean(await gravarDia(formData));
+    const data = await gravarDia(formData);
+    return data ? { ok: true } : { ok: false, motivo: 'erro' };
   } catch {
-    return false;
+    return { ok: false, motivo: 'erro' };
   }
 }

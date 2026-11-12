@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { tlsDoForm, type ConfigTlsForm } from '@/lib/producaoTls';
-import { sincronizarProducaoAction } from '@/app/producao/actions';
+import { sincronizarProducaoAction, type ResultadoSincronizacao } from '@/app/producao/actions';
 
-type Estado = 'parado' | 'salvando' | 'salvo' | 'enviado' | 'recuperado' | 'erro';
+/** Tempo até tentar de novo quando o dia não chegou ao Administrativo. */
+const NOVA_TENTATIVA_MS = 15000;
+
+type Estado = 'parado' | 'salvando' | 'salvo' | 'enviado' | 'falhou' | 'sessao' | 'recuperado' | 'erro';
 
 /** Rascunho guardado no proprio aparelho (tablet, celular ou computador): sobrevive a atualizar, fechar e reabrir. */
 function chave(data: string) {
@@ -80,8 +83,24 @@ export function RascunhoAutomatico({ data, horas, sobraEntrada, fabricanteSalvo,
       // Só envia o dia desta tela: se a data do campo foi trocada, espera o "Salvar o dia".
       if ((form.elements.namedItem('data') as HTMLInputElement | null)?.value !== data) return;
       envio = sincronizarProducaoAction(new FormData(form))
-        .then((ok) => { if (ok && !cancelado) setEstado((e) => (e === 'salvo' ? 'enviado' : e)); })
-        .catch(() => { /* sem internet: fica no aparelho e tenta de novo na próxima mudança */ })
+        .then((r: ResultadoSincronizacao) => {
+          if (cancelado) return;
+          if (r.ok) {
+            setEstado((e) => (e === 'salvo' || e === 'falhou' || e === 'sessao' ? 'enviado' : e));
+            return;
+          }
+          // Não chegou ao Administrativo: avisa na tela e tenta de novo sozinho.
+          setEstado(r.motivo === 'sessao' ? 'sessao' : 'falhou');
+          if (timerEnvio) clearTimeout(timerEnvio);
+          timerEnvio = setTimeout(enviar, NOVA_TENTATIVA_MS);
+        })
+        .catch(() => {
+          // Sem internet: fica no aparelho e tenta de novo sozinho.
+          if (cancelado) return;
+          setEstado('falhou');
+          if (timerEnvio) clearTimeout(timerEnvio);
+          timerEnvio = setTimeout(enviar, NOVA_TENTATIVA_MS);
+        })
         .finally(() => {
           envio = null;
           if (reenviar) { reenviar = false; enviar(); }
@@ -223,8 +242,10 @@ export function RascunhoAutomatico({ data, horas, sobraEntrada, fabricanteSalvo,
   const texto: Record<Estado, string> = {
     parado: '',
     salvando: 'Salvando rascunho…',
-    salvo: 'Rascunho salvo neste aparelho. Se atualizar ou fechar, o que foi preenchido volta.',
+    salvo: 'Rascunho salvo neste aparelho. Enviando ao Administrativo…',
     enviado: 'Salvo neste aparelho e enviado ao Administrativo.',
+    falhou: 'Salvo neste aparelho, mas ainda NÃO chegou ao Administrativo. Tentando de novo…',
+    sessao: 'A sessão da Produção expirou: o que foi digitado está salvo neste aparelho. Entre de novo para enviar.',
     recuperado: 'Rascunho recuperado neste aparelho. Confira os campos e salve o dia.',
     erro: 'Não foi possível guardar o rascunho neste aparelho.',
   };
