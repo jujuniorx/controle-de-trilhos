@@ -1,13 +1,17 @@
+import Link from 'next/link';
+
 interface LogoProps {
   size?: number;
   subtitle?: string;
   showText?: boolean;
   className?: string;
+  /** Quando informado, a marca vira link (ex.: "/" leva ao início de tudo). */
+  href?: string;
 }
 
 /** Marca (grafite + trilhos azul-aço, sem letras) — SVG do protótipo aprovado, usado em sidebar/topbar/acesso. */
-export function Logo({ size = 32, subtitle, showText = true, className }: LogoProps) {
-  return (
+export function Logo({ size = 32, subtitle, showText = true, className, href }: LogoProps) {
+  const marca = (
     <div className={`ct-logo-mark ${className ?? ''}`}>
       <svg width={size} height={size} viewBox="0 0 56 56" fill="none" aria-hidden="true">
         {/* Cores vêm do tema (classes logo-*), para a marca acompanhar o tema do sistema */}
@@ -27,5 +31,11 @@ export function Logo({ size = 32, subtitle, showText = true, className }: LogoPr
         </div>
       )}
     </div>
+  );
+  if (!href) return marca;
+  return (
+    <Link href={href} className="ct-logo-link" aria-label="Início: trocar de área" title="Início">
+      {marca}
+    </Link>
   );
 }

@@ -257,6 +257,8 @@ h1, h2, h3 {
 ═══════════════════════════════════════════════ */
 .ct-logo-mark { display: inline-flex; align-items: center; gap: 10px; }
 .ct-logo-mark svg { flex-shrink: 0; }
+.ct-logo-link { display: inline-flex; color: inherit; text-decoration: none; border-radius: 10px; }
+.ct-logo-link:active { opacity: .7; }
 /* Cores da marca por tema (a logo muda junto com o tema do sistema) */
 :is(.ct-logo-mark, .logo-animada) .logo-tile { fill: #2c333c; transition: fill .4s ease; }
 :is(.ct-logo-mark, .logo-animada) .logo-dorm { fill: #3b82c4; transition: fill .4s ease; }

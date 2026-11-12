@@ -54,7 +54,7 @@ export function PortariaShell({ nome, sair, children }: { nome: string; sair: ()
       <header className="ct-topbar relative flex h-14 flex-none items-center justify-between px-3 lg:hidden">
         <div className="flex items-center gap-2">
           <NavegacaoTopo inicioArea="/portaria" semInicio />
-          <Logo size={28} subtitle="Portaria" />
+          <Logo size={28} subtitle="Portaria"  href="/" />
         </div>
         <div className="flex items-center gap-2">
           <AlternarTema />
@@ -67,7 +67,7 @@ export function PortariaShell({ nome, sair, children }: { nome: string; sair: ()
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="ct-topbar hidden h-[52px] flex-none items-center justify-between gap-3 px-6 lg:flex">
           <div className="flex min-w-0 items-center gap-3">
-            <Logo size={30} subtitle="Portaria" />
+            <Logo size={30} subtitle="Portaria"  href="/" />
             <span className="h-6 w-px flex-none bg-line" aria-hidden="true" />
             <NavegacaoTopo inicioArea="/portaria" semInicio />
           </div>

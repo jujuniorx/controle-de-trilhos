@@ -115,7 +115,7 @@ export function AdminShell({ nome, ehDono = false, children }: { nome: string; e
       <header className="ct-topbar relative flex h-14 flex-none items-center justify-between px-3 md:hidden">
         <div className="flex min-w-0 items-center gap-2">
           <NavegacaoTopo inicioArea="/admin" semInicio />
-          <Logo size={28} subtitle="Administração" />
+          <Logo size={28} subtitle="Administração"  href="/" />
         </div>
         <div className="flex flex-none items-center gap-2">
           <AlternarTema />
@@ -128,7 +128,7 @@ export function AdminShell({ nome, ehDono = false, children }: { nome: string; e
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="ct-topbar sticky top-0 z-30 hidden h-[52px] flex-none items-center justify-between gap-3 px-6 md:flex">
           <div className="flex min-w-0 items-center gap-3">
-            <Logo size={30} subtitle="Administração" />
+            <Logo size={30} subtitle="Administração"  href="/" />
             <span className="h-6 w-px flex-none bg-line" aria-hidden="true" />
             <NavegacaoTopo inicioArea="/admin" semInicio />
             <TrilhaTopo />
