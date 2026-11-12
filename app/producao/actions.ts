@@ -62,8 +62,10 @@ export async function salvarProducaoAction(formData: FormData): Promise<void> {
         descricao: texto(formData.get(`parada_descricao_${hora}_${n}`), 200) || null,
       }))
       .filter((p) => p.minutos > 0);
+    const tls = texto(formData.get(`tls_${hora}`), 10);
     return {
       hora,
+      tls: /^(sim|nao):\d{1,3}$/.test(tls) ? tls : null,
       soldas: inteiro(formData.get(`soldas_${hora}`)),
       cortes,
       justificativaCorte: cortes > 0 ? texto(formData.get(`justificativa_${hora}`), 200) || null : null,

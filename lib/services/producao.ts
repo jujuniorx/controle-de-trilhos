@@ -1,7 +1,8 @@
 import { prisma } from '@/lib/db';
+import { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, contarTls } from '@/lib/producaoTls';
 
-/** Soldas que formam 1 TLS. Todo TLS tem 312 m. */
-export const SOLDAS_POR_TLS = 12;
+/** Soldas que formam 1 TLS de trilho novo (312 m). No reemprego o número varia: ver lib/producaoTls. */
+export { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS };
 
 /** Tempo de parada no papel e na tela: "0:23" = 23 min, "1:05" = 65 min. Numero puro tambem vale (minutos). */
 export function minutosDaParada(valor: string | null | undefined): number {
@@ -30,6 +31,16 @@ export function paradasDaLinha(texto: string | null | undefined): Parada[] {
     return [];
   }
 }
+/** Resposta "TLS encerrado?" da hora (reemprego), guardada junto das paradas: 'sim:31', 'nao:28' ou ''. */
+export function respostaTlsDaLinha(texto: string | null | undefined): string {
+  try {
+    const v = JSON.parse(texto || '[]');
+    const item = Array.isArray(v) ? v.find((p) => p && typeof p.tls === 'string') : null;
+    return item ? String(item.tls) : '';
+  } catch {
+    return '';
+  }
+}
 export const METROS_POR_TLS = 312;
 export const PERFIS_PRODUCAO = ['TR60', 'TR68', 'UIC60'] as const;
 export const FABRICANTES_PRODUCAO = ['Nippon', 'Evraz', 'Pangang', 'Arcelormittal', 'UHCX', 'Reemprego'] as const;
@@ -42,6 +53,8 @@ export interface LinhaProducao {
   paradas: Parada[];
   perfil: string;
   fabricante: string;
+  /** Resposta "TLS encerrado?" (reemprego). */
+  tls?: string | null;
 }
 
 export interface DadosDia {
@@ -65,16 +78,15 @@ export function horasDoDia(data: Date): string[] {
 /**
  * Recalcula TLS e sobra de todos os dias a partir de `desde`, em ordem.
  * A sobra de um dia vira a entrada do seguinte: 53 soldas = 4 TLS + sobra 5.
+ * No reemprego o TLS só fecha na hora em que o soldador respondeu que encerrou.
  */
 export async function recalcularAPartir(desde: Date): Promise<void> {
   const anterior = await prisma.producaoDia.findFirst({ where: { data: { lt: desde } }, orderBy: { data: 'desc' } });
   let sobra = anterior?.sobraSaida ?? 0;
-  const dias = await prisma.producaoDia.findMany({ where: { data: { gte: desde } }, orderBy: { data: 'asc' }, include: { linhas: true } });
+  const dias = await prisma.producaoDia.findMany({ where: { data: { gte: desde } }, orderBy: { data: 'asc' }, include: { linhas: { orderBy: { hora: 'asc' } } } });
   for (const d of dias) {
     const total = d.linhas.reduce((t, l) => t + l.soldas, 0);
-    const acumulado = sobra + total;
-    const tls = Math.floor(acumulado / SOLDAS_POR_TLS);
-    const novaSobra = acumulado % SOLDAS_POR_TLS;
+    const { tls, sobra: novaSobra } = contarTls(sobra, d.linhas.map((l) => ({ soldas: l.soldas, fabricante: l.fabricante, resposta: respostaTlsDaLinha(l.paradas) })));
     await prisma.producaoDia.update({
       where: { id: d.id },
       data: { sobraEntrada: sobra, totalSoldas: total, tlsFormados: tls, sobraSaida: novaSobra },
@@ -103,7 +115,7 @@ export async function salvarDiaProducao(dados: DadosDia): Promise<void> {
         justificativaCorte: l.justificativaCorte,
         perfil: l.perfil,
         fabricante: l.fabricante,
-        paradas: JSON.stringify(l.paradas),
+        paradas: JSON.stringify(l.tls ? [...l.paradas, { tls: l.tls }] : l.paradas),
       })),
     });
   await recalcularAPartir(dados.data);
@@ -115,6 +127,12 @@ export async function salvarDiaProducao(dados: DadosDia): Promise<void> {
     create: { data: dados.data, soldas, cortes },
     update: { soldas, cortes },
   });
+}
+
+/** Soldas que sobraram em aberto do último dia lançado antes desta data. */
+export async function sobraAntesDe(data: Date): Promise<number> {
+  const anterior = await prisma.producaoDia.findFirst({ where: { data: { lt: data } }, orderBy: { data: 'desc' } });
+  return anterior?.sobraSaida ?? 0;
 }
 
 export async function buscarDia(data: Date) {

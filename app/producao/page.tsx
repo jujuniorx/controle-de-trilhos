@@ -4,7 +4,8 @@ import { COOKIE_PRODUCAO, cookieProducaoValido } from '@/lib/services/producaoAc
 import { RascunhoAutomatico } from '@/components/producao/RascunhoAutomatico';
 import { MotivosParada } from '@/components/producao/MotivosParada';
 import { REUNIAO_DDS } from '@/components/producao/motivos';
-import { FABRICANTES_PRODUCAO, MAX_PARADAS_HORA, PERFIS_PRODUCAO, SOLDAS_POR_TLS, buscarDia, horasDoDia, paradaEmHoraMin, paradasDaLinha } from '@/lib/services/producao';
+import { PerguntaTls } from '@/components/producao/PerguntaTls';
+import { FABRICANTES_PRODUCAO, MAX_PARADAS_HORA, PERFIS_PRODUCAO, FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, buscarDia, horasDoDia, paradasDaLinha, respostaTlsDaLinha, sobraAntesDe } from '@/lib/services/producao';
 import { TrocaTopo } from '@/components/producao/TrocaTopo';
 import { salvarProducaoAction } from './actions';
 import { AlternarTema } from '@/components/ui/AlternarTema';
@@ -22,9 +23,16 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
   const params = await searchParams;
   const dataTexto = /^\d{4}-\d{2}-\d{2}$/.test(params.data ?? '') ? (params.data as string) : hojeSP();
   const data = new Date(`${dataTexto}T00:00:00Z`);
-  const dia = await buscarDia(data);
+  const [dia, sobraEntrada] = await Promise.all([buscarDia(data), sobraAntesDe(data)]);
   const horas = horasDoDia(data);
   const porHora = new Map((dia?.linhas ?? []).map((l) => [l.hora, l]));
+  const tlsForm = {
+    horas,
+    sobraEntrada,
+    fabricanteSalvo: dia?.fabricante ?? FABRICANTES_PRODUCAO[0],
+    fabricantesSalvos: Object.fromEntries((dia?.linhas ?? []).map((l) => [l.hora, l.fabricante])),
+  };
+  const terminouEmReemprego = dia?.linhas.at(-1)?.fabricante === FABRICANTE_REEMPREGO;
   // Trocas salvas: a hora em que o trilho ou a marca mudou em relacao a hora anterior.
   const trocaPerfilHora = new Map<string, string>();
   const trocaFabricanteHora = new Map<string, string>();
@@ -43,10 +51,10 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
         <AlternarTema />
       </div>
       <h1 className="font-condensed text-2xl font-bold uppercase tracking-wide">Produção do dia</h1>
-      {params.ok === '1' && <p role="status" className="rounded-lg border border-ok/40 bg-ok/10 p-3 text-sm">Dia salvo. Soldas: {dia?.totalSoldas ?? 0}, TLS formados: {dia?.tlsFormados ?? 0}, sobra para amanhã: {dia?.sobraSaida ?? 0} de {SOLDAS_POR_TLS}.</p>}
+      {params.ok === '1' && <p role="status" className="rounded-lg border border-ok/40 bg-ok/10 p-3 text-sm">Dia salvo. Soldas: {dia?.totalSoldas ?? 0}, TLS formados: {dia?.tlsFormados ?? 0}, {terminouEmReemprego ? `TLS de reemprego em aberto: ${dia?.sobraSaida ?? 0} soldas.` : `sobra para amanhã: ${dia?.sobraSaida ?? 0} de ${SOLDAS_POR_TLS}.`}</p>}
 
       <form id="form-producao" action={salvarProducaoAction} className="space-y-6">
-        <RascunhoAutomatico data={dataTexto} horas={horas} />
+        <RascunhoAutomatico data={dataTexto} {...tlsForm} />
         <section className="card space-y-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="field"><label htmlFor="data">Data</label><input id="data" name="data" type="date" defaultValue={dataTexto} required className="h-11" /></div>
@@ -74,6 +82,7 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
                   <p id={`acum_hora_${hora}`} className="text-sm font-semibold text-ink-muted sm:col-span-2" />
                   <div className="field"><label htmlFor={`soldas_${hora}`}>Soldas</label><input id={`soldas_${hora}`} name={`soldas_${hora}`} inputMode="numeric" defaultValue={l?.soldas || ''} className="h-11" /></div>
                   <div className="field"><label htmlFor={`cortes_${hora}`}>Cortes</label><input id={`cortes_${hora}`} name={`cortes_${hora}`} inputMode="numeric" defaultValue={l?.cortes || ''} className="h-11" /></div>
+                  <PerguntaTls data={dataTexto} hora={hora} {...tlsForm} respostaSalva={respostaTlsDaLinha(l?.paradas)} />
                   <div className="field"><label htmlFor={`troca_perfil_${hora}`}>Trocou o trilho para</label>
                     <select id={`troca_perfil_${hora}`} name={`troca_perfil_${hora}`} defaultValue={trocaPerfilHora.get(hora) ?? ''} className="h-11"><option value="">Mantém</option>{PERFIS_PRODUCAO.map((p) => <option key={p} value={p}>{p}</option>)}</select>
                   </div>

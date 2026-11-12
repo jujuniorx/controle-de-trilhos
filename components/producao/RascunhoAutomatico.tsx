@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { tlsDoForm, type ConfigTlsForm } from '@/lib/producaoTls';
 
 type Estado = 'parado' | 'salvando' | 'salvo' | 'recuperado' | 'erro';
 
@@ -20,7 +21,7 @@ function definirValor(el: HTMLInputElement | HTMLSelectElement | HTMLTextAreaEle
 }
 
 /** O que falta em cada hora: soldas esquecidas e paradas com so o inicio ou so o fim. */
-function faltasDaHora(form: HTMLFormElement, hora: string): { campo: HTMLElement | null; textos: string[] } {
+function faltasDaHora(form: HTMLFormElement, hora: string, tlsPendente: boolean): { campo: HTMLElement | null; textos: string[] } {
   const textos: string[] = [];
   const campo = (name: string) => form.elements.namedItem(name) as HTMLInputElement | null;
   const soldas = campo(`soldas_${hora}`)?.value.trim() ?? '';
@@ -44,12 +45,17 @@ function faltasDaHora(form: HTMLFormElement, hora: string): { campo: HTMLElement
     textos.unshift('Falta a quantidade de soldas.');
     primeiro = campo(`soldas_${hora}`) ?? primeiro;
   }
+  if (tlsPendente) {
+    textos.push('Reemprego: falta responder se o TLS encerrou.');
+    primeiro ??= document.getElementById(`tls_sim_${hora}`);
+  }
   return { campo: primeiro, textos };
 }
 
-export function RascunhoAutomatico({ data, horas }: { data: string; horas: string[] }) {
+export function RascunhoAutomatico({ data, horas, sobraEntrada, fabricanteSalvo, fabricantesSalvos }: { data: string } & ConfigTlsForm) {
   const [estado, setEstado] = useState<Estado>('parado');
   const horasKey = horas.join(',');
+  const salvosKey = JSON.stringify(fabricantesSalvos);
 
   useEffect(() => {
     const form = document.getElementById('form-producao') as HTMLFormElement | null;
@@ -72,9 +78,10 @@ export function RascunhoAutomatico({ data, horas }: { data: string; horas: strin
     // Mostra, dentro de cada hora, o que falta. Retorna a primeira hora com falta.
     const mostrarFaltas = () => {
       let primeira: { hora: string; campo: HTMLElement | null } | null = null;
+      const tls = tlsDoForm(form, { horas: listaHoras, sobraEntrada, fabricanteSalvo, fabricantesSalvos: JSON.parse(salvosKey) as Record<string, string> });
       for (const hora of listaHoras) {
         const aviso = document.getElementById(`aviso_hora_${hora}`);
-        const { campo, textos } = faltasDaHora(form, hora);
+        const { campo, textos } = faltasDaHora(form, hora, Boolean(tls[hora]?.pendente));
         if (aviso) {
           aviso.textContent = textos.join(' ');
           aviso.hidden = textos.length === 0;
@@ -144,7 +151,8 @@ export function RascunhoAutomatico({ data, horas }: { data: string; horas: strin
         const campos = JSON.parse(salvo) as Record<string, string>;
         for (const [nome, valor] of Object.entries(campos)) {
           // Inicio e fim das paradas voltam pelo proprio componente da parada (que guarda cada um separado).
-          if (/^parada_(inicio|fim|descricao)_/.test(nome)) continue;
+          // A resposta "TLS encerrado?" tambem volta pelo proprio componente.
+          if (/^parada_(inicio|fim|descricao)_/.test(nome) || nome.startsWith('tls_')) continue;
           const el = form.elements.namedItem(nome);
           if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement) {
             definirValor(el, valor);
@@ -172,7 +180,7 @@ export function RascunhoAutomatico({ data, horas }: { data: string; horas: strin
       window.removeEventListener('pagehide', aoSair);
       if (timer) clearTimeout(timer);
     };
-  }, [data, horasKey]);
+  }, [data, horasKey, sobraEntrada, fabricanteSalvo, salvosKey]);
 
   const texto: Record<Estado, string> = {
     parado: '',

@@ -1,4 +1,4 @@
-import { SOLDAS_POR_TLS, buscarDia, horasDoDia, paradasDaLinha } from '@/lib/services/producao';
+import { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, buscarDia, horasDoDia, paradasDaLinha, respostaTlsDaLinha } from '@/lib/services/producao';
 import { BotaoImprimirPagina } from '@/components/producao/BotaoImprimirPagina';
 
 export const dynamic = 'force-dynamic';
@@ -53,11 +53,16 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
   const emitido = `${emitidoEm[0].split('-').reverse().join('/')} às ${emitidoEm[1]}`;
   const tempoParada = totalParadaMin ? `${Math.floor(totalParadaMin / 60)}h${String(totalParadaMin % 60).padStart(2, '0')}` : '—';
 
+  const temReemprego = (dia?.linhas ?? []).some((l) => l.fabricante === FABRICANTE_REEMPREGO);
+  const terminouEmReemprego = dia?.linhas.at(-1)?.fabricante === FABRICANTE_REEMPREGO;
+
   let acumulado = 0;
   const linhas = horas.map((hora) => {
     const l = porHora.get(hora);
     acumulado += l?.soldas ?? 0;
-    return { hora, l, acumulado };
+    // Reemprego: o TLS fecha na hora em que o soldador respondeu que encerrou.
+    const fechou = l?.fabricante === FABRICANTE_REEMPREGO ? /^sim:(\d+)$/.exec(respostaTlsDaLinha(l.paradas)) : null;
+    return { hora, l, acumulado, tlsCom: fechou ? Number(fechou[1]) : 0 };
   });
 
   return (
@@ -73,9 +78,13 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
       {/* Cabeçalho do documento impresso (na tela vale o cabeçalho de baixo). */}
       <div className="so-impressao doc-topo">
         <div>
-          <p className="doc-topo-sistema">Controle de Trilhos</p>
+          <p className="doc-topo-sistema doc-topo-marca">
+            <span>Controle de Trilhos</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-rumo-relatorio.png" alt="Rumo" />
+          </p>
           <p className="doc-topo-titulo">Relatório de produção</p>
-          <p className="doc-topo-sub">Usina Triagem Paulista · {dataExtensa(dataTexto)}</p>
+          <p className="doc-topo-sub">Estaleiro de soldas - Bauru · {dataExtensa(dataTexto)}</p>
         </div>
         <dl className="doc-ficha">
           <div><dt>Soldador</dt><dd>{dia?.soldadores ?? '—'}</dd></div>
@@ -85,7 +94,7 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
       </div>
 
       <header className="so-tela space-y-2">
-        <p className="kv-label">Produção · Usina Triagem Paulista</p>
+        <p className="kv-label">Produção · Estaleiro de soldas - Bauru</p>
         <h1 className="font-condensed text-3xl font-bold uppercase tracking-wide">{dataExtensa(dataTexto)}</h1>
         <p className="text-sm text-ink-muted">
           Soldador <strong className="text-ink">{dia?.soldadores ?? '—'}</strong>
@@ -97,8 +106,8 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
 
       <section className="doc-indicadores grid grid-cols-2 gap-3 md:grid-cols-4">
         <Indicador rotulo="Soldas no dia" valor={totalSoldas} />
-        <Indicador rotulo="TLS formados" valor={dia?.tlsFormados ?? 0} detalhe={`a cada ${SOLDAS_POR_TLS} soldas`} />
-        <Indicador rotulo="Sobra para amanhã" valor={dia?.sobraSaida ?? 0} />
+        <Indicador rotulo="TLS formados" valor={dia?.tlsFormados ?? 0} detalhe={temReemprego ? 'reemprego: quando o soldador encerra' : `a cada ${SOLDAS_POR_TLS} soldas`} />
+        <Indicador rotulo={terminouEmReemprego ? 'TLS em aberto' : 'Sobra para amanhã'} valor={dia?.sobraSaida ?? 0} detalhe={terminouEmReemprego ? 'soldas no TLS de reemprego' : undefined} />
         <Indicador rotulo="Cortes" valor={totalCortes} detalhe={totalParadaMin ? `${totalParadaMin} min de parada` : 'sem paradas'} />
       </section>
 
@@ -129,7 +138,7 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
           </p>
         </div>
         <ol className="hora-lista">
-          {linhas.map(({ hora, l, acumulado: acc }, i) => {
+          {linhas.map(({ hora, l, acumulado: acc, tlsCom }, i) => {
             const paradas = paradasDaLinha(l?.paradas);
             const anterior = linhas.slice(0, i).reverse().find((x) => x.l)?.l;
             const trocou = Boolean(l && anterior && (l.perfil !== anterior.perfil || l.fabricante !== anterior.fabricante));
@@ -144,6 +153,7 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
                         {trocou ? 'Trocou para ' : ''}{l.perfil} · {l.fabricante}
                       </p>
                     )}
+                    {tlsCom > 0 && <p className="hora-trilho" data-trocou="true">TLS encerrado com {tlsCom} soldas</p>}
                     {!l && <p className="hora-trilho">{almoco ? 'Almoço' : 'Sem lançamento'}</p>}
                   </div>
                   {l && (
@@ -193,7 +203,7 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
             </tr>
           </thead>
           <tbody>
-            {linhas.map(({ hora, l, acumulado: acc }) => (
+            {linhas.map(({ hora, l, acumulado: acc, tlsCom }) => (
               <tr key={hora} className="border-b border-line align-top">
                 <td className="py-2 pr-2 whitespace-nowrap">{hora}</td>
                 <td className="py-2 pr-2 text-right tabular-nums font-semibold">{l?.soldas || '—'}</td>
@@ -202,8 +212,9 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
                 <td className="py-2 pr-2">{l?.fabricante ?? '—'}</td>
                 <td className="py-2 pr-2 text-right tabular-nums">{l?.cortes || '—'}</td>
                 <td className="py-2 doc-paradas">
-                  {paradasDaLinha(l?.paradas).length === 0 && !l?.justificativaCorte ? '—' : (
+                  {paradasDaLinha(l?.paradas).length === 0 && !l?.justificativaCorte && !tlsCom ? '—' : (
                     <>
+                      {tlsCom > 0 && <span className="doc-parada"><b>TLS encerrado</b>{` com ${tlsCom} soldas`}</span>}
                       {paradasDaLinha(l?.paradas).map((p, i) => (
                         <span key={i} className="doc-parada">
                           <b>{p.inicio ? `${p.inicio}–${fimDaParada(p.inicio, p.minutos)}` : 'Sem horário'}</b>
