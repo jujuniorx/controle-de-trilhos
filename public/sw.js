@@ -3,7 +3,8 @@
 // cache 'trilhos-app-shell-v1'. Trocar o nome faz o handler de `activate` abaixo
 // apagar o cache antigo inteiro na próxima ativação — é o que completa a correção.
 // v4: manifesto por tema (/manifest.webmanifest) e icones por tema (public/icons/<tema>).
-const CACHE_NAME = 'trilhos-app-shell-v4';
+// v5: marca nova (perfil do trilho): os icones antigos guardados no aparelho saem.
+const CACHE_NAME = 'trilhos-app-shell-v5';
 // Telas do Pátio (HTML) guardadas para uso sem internet. NUNCA inclui /admin.
 const PATIO_CACHE = 'trilhos-patio-v1';
 const APP_SHELL = [
