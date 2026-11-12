@@ -1,6 +1,7 @@
 import { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, buscarDia, horasDoDia, paradasDaLinha, paradasEmAndamento, respostaTlsDaLinha } from '@/lib/services/producao';
 import { AoVivo } from '@/components/producao/AoVivo';
 import { BotaoImprimirPagina } from '@/components/producao/BotaoImprimirPagina';
+import { BotaoBaixarImagem, type DadosImagemProducao } from '@/components/producao/BotaoBaixarImagem';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,6 +79,45 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
   const sobra = dia?.sobraSaida ?? 0;
   const pctTls = terminouEmReemprego ? Math.min(100, Math.round((sobra / 44) * 100)) : Math.round((sobra / SOLDAS_POR_TLS) * 100);
 
+  // Os mesmos números da folha impressa, prontos para virar imagem no navegador.
+  const dataBr = dataTexto.split('-').reverse().join('/');
+  const dadosImagem: DadosImagemProducao = {
+    arquivo: `producao-${dataTexto}.png`,
+    dataExtensa: dataExtensa(dataTexto),
+    soldador: dia?.soldadores || '—',
+    perfil: dia?.perfil ?? '—',
+    fabricante: dia?.fabricante ?? '—',
+    indicadores: [
+      { rotulo: 'Soldas no dia', valor: String(totalSoldas) },
+      { rotulo: 'TLS formados', valor: String(dia?.tlsFormados ?? 0), detalhe: temReemprego ? 'reemprego: quando o soldador encerra' : `a cada ${SOLDAS_POR_TLS} soldas` },
+      { rotulo: terminouEmReemprego ? 'TLS em aberto' : 'Sobra para amanhã', valor: String(dia?.sobraSaida ?? 0), detalhe: terminouEmReemprego ? 'soldas no TLS de reemprego' : undefined },
+      { rotulo: 'Cortes', valor: String(totalCortes), detalhe: totalParadaMin ? `${totalParadaMin} min de parada` : 'sem paradas' },
+    ],
+    linhas: linhas.map(({ hora, l, acumulado: acc, tlsCom }) => ({
+      hora,
+      faixa: `${hora} às ${fimDaHora(hora)}`,
+      lancada: Boolean(l),
+      soldas: l?.soldas ?? 0,
+      acumulado: acc,
+      perfil: l?.perfil ?? '—',
+      fabricante: l?.fabricante ?? '—',
+      cortes: l?.cortes ?? 0,
+      paradas: [
+        ...(tlsCom > 0 ? [{ forte: 'TLS encerrado', resto: ` com ${tlsCom} soldas` }] : []),
+        ...paradasDaLinha(l?.paradas).map((p) => ({
+          forte: p.inicio ? `${p.inicio}–${fimDaParada(p.inicio, p.minutos)}` : 'Sem horário',
+          resto: ` · ${p.minutos} min${p.descricao ? ` · ${p.descricao}` : ''}`,
+        })),
+        ...(l?.justificativaCorte ? [{ forte: '', resto: `Corte: ${l.justificativaCorte}` }] : []),
+      ],
+    })),
+    totalSoldas,
+    totalCortes,
+    totalParada: totalParadaMin ? `${tempoParada} parado no dia` : 'Sem paradas',
+    rodape: `Controle de Trilhos · Produção do dia ${dataBr}`,
+    emitido,
+  };
+
   return (
     <main className="planilha-producao mx-auto w-full max-w-5xl space-y-6 px-4 py-6">
       <div className="no-print flex flex-wrap items-end justify-between gap-3">
@@ -85,7 +125,10 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
           <div className="field"><label htmlFor="data-producao">Dia</label><input id="data-producao" name="data" type="date" defaultValue={dataTexto} className="h-11" /></div>
           <button type="submit" className="btn btn-ghost h-11">Ver dia</button>
         </form>
-        <BotaoImprimirPagina />
+        <div className="flex flex-wrap items-center gap-2">
+          <BotaoBaixarImagem dados={dadosImagem} />
+          <BotaoImprimirPagina />
+        </div>
       </div>
 
       {/* Cabeçalho do documento impresso (na tela vale o cabeçalho de baixo). */}

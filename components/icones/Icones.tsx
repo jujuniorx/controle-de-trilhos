@@ -42,6 +42,16 @@ export function IconeImprimir(props: Props) {
   );
 }
 
+export function IconeBaixar(props: Props) {
+  return (
+    <Base {...props}>
+      <path d="M12 3v12" />
+      <path d="m7 10 5 5 5-5" />
+      <path d="M4 20h16" />
+    </Base>
+  );
+}
+
 export function IconeAlerta(props: Props) {
   return (
     <Base {...props}>
