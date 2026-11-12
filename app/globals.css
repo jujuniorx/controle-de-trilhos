@@ -2457,6 +2457,17 @@ html[data-tema="pastel"] .entrada-marca-conteudo::before { background: radial-gr
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
   main.planilha-producao > * { margin: 0 0 4mm !important; }
+  /* O relatorio impresso e sempre claro, qualquer que seja o tema da tela: os tokens viram os da folha branca. */
+  main.planilha-producao {
+    --ink: #16191f; --ink-muted: #3c4350; --ink-dim: #5b6472; --fg: #16191f;
+    --primary: #16191f; --primary-light: #16191f; --on-primary: #ffffff;
+    --surface: #ffffff; --surface-2: #f5f7fa; --surface-3: #e9eef5; --line: #d3d8e0; --bg: #ffffff;
+    background: #ffffff !important; color: #16191f !important; color-scheme: light;
+  }
+  main.planilha-producao .card, main.planilha-producao .stat-tile, main.planilha-producao .doc-indicador, main.planilha-producao .doc-bloco {
+    background: #ffffff !important; border-color: #d3d8e0 !important; box-shadow: none !important; color: #16191f;
+  }
+  main.planilha-producao .doc-indicador:first-child { background: #16191f !important; border-color: #16191f !important; color: #ffffff; }
   .planilha-producao, .planilha-producao * {
     color: #16191f !important; background: transparent !important; box-shadow: none !important; border-color: #d3d8e0 !important;
     -webkit-backdrop-filter: none !important; backdrop-filter: none !important; text-shadow: none !important; opacity: 1 !important; transform: none !important;
