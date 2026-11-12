@@ -910,3 +910,23 @@ html[data-tema]:root .form-sujo {
   html[data-tema]:root .foco-semana { width: 100%; min-height: 44px; }
   html[data-tema]:root .semana-nav-faixa { width: 100%; justify-content: space-between; }
 }
+
+/* Administrativo > Producao ao vivo: soldas ate agora, TLS e parada em andamento (so no dia de hoje) */
+html[data-tema]:root .vivo { display: flex; flex-direction: column; gap: 14px; padding: 18px; border-radius: 22px; background: var(--v-card); border: 1px solid var(--v-card-line); animation: ct-surge var(--ct-tempo) var(--ct-curva) backwards; }
+html[data-tema]:root .vivo-selo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+html[data-tema]:root .vivo-quando { font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--ink-muted); }
+html[data-tema]:root .vivo-ponto { width: 10px; height: 10px; border-radius: 50%; background: var(--ok); animation: vivo-pulso 1.6s ease-out infinite; }
+@keyframes vivo-pulso { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 60%, transparent); } 100% { box-shadow: 0 0 0 10px transparent; } }
+html[data-tema]:root .vivo-corpo { display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; }
+html[data-tema]:root .vivo-rotulo { margin: 0; font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); }
+html[data-tema]:root .vivo-numero { margin: 0; font-size: clamp(4rem, 14vw, 7rem); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+html[data-tema]:root .vivo-detalhe { margin: 0; font-size: .85rem; color: var(--ink-muted); }
+html[data-tema]:root .vivo-lado { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+html[data-tema]:root .vivo-tls { display: flex; flex-direction: column; gap: 6px; }
+html[data-tema]:root .vivo-tls-numero { margin: 0; font-size: 2.2rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+html[data-tema]:root .vivo-barra { display: block; height: 8px; border-radius: 999px; overflow: hidden; background: var(--v-field-line); }
+html[data-tema]:root .vivo-barra > span { display: block; height: 100%; border-radius: 999px; background: var(--v-focus); transition: width .5s ease; }
+html[data-tema]:root .vivo-estado { margin: 0; padding: 10px 12px; border-radius: 12px; font-weight: 700; border: 1px solid var(--v-field-line); overflow-wrap: anywhere; }
+html[data-tema]:root .vivo-estado[data-parada="true"] { border-color: var(--warn); color: var(--warn); }
+@media (max-width: 640px) { html[data-tema]:root .vivo-corpo { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { html[data-tema]:root .vivo, html[data-tema]:root .vivo-ponto { animation: none; } html[data-tema]:root .vivo-barra > span { transition: none; } }

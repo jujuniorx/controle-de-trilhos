@@ -1,4 +1,5 @@
-import { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, buscarDia, horasDoDia, paradasDaLinha, respostaTlsDaLinha } from '@/lib/services/producao';
+import { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, buscarDia, horasDoDia, paradasDaLinha, paradasEmAndamento, respostaTlsDaLinha } from '@/lib/services/producao';
+import { AoVivo } from '@/components/producao/AoVivo';
 import { BotaoImprimirPagina } from '@/components/producao/BotaoImprimirPagina';
 
 export const dynamic = 'force-dynamic';
@@ -65,6 +66,18 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
     return { hora, l, acumulado, tlsCom: fechou ? Number(fechou[1]) : 0 };
   });
 
+  // Ao vivo (só no dia de hoje): o que o soldador preenche chega aqui sozinho, sem esperar o "Salvar o dia".
+  const aoVivo = dataTexto === hojeSP();
+  const agora = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString().slice(11, 16);
+  const horaAgora = `${agora.slice(0, 2)}:00`;
+  const ultima = dia?.linhas.at(-1);
+  const horasComSolda = (dia?.linhas ?? []).filter((l) => l.soldas > 0).length;
+  const media = horasComSolda ? (totalSoldas / horasComSolda).toFixed(1).replace('.', ',') : null;
+  const paradaAberta = (dia?.linhas ?? []).flatMap((l) => paradasEmAndamento(l.paradas)).at(-1);
+  const atualizado = dia ? new Date(dia.atualizadoEm.getTime() - 3 * 60 * 60 * 1000).toISOString().slice(11, 16) : null;
+  const sobra = dia?.sobraSaida ?? 0;
+  const pctTls = terminouEmReemprego ? Math.min(100, Math.round((sobra / 44) * 100)) : Math.round((sobra / SOLDAS_POR_TLS) * 100);
+
   return (
     <main className="planilha-producao mx-auto w-full max-w-5xl space-y-6 px-4 py-6">
       <div className="no-print flex flex-wrap items-end justify-between gap-3">
@@ -92,6 +105,43 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
           <div><dt>Fabricante</dt><dd>{dia?.fabricante ?? '—'}</dd></div>
         </dl>
       </div>
+
+      {aoVivo && (
+        <section className="so-tela vivo" aria-label="Produção ao vivo">
+          <AoVivo atualizado={atualizado} />
+          <div className="vivo-corpo">
+            <div className="vivo-principal">
+              <p className="vivo-rotulo">Soldas até agora</p>
+              <p className="vivo-numero">{totalSoldas}</p>
+              <p className="vivo-detalhe">
+                {dia
+                  ? `${porHora.get(horaAgora)?.soldas ?? 0} na hora das ${horaAgora}${media ? ` · média de ${media} por hora` : ''}`
+                  : 'A Produção ainda não lançou nada hoje.'}
+              </p>
+            </div>
+            <div className="vivo-lado">
+              <div className="vivo-tls">
+                <p className="vivo-rotulo">TLS formados hoje</p>
+                <p className="vivo-tls-numero">{dia?.tlsFormados ?? 0}</p>
+                <span className="vivo-barra" aria-hidden="true"><span style={{ width: `${pctTls}%` }} /></span>
+                <p className="vivo-detalhe">
+                  {terminouEmReemprego
+                    ? `TLS de reemprego em aberto com ${sobra} soldas`
+                    : `${sobra} de ${SOLDAS_POR_TLS} soldas no próximo TLS`}
+                </p>
+              </div>
+              <p className="vivo-estado" data-parada={paradaAberta ? 'true' : undefined}>
+                {paradaAberta
+                  ? `Parado desde as ${paradaAberta.inicio}${paradaAberta.descricao ? ` · ${paradaAberta.descricao}` : ''}`
+                  : ultima
+                    ? `${ultima.perfil} · ${ultima.fabricante}${dia?.soldadores ? ` · soldador ${dia.soldadores}` : ''}`
+                    : 'Sem lançamento'}
+              </p>
+              <p className="vivo-detalhe">{totalCortes} {totalCortes === 1 ? 'corte' : 'cortes'} · {totalParadaMin ? `${tempoParada} parado` : 'sem paradas encerradas'}</p>
+            </div>
+          </div>
+        </section>
+      )}
 
       <header className="so-tela space-y-2">
         <p className="kv-label">Produção · Estaleiro de soldas - Bauru</p>
@@ -140,6 +190,7 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
         <ol className="hora-lista">
           {linhas.map(({ hora, l, acumulado: acc, tlsCom }, i) => {
             const paradas = paradasDaLinha(l?.paradas);
+            const abertas = paradasEmAndamento(l?.paradas);
             const anterior = linhas.slice(0, i).reverse().find((x) => x.l)?.l;
             const trocou = Boolean(l && anterior && (l.perfil !== anterior.perfil || l.fabricante !== anterior.fabricante));
             const almoco = hora === '12:00' && !l;
@@ -164,8 +215,19 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
                     </div>
                   )}
                 </div>
-                {(paradas.length > 0 || l?.justificativaCorte) && (
+                {(paradas.length > 0 || abertas.length > 0 || l?.justificativaCorte) && (
                   <ul className="hora-paradas">
+                    {abertas.map((p, j) => (
+                      <li key={`a${j}`} className="hora-parada">
+                        <span className="hora-parada-quando">
+                          <b>{p.inicio} – em andamento</b>
+                        </span>
+                        <span className="hora-motivos">
+                          {(p.descricao ?? '').split(';').map((m) => m.trim()).filter(Boolean).map((m) => <span key={m} className="hora-motivo">{m}</span>)}
+                          {!p.descricao && <span className="hora-sem-motivo">Sem motivo informado</span>}
+                        </span>
+                      </li>
+                    ))}
                     {paradas.map((p, j) => (
                       <li key={j} className="hora-parada">
                         <span className="hora-parada-quando">

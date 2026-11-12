@@ -21,11 +21,10 @@ function texto(v: FormDataEntryValue | null, max: number): string {
   return String(v ?? '').trim().slice(0, max);
 }
 
-export async function salvarProducaoAction(formData: FormData): Promise<void> {
-  if (!cookieProducaoValido((await cookies()).get(COOKIE_PRODUCAO)?.value)) redirect('/producao/login');
-
+/** Grava o dia com o que veio do formulário. Devolve a data gravada, ou null se a data não vale. */
+async function gravarDia(formData: FormData): Promise<string | null> {
   const data = texto(formData.get('data'), 10);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) redirect('/producao');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) return null;
   const dataDia = new Date(`${data}T00:00:00Z`);
 
   const perfilTopo = texto(formData.get('perfil'), 10);
@@ -55,13 +54,15 @@ export async function salvarProducaoAction(formData: FormData): Promise<void> {
     if ((PERFIS_PRODUCAO as readonly string[]).includes(pTroca)) perfilTrocado = pTroca;
     if ((FABRICANTES_PRODUCAO as readonly string[]).includes(fTroca)) fabricanteTrocado = fTroca;
     const cortes = inteiro(formData.get(`cortes_${hora}`));
-    const paradas = Array.from({ length: MAX_PARADAS_HORA }, (_, i) => i + 1)
+    const lidas = Array.from({ length: MAX_PARADAS_HORA }, (_, i) => i + 1)
       .map((n) => ({
         inicio: texto(formData.get(`parada_inicio_${hora}_${n}`), 5) || null,
         minutos: minutosDaParada(String(formData.get(`parada_${hora}_${n}`) ?? '')),
         descricao: texto(formData.get(`parada_descricao_${hora}_${n}`), 200) || null,
-      }))
-      .filter((p) => p.minutos > 0);
+      }));
+    const paradas = lidas.filter((p) => p.minutos > 0);
+    // Parada que começou e ainda não tem fim: vai para o Administrativo acompanhar ao vivo.
+    const andamento = lidas.filter((p) => p.minutos === 0 && p.inicio).map((p) => ({ inicio: p.inicio as string, descricao: p.descricao }));
     const tls = texto(formData.get(`tls_${hora}`), 10);
     return {
       hora,
@@ -70,6 +71,7 @@ export async function salvarProducaoAction(formData: FormData): Promise<void> {
       cortes,
       justificativaCorte: cortes > 0 ? texto(formData.get(`justificativa_${hora}`), 200) || null : null,
       paradas,
+      andamento,
       perfil: perfilTrocado ?? valorDaHora(hora, horaTrocaPerfil, perfil, perfilAntes, linhasAntes.get(hora)?.perfil),
       fabricante: fabricanteTrocado ?? valorDaHora(hora, horaTrocaFabricante, fabricante, fabricanteAntes, linhasAntes.get(hora)?.fabricante),
     };
@@ -83,6 +85,26 @@ export async function salvarProducaoAction(formData: FormData): Promise<void> {
     fabricante,
     linhas,
   });
+  return data;
+}
+
+export async function salvarProducaoAction(formData: FormData): Promise<void> {
+  if (!cookieProducaoValido((await cookies()).get(COOKIE_PRODUCAO)?.value)) redirect('/producao/login');
+  const data = await gravarDia(formData);
+  if (!data) redirect('/producao');
   revalidatePath('/producao');
   redirect(`/producao?data=${data}&ok=1`);
+}
+
+/**
+ * Envio automático enquanto o soldador preenche: o Administrativo acompanha a Produção ao vivo.
+ * Não recarrega a tela nem troca de página; o "Salvar o dia" continua sendo o fechamento.
+ */
+export async function sincronizarProducaoAction(formData: FormData): Promise<boolean> {
+  if (!cookieProducaoValido((await cookies()).get(COOKIE_PRODUCAO)?.value)) return false;
+  try {
+    return Boolean(await gravarDia(formData));
+  } catch {
+    return false;
+  }
 }

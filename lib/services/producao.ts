@@ -41,6 +41,16 @@ export function respostaTlsDaLinha(texto: string | null | undefined): string {
     return '';
   }
 }
+/** Paradas que já começaram e ainda não têm fim (o Administrativo mostra ao vivo). Guardadas junto das paradas. */
+export interface ParadaAberta { inicio: string; descricao: string | null }
+export function paradasEmAndamento(texto: string | null | undefined): ParadaAberta[] {
+  try {
+    const v = JSON.parse(texto || '[]');
+    return Array.isArray(v) ? v.filter((p) => p && p.andamento === true && typeof p.inicio === 'string').map((p) => ({ inicio: p.inicio, descricao: p.descricao ?? null })) : [];
+  } catch {
+    return [];
+  }
+}
 export const METROS_POR_TLS = 312;
 export const PERFIS_PRODUCAO = ['TR60', 'TR68', 'UIC60'] as const;
 export const FABRICANTES_PRODUCAO = ['Nippon', 'Evraz', 'Pangang', 'Arcelormittal', 'UHCX', 'Reemprego'] as const;
@@ -55,6 +65,8 @@ export interface LinhaProducao {
   fabricante: string;
   /** Resposta "TLS encerrado?" (reemprego). */
   tls?: string | null;
+  /** Paradas com início e ainda sem fim. */
+  andamento?: ParadaAberta[];
 }
 
 export interface DadosDia {
@@ -97,7 +109,7 @@ export async function recalcularAPartir(desde: Date): Promise<void> {
 
 /** Grava ou corrige o dia e refaz as contas dos dias seguintes. */
 export async function salvarDiaProducao(dados: DadosDia): Promise<void> {
-  const linhas = dados.linhas.filter((l) => l.soldas > 0 || l.cortes > 0 || l.paradas.length > 0);
+  const linhas = dados.linhas.filter((l) => l.soldas > 0 || l.cortes > 0 || l.paradas.length > 0 || (l.andamento?.length ?? 0) > 0);
   await prisma.producaoDia.upsert({
     where: { data: dados.data },
     create: { data: dados.data, soldadores: dados.soldadores, lider: dados.lider, perfil: dados.perfil, fabricante: dados.fabricante },
@@ -115,7 +127,11 @@ export async function salvarDiaProducao(dados: DadosDia): Promise<void> {
         justificativaCorte: l.justificativaCorte,
         perfil: l.perfil,
         fabricante: l.fabricante,
-        paradas: JSON.stringify(l.tls ? [...l.paradas, { tls: l.tls }] : l.paradas),
+        paradas: JSON.stringify([
+          ...l.paradas,
+          ...(l.andamento ?? []).map((p) => ({ andamento: true, inicio: p.inicio, descricao: p.descricao })),
+          ...(l.tls ? [{ tls: l.tls }] : []),
+        ]),
       })),
     });
   await recalcularAPartir(dados.data);

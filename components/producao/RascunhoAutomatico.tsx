@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { tlsDoForm, type ConfigTlsForm } from '@/lib/producaoTls';
+import { sincronizarProducaoAction } from '@/app/producao/actions';
 
-type Estado = 'parado' | 'salvando' | 'salvo' | 'recuperado' | 'erro';
+type Estado = 'parado' | 'salvando' | 'salvo' | 'enviado' | 'recuperado' | 'erro';
 
 /** Rascunho guardado no proprio aparelho (tablet, celular ou computador): sobrevive a atualizar, fechar e reabrir. */
 function chave(data: string) {
@@ -63,6 +64,29 @@ export function RascunhoAutomatico({ data, horas, sobraEntrada, fabricanteSalvo,
     const listaHoras = horasKey.split(',');
     let cancelado = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
+    // Envio ao Administrativo (ao vivo): um de cada vez; se mudar durante o envio, manda de novo no fim.
+    let timerEnvio: ReturnType<typeof setTimeout> | null = null;
+    let envio: Promise<void> | null = null;
+    let reenviar = false;
+    let finalizando = false;
+    // Durante o "Salvar o dia" o envio automático fica parado; depois volta (a tela pode continuar aberta).
+    const segurarEnvios = () => {
+      finalizando = true;
+      setTimeout(() => { finalizando = false; }, 10000);
+    };
+    const enviar = () => {
+      if (cancelado || finalizando) return;
+      if (envio) { reenviar = true; return; }
+      // Só envia o dia desta tela: se a data do campo foi trocada, espera o "Salvar o dia".
+      if ((form.elements.namedItem('data') as HTMLInputElement | null)?.value !== data) return;
+      envio = sincronizarProducaoAction(new FormData(form))
+        .then((ok) => { if (ok && !cancelado) setEstado((e) => (e === 'salvo' ? 'enviado' : e)); })
+        .catch(() => { /* sem internet: fica no aparelho e tenta de novo na próxima mudança */ })
+        .finally(() => {
+          envio = null;
+          if (reenviar) { reenviar = false; enviar(); }
+        });
+    };
 
     // Soldas acumuladas do dia ate o fim de cada hora, atualizadas enquanto se digita.
     const mostrarAcumulado = () => {
@@ -114,12 +138,15 @@ export function RascunhoAutomatico({ data, horas, sobraEntrada, fabricanteSalvo,
       if (timer) clearTimeout(timer);
       setEstado('salvando');
       timer = setTimeout(gravar, 400);
+      if (timerEnvio) clearTimeout(timerEnvio);
+      timerEnvio = setTimeout(enviar, 2500);
     };
 
     const aoSair = () => {
       if (document.visibilityState !== 'hidden') return;
       if (timer) clearTimeout(timer);
       gravar();
+      if (timerEnvio) { clearTimeout(timerEnvio); timerEnvio = null; enviar(); }
     };
 
     // Ao tentar salvar o dia com algo faltando: volta para a hora, abre e mostra o que falta.
@@ -134,6 +161,16 @@ export function RascunhoAutomatico({ data, horas, sobraEntrada, fabricanteSalvo,
         (primeira.campo as HTMLElement | null)?.focus({ preventScroll: true });
         return;
       }
+      // Um envio automático ainda em andamento termina antes do "Salvar o dia" (os dois não gravam juntos).
+      if (timerEnvio) clearTimeout(timerEnvio);
+      reenviar = false;
+      if (envio) {
+        e.preventDefault();
+        segurarEnvios();
+        envio.finally(() => form.requestSubmit());
+        return;
+      }
+      segurarEnvios();
       // Dia salvo de verdade: o rascunho deste dia e os inicios/fins das paradas saem do aparelho.
       try {
         localStorage.removeItem(chave(data));
@@ -179,6 +216,7 @@ export function RascunhoAutomatico({ data, horas, sobraEntrada, fabricanteSalvo,
       document.removeEventListener('visibilitychange', aoSair);
       window.removeEventListener('pagehide', aoSair);
       if (timer) clearTimeout(timer);
+      if (timerEnvio) clearTimeout(timerEnvio);
     };
   }, [data, horasKey, sobraEntrada, fabricanteSalvo, salvosKey]);
 
@@ -186,6 +224,7 @@ export function RascunhoAutomatico({ data, horas, sobraEntrada, fabricanteSalvo,
     parado: '',
     salvando: 'Salvando rascunho…',
     salvo: 'Rascunho salvo neste aparelho. Se atualizar ou fechar, o que foi preenchido volta.',
+    enviado: 'Salvo neste aparelho e enviado ao Administrativo.',
     recuperado: 'Rascunho recuperado neste aparelho. Confira os campos e salve o dia.',
     erro: 'Não foi possível guardar o rascunho neste aparelho.',
   };
