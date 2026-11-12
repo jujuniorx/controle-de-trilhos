@@ -56,10 +56,11 @@ function faltasDaHora(form: HTMLFormElement, hora: string, tlsPendente: boolean)
   return { campo: primeiro, textos };
 }
 
-export function RascunhoAutomatico({ data, horas, sobraEntrada, fabricanteSalvo, fabricantesSalvos }: { data: string } & ConfigTlsForm) {
+export function RascunhoAutomatico({ data, horas, sobraEntrada, fabricanteSalvo, fabricantesSalvos, perfilSalvo, perfisSalvos }: { data: string } & ConfigTlsForm) {
   const [estado, setEstado] = useState<Estado>('parado');
   const horasKey = horas.join(',');
   const salvosKey = JSON.stringify(fabricantesSalvos);
+  const perfisKey = JSON.stringify(perfisSalvos ?? {});
 
   useEffect(() => {
     const form = document.getElementById('form-producao') as HTMLFormElement | null;
@@ -127,7 +128,7 @@ export function RascunhoAutomatico({ data, horas, sobraEntrada, fabricanteSalvo,
     // Mostra, dentro de cada hora, o que falta. Retorna a primeira hora com falta.
     const mostrarFaltas = () => {
       let primeira: { hora: string; campo: HTMLElement | null } | null = null;
-      const tls = tlsDoForm(form, { horas: listaHoras, sobraEntrada, fabricanteSalvo, fabricantesSalvos: JSON.parse(salvosKey) as Record<string, string> });
+      const tls = tlsDoForm(form, { horas: listaHoras, sobraEntrada, fabricanteSalvo, fabricantesSalvos: JSON.parse(salvosKey) as Record<string, string>, perfilSalvo, perfisSalvos: JSON.parse(perfisKey) as Record<string, string> });
       for (const hora of listaHoras) {
         const aviso = document.getElementById(`aviso_hora_${hora}`);
         const { campo, textos } = faltasDaHora(form, hora, Boolean(tls[hora]?.pendente));
@@ -243,7 +244,7 @@ export function RascunhoAutomatico({ data, horas, sobraEntrada, fabricanteSalvo,
       if (timer) clearTimeout(timer);
       if (timerEnvio) clearTimeout(timerEnvio);
     };
-  }, [data, horasKey, sobraEntrada, fabricanteSalvo, salvosKey]);
+  }, [data, horasKey, sobraEntrada, fabricanteSalvo, salvosKey, perfilSalvo, perfisKey]);
 
   const texto: Record<Estado, string> = {
     parado: '',

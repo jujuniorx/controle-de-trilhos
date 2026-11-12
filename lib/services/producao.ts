@@ -98,7 +98,7 @@ export async function recalcularAPartir(desde: Date): Promise<void> {
   const dias = await prisma.producaoDia.findMany({ where: { data: { gte: desde } }, orderBy: { data: 'asc' }, include: { linhas: { orderBy: { hora: 'asc' } } } });
   for (const d of dias) {
     const total = d.linhas.reduce((t, l) => t + l.soldas, 0);
-    const { tls, sobra: novaSobra } = contarTls(sobra, d.linhas.map((l) => ({ soldas: l.soldas, fabricante: l.fabricante, resposta: respostaTlsDaLinha(l.paradas) })));
+    const { tls, sobra: novaSobra } = contarTls(sobra, d.linhas.map((l) => ({ soldas: l.soldas, fabricante: l.fabricante, perfil: l.perfil, resposta: respostaTlsDaLinha(l.paradas) })));
     await prisma.producaoDia.update({
       where: { id: d.id },
       data: { sobraEntrada: sobra, totalSoldas: total, tlsFormados: tls, sobraSaida: novaSobra },

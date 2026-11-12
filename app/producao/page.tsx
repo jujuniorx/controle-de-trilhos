@@ -29,6 +29,8 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
   const tlsForm = {
     horas,
     sobraEntrada,
+    perfilSalvo: dia?.perfil ?? PERFIS_PRODUCAO[0],
+    perfisSalvos: Object.fromEntries((dia?.linhas ?? []).map((l) => [l.hora, l.perfil])),
     fabricanteSalvo: dia?.fabricante ?? FABRICANTES_PRODUCAO[0],
     fabricantesSalvos: Object.fromEntries((dia?.linhas ?? []).map((l) => [l.hora, l.fabricante])),
   };

@@ -11,7 +11,7 @@ const NADA: SituacaoTls = { aberto: 0, pergunta: false, pendente: false, encerra
  * Reemprego: a partir de 28 soldas no TLS em aberto, pergunta nesta hora "TLS encerrado?".
  * Enquanto a resposta for "não", a pergunta volta a cada solda a mais. Sem resposta, o dia não salva.
  */
-export function PerguntaTls({ data, hora, horas, sobraEntrada, fabricanteSalvo, fabricantesSalvos, respostaSalva }: Props) {
+export function PerguntaTls({ data, hora, horas, sobraEntrada, fabricanteSalvo, fabricantesSalvos, perfilSalvo, perfisSalvos, respostaSalva }: Props) {
   const [resposta, setResposta] = useState(respostaSalva);
   const [situacao, setSituacao] = useState<SituacaoTls>(NADA);
   const oculto = useRef<HTMLInputElement>(null);
@@ -20,6 +20,7 @@ export function PerguntaTls({ data, hora, horas, sobraEntrada, fabricanteSalvo, 
   const chave = `producao-parada-${data}-${hora}-tls`;
   const horasKey = horas.join(',');
   const salvosKey = JSON.stringify(fabricantesSalvos);
+  const perfisKey = JSON.stringify(perfisSalvos ?? {});
 
   useEffect(() => {
     try {
@@ -31,7 +32,7 @@ export function PerguntaTls({ data, hora, horas, sobraEntrada, fabricanteSalvo, 
   useEffect(() => {
     const form = document.getElementById('form-producao') as HTMLFormElement | null;
     if (!form) return;
-    const cfg = { horas: horasKey.split(','), sobraEntrada, fabricanteSalvo, fabricantesSalvos: JSON.parse(salvosKey) as Record<string, string> };
+    const cfg = { horas: horasKey.split(','), sobraEntrada, fabricanteSalvo, fabricantesSalvos: JSON.parse(salvosKey) as Record<string, string>, perfilSalvo, perfisSalvos: JSON.parse(perfisKey) as Record<string, string> };
     const calcular = () => {
       const s = tlsDoForm(form, cfg)[hora] ?? NADA;
       setSituacao((a) => (a.aberto === s.aberto && a.pergunta === s.pergunta && a.pendente === s.pendente && a.encerradoCom === s.encerradoCom ? a : s));
@@ -43,7 +44,7 @@ export function PerguntaTls({ data, hora, horas, sobraEntrada, fabricanteSalvo, 
       form.removeEventListener('input', calcular);
       form.removeEventListener('change', calcular);
     };
-  }, [hora, horasKey, sobraEntrada, fabricanteSalvo, salvosKey]);
+  }, [hora, horasKey, sobraEntrada, fabricanteSalvo, salvosKey, perfilSalvo, perfisKey]);
 
   // Avisa o formulário (rascunho, avisos e as outras horas) quando a resposta muda.
   useEffect(() => {

@@ -25,7 +25,7 @@ export function soldasDoTlsEncerrado(resposta: string | null | undefined, aberto
   return m && respostaTlsValida(resposta, aberto) ? Number(m[1]) : 0;
 }
 
-export interface HoraTls { soldas: number; fabricante: string; resposta?: string | null }
+export interface HoraTls { soldas: number; fabricante: string; perfil?: string; resposta?: string | null }
 export interface SituacaoTls {
   /** Soldas no TLS em aberto ao fim da hora, antes de fechar. */
   aberto: number;
@@ -40,7 +40,11 @@ export interface SituacaoTls {
 export function contarTls(sobraEntrada: number, horas: HoraTls[]): { porHora: SituacaoTls[]; tls: number; sobra: number } {
   let aberto = sobraEntrada;
   let tls = 0;
+  let perfilAnterior: string | undefined;
   const porHora = horas.map((h): SituacaoTls => {
+    // Trocou o trilho (perfil) no meio do dia: o TLS do perfil anterior fica para trás e a contagem recomeça do zero.
+    if (h.perfil !== undefined && perfilAnterior !== undefined && h.perfil !== perfilAnterior) aberto = 0;
+    perfilAnterior = h.perfil ?? perfilAnterior;
     aberto += h.soldas;
     const contagem = aberto;
     if (h.fabricante !== FABRICANTE_REEMPREGO) {
@@ -62,7 +66,9 @@ export function contarTls(sobraEntrada: number, horas: HoraTls[]): { porHora: Si
 export interface ConfigTlsForm {
   horas: string[];
   sobraEntrada: number;
-  /** Fabricante salvo no dia e em cada hora já salva (igual ao que o servidor usa ao gravar). */
+  /** Perfil e fabricante salvos no dia e em cada hora já salva (igual ao que o servidor usa ao gravar). */
+  perfilSalvo?: string;
+  perfisSalvos?: Record<string, string>;
   fabricanteSalvo: string;
   fabricantesSalvos: Record<string, string>;
 }
@@ -72,14 +78,21 @@ export function tlsDoForm(form: HTMLFormElement, cfg: ConfigTlsForm): Record<str
   const valor = (nome: string) => (form.elements.namedItem(nome) as HTMLInputElement | HTMLSelectElement | null)?.value?.trim() ?? '';
   const topo = valor('fabricante') || cfg.fabricanteSalvo;
   const horaTroca = valor('hora_troca_fabricante');
+  const topoPerfil = valor('perfil') || cfg.perfilSalvo;
+  const horaTrocaPerfil = valor('hora_troca_perfil');
   let trocado: string | undefined;
+  let trocadoPerfil: string | undefined;
   const linhas = cfg.horas.map((hora) => {
     const troca = valor(`troca_fabricante_${hora}`);
     if (troca) trocado = troca;
     const salvo = cfg.fabricantesSalvos[hora];
     const fabricante = trocado ?? (horaTroca ? (hora < horaTroca ? salvo ?? cfg.fabricanteSalvo : topo) : salvo ?? topo);
+    const trocaPerfil = valor(`troca_perfil_${hora}`);
+    if (trocaPerfil) trocadoPerfil = trocaPerfil;
+    const salvoPerfil = cfg.perfisSalvos?.[hora];
+    const perfil = trocadoPerfil ?? (horaTrocaPerfil ? (hora < horaTrocaPerfil ? salvoPerfil ?? cfg.perfilSalvo : topoPerfil) : salvoPerfil ?? topoPerfil);
     const n = parseInt(valor(`soldas_${hora}`), 10);
-    return { soldas: Number.isFinite(n) && n > 0 ? n : 0, fabricante, resposta: valor(`tls_${hora}`) };
+    return { soldas: Number.isFinite(n) && n > 0 ? n : 0, fabricante, perfil, resposta: valor(`tls_${hora}`) };
   });
   const { porHora } = contarTls(cfg.sobraEntrada, linhas);
   return Object.fromEntries(cfg.horas.map((hora, i) => [hora, porHora[i]]));
