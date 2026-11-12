@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import { buscarRemetidoDetalhe, resumoPesoRemetido } from '@/lib/services/remetido';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { pecasDoGrupo } from '@/lib/domain/regras';
+import { formatarCpf, formatarTelefone } from '@/lib/domain/portaria';
 import { ConferenciaPainel } from '@/app/admin/(protegido)/recebimentos/[id]/ConferenciaPainel';
 import { NfPainel } from './NfPainel';
 import { NotaEmitidaPainel } from './NotaEmitidaPainel';
@@ -49,6 +50,16 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
   const mov = await buscarRemetidoDetalhe(id);
   if (!mov) notFound();
 
+  // Caminho do caminhão, na ordem em que aconteceu: cadastro -> Portaria -> Pátio libera -> saída.
+  const passos = [
+    { rotulo: 'Carga cadastrada pelo Pátio', em: mov.createdAt, por: mov.responsavelPatio ?? null },
+    { rotulo: 'Chegou na Portaria', em: mov.chegadaPortariaEm ?? null, por: mov.chegadaPortariaPor ?? null },
+    { rotulo: 'Liberada pelo Pátio', em: mov.carretaLiberadaEm ?? null, por: null },
+    { rotulo: 'Saiu pela Portaria', em: mov.saidaPortariaEm ?? null, por: mov.saidaPortariaPor ?? null },
+  ]
+    .filter((e): e is { rotulo: string; em: Date; por: string | null } => e.em != null)
+    .sort((a, b) => a.em.getTime() - b.em.getTime());
+
   const pesoTotal = resumoPesoRemetido(mov);
   const totalBarras = mov.grupos.reduce((acc, g) => acc + pecasDoGrupo(g.medicoes), 0);
   const totalMetros = mov.grupos.reduce((acc, g) => acc + Number(g.metrosTotal), 0);
@@ -81,39 +92,69 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
       {/* 1. Dados do remetido */}
       <section className="card">
         <h2 className="card-title">Dados do remetido</h2>
-        <dl className="kv-grid">
-          <div className="kv-item"><div className="kv-label">Tipo</div><div className="kv-val">{TIPO_REMETIDO_LABEL[mov.remetidoDetalhe?.tipoRemetido ?? ''] ?? 'Em aberto'}</div></div>
-          <div className="kv-item"><div className="kv-label">Reserva/Pedido</div><div className="kv-val">{mov.reservaPedido ?? '—'}</div></div>
-          <div className="kv-item"><div className="kv-label">Destino</div><div className="kv-val">{normalizarLocal(mov.destino)}</div></div>
-          <div className="kv-item"><div className="kv-label">Nota fiscal</div><div className="kv-val font-mono">{mov.numeroDocumento ?? 'Em aberto'}</div></div>
-          <div className="kv-item"><div className="kv-label">Data</div><div className="kv-val">{fmtData(mov.dataMovimentacao)}</div></div>
-          <div className="kv-item"><div className="kv-label">Criado pelo Pátio em</div><div className="kv-val font-mono">{fmtDataHora(mov.createdAt)}</div></div>
-          <div className="kv-item"><div className="kv-label">Carreta(s)</div><div className="kv-val font-mono">{[mov.placaCarreta, mov.placaCarreta2].filter(Boolean).join(' / ') || '—'}</div></div>
-          <div className="kv-item"><div className="kv-label">Cavalo</div><div className="kv-val font-mono">{mov.placaCavalo ?? '—'}</div></div>
-          <div className="kv-item"><div className="kv-label">Transportadora</div><div className="kv-val">{mov.transportadora ?? '—'}</div></div>
-          <div className="kv-item"><div className="kv-label">Responsável (Pátio)</div><div className="kv-val">{mov.responsavelPatio ?? '—'}</div></div>
-          {mov.observacaoPortaria && (
-            <div className="kv-item"><div className="kv-label">Observação da Portaria</div><div className="kv-val whitespace-pre-wrap">{mov.observacaoPortaria}</div></div>
-          )}
-          {mov.observacao && (
-            <div className="kv-item"><div className="kv-label">Observação do Pátio</div><div className="kv-val whitespace-pre-wrap">{mov.observacao}</div></div>
-          )}
+        <div className="kv-secoes">
+          <div className="kv-secao">
+            <h3 className="kv-secao-titulo">Carga</h3>
+            <dl className="kv-grid">
+              <div className="kv-item"><div className="kv-label">Tipo</div><div className="kv-val">{TIPO_REMETIDO_LABEL[mov.remetidoDetalhe?.tipoRemetido ?? ''] ?? 'Em aberto'}</div></div>
+              <div className="kv-item"><div className="kv-label">Reserva/Pedido</div><div className="kv-val">{mov.reservaPedido ?? '—'}</div></div>
+              <div className="kv-item"><div className="kv-label">Destino</div><div className="kv-val">{normalizarLocal(mov.destino)}</div></div>
+              <div className="kv-item"><div className="kv-label">Nota fiscal</div><div className="kv-val font-mono">{mov.numeroDocumento ?? 'Em aberto'}</div></div>
+              <div className="kv-item"><div className="kv-label">Data</div><div className="kv-val">{fmtData(mov.dataMovimentacao)}</div></div>
+              <div className="kv-item"><div className="kv-label">Responsável no Pátio</div><div className="kv-val">{mov.responsavelPatio ?? '—'}</div></div>
+            </dl>
+          </div>
+
+          <div className="kv-secao">
+            <h3 className="kv-secao-titulo">Caminhão</h3>
+            <dl className="kv-grid">
+              <div className="kv-item"><div className="kv-label">Cavalo</div><div className="kv-val font-mono">{mov.placaCavalo ?? '—'}</div></div>
+              <div className="kv-item"><div className="kv-label">Carreta(s)</div><div className="kv-val font-mono">{[mov.placaCarreta, mov.placaCarreta2].filter(Boolean).join(' / ') || '—'}</div></div>
+              <div className="kv-item"><div className="kv-label">Transportadora</div><div className="kv-val">{mov.transportadora ?? '—'}</div></div>
+              {mov.capacidadeCarga != null && (
+                <div className="kv-item"><div className="kv-label">Capacidade de carga</div><div className="kv-val">{Number(mov.capacidadeCarga).toLocaleString('pt-BR')} t</div></div>
+              )}
+            </dl>
+          </div>
+
           {(mov.motoristaNome || mov.motoristaTelefone || mov.motoristaCpf) && (
-            <div className="kv-item"><div className="kv-label">Motorista (Portaria)</div><div className="kv-val">{[mov.motoristaNome, mov.motoristaTelefone, mov.motoristaCpf && `CPF ${mov.motoristaCpf}`].filter(Boolean).join(' · ')}</div></div>
+            <div className="kv-secao">
+              <h3 className="kv-secao-titulo">Motorista</h3>
+              <dl className="kv-grid">
+                <div className="kv-item"><div className="kv-label">Nome</div><div className="kv-val">{mov.motoristaNome || '—'}</div></div>
+                <div className="kv-item"><div className="kv-label">Telefone</div><div className="kv-val font-mono">{formatarTelefone(mov.motoristaTelefone) || '—'}</div></div>
+                <div className="kv-item"><div className="kv-label">CPF</div><div className="kv-val font-mono">{formatarCpf(mov.motoristaCpf) || '—'}</div></div>
+              </dl>
+            </div>
           )}
-          {mov.capacidadeCarga != null && (
-            <div className="kv-item"><div className="kv-label">Capacidade de carga</div><div className="kv-val">{Number(mov.capacidadeCarga).toLocaleString('pt-BR')} t</div></div>
+
+          <div className="kv-secao">
+            <h3 className="kv-secao-titulo">Passo a passo</h3>
+            <ol className="passos">
+              {passos.map((e) => (
+                <li key={e.rotulo} className="passo">
+                  <span className="passo-rotulo">{e.rotulo}</span>
+                  <span className="passo-quando font-mono">{fmtDataHora(e.em)}</span>
+                  {e.por && <span className="passo-por">{e.por}</span>}
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          {(mov.observacaoPortaria || mov.observacao) && (
+            <div className="kv-secao">
+              <h3 className="kv-secao-titulo">Observações</h3>
+              <dl className="kv-grid">
+                {mov.observacaoPortaria && (
+                  <div className="kv-item"><div className="kv-label">Da Portaria</div><div className="kv-val whitespace-pre-wrap">{mov.observacaoPortaria}</div></div>
+                )}
+                {mov.observacao && (
+                  <div className="kv-item"><div className="kv-label">Do Pátio</div><div className="kv-val whitespace-pre-wrap">{mov.observacao}</div></div>
+                )}
+              </dl>
+            </div>
           )}
-          {mov.chegadaPortariaEm && (
-            <div className="kv-item"><div className="kv-label">Carreta chegou (Portaria)</div><div className="kv-val">{fmtDataHora(mov.chegadaPortariaEm)}{mov.chegadaPortariaPor ? ` · ${mov.chegadaPortariaPor}` : ''}</div></div>
-          )}
-          {mov.carretaLiberadaEm && (
-            <div className="kv-item"><div className="kv-label">Liberada pelo Pátio</div><div className="kv-val">{fmtDataHora(mov.carretaLiberadaEm)}</div></div>
-          )}
-          {mov.saidaPortariaEm && (
-            <div className="kv-item"><div className="kv-label">Saída (Portaria)</div><div className="kv-val">{fmtDataHora(mov.saidaPortariaEm)}{mov.saidaPortariaPor ? ` · ${mov.saidaPortariaPor}` : ''}</div></div>
-          )}
-        </dl>
+        </div>
 
         {mov.status !== 'AGUARDANDO_CHEGADA' && mov.numeroDocumento == null && <NfPainel movimentacaoId={mov.id} />}
         {mov.carretaLiberadaEm && (
