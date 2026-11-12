@@ -64,7 +64,7 @@ describe('recebimentoCaminhaoSchema', () => {
     expect(resultado.success).toBe(false);
   });
 
-  it('rejeita medição de REEMPREGO abaixo de 7 metros', () => {
+  it('rejeita medição de REEMPREGO com comprimento zero', () => {
     const resultado = recebimentoCaminhaoSchema.safeParse({
       clientId: uuid(),
       dados: dadosValidos(),
@@ -74,7 +74,7 @@ describe('recebimentoCaminhaoSchema', () => {
           perfil: 'TR68',
           tipoMaterial: 'REEMPREGO',
           classificacao: 'G1',
-          medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 6.99 }],
+          medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 0 }],
         },
       ],
     });

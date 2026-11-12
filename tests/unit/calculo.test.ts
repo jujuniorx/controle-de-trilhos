@@ -13,8 +13,10 @@ describe('calcularMetros', () => {
 });
 
 describe('validarReemprego', () => {
-  it('rejeita comprimento abaixo de 7 metros', () => {
-    expect(validarReemprego(6.99)).toBe(false);
-    expect(validarReemprego(7.0)).toBe(true);
+  it('aceita qualquer comprimento positivo (4 m, 6,99 m, 50 m)', () => {
+    expect(validarReemprego(4)).toBe(true);
+    expect(validarReemprego(6.99)).toBe(true);
+    expect(validarReemprego(50)).toBe(true);
+    expect(validarReemprego(0)).toBe(false);
   });
 });
