@@ -107,8 +107,11 @@ export async function sincronizarProducaoAction(formData: FormData): Promise<Res
   if (!cookieProducaoValido((await cookies()).get(COOKIE_PRODUCAO)?.value)) return { ok: false, motivo: 'sessao' };
   try {
     const data = await gravarDia(formData);
+    if (!data) console.error('[producao] envio automatico recusado: data invalida', formData.get('data'));
     return data ? { ok: true } : { ok: false, motivo: 'erro' };
-  } catch {
+  } catch (erro) {
+    // Vai para o log do servidor (Vercel) para descobrir por que o dia não foi salvo.
+    console.error('[producao] envio automatico falhou', erro);
     return { ok: false, motivo: 'erro' };
   }
 }
