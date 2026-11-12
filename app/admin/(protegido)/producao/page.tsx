@@ -93,6 +93,7 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
         <div>
           <p className="doc-topo-sistema doc-topo-marca">
             <span>Controle de Trilhos</span>
+            <span aria-hidden>-</span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo-rumo-relatorio.png" alt="Rumo" />
           </p>

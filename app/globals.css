@@ -2468,8 +2468,8 @@ html[data-tema="pastel"] .entrada-marca-conteudo::before { background: radial-gr
   main.planilha-producao .so-impressao-bloco { display: block !important; }
   main.planilha-producao .doc-topo { justify-content: space-between; align-items: flex-end; gap: 10mm; padding-bottom: 4mm; border-bottom: 1.2pt solid #16191f !important; }
   main.planilha-producao .doc-topo-sistema { font-size: 7.5pt; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #5b6472 !important; margin: 0; }
-  main.planilha-producao .doc-topo-marca { display: flex; align-items: center; gap: 4mm; }
-  main.planilha-producao .doc-topo-marca img { height: 7mm; width: auto; }
+  main.planilha-producao .doc-topo-marca { display: flex; align-items: center; gap: 1.6mm; }
+  main.planilha-producao .doc-topo-marca img { height: 3.6mm; width: auto; }
   main.planilha-producao .doc-topo-titulo { font-family: var(--font-barlow-cond), var(--font-barlow), Arial, sans-serif; font-size: 22pt; font-weight: 700; line-height: 1.05; text-transform: uppercase; letter-spacing: .02em; margin: 1mm 0; }
   main.planilha-producao .doc-topo-sub { font-size: 10pt; color: #3c4350 !important; margin: 0; }
   main.planilha-producao .doc-ficha { display: grid; grid-template-columns: auto auto; gap: 1.5mm 8mm; margin: 0; }
