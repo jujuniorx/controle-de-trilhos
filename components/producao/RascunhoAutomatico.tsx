@@ -7,7 +7,7 @@ import { sincronizarProducaoAction, type ResultadoSincronizacao } from '@/app/pr
 /** Tempo até tentar de novo quando o dia não chegou ao Administrativo. */
 const NOVA_TENTATIVA_MS = 15000;
 
-type Estado = 'parado' | 'salvando' | 'salvo' | 'enviado' | 'falhou' | 'sessao' | 'recuperado' | 'erro';
+type Estado = 'parado' | 'salvando' | 'salvo' | 'enviado' | 'falhou' | 'sessao' | 'desatualizado' | 'recuperado' | 'erro';
 
 /** Rascunho guardado no proprio aparelho (tablet, celular ou computador): sobrevive a atualizar, fechar e reabrir. */
 function chave(data: string) {
@@ -95,8 +95,14 @@ export function RascunhoAutomatico({ data, horas, sobraEntrada, fabricanteSalvo,
           timerEnvio = setTimeout(enviar, NOVA_TENTATIVA_MS);
         })
         .catch(() => {
-          // Sem internet: fica no aparelho e tenta de novo sozinho.
           if (cancelado) return;
+          // Com internet, o servidor recusou a ação: quase sempre é a página aberta de uma versão antiga
+          // (o sistema foi atualizado). Tentar de novo não resolve, então pede para recarregar.
+          if (navigator.onLine) {
+            setEstado('desatualizado');
+            return;
+          }
+          // Sem internet: fica no aparelho e tenta de novo sozinho.
           setEstado('falhou');
           if (timerEnvio) clearTimeout(timerEnvio);
           timerEnvio = setTimeout(enviar, NOVA_TENTATIVA_MS);
@@ -246,13 +252,25 @@ export function RascunhoAutomatico({ data, horas, sobraEntrada, fabricanteSalvo,
     enviado: 'Salvo neste aparelho e enviado ao Administrativo.',
     falhou: 'Salvo neste aparelho, mas ainda NÃO chegou ao Administrativo. Tentando de novo…',
     sessao: 'A sessão da Produção expirou: o que foi digitado está salvo neste aparelho. Entre de novo para enviar.',
+    desatualizado: 'O sistema foi atualizado enquanto esta página estava aberta, e o envio foi recusado. O que foi digitado continua salvo neste aparelho.',
     recuperado: 'Rascunho recuperado neste aparelho. Confira os campos e salve o dia.',
     erro: 'Não foi possível guardar o rascunho neste aparelho.',
   };
 
   return (
-    <p role="status" aria-live="polite" className="text-sm text-ink-muted">
-      {texto[estado]}
-    </p>
+    <div className="grid gap-2">
+      <p role="status" aria-live="polite" className="text-sm text-ink-muted">
+        {texto[estado]}
+      </p>
+      {estado === 'desatualizado' && (
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="h-11 rounded-md border border-line px-4 text-sm font-medium"
+        >
+          Recarregar a página
+        </button>
+      )}
+    </div>
   );
 }
