@@ -154,3 +154,17 @@ export async function sobraAntesDe(data: Date): Promise<number> {
 export async function buscarDia(data: Date) {
   return prisma.producaoDia.findUnique({ where: { data }, include: { linhas: { orderBy: { hora: 'asc' } } } });
 }
+
+/** Soldas, cortes e dias lançados do ano inteiro (para o Administrativo ver o total anual). */
+export async function totaisDoAno(ano: number): Promise<{ soldas: number; cortes: number; dias: number }> {
+  const faixa = { gte: new Date(`${ano}-01-01T00:00:00Z`), lte: new Date(`${ano}-12-31T00:00:00Z`) };
+  const [dias, cortes] = await Promise.all([
+    prisma.producaoDia.aggregate({ where: { data: faixa }, _sum: { totalSoldas: true }, _count: { _all: true } }),
+    prisma.producaoLinha.aggregate({ where: { dia: { data: faixa } }, _sum: { cortes: true } }),
+  ]);
+  return {
+    soldas: dias._sum.totalSoldas ?? 0,
+    cortes: cortes._sum.cortes ?? 0,
+    dias: dias._count._all,
+  };
+}

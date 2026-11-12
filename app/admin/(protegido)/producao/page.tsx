@@ -1,4 +1,4 @@
-import { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, buscarDia, horasDoDia, paradasDaLinha, paradasEmAndamento, respostaTlsDaLinha } from '@/lib/services/producao';
+import { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, buscarDia, horasDoDia, paradasDaLinha, paradasEmAndamento, respostaTlsDaLinha, totaisDoAno } from '@/lib/services/producao';
 import { AoVivo } from '@/components/producao/AoVivo';
 import { BotaoImprimirPagina } from '@/components/producao/BotaoImprimirPagina';
 import { BotaoBaixarImagem, type DadosImagemProducao } from '@/components/producao/BotaoBaixarImagem';
@@ -45,6 +45,7 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
   const dia = await buscarDia(data);
   const porHora = new Map((dia?.linhas ?? []).map((l) => [l.hora, l]));
   const horas = horasDoDia(data);
+  const anual = await totaisDoAno(data.getUTCFullYear());
 
   const totalSoldas = dia?.totalSoldas ?? 0;
   const totalCortes = horas.reduce((t, h) => t + (porHora.get(h)?.cortes ?? 0), 0);
@@ -200,6 +201,12 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
           </dl>
         </section>
       )}
+
+      <section className="doc-indicadores grid grid-cols-3 gap-3" aria-label={`Total de ${data.getUTCFullYear()}`}>
+        <Indicador rotulo={`Soldas em ${data.getUTCFullYear()}`} valor={anual.soldas} detalhe={`${anual.dias} ${anual.dias === 1 ? 'dia lançado' : 'dias lançados'}`} />
+        <Indicador rotulo={`Cortes em ${data.getUTCFullYear()}`} valor={anual.cortes} />
+        <Indicador rotulo="Média por dia" valor={anual.dias ? (anual.soldas / anual.dias).toFixed(1).replace('.', ',') : '—'} />
+      </section>
 
       <header className="so-tela space-y-2">
         <p className="kv-label">Produção · Estaleiro de soldas - Bauru</p>
