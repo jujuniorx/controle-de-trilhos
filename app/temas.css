@@ -234,7 +234,8 @@ html[data-tema]:root .ct-user-nome { color: var(--v-side-strong) !important; }
 
 /* Barra do topo */
 html[data-tema]:root .ct-topbar { background: var(--v-top) !important; border-bottom: 1px solid var(--v-top-line) !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; color: var(--ink); }
-html[data-tema]:root .ct-user-avatar { background: var(--v-btn) !important; color: var(--v-btn-ink) !important; box-shadow: none !important; }
+/* .portaria-avatar e a bolinha da conta no topo: sem isto, no tema Escuro a letra saia branca sobre fundo branco. */
+html[data-tema]:root :is(.ct-user-avatar, .portaria-avatar) { background: var(--v-btn) !important; color: var(--v-btn-ink) !important; box-shadow: none !important; }
 html[data-tema]:root .bg-primary.text-white { color: var(--v-btn-ink) !important; }
 
 /* Botoes */
