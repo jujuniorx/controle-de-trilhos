@@ -930,3 +930,8 @@ html[data-tema]:root .vivo-estado { margin: 0; padding: 10px 12px; border-radius
 html[data-tema]:root .vivo-estado[data-parada="true"] { border-color: var(--warn); color: var(--warn); }
 @media (max-width: 640px) { html[data-tema]:root .vivo-corpo { grid-template-columns: minmax(0, 1fr); } }
 @media (prefers-reduced-motion: reduce) { html[data-tema]:root .vivo, html[data-tema]:root .vivo-ponto { animation: none; } html[data-tema]:root .vivo-barra > span { transition: none; } }
+
+/* Tela inicial: resuminho dentro do cartao (Producao de hoje) */
+html[data-tema]:root .inicio-resumo-itens { display: flex; flex-direction: column; gap: 3px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--v-card-line); font-size: .82rem; color: var(--ink-muted); }
+html[data-tema]:root .inicio-resumo-itens > span { overflow-wrap: anywhere; }
+html[data-tema]:root .inicio-resumo-itens > [data-destaque="true"] { font-weight: 700; color: var(--warn); }
