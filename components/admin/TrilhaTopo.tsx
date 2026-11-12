@@ -8,7 +8,6 @@ const SECOES: Record<string, string> = {
   '/admin': 'Início',
   '/admin/pendencias': 'Pendências',
   '/admin/producao': 'Produção',
-  '/admin/dono': 'Visão geral',
   '/admin/relatorios': 'Relatórios',
   '/admin/informativo': 'Informativo',
   '/admin/portaria': 'Portaria',
@@ -16,8 +15,6 @@ const SECOES: Record<string, string> = {
   '/admin/estoque': 'Estoque',
   '/admin/usuarios': 'Usuários',
   '/admin/lixeira': 'Lixeira',
-  '/admin/pilhas': 'Pilhas do pátio',
-  '/admin/auditoria': 'Auditoria',
   '/admin/trocar-senha': 'Trocar minha senha',
 };
 

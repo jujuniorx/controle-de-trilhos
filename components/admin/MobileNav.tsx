@@ -9,7 +9,7 @@ import { BotaoSair } from './BotaoSair';
 import { EVENTO_MENU } from '@/components/ui/GestosApp';
 
 /** Botão de menu do cabeçalho e a folha "Mais" (abre de baixo; também é aberta pela aba "Mais"). */
-export function MobileNav({ dono }: { dono?: boolean }) {
+export function MobileNav() {
   const [aberto, setAberto] = useState(false);
   const pathname = usePathname();
 
@@ -52,7 +52,7 @@ export function MobileNav({ dono }: { dono?: boolean }) {
           <div className="folha-fundo" onClick={() => setAberto(false)} />
           <div className="folha-mais" role="dialog" aria-label="Menu">
             <span className="folha-alca" aria-hidden="true" />
-            <SidebarNav dono={dono} className="py-1" onNavigate={() => setAberto(false)} />
+            <SidebarNav className="py-1" onNavigate={() => setAberto(false)} />
             <div className="ct-mobile-sair">
               <Link href="/admin/trocar-senha" className="ct-user-link" onClick={() => setAberto(false)}>
                 Trocar minha senha

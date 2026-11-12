@@ -1,4 +1,4 @@
-import { requireDono } from '@/lib/services/requireAdmin';
+import { requireAdmin } from '@/lib/services/requireAdmin';
 import { listarUsuarios } from '@/lib/services/usuarios';
 import { NovoUsuarioForm } from './NovoUsuarioForm';
 import { AcoesUsuario } from './AcoesUsuario';
@@ -12,17 +12,18 @@ function fmtDataHora(d: Date | null): string {
 }
 
 export default async function UsuariosPage() {
-  const dono = await requireDono();
+  const sessao = await requireAdmin();
+  const ehDono = sessao.role === 'DONO';
   const [usuarios, bancoPendente] = await Promise.all([listarUsuarios(), esquemaPrecisaAtualizar()]);
 
   return (
     <main className="mx-auto w-full max-w-7xl space-y-6">
       <div>
         <h1 className="font-condensed text-2xl font-bold uppercase tracking-wide text-ink">Usuários</h1>
-        <p className="text-sm text-ink-muted">Quem pode entrar no Administrativo e na Portaria. Só você enxerga esta página.</p>
+        <p className="text-sm text-ink-muted">Quem pode entrar no Administrativo e na Portaria.</p>
       </div>
 
-      {bancoPendente && <AtualizarBanco />}
+      {ehDono && bancoPendente && <AtualizarBanco />}
 
       <NovoUsuarioForm />
 
@@ -34,7 +35,7 @@ export default async function UsuariosPage() {
               <th className="p-3 text-left">Usuário</th>
               <th className="p-3 text-left">Situação</th>
               <th className="p-3 text-left">Último acesso</th>
-              <th className="p-3" />
+              {ehDono && <th className="p-3" />}
             </tr>
           </thead>
           <tbody>
@@ -49,9 +50,11 @@ export default async function UsuariosPage() {
                   <span className={`badge ${u.ativo ? 'badge-ok' : 'badge-muted'}`}>{u.ativo ? 'Ativa' : 'Desativada'}</span>
                 </td>
                 <td data-label="Último acesso" className="p-3">{fmtDataHora(u.ultimoLoginEm)}</td>
-                <td className="p-3 text-right">
-                  <AcoesUsuario id={u.id} nome={u.nome} ativo={u.ativo} ehVoce={u.id === dono.userId} />
-                </td>
+                {ehDono && (
+                  <td className="p-3 text-right">
+                    <AcoesUsuario id={u.id} nome={u.nome} ativo={u.ativo} ehVoce={u.id === sessao.userId} />
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

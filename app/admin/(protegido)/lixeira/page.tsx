@@ -1,4 +1,4 @@
-import { requireDono } from '@/lib/services/requireAdmin';
+import { requireAdmin } from '@/lib/services/requireAdmin';
 import { listarChegadasExcluidas, listarLixeira } from '@/lib/services/lixeira';
 import { BotaoRestaurar } from './BotaoRestaurar';
 import { BotaoRestaurarChegada } from './BotaoRestaurarChegada';
@@ -6,7 +6,7 @@ import { BotaoRestaurarChegada } from './BotaoRestaurarChegada';
 export const dynamic = 'force-dynamic';
 
 export default async function LixeiraPage() {
-  await requireDono();
+  await requireAdmin();
   const [itens, chegadas] = await Promise.all([listarLixeira(), listarChegadasExcluidas()]);
 
   return (

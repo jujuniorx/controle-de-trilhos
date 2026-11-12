@@ -12,14 +12,8 @@ export const NAV_ITEMS = [
   { href: '/admin/portaria', label: 'Portaria' },
   { href: '/admin/usina', label: 'Usina' },
   { href: '/admin/estoque', label: 'Estoque' },
-] as const;
-
-/** Itens extras, só para o DONO. */
-export const NAV_ITEMS_DONO = [
   { href: '/admin/usuarios', label: 'Usuários' },
   { href: '/admin/lixeira', label: 'Lixeira' },
-  { href: '/admin/pilhas', label: 'Pilhas do pátio' },
-  { href: '/admin/auditoria', label: 'Auditoria' },
 ] as const;
 
 const tracos = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
@@ -65,20 +59,6 @@ export const ICONES_NAV: Record<string, ReactNode> = {
       <path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4" />
     </svg>
   ),
-  '/admin/pilhas': (
-    <svg width="18" height="18" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
-      <rect x="3" y="14" width="18" height="6" rx="1" />
-      <rect x="6" y="5" width="12" height="6" rx="1" />
-    </svg>
-  ),
-  '/admin/dono': (
-    <svg width="18" height="18" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
-      <rect x="3" y="3" width="7.5" height="7.5" rx="1.5" />
-      <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5" />
-      <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5" />
-      <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5" />
-    </svg>
-  ),
   '/admin/usuarios': (
     <svg width="18" height="18" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
       <circle cx="9" cy="8" r="3.5" />
@@ -88,11 +68,6 @@ export const ICONES_NAV: Record<string, ReactNode> = {
   '/admin/lixeira': (
     <svg width="18" height="18" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
       <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" />
-    </svg>
-  ),
-  '/admin/auditoria': (
-    <svg width="18" height="18" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
-      <path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6zM9 12l2 2 4-4" />
     </svg>
   ),
 };

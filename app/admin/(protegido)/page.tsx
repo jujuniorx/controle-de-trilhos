@@ -23,14 +23,8 @@ const SECOES: Secao[] = [
   { href: '/admin/portaria', nome: 'Portaria', descricao: 'Cargas e descargas' },
   { href: '/admin/usina', nome: 'Usina', descricao: 'Lançamentos da usina' },
   { href: '/admin/estoque', nome: 'Estoque', descricao: 'Itens e saldos' },
-];
-
-const SECOES_DONO: Secao[] = [
-  { href: '/admin/dono', nome: 'Visão geral', descricao: 'Números gerais do sistema' },
   { href: '/admin/usuarios', nome: 'Usuários', descricao: 'Contas e senhas' },
-  { href: '/admin/pilhas', nome: 'Pilhas do pátio', descricao: 'Cadastro das pilhas' },
   { href: '/admin/lixeira', nome: 'Lixeira', descricao: 'Itens excluídos' },
-  { href: '/admin/auditoria', nome: 'Auditoria', descricao: 'Registro do que foi feito' },
 ];
 
 function Resumo({ href, rotulo, valor, detalhe, alerta = false, itens }: { href: string; rotulo: string; valor: ReactNode; detalhe: string; alerta?: boolean; itens?: { texto: string; destaque?: boolean }[] }) {
@@ -63,7 +57,7 @@ function Cartao({ secao, selo }: { secao: Secao; selo?: number }) {
 
 /** Tela inicial do Administrativo: o resumo do dia e a entrada para cada seção. */
 export default async function AdminInicioPage() {
-  const { nome, role } = await requireAdmin();
+  const { nome } = await requireAdmin();
   const primeiroNome = nome.trim().split(' ')[0] ?? nome;
   const hoje = new Date(`${hojeSP()}T00:00:00Z`);
   const [movimentacoes, aguardandoChegada, dia] = await Promise.all([listarPendentesConferencia(), listarAguardandoChegada(), buscarDia(hoje)]);
@@ -144,15 +138,6 @@ export default async function AdminInicioPage() {
           ))}
         </div>
       </section>
-
-      {role === 'DONO' && (
-        <section className="space-y-3" aria-labelledby="inicio-dono">
-          <h2 id="inicio-dono" className="section-title">Gestão do sistema</h2>
-          <div className="inicio-grade">
-            {SECOES_DONO.map((s) => <Cartao key={s.href} secao={s} />)}
-          </div>
-        </section>
-      )}
     </main>
   );
 }

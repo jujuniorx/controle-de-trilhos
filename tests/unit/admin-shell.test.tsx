@@ -29,31 +29,22 @@ describe('AdminShell', () => {
   });
 });
 
-describe('AdminShell — dono', () => {
+describe('AdminShell — menu para todo admin', () => {
   afterEach(cleanup);
 
-  it('só o dono vê Usuários e Auditoria', () => {
-    render(<AdminShell nome="Junior" ehDono>x</AdminShell>);
-    expect(screen.getAllByRole('link', { name: 'Usuários' })[0]).toHaveAttribute('href', '/admin/usuarios');
-    expect(screen.getAllByRole('link', { name: 'Auditoria' })[0]).toHaveAttribute('href', '/admin/auditoria');
-    cleanup();
+  it('Usuários e Lixeira aparecem para qualquer admin; Auditoria e Pilhas não existem mais', () => {
     render(<AdminShell nome="Paula">x</AdminShell>);
-    expect(screen.queryByRole('link', { name: 'Usuários' })).toBeNull();
+    expect(screen.getAllByRole('link', { name: 'Usuários' })[0]).toHaveAttribute('href', '/admin/usuarios');
+    expect(screen.getAllByRole('link', { name: 'Lixeira' })[0]).toHaveAttribute('href', '/admin/lixeira');
     expect(screen.queryByRole('link', { name: 'Auditoria' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Pilhas do pátio' })).toBeNull();
   });
 });
 
 describe('AdminShell — organização do menu', () => {
   afterEach(cleanup);
 
-  it('para o dono, Visão geral é o primeiro item do menu', () => {
-    render(<AdminShell nome="Junior" ehDono>x</AdminShell>);
-    const nav = document.querySelector('aside .ct-sidebar-nav');
-    const primeiro = nav?.querySelector('a');
-    expect(primeiro?.getAttribute('href')).toBe('/admin/dono');
-  });
-
-  it('para o admin comum, Visão geral não aparece', () => {
+  it('Visão geral não aparece para ninguém', () => {
     render(<AdminShell nome="Paula">x</AdminShell>);
     expect(screen.queryByRole('link', { name: 'Visão geral' })).toBeNull();
   });

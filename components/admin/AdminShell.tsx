@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { NavegacaoTopo } from '@/components/ui/NavegacaoTopo';
-import { ICONES_NAV as ICONES_MENU, NAV_ITEMS, NAV_ITEMS_DONO } from './navItens';
+import { ICONES_NAV as ICONES_MENU, NAV_ITEMS } from './navItens';
 import { Logo } from '@/components/ui/Logo';
 import { MenuExcluir } from '@/components/admin/MenuExcluir';
 import { InstalarApp } from '@/components/InstalarApp';
@@ -43,14 +43,6 @@ const ICONES_NAV = {
       <path d="M3 3v18h18M7 15l4-4 3 3 5-6" />
     </svg>
   ),
-  visao: (
-    <svg width="24" height="24" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
-      <rect x="3" y="3" width="7.5" height="7.5" rx="1.5" />
-      <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5" />
-      <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5" />
-      <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5" />
-    </svg>
-  ),
   portaria: (
     <svg width="24" height="24" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
       <path d="M3 7h11v9H3zM14 10h4l3 3v3h-7M7 18.5a1.5 1.5 0 1 0 0-.01M17 18.5a1.5 1.5 0 1 0 0-.01" />
@@ -81,10 +73,8 @@ function abasDoAdmin(): Aba[] {
 }
 
 /** Lista completa para telas largas (sem menu lateral): todas as seções na barra de baixo. */
-function abasLargasDoAdmin(dono: boolean): Aba[] {
-  // A Visão geral do dono é aberta pela tela inicial, para a barra não ficar apertada.
-  const itens = [...NAV_ITEMS, ...(dono ? NAV_ITEMS_DONO : [])];
-  return itens.map((i) => ({ href: i.href, rotulo: i.label, icone: ICONES_MENU[i.href] }));
+function abasLargasDoAdmin(): Aba[] {
+  return NAV_ITEMS.map((i) => ({ href: i.href, rotulo: i.label, icone: ICONES_MENU[i.href] }));
 }
 
 /** Menu da conta no topo (celular e telas largas): nome, trocar de área, trocar senha e sair. */
@@ -156,7 +146,7 @@ export function AdminShell({ nome, ehDono = false, children }: { nome: string; e
         </main>
       </div>
       <BarraAbas abas={abasDoAdmin()} raiz="/admin" largura="celular" />
-      <BarraAbas abas={abasLargasDoAdmin(ehDono)} raiz="/admin" largura="larga" />
+      <BarraAbas abas={abasLargasDoAdmin()} raiz="/admin" largura="larga" />
     </div>
   );
 }

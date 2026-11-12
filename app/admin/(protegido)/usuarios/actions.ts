@@ -14,6 +14,7 @@ export interface EstadoUsuarios {
 }
 
 // Server actions são endpoints públicos: o papel é conferido aqui, não só na tela.
+// Criar conta: qualquer admin. Mexer em conta existente (desativar, senha, banco): só o dono.
 async function exigirDono() {
   const sessao = await requireAdmin();
   if (sessao.role !== 'DONO') throw new ErroRegraNegocio('Só o dono do sistema pode fazer isso.');
@@ -26,7 +27,7 @@ function mensagem(e: unknown): string {
 
 export async function criarUsuarioAction(_e: EstadoUsuarios, formData: FormData): Promise<EstadoUsuarios> {
   try {
-    const ator = await exigirDono();
+    const ator = await requireAdmin();
     const parsed = novoUsuarioSchema.safeParse({
       nome: String(formData.get('nome') ?? ''),
       username: String(formData.get('username') ?? ''),

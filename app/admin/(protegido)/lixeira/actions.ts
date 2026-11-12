@@ -8,7 +8,6 @@ import { ErroRegraNegocio } from '@/lib/services/errors';
 
 export async function restaurarMovimentacaoAction(lixeiraId: string): Promise<{ ok: boolean; erro?: string; irPara?: string }> {
   const sessao = await requireAdmin();
-  if (sessao.role !== 'DONO') return { ok: false, erro: 'Só o dono do sistema pode restaurar movimentações.' };
   let resultado: Awaited<ReturnType<typeof restaurarMovimentacao>>;
   try {
     resultado = await restaurarMovimentacao(lixeiraId, sessao);
@@ -27,10 +26,9 @@ export async function restaurarMovimentacaoAction(lixeiraId: string): Promise<{ 
   return { ok: true, irPara: `/admin/${base}/${resultado.movimentacaoId}` };
 }
 
-/** Dono: recoloca uma chegada que o Pátio excluiu (volta para a lista da Portaria e do Pátio). */
+/** Recoloca uma chegada que o Pátio excluiu (volta para a lista da Portaria e do Pátio). */
 export async function restaurarChegadaAction(chegadaId: string): Promise<{ ok: boolean; erro?: string }> {
   const sessao = await requireAdmin();
-  if (sessao.role !== 'DONO') return { ok: false, erro: 'Só o dono do sistema pode restaurar.' };
   try {
     await restaurarChegada(chegadaId);
   } catch (e) {
