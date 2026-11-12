@@ -1,19 +1,19 @@
-// Gera os ícones do app (public/icons/<tema>/...) com a marca do sistema: o perfil do trilho sobre o dormente.
+// Gera os ícones do app (public/icons/<tema>/...) com a marca do sistema: a via vista de cima (dois trilhos, cinco dormentes e as placas de apoio).
 // Uso: node scripts/gerar-icones-do-app.mjs   (precisa do Playwright com o Chromium instalado)
-// A geometria é a mesma de components/ui/Logo.tsx (MARCA_PERFIL); se a marca mudar lá, mude aqui também.
+// A geometria é a mesma de components/ui/Logo.tsx (MARCA_DORMENTES e MARCA_TRILHOS); se a marca mudar lá, mude aqui também.
 import { chromium } from 'playwright';
 import { mkdir, writeFile, copyFile } from 'node:fs/promises';
 
-const PERFIL =
-  'M12.5 45V42.2c0-.9.5-1.5 1.4-1.7L24.5 38V25.2c0-1.5-.8-2.5-2.3-2.8l-2.6-.5c-2-.4-3.1-1.8-3.1-3.8v-4.6c0-2.6 1.7-4.3 4.3-4.3h14.4c2.6 0 4.3 1.7 4.3 4.3v4.6c0 2-1.1 3.4-3.1 3.8l-2.6.5c-1.5.3-2.3 1.3-2.3 2.8V38l10.6 2.5c.9.2 1.4.8 1.4 1.7V45Z';
+const DORMENTES = [10.5, 19.25, 28, 36.75, 45.5];
+const TRILHOS = [15, 41];
 
 // Fundo (degradê do canto de cima à esquerda ao de baixo à direita), trilho, dormente e contorno de cada tema.
 const TEMAS = {
-  azul: { de: '#6a85fe', ate: '#304ce0', trilho: '#ffffff', dorm: 'rgba(255,255,255,.5)' },
-  escuro: { de: '#19191b', ate: '#0b0b0c', trilho: '#fafafa', dorm: 'rgba(255,255,255,.38)', contorno: 'rgba(255,255,255,.4)' },
-  claro: { de: '#292929', ate: '#0e0e0e', trilho: '#ffffff', dorm: 'rgba(255,255,255,.38)' },
-  vidro: { de: '#796e67', ate: '#4f4843', trilho: '#ffb054', dorm: 'rgba(255,255,255,.5)', contorno: 'rgba(255,176,84,.6)' },
-  pastel: { de: '#292047', ate: '#1b1530', trilho: '#ffffff', dorm: 'rgba(185,166,255,.8)' },
+  azul: { de: '#6a85fe', ate: '#304ce0', trilho: '#ffffff', dorm: '#c3ceff' },
+  escuro: { de: '#19191b', ate: '#0b0b0c', trilho: '#fafafa', dorm: '#a1a1aa', contorno: 'rgba(255,255,255,.4)' },
+  claro: { de: '#292929', ate: '#0e0e0e', trilho: '#ffffff', dorm: '#9a9a95' },
+  vidro: { de: '#796e67', ate: '#4f4843', trilho: '#ffb054', dorm: '#d6cfc9', contorno: 'rgba(255,176,84,.6)' },
+  pastel: { de: '#292047', ate: '#1b1530', trilho: '#ffffff', dorm: '#b9a6ff' },
 };
 
 /** SVG do ícone. raio = canto arredondado (0 = fundo até a borda); escala = tamanho da marca dentro do quadro. */
@@ -24,9 +24,8 @@ function svg(c, tamanho, raio, escala) {
   <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c.de}"/><stop offset="1" stop-color="${c.ate}"/></linearGradient></defs>
   <rect width="56" height="56" rx="${raio}" fill="url(#g)"/>${contorno}
   <g transform="translate(${desloca} ${desloca}) scale(${escala})">
-    <rect x="8" y="45" width="40" height="4.5" rx="1.5" fill="${c.dorm}"/>
-    <path d="${PERFIL}" fill="${c.trilho}"/>
-    <rect x="20.5" y="12.2" width="15" height="2.4" rx="1.2" fill="${c.de}" opacity=".35"/>
+    ${DORMENTES.map((x) => `<rect x="${x - 2}" y="9" width="4" height="38" rx="1.6" fill="${c.dorm}" opacity=".55"/>${TRILHOS.map((y) => `<rect x="${x - 3.5}" y="${y - 3.7}" width="7" height="7.4" rx="1" fill="${c.dorm}"/>`).join('')}`).join('')}
+    ${TRILHOS.map((y) => `<rect x="5.5" y="${y - 2.5}" width="45" height="5" rx="2.5" fill="${c.trilho}"/><rect x="8.5" y="${y - 0.55}" width="39" height="1.1" rx=".55" fill="#000" opacity=".2"/>`).join('')}
   </g>
 </svg>`;
 }

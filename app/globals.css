@@ -263,6 +263,8 @@ h1, h2, h3 {
 :is(.ct-logo-mark, .logo-animada) .logo-tile { fill: #2c333c; transition: fill .4s ease; }
 :is(.ct-logo-mark, .logo-animada) .logo-dorm { fill: #3b82c4; transition: fill .4s ease; }
 :is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: #5b9bd5; transition: fill .4s ease; }
+/* Friso do boleto: um risco escuro e fino no meio de cada trilho (funciona em qualquer cor de trilho). */
+:is(.ct-logo-mark, .logo-animada) .logo-friso { fill: #000; opacity: .2; }
 html[data-tema="escuro"] :is(.ct-logo-mark, .logo-animada) .logo-tile { fill: #0B0B0C; }
 html[data-tema="escuro"] :is(.ct-logo-mark, .logo-animada) .logo-dorm { fill: #A1A1AA; }
 html[data-tema="escuro"] :is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: #FAFAFA; }
@@ -916,7 +918,6 @@ html[data-tema="pastel"] .grafico-area { --viz-2: #f29bbf; --viz-outros: #cfc6ee
 @keyframes la-quadro { from { transform: scale(.6); opacity: 0; } }
 @keyframes la-trilho { from { transform: scaleX(0); } }
 @keyframes la-dorm { from { transform: scaleY(0); opacity: 0; } }
-@keyframes la-perfil { from { transform: translateY(-7px); opacity: 0; } }
 @keyframes check-pop { from { transform: scale(.4); opacity: 0; } }
 @keyframes check-risco { from { stroke-dashoffset: 1; } }
 @keyframes check-anel { from { transform: scale(.9); opacity: .9; } to { transform: scale(1.45); opacity: 0; } }
@@ -932,7 +933,6 @@ html[data-tema="pastel"] .grafico-area { --viz-2: #f29bbf; --viz-outros: #cfc6ee
 .logo-animada .la-quadro { transform-box: fill-box; transform-origin: center; animation: la-quadro .6s cubic-bezier(.2, .9, .3, 1.2) backwards; }
 .logo-animada .la-trilho { transform-box: fill-box; transform-origin: left center; animation: la-trilho .7s cubic-bezier(.3, .7, .2, 1) backwards; }
 .logo-animada .la-dorm { transform-box: fill-box; transform-origin: center; animation: la-dorm .45s ease-out backwards; }
-.logo-animada .la-perfil { animation: la-perfil .5s cubic-bezier(.3, .7, .2, 1) backwards; }
 
 /* Tela inicial */
 .home-entrada {
@@ -2404,7 +2404,7 @@ html[data-tema="pastel"] .setor-tile-icone { border-radius: 26px; background: li
 /* Logo por tema: forma e contorno, alem da cor */
 html[data-tema="escuro"] :is(.ct-logo-mark, .logo-animada) .logo-tile { rx: 4px; stroke: #FAFAFA; stroke-width: 1; }
 html[data-tema="escuro"] :is(.ct-logo-mark, .logo-animada) .logo-trilho { rx: 0; }
-html[data-tema="vidro"] :is(.ct-logo-mark, .logo-animada) .logo-tile { rx: 16px; stroke: rgba(255, 154, 77, .6); stroke-width: 1.5; }
+html[data-tema="vidro"] :is(.ct-logo-mark, .logo-animada) .logo-tile { rx: 28px; stroke: rgba(255, 154, 77, .6); stroke-width: 1.5; }
 html[data-tema="vidro"] :is(.ct-logo-mark, .logo-animada) .logo-trilho { rx: 4px; }
 html[data-tema="pastel"] :is(.ct-logo-mark, .logo-animada) .logo-tile { rx: 18px; stroke: #B89CF8; stroke-width: 1.2; }
 html[data-tema="pastel"] :is(.ct-logo-mark, .logo-animada) .logo-dorm { rx: 3px; }
