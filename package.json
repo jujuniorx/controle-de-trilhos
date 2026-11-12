@@ -39,7 +39,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
     "fake-indexeddb": "^6.2.5",
-    "jsdom": "^30.0.1",
+    "jsdom": "^31.0.0",
     "s3rver": "^3.7.1",
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
