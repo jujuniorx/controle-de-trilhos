@@ -27,6 +27,8 @@ function inteiro(v: FormDataEntryValue | null): number | null | 'invalido' {
 async function salvarObservacoesDoSetor(formData: FormData, semana: string, setor: string) {
   for (let i = 0; i < 7; i++) {
     const d = somarDias(semana, i);
+    // Só mexe na observação do dia quando o campo veio no formulário: setor sem esse bloco não apaga o que já existe.
+    if (!formData.has(`obsdia_${setor}_${d}`)) continue;
     await salvarObservacaoSetor(d, setor, texto(formData.get(`obsdia_${setor}_${d}`), 500));
   }
 }

@@ -103,6 +103,9 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
   const geracaoSemana = await geracaoDaSemana(est.semana);
   const trilheirosSemana = await trilheirosDaSemana(est.semana);
   const observacoesSemana = await observacoesDoPeriodo(est.semana, somarDiasPagina(est.semana, 6));
+  // Padrão das observações: uma por item em cada dia (W61/W62, cada caminhão, cada líder, cada trilheiro).
+  // Só o Estaleiro, que não tem itens, usa a observação do dia do setor. Texto antigo de setor continua visível até ser passado para o item.
+  const temObservacaoAntiga = (chave: string) => Object.entries(observacoesSemana).some(([k, v]) => k.endsWith(`|${chave}`) && v.trim() !== '');
   const primeiroDaSemana = (t: (typeof TRILHEIROS)[number], campo: 'boEm' | 'partidaEm' | 'local' | 'observacao') =>
     trilheirosSemana.map((d) => d.trilheiros[t][campo]).find((v) => v) ?? '';
   const boSemana = Object.fromEntries(TRILHEIROS.map((t) => [t, primeiroDaSemana(t, 'boEm')]));
@@ -312,10 +315,10 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                     <th className="py-2">Dia</th>
                     <th className="py-2 text-right">W61 barras</th>
                     <th className="py-2 text-right">W61 jacarés</th>
-                    <th className="py-2">W61 observação</th>
+                    <th className="py-2">Observação W61</th>
                     <th className="py-2 text-right">W62 barras</th>
                     <th className="py-2 text-right">W62 jacarés</th>
-                    <th className="py-2">W62 observação</th>
+                    <th className="py-2">Observação W62</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -340,7 +343,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                 </tbody>
               </table>
             </div>
-                      <ObservacoesDoSetor setor="serra" dias={diasObservacao} obs={observacoesSemana} />
+                      {temObservacaoAntiga('serra') && <ObservacoesDoSetor setor="serra" dias={diasObservacao} obs={observacoesSemana} antigas />}
           </FormularioUsina>
         </div>
       </section>
@@ -400,7 +403,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                 </div>
               </div>
             ))}
-                      <ObservacoesDoSetor setor="caminhao" dias={diasObservacao} obs={observacoesSemana} />
+                      {temObservacaoAntiga('caminhao') && <ObservacoesDoSetor setor="caminhao" dias={diasObservacao} obs={observacoesSemana} antigas />}
           </FormularioUsina>
         </div>
         <div className="card space-y-2 opacity-70">
