@@ -452,6 +452,23 @@ html[data-tema="pastel"] :is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: 
 .kv-item .kv-label { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: var(--t3); margin-bottom: 2px; }
 .kv-item .kv-val { font-size: .9rem; color: var(--t1); font-weight: 500; }
 .kv-item .kv-empty { color: var(--t3); font-style: italic; }
+/* Dados agrupados por assunto (detalhe do recebimento) */
+.kv-secoes { display: grid; gap: 18px; }
+.kv-secao + .kv-secao { border-top: 1px solid var(--line); padding-top: 16px; }
+.kv-secao-titulo { font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink); margin-bottom: 10px; }
+.kv-secao .kv-grid { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 760px) { .kv-secao .kv-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .kv-secao .kv-grid { grid-template-columns: 1fr; } }
+.passos { display: grid; gap: 0; }
+.passo { position: relative; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; padding: 0 0 14px 22px; font-size: .9rem; }
+.passo:last-child { padding-bottom: 0; }
+.passo::before { content: ""; position: absolute; left: 0; top: .42em; width: 9px; height: 9px; border-radius: 50%; background: var(--ok); }
+.passo::after { content: ""; position: absolute; left: 4px; top: calc(.42em + 11px); bottom: -.3em; width: 1px; background: var(--line); }
+.passo:last-child::after { display: none; }
+.passo-rotulo { font-weight: 600; color: var(--ink); min-width: 13em; }
+.passo-quando { color: var(--ink); }
+.passo-por { color: var(--ink-muted); }
+
 
 /* ═══════════════════════════════════════════════
    TABELA

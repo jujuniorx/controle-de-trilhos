@@ -7,9 +7,10 @@ import { buscarMovimentacaoDetalhe, resumoPeso } from '@/lib/services/movimentac
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { buscarChegadaDoRecebimento } from '@/lib/services/chegada';
 import { pecasDoGrupo } from '@/lib/domain/regras';
+import { formatarCpf, formatarTelefone } from '@/lib/domain/portaria';
 import { ConferenciaPainel } from './ConferenciaPainel';
 import { NfsPainel } from '@/app/admin/(protegido)/NfsPainel';
-import { rotuloNfs, nfsEmTexto } from '@/lib/nf';
+import { rotuloNfs } from '@/lib/nf';
 import { EditarMedicoesPainel } from './EditarMedicoesPainel';
 import { HistoricoMovimentacao } from '@/components/admin/HistoricoMovimentacao';
 import { informarNumeroDocumentoRecebimentoAction } from './actions';
@@ -33,6 +34,16 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
   const resumo = resumoPeso(mov);
   // Dados da Portaria (se o caminhão passou por ela); nunca derruba a tela.
   const portaria = await buscarChegadaDoRecebimento(mov.id).catch(() => null);
+
+  // O caminho do caminhão, na ordem em que aconteceu: Portaria -> Pátio -> Portaria.
+  const passos = [
+    { rotulo: 'Chegou na Portaria', em: portaria?.liberadaEm ?? null, por: portaria?.liberadaPor ?? null },
+    { rotulo: 'Descarregado', em: portaria?.descarregadaEm ?? null, por: portaria?.descarregadaPor ?? null },
+    { rotulo: 'Medição lançada pelo Pátio', em: mov.createdAt, por: mov.responsavelPatio ?? null },
+    { rotulo: 'Saiu pela Portaria', em: portaria?.saidaEm ?? null, por: portaria?.saidaPor ?? null },
+  ]
+    .filter((e): e is { rotulo: string; em: Date; por: string | null } => e.em != null)
+    .sort((a, b) => a.em.getTime() - b.em.getTime());
 
   return (
     <main className="mx-auto w-full max-w-3xl xl:max-w-5xl space-y-4">
@@ -59,35 +70,69 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
       {/* 1. Dados do recebimento */}
       <section className="card">
         <h2 className="card-title">Dados do recebimento</h2>
-        <dl className="kv-grid">
-          <div className="kv-item"><div className="kv-label">Data</div><div className="kv-val">{fmtData(mov.dataMovimentacao)}</div></div>
-          <div className="kv-item"><div className="kv-label">Criado pelo Pátio em</div><div className="kv-val font-mono">{fmtDataHora(mov.createdAt)}</div></div>
-          <div className="kv-item"><div className="kv-label">Nota fiscal</div><div className="kv-val font-mono">{nfsEmTexto(mov) || 'Em aberto'}</div></div>
-          <div className="kv-item"><div className="kv-label">Origem</div><div className="kv-val">{normalizarLocal(mov.origem)}</div></div>
-          <div className="kv-item"><div className="kv-label">Transporte</div><div className="kv-val">{mov.tipoTransporte === 'CAMINHAO' ? 'Caminhão' : mov.tipoTransporte}</div></div>
-          <div className="kv-item"><div className="kv-label">Carreta(s)</div><div className="kv-val font-mono">{[mov.placaCarreta, mov.placaCarreta2].filter(Boolean).join(' / ') || '—'}</div></div>
-          <div className="kv-item"><div className="kv-label">Cavalo</div><div className="kv-val font-mono">{mov.placaCavalo ?? '—'}</div></div>
-          <div className="kv-item"><div className="kv-label">Responsável (Pátio)</div><div className="kv-val">{mov.responsavelPatio}</div></div>
+        <div className="kv-secoes">
+          <div className="kv-secao">
+            <h3 className="kv-secao-titulo">Carga</h3>
+            <dl className="kv-grid">
+              <div className="kv-item"><div className="kv-label">Data</div><div className="kv-val">{fmtData(mov.dataMovimentacao)}</div></div>
+              <div className="kv-item"><div className="kv-label">Origem</div><div className="kv-val">{normalizarLocal(mov.origem)}</div></div>
+              <div className="kv-item"><div className="kv-label">Responsável no Pátio</div><div className="kv-val">{mov.responsavelPatio}</div></div>
+            </dl>
+            <NfsPainel movimentacaoId={mov.id} principal={mov.numeroDocumento} extras={mov.numerosDocumentoExtras} acaoCorrigirPrincipal={informarNumeroDocumentoRecebimentoAction} />
+          </div>
+
+          <div className="kv-secao">
+            <h3 className="kv-secao-titulo">Caminhão</h3>
+            <dl className="kv-grid">
+              <div className="kv-item"><div className="kv-label">Cavalo</div><div className="kv-val font-mono">{mov.placaCavalo ?? '—'}</div></div>
+              <div className="kv-item"><div className="kv-label">Carreta(s)</div><div className="kv-val font-mono">{[mov.placaCarreta, mov.placaCarreta2].filter(Boolean).join(' / ') || '—'}</div></div>
+              {mov.tipoTransporte !== 'CAMINHAO' && (
+                <div className="kv-item"><div className="kv-label">Transporte</div><div className="kv-val">{mov.tipoTransporte}</div></div>
+              )}
+              {portaria?.capacidadeCarga != null && (
+                <div className="kv-item"><div className="kv-label">Capacidade de carga</div><div className="kv-val">{portaria.capacidadeCarga.toLocaleString('pt-BR')} t</div></div>
+              )}
+            </dl>
+          </div>
+
           {portaria && (portaria.motoristaNome || portaria.motoristaTelefone || portaria.motoristaCpf) && (
-            <div className="kv-item"><div className="kv-label">Motorista (Portaria)</div><div className="kv-val">{[portaria.motoristaNome, portaria.motoristaTelefone, portaria.motoristaCpf && `CPF ${portaria.motoristaCpf}`].filter(Boolean).join(' · ')}</div></div>
+            <div className="kv-secao">
+              <h3 className="kv-secao-titulo">Motorista</h3>
+              <dl className="kv-grid">
+                <div className="kv-item"><div className="kv-label">Nome</div><div className="kv-val">{portaria.motoristaNome || '—'}</div></div>
+                <div className="kv-item"><div className="kv-label">Telefone</div><div className="kv-val font-mono">{formatarTelefone(portaria.motoristaTelefone) || '—'}</div></div>
+                <div className="kv-item"><div className="kv-label">CPF</div><div className="kv-val font-mono">{formatarCpf(portaria.motoristaCpf) || '—'}</div></div>
+              </dl>
+            </div>
           )}
-          {portaria?.capacidadeCarga != null && (
-            <div className="kv-item"><div className="kv-label">Capacidade de carga</div><div className="kv-val">{portaria.capacidadeCarga.toLocaleString('pt-BR')} t</div></div>
+
+          <div className="kv-secao">
+            <h3 className="kv-secao-titulo">Passo a passo</h3>
+            <ol className="passos">
+              {passos.map((e) => (
+                <li key={e.rotulo} className="passo">
+                  <span className="passo-rotulo">{e.rotulo}</span>
+                  <span className="passo-quando font-mono">{fmtDataHora(e.em)}</span>
+                  {e.por && <span className="passo-por">{e.por}</span>}
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          {(portaria?.observacao || mov.observacao) && (
+            <div className="kv-secao">
+              <h3 className="kv-secao-titulo">Observações</h3>
+              <dl className="kv-grid">
+                {portaria?.observacao && (
+                  <div className="kv-item"><div className="kv-label">Da Portaria</div><div className="kv-val whitespace-pre-wrap">{portaria.observacao}</div></div>
+                )}
+                {mov.observacao && (
+                  <div className="kv-item"><div className="kv-label">Do Pátio</div><div className="kv-val whitespace-pre-wrap">{mov.observacao}</div></div>
+                )}
+              </dl>
+            </div>
           )}
-          {portaria?.liberadaEm && (
-            <div className="kv-item"><div className="kv-label">Chegou (Portaria)</div><div className="kv-val">{fmtDataHora(portaria.liberadaEm)}{portaria.liberadaPor ? ` · ${portaria.liberadaPor}` : ''}</div></div>
-          )}
-          {portaria?.saidaEm && (
-            <div className="kv-item"><div className="kv-label">Saída (Portaria)</div><div className="kv-val">{fmtDataHora(portaria.saidaEm)}{portaria.saidaPor ? ` · ${portaria.saidaPor}` : ''}</div></div>
-          )}
-          {portaria?.observacao && (
-            <div className="kv-item"><div className="kv-label">Observação da Portaria</div><div className="kv-val whitespace-pre-wrap">{portaria.observacao}</div></div>
-          )}
-          {mov.observacao && (
-            <div className="kv-item"><div className="kv-label">Observação do Pátio</div><div className="kv-val whitespace-pre-wrap">{mov.observacao}</div></div>
-          )}
-        </dl>
-        <NfsPainel movimentacaoId={mov.id} principal={mov.numeroDocumento} extras={mov.numerosDocumentoExtras} acaoCorrigirPrincipal={informarNumeroDocumentoRecebimentoAction} />
+        </div>
         <EditarDadosRecebimentoPainel
           movimentacaoId={mov.id}
           inicial={{
