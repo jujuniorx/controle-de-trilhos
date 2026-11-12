@@ -10,8 +10,13 @@ export const dynamic = 'force-dynamic';
  * tempos em tempos e atualiza o ícone; no iPhone o ícone fica o da hora em que o
  * app foi adicionado à tela de início.
  */
-export async function GET() {
-  const tema = temaValido((await cookies()).get(TEMA_COOKIE)?.value) ?? TEMA_PADRAO;
+export async function GET(request: Request) {
+  // O navegador busca o manifesto SEM os cookies, então o tema vem no endereço (?tema=);
+  // o cookie fica só como reserva.
+  const tema =
+    temaValido(new URL(request.url).searchParams.get('tema')) ??
+    temaValido((await cookies()).get(TEMA_COOKIE)?.value) ??
+    TEMA_PADRAO;
   const pasta = `/icons/${tema}`;
   const manifesto = {
     id: '/',

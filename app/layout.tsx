@@ -35,7 +35,8 @@ export async function generateMetadata(): Promise<Metadata> {
     // aparece na aba e na tela inicial de um tablet com o app instalado.
     title: "Controle de Trilhos",
     description: "Sistema de controle de trilhos ferroviários",
-    manifest: "/manifest.webmanifest",
+    // O tema vai no endereço: o navegador busca o manifesto sem os cookies.
+    manifest: `/manifest.webmanifest?tema=${tema}`,
     // iPhone/iPad: ao "Adicionar à Tela de Início" abre em tela cheia, com ícone e nome próprios.
     icons: {
       icon: [{ url: icones.favicon, sizes: "48x48", type: "image/png" }],
