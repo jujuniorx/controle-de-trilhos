@@ -139,6 +139,29 @@ export function CartaoPortaria({ item, origens = [] }: { item: ItemPortaria; ori
               ))}
             </datalist>
           )}
+          {/* Uma ação principal por vez, no topo; o resto é secundário. */}
+          {aguardando && (
+            <button type="button" className="btn btn-primary h-12 w-full" disabled={pendente} onClick={() => enviar(registrarChegadaAction)}>
+              {pendente ? 'Aguarde...' : 'Registrar chegada'}
+            </button>
+          )}
+          {liberada && (
+            <button
+              type="button"
+              className="btn btn-primary h-12 w-full"
+              disabled={pendente}
+              onClick={() => executar(() => confirmarSaidaAction(item.id))}
+            >
+              {pendente ? 'Aguarde...' : 'Saída confirmada'}
+            </button>
+          )}
+          {chegou && (
+            <button type="submit" className="btn btn-primary h-12 w-full" disabled={pendente}>
+              {pendente ? 'Aguarde...' : 'Salvar dados'}
+            </button>
+          )}
+          {/* Pátio: observação escrita na carreta, sempre visível antes dos campos. */}
+          {item.observacao && <p className="rounded-lg bg-warn/10 px-3 py-2 text-sm text-warn"><b>Pátio:</b> {item.observacao}</p>}
           <Secao titulo="Motorista">
             {campo('transportadora', 'Empresa (transportadora)')}
             {campo('motoristaNome', 'Motorista')}
@@ -166,27 +189,6 @@ export function CartaoPortaria({ item, origens = [] }: { item: ItemPortaria; ori
           {liberada && <p className="rounded-lg bg-ok/10 px-3 py-2 text-sm text-ok">O Pátio liberou a carreta. Quando ela passar pela portaria, toque em &ldquo;Saída confirmada&rdquo;.</p>}
           {saiu && <p className="rounded-lg bg-surface-2 px-3 py-2 text-sm text-ink-muted">Carreta saiu. Só consulta.</p>}
 
-          {/* Uma ação principal por vez, no topo; o resto é secundário. */}
-          {aguardando && (
-            <button type="button" className="btn btn-primary h-12 w-full" disabled={pendente} onClick={() => enviar(registrarChegadaAction)}>
-              {pendente ? 'Aguarde...' : 'Registrar chegada'}
-            </button>
-          )}
-          {liberada && (
-            <button
-              type="button"
-              className="btn btn-primary h-12 w-full"
-              disabled={pendente}
-              onClick={() => executar(() => confirmarSaidaAction(item.id))}
-            >
-              {pendente ? 'Aguarde...' : 'Saída confirmada'}
-            </button>
-          )}
-          {chegou && (
-            <button type="submit" className="btn btn-primary h-12 w-full" disabled={pendente}>
-              {pendente ? 'Aguarde...' : 'Salvar dados'}
-            </button>
-          )}
 
           <div className="grid grid-cols-2 gap-2">
             {!saiu && !chegou && (

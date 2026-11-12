@@ -88,7 +88,7 @@ export function NovoEnvioPortaria({ origens = [] }: { origens?: string[] }) {
     return (
       <button type="button" className="btn btn-ghost h-12 w-full" onClick={() => setAberto(true)}>
         {ICONE_MAIS(18)}
-        Carreta sem aviso do Pátio
+        Nova chegada
       </button>
     );
   }

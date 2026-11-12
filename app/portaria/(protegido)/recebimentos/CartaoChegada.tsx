@@ -165,6 +165,22 @@ export function CartaoChegada({ item, origens = [] }: { item: ItemChegada; orige
               ))}
             </datalist>
           )}
+          {/* Uma ação principal por vez, no topo. */}
+          {rascunho && (
+            <button type="button" className="btn btn-primary h-12 w-full" disabled={pendente} onClick={() => enviar((id, dados) => registrarChegadaAction(id, { ...(dados as object), tambemCarrega, destinoCarga }))}>
+              {pendente ? 'Aguarde...' : 'Registrar chegada'}
+            </button>
+          )}
+          {descarregado && !aguardaCarga && (
+            <button type="button" className="btn btn-primary h-12 w-full" disabled={pendente} onClick={() => executar(() => confirmarSaidaChegadaAction(item.id))}>
+              {pendente ? 'Aguarde...' : 'Saída confirmada'}
+            </button>
+          )}
+          {chegou && (
+            <button type="submit" className="btn btn-primary h-12 w-full" disabled={pendente}>
+              {pendente ? 'Aguarde...' : 'Salvar dados'}
+            </button>
+          )}
           <Secao titulo="Motorista">
             {campo('transportadora', 'Empresa (transportadora)')}
             {campo('motoristaNome', 'Motorista')}
@@ -218,22 +234,6 @@ export function CartaoChegada({ item, origens = [] }: { item: ItemChegada; orige
           {descarregado && !aguardaCarga && <p className="rounded-lg bg-ok/10 px-3 py-2 text-sm text-ok">O Pátio descarregou. Quando o caminhão passar pela portaria, toque em &ldquo;Saída confirmada&rdquo;.</p>}
           {saiu && <p className="rounded-lg bg-surface-2 px-3 py-2 text-sm text-ink-muted">Caminhão saiu. Só consulta.</p>}
 
-          {/* Uma ação principal por vez, no topo. */}
-          {rascunho && (
-            <button type="button" className="btn btn-primary h-12 w-full" disabled={pendente} onClick={() => enviar((id, dados) => registrarChegadaAction(id, { ...(dados as object), tambemCarrega, destinoCarga }))}>
-              {pendente ? 'Aguarde...' : 'Registrar chegada'}
-            </button>
-          )}
-          {descarregado && !aguardaCarga && (
-            <button type="button" className="btn btn-primary h-12 w-full" disabled={pendente} onClick={() => executar(() => confirmarSaidaChegadaAction(item.id))}>
-              {pendente ? 'Aguarde...' : 'Saída confirmada'}
-            </button>
-          )}
-          {chegou && (
-            <button type="submit" className="btn btn-primary h-12 w-full" disabled={pendente}>
-              {pendente ? 'Aguarde...' : 'Salvar dados'}
-            </button>
-          )}
 
           <div className="grid grid-cols-2 gap-2">
             <a href={`/portaria/pdf-chegada/${item.id}`} download className={`btn btn-ghost h-12 ${bloqueado || rascunho ? 'col-span-2' : ''}`} aria-label="Baixar PDF com os dados preenchidos">

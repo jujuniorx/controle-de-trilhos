@@ -66,11 +66,6 @@ export default async function PortariaRecebimentosPage() {
         </div>
       </div>
 
-      <ol className="list-decimal space-y-1.5 rounded-xl bg-surface-2 py-3 pl-9 pr-4 text-sm text-ink-muted">
-        <li>Chegou o caminhão? Toque em “Nova chegada”, preencha e toque em “Registrar chegada” (basta uma placa).</li>
-        <li>O Pátio descarrega.</li>
-        <li>Quando ele passar pela portaria, toque em “Saída confirmada”.</li>
-      </ol>
 
       <BotaoNovaChegada />
 

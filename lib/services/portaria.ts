@@ -46,6 +46,7 @@ const SELECT_PORTARIA = {
   saidaPortariaEm: true,
   saidaPortariaPor: true,
   observacaoPortaria: true,
+  observacao: true,
   createdAt: true,
   remetidoDetalhe: { select: { tipoRemetido: true } },
 } as const;
