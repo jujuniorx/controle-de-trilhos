@@ -344,7 +344,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
       return;
     }
     if (grupoAtivo.tipoMaterial === 'REEMPREGO' && !validarReemprego(r.valor)) {
-      setDraftMedicao((d) => ({ ...d, erro: 'Medição de reemprego precisa ter ao menos 7 m.' }));
+      setDraftMedicao((d) => ({ ...d, erro: 'Informe um comprimento maior que zero.' }));
       return;
     }
     if (grupoAtivo.tipoMaterial === 'SUCATA' && !draftMedicao.sc) {

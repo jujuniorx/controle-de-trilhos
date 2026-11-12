@@ -118,7 +118,7 @@ const grupoRemetidoReempregoSchema = grupoRemetidoBaseSchema
   })
   .refine(
     (g) => g.medicoes.every((m) => validarReemprego(m.comprimento)),
-    'Toda medição de reemprego precisa ter comprimento igual ou maior que 7 m.',
+    'Toda medição de reemprego precisa ter comprimento maior que zero.',
   );
 
 const grupoRemetidoSucataSchema = grupoRemetidoBaseSchema

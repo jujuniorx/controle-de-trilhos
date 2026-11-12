@@ -7,8 +7,9 @@ export function calcularMetros(quantidade: number, comprimento: number): number 
   return Math.round(quantidade * comprimento * 100) / 100;
 }
 
+/** Reemprego aceita qualquer comprimento (barras de 4 m, 6 m, 50 m...). Só zero ou negativo é recusado. */
 export function validarReemprego(comprimento: number): boolean {
-  return comprimento >= 7.0;
+  return comprimento > 0;
 }
 
 export function arredondar3(valor: number): number {

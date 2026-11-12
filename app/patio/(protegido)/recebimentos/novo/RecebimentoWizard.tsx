@@ -424,7 +424,7 @@ export function RecebimentoWizard({
       return;
     }
     if (grupoAtivo.tipoMaterial === 'REEMPREGO' && !validarReemprego(r.valor)) {
-      setDraft((d) => ({ ...d, erro: 'Medição de reemprego precisa ter ao menos 7 m.' }));
+      setDraft((d) => ({ ...d, erro: 'Informe um comprimento maior que zero.' }));
       return;
     }
     if (grupoAtivo.tipoMaterial === 'SUCATA' && !draft.sc) {
@@ -853,7 +853,7 @@ export function RecebimentoWizard({
               }}
             />
             {grupoAtivo.tipoMaterial === 'REEMPREGO' && (
-              <p className="hint">Reemprego: a barra precisa ter 7 m ou mais. Abaixo disso, lance como sucata.</p>
+              <p className="hint">Reemprego aceita qualquer comprimento.</p>
             )}
             </div>
             )}

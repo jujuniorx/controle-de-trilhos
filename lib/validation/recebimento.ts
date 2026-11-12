@@ -123,7 +123,7 @@ const grupoReempregoSchema = z.object({
     .min(1, 'Adicione ao menos uma medição.')
     .refine(
       (medicoes) => medicoes.every((m) => validarReemprego(m.comprimento)),
-      'Toda medição de reemprego precisa ter comprimento igual ou maior que 7 m.',
+      'Toda medição de reemprego precisa ter comprimento maior que zero.',
     ),
 });
 
