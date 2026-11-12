@@ -5,17 +5,17 @@ import { ContadorNumero } from './ContadorNumero';
 
 const idx = (n: number) => ({ '--i': n }) as CSSProperties;
 
-/** Cor fixa por nome (não muda com o filtro): o mesmo perfil ou material tem sempre a mesma cor. "Outros" fica cinza. */
-/* 12 tons distintos, legíveis no claro e no escuro. Perfis TR têm posição fixa (TR45 e TR68 nunca dividem cor). */
-const PALETA = ['#3b82f6', '#f97316', '#10b981', '#eab308', '#ec4899', '#8b5cf6', '#14b8a6', '#ef4444', '#84cc16', '#06b6d4', '#a855f7', '#f59e0b'];
+/** Cor fixa por nome (não muda com o filtro): o mesmo perfil ou material tem sempre a mesma posição na paleta. "Outros" fica cinza. */
+/* A paleta em si (--cat-0 a --cat-11) mora no CSS e muda com o tema. Perfis TR têm posição fixa (TR45 e TR68 nunca dividem cor). */
+const CORES_NA_PALETA = 12;
 const PERFIS_FIXOS = ['TR22', 'TR32', 'TR37', 'TR40', 'TR45', 'TR50', 'TR54', 'TR55', 'TR57', 'TR60', 'TR68'];
 function corDa(i: ItemRanking, _indice: number): string {
-  if (i.rotulo === 'Outros') return '#9aa5b1';
+  if (i.rotulo === 'Outros') return 'var(--viz-outros)';
   const fixo = PERFIS_FIXOS.indexOf(i.rotulo);
-  if (fixo >= 0) return PALETA[fixo % PALETA.length];
+  if (fixo >= 0) return `var(--cat-${fixo % CORES_NA_PALETA})`;
   let h = 0;
   for (const c of i.rotulo) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  return PALETA[h % PALETA.length];
+  return `var(--cat-${h % CORES_NA_PALETA})`;
 }
 
 const GAP = 0.8; // vão entre fatias, em % da circunferência
@@ -52,10 +52,9 @@ function Donut({ titulo, itens, vazio }: { titulo: string; itens: ItemRanking[];
                     r="15.9155"
                     fill="none"
                     strokeWidth="5.5"
-                    stroke={corDa(item, indice)}
                     strokeDasharray={`${tam} ${100 - tam}`}
                     strokeDashoffset={-(ini + (fatias.length === 1 ? 0 : GAP / 2))}
-                    style={idx(indice)}
+                    style={{ ...idx(indice), stroke: corDa(item, indice) }}
                   >
                     <title>{`${item.rotulo}: ${fmtPeso(item.valor)} t (${pct.toFixed(1).replace('.', ',')}%)`}</title>
                   </circle>

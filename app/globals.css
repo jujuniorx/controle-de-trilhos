@@ -839,13 +839,19 @@ input:focus, select:focus, textarea:focus { border-color: var(--primary); outlin
 }
 
 /* ---- Gráficos do relatório (HTML/CSS/SVG, sem biblioteca) ---- */
-/* Paleta categórica em ordem fixa (azul, laranja, água, amarelo, magenta) + cinza para "Outros". */
+/* Cores dos gráficos seguem o tema: "recebido" é a cor principal do tema, "enviado" é o par dela.
+   As fatias (perfil/material) usam 12 tons da roda de cores, contados a partir da cor do tema,
+   com a claridade e a força de cor de cada tema (--cat-l, --cat-c, --cat-h). */
 .grafico-area {
-  --viz-1: #2a78d6; --viz-2: #eb6834; --viz-3: #1baf7a; --viz-4: #eda100; --viz-5: #e87ba4; --viz-outros: #9aa5b1;
+  --viz-1: var(--primary); --viz-2: #eb6834; --viz-outros: #9aa5b1;
+  --cat-l: .6; --cat-c: .16; --cat-h: 258;
 }
-html[data-tema="escuro"] .grafico-area {
-  --viz-1: #3987e5; --viz-2: #d95926; --viz-3: #199e70; --viz-4: #c98500; --viz-5: #d55181; --viz-outros: #6b7a89;
-}
+html[data-tema="escuro"] .grafico-area { --viz-2: #7c7c85; --viz-outros: #4b4b52; --cat-l: .8; --cat-c: .075; --cat-h: 250; }
+html[data-tema="azul"] .grafico-area { --viz-2: #f2a36b; --viz-outros: #5a6f97; --cat-l: .72; --cat-c: .14; --cat-h: 268; }
+html[data-tema="vidro"] .grafico-area { --viz-2: #8ecbff; --viz-outros: #6b7280; --cat-l: .74; --cat-c: .15; --cat-h: 52; }
+html[data-tema="pastel"] .grafico-area { --viz-2: #f29bbf; --viz-outros: #cfc6ee; --cat-l: .76; --cat-c: .1; --cat-h: 295; }
+/* Os perfis mais usados (TR60, TR68, TR57, TR45, TR50) ficam bem afastados na roda; o TR60 leva a cor do tema. */
+.grafico-area { --cat-0: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 30)); --cat-1: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 60)); --cat-2: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 120)); --cat-3: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 180)); --cat-4: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 90)); --cat-5: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 210)); --cat-6: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 240)); --cat-7: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 270)); --cat-8: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 300)); --cat-9: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 0)); --cat-10: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 150)); --cat-11: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 330)); }
 .grafico { display: flex; flex-direction: column; gap: 12px; animation: grafico-card .5s ease-out both; }
 .grafico-legenda { display: flex; gap: 14px; font-size: .78rem; color: var(--ink-muted); }
 .grafico-cor { display: inline-block; width: 10px; height: 10px; border-radius: 3px; flex: none; }
