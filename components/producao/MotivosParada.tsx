@@ -55,6 +55,13 @@ export function MotivosParada({ data, hora, n, descricaoPadrao, padrao = [] }: {
   };
 
   const valor = [...MOTIVOS_PARADA.filter((m) => selecionados.includes(m)), outro.trim()].filter(Boolean).join(SEP);
+  // Trocar de motivo muda o campo por React, sem evento de digitação: avisa o formulário para enviar ao vivo.
+  const campoOculto = useRef<HTMLInputElement>(null);
+  const primeiroValor = useRef(true);
+  useEffect(() => {
+    if (primeiroValor.current) { primeiroValor.current = false; return; }
+    campoOculto.current?.dispatchEvent(new Event('input', { bubbles: true }));
+  }, [valor]);
 
   const escolhidos = valor ? valor.split(SEP) : [];
   const abrir = () => { if (!folha.current?.open) folha.current?.showModal(); };
@@ -120,7 +127,7 @@ export function MotivosParada({ data, hora, n, descricaoPadrao, padrao = [] }: {
         </div>
       </dialog>
 
-      <input type="hidden" name={`parada_descricao_${hora}_${n}`} value={valor} />
+      <input ref={campoOculto} type="hidden" name={`parada_descricao_${hora}_${n}`} value={valor} />
     </div>
   );
 }

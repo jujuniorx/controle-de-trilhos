@@ -139,7 +139,7 @@ export function RascunhoAutomatico({ data, horas, sobraEntrada, fabricanteSalvo,
       setEstado('salvando');
       timer = setTimeout(gravar, 400);
       if (timerEnvio) clearTimeout(timerEnvio);
-      timerEnvio = setTimeout(enviar, 2500);
+      timerEnvio = setTimeout(enviar, 1200);
     };
 
     const aoSair = () => {
