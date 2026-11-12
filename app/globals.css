@@ -879,12 +879,18 @@ html[data-tema="escuro"] .grafico-area {
 .donut-valor, .donut-pct { font-variant-numeric: tabular-nums; color: var(--ink-muted); white-space: nowrap; }
 .donut-pct { text-align: right; font-weight: 600; color: var(--ink); }
 
-.grafico-rank { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
-.grafico-rank li { display: grid; grid-template-columns: minmax(70px, 30%) 1fr auto; align-items: center; gap: 8px; font-size: .82rem; }
-.grafico-rank-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); }
-.grafico-rank-trilha { height: 10px; border-radius: 5px; background: var(--surface); overflow: hidden; }
-.grafico-rank-barra { display: block; height: 100%; border-radius: 5px; background: var(--viz-1); transform-origin: left; animation: grafico-cresce .8s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i, 0) * 80ms + 150ms); }
+/* Cidades (origem/destino): a cor vem do tema (--primary), então cada tema pinta as barras do seu jeito. */
+.grafico-rank { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.grafico-rank li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto 38px; align-items: center; column-gap: 10px; row-gap: 6px; font-size: .84rem; }
+.grafico-rank-pos { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 7px; font-size: .72rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink-muted); background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.grafico-rank li[data-primeiro] .grafico-rank-pos { color: var(--on-primary, #fff); background: var(--primary); }
+.grafico-rank-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); font-weight: 500; }
+.grafico-rank li[data-primeiro] .grafico-rank-nome { font-weight: 700; }
 .grafico-rank-valor { font-variant-numeric: tabular-nums; color: var(--ink-muted); white-space: nowrap; }
+.grafico-rank-pct { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ink); }
+.grafico-rank-trilha { grid-column: 2 / -1; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--ink) 9%, transparent); overflow: hidden; }
+.grafico-rank-barra { display: block; height: 100%; border-radius: 3px; background: color-mix(in srgb, var(--primary) 62%, transparent); transform-origin: left; animation: grafico-cresce .8s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i, 0) * 80ms + 150ms); }
+.grafico-rank li[data-primeiro] .grafico-rank-barra { background: var(--primary); }
 
 @keyframes grafico-card { from { opacity: 0; transform: translateY(8px); } }
 @keyframes grafico-sobe { from { transform: scaleY(0); } }
@@ -1328,10 +1334,10 @@ html[data-tema="escuro"] .ct-sidebar-nav a[data-active="true"] .nav-icone { back
   .donut-wrap:has(.donut-legenda li:nth-child(6):hover) .donut-fatia:nth-child(6) { opacity: 1; stroke-width: 7; }
 
   /* rankings (origem/destino) */
-  .grafico-rank li { padding: 3px 6px; margin: -3px -6px; border-radius: 8px; transition: background .18s ease, translate .18s ease; }
+  .grafico-rank li { padding: 4px 6px; margin: -4px -6px; border-radius: 8px; transition: background .18s ease, translate .18s ease; }
   .grafico-rank li:hover { background: color-mix(in srgb, var(--ink) 7%, transparent); translate: 3px 0; }
   .grafico-rank-barra { transition: filter .2s ease, scale .2s ease, box-shadow .25s ease; }
-  .grafico-rank li:hover .grafico-rank-barra { filter: brightness(1.2); scale: 1 1.4; box-shadow: 0 0 12px color-mix(in srgb, var(--viz-1) 70%, transparent); }
+  .grafico-rank li:hover .grafico-rank-barra { filter: brightness(1.2); scale: 1 1.4; box-shadow: 0 0 12px color-mix(in srgb, var(--primary) 60%, transparent); }
   .grafico-rank li:hover .grafico-rank-valor { color: var(--ink); font-weight: 600; }
 
   /* cartões de números, gráficos e linhas das tabelas */

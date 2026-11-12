@@ -83,25 +83,29 @@ function Donut({ titulo, itens, vazio }: { titulo: string; itens: ItemRanking[];
   );
 }
 
+/** Cidades em ordem, da que mais pesou para a que menos pesou: posição, nome, toneladas, parte do total e barra na cor do tema. */
 function Ranking({ titulo, itens, vazio }: { titulo: string; itens: ItemRanking[]; vazio: string }) {
   const max = Math.max(...itens.map((i) => i.valor), 0);
+  const total = itens.reduce((s, i) => s + i.valor, 0);
   return (
     <div className="card grafico">
       <h3 className="card-title">{titulo}</h3>
       {itens.length === 0 ? (
         <p className="text-sm text-ink-dim">{vazio}</p>
       ) : (
-        <ul className="grafico-rank">
+        <ol className="grafico-rank">
           {itens.map((i, n) => (
-            <li key={i.rotulo} style={idx(n)}>
+            <li key={i.rotulo} style={idx(n)} data-primeiro={n === 0 ? 'true' : undefined}>
+              <span className="grafico-rank-pos" aria-hidden>{n + 1}</span>
               <span className="grafico-rank-nome" title={i.rotulo}>{i.rotulo}</span>
+              <span className="grafico-rank-valor">{fmtPeso(i.valor)} t</span>
+              <span className="grafico-rank-pct">{total > 0 ? Math.round((i.valor / total) * 100) : 0}%</span>
               <span className="grafico-rank-trilha" aria-hidden>
                 <span className="grafico-rank-barra" style={{ width: `${max > 0 ? Math.max((i.valor / max) * 100, 2) : 0}%` }} />
               </span>
-              <span className="grafico-rank-valor">{fmtPeso(i.valor)} t</span>
             </li>
           ))}
-        </ul>
+        </ol>
       )}
     </div>
   );
@@ -169,8 +173,8 @@ export function GraficosRelatorio({ dados, tipo }: { dados: DadosGraficos; tipo?
       </div>
 
       <div className="grid gap-3 lg:grid-cols-2">
-        {mostraRec && <Ranking titulo="Recebido por origem (t)" itens={dados.origens} vazio="Nenhum recebimento nesses filtros." />}
-        {mostraEnv && <Ranking titulo="Enviado por destino (t)" itens={dados.destinos} vazio="Nenhum remetido nesses filtros." />}
+        {mostraRec && <Ranking titulo="Recebido por origem" itens={dados.origens} vazio="Nenhum recebimento nesses filtros." />}
+        {mostraEnv && <Ranking titulo="Enviado por destino" itens={dados.destinos} vazio="Nenhum remetido nesses filtros." />}
       </div>
     </section>
   );
