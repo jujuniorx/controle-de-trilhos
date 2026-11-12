@@ -249,9 +249,9 @@ export async function excluirChegadaPatio(id: string, motivo: string, atorNome: 
   if (!c) throw new ErroRegraNegocio('Chegada não encontrada.');
   if (c.excluidaEm) throw new ErroRegraNegocio('Esta chegada já foi excluída.');
   if (c.movimentacaoId) throw new ErroRegraNegocio('Esta chegada já virou recebimento. Exclua pelo recebimento.');
-  if (c.saidaEm) throw new ErroRegraNegocio('Este caminhão já saiu. Não dá para excluir.');
+  // Pode excluir mesmo depois da saída (ex.: registrada por engano): o que não pode é já ter virado recebimento.
   const r = await prisma.chegadaCaminhao.updateMany({
-    where: { id, excluidaEm: null, movimentacaoId: null, saidaEm: null },
+    where: { id, excluidaEm: null, movimentacaoId: null },
     data: { excluidaEm: new Date(), excluidaPor: atorNome, excluidaMotivo: texto },
   });
   if (r.count === 0) throw new ErroRegraNegocio('Não foi possível excluir: a situação mudou. Atualize a tela.');
