@@ -77,7 +77,6 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
   const paradaAberta = (dia?.linhas ?? []).flatMap((l) => paradasEmAndamento(l.paradas)).at(-1);
   const atualizado = dia ? new Date(dia.atualizadoEm.getTime() - 3 * 60 * 60 * 1000).toISOString().slice(11, 16) : null;
   const sobra = dia?.sobraSaida ?? 0;
-  const pctTls = terminouEmReemprego ? Math.min(100, Math.round((sobra / 44) * 100)) : Math.round((sobra / SOLDAS_POR_TLS) * 100);
 
   // Os mesmos números da folha impressa, prontos para virar imagem no navegador.
   const dataBr = dataTexto.split('-').reverse().join('/');
@@ -151,39 +150,54 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
       </div>
 
       {aoVivo && (
-        <section className="so-tela vivo" aria-label="Produção ao vivo">
+        <section className="so-tela turno" aria-label="Produção de hoje, atualizada sozinha">
           <AoVivo atualizado={atualizado} />
-          <div className="vivo-corpo">
-            <div className="vivo-principal">
-              <p className="vivo-rotulo">Soldas até agora</p>
-              <p className="vivo-numero">{totalSoldas}</p>
-              <p className="vivo-detalhe">
-                {dia
-                  ? `${porHora.get(horaAgora)?.soldas ?? 0} na hora das ${horaAgora}${media ? ` · média de ${media} por hora` : ''}`
-                  : 'A Produção ainda não lançou nada hoje.'}
-              </p>
+          <dl className="turno-linhas">
+            <div className="turno-linha turno-soldas">
+              <dt>Soldas</dt>
+              <dd>
+                <b>{totalSoldas}</b>
+                <span>
+                  {dia
+                    ? `${porHora.get(horaAgora)?.soldas ?? 0} na hora das ${horaAgora}${media ? ` · média de ${media} por hora` : ''}`
+                    : 'A Produção ainda não lançou nada hoje.'}
+                </span>
+              </dd>
             </div>
-            <div className="vivo-lado">
-              <div className="vivo-tls">
-                <p className="vivo-rotulo">TLS formados hoje</p>
-                <p className="vivo-tls-numero">{dia?.tlsFormados ?? 0}</p>
-                <span className="vivo-barra" aria-hidden="true"><span style={{ width: `${pctTls}%` }} /></span>
-                <p className="vivo-detalhe">
-                  {terminouEmReemprego
-                    ? `TLS de reemprego em aberto com ${sobra} soldas`
-                    : `${sobra} de ${SOLDAS_POR_TLS} soldas no próximo TLS`}
-                </p>
+            <div className="turno-linha">
+              <dt>TLS</dt>
+              <dd>
+                <b>{dia?.tlsFormados ?? 0}</b>
+                <span>{(dia?.tlsFormados ?? 0) === 1 ? 'formado' : 'formados'}</span>
+                {terminouEmReemprego ? (
+                  <span className="turno-quebra">TLS de reemprego em aberto com {sobra} soldas</span>
+                ) : (
+                  <>
+                    {/* Um risco por solda do TLS que está sendo montado (12 fecham um TLS). */}
+                    <span className="turno-riscos" aria-hidden="true">
+                      {Array.from({ length: SOLDAS_POR_TLS }, (_, i) => <i key={i} data-feita={i < sobra ? 'true' : undefined} />)}
+                    </span>
+                    <span className="turno-quebra">{sobra} de {SOLDAS_POR_TLS} soldas no próximo TLS</span>
+                  </>
+                )}
+              </dd>
+            </div>
+            {paradaAberta ? (
+              <div className="turno-linha" data-parada="true">
+                <dt>Parado</dt>
+                <dd><span>desde as {paradaAberta.inicio}{paradaAberta.descricao ? ` · ${paradaAberta.descricao}` : ''}</span></dd>
               </div>
-              <p className="vivo-estado" data-parada={paradaAberta ? 'true' : undefined}>
-                {paradaAberta
-                  ? `Parado desde as ${paradaAberta.inicio}${paradaAberta.descricao ? ` · ${paradaAberta.descricao}` : ''}`
-                  : ultima
-                    ? `${ultima.perfil} · ${ultima.fabricante}${dia?.soldadores ? ` · soldador ${dia.soldadores}` : ''}`
-                    : 'Sem lançamento'}
-              </p>
-              <p className="vivo-detalhe">{totalCortes} {totalCortes === 1 ? 'corte' : 'cortes'} · {totalParadaMin ? `${tempoParada} parado` : 'sem paradas encerradas'}</p>
+            ) : (
+              <div className="turno-linha">
+                <dt>Trilho</dt>
+                <dd><span className="turno-forte">{ultima ? `${ultima.perfil} · ${ultima.fabricante}` : 'Sem lançamento'}</span>{dia?.soldadores ? <span>soldador {dia.soldadores}</span> : null}</dd>
+              </div>
+            )}
+            <div className="turno-linha">
+              <dt>Paradas</dt>
+              <dd><span>{totalParadaMin ? `${tempoParada} parado` : 'sem paradas encerradas'} · {totalCortes} {totalCortes === 1 ? 'corte' : 'cortes'}</span></dd>
             </div>
-          </div>
+          </dl>
         </section>
       )}
 

@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-/** Marca "Ao vivo" do Administrativo: busca a Produção de novo a cada 10 s enquanto a tela está aberta. */
+/** Topo do acompanhamento do dia no Administrativo: busca a Produção de novo a cada 10 s enquanto a tela está aberta. */
 export function AoVivo({ atualizado }: { atualizado: string | null }) {
   const router = useRouter();
   useEffect(() => {
@@ -14,10 +14,9 @@ export function AoVivo({ atualizado }: { atualizado: string | null }) {
     return () => { clearInterval(t); document.removeEventListener('visibilitychange', buscar); window.removeEventListener('focus', buscar); };
   }, [router]);
   return (
-    <p className="vivo-selo" role="status">
-      <span className="vivo-ponto" aria-hidden="true" />
-      <span>Ao vivo</span>
-      <span className="vivo-quando">{atualizado ? `último lançamento às ${atualizado}` : 'aguardando o primeiro lançamento'}</span>
+    <p className="turno-topo" role="status">
+      <span>Produção de hoje</span>
+      <span>{atualizado ? `último lançamento às ${atualizado}` : 'aguardando o primeiro lançamento'}</span>
     </p>
   );
 }
