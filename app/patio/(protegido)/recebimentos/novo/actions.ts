@@ -17,6 +17,10 @@ export async function criarRecebimento(input: unknown): Promise<CriarRecebimento
   if (!parsed.success) {
     return { ok: false, erro: 'Dados inválidos. Revise os campos e tente novamente.' };
   }
+  // O Pátio não começa descarga sozinho: a carreta precisa ter sido registrada pela Portaria.
+  if (!parsed.data.chegadaId) {
+    return { ok: false, erro: 'Todo recebimento começa numa carreta que a Portaria registrou.' };
+  }
 
   try {
     const movimentacao = await criarRecebimentoCaminhao(parsed.data as RecebimentoCaminhaoInput);

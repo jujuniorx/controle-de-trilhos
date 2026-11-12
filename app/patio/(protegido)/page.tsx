@@ -15,7 +15,7 @@ import { chavePublicaPush } from '@/lib/services/push';
 import { SoSemInternet } from '@/components/patio/SoSemInternet';
 import { ExcluirPatioBotao } from '@/components/patio/ExcluirPatioBotao';
 import { excluirChegadaPatioAction } from './recebimentos/actions';
-import { ICONE_CARGA, ICONE_RECEBER, ICONE_SAIDAS } from '@/components/patio/icones';
+import { ICONE_CARGA, ICONE_SAIDAS } from '@/components/patio/icones';
 
 const atraso = (n: number) => ({ '--i': n }) as CSSProperties;
 
@@ -102,11 +102,6 @@ export default async function PatioHomePage() {
       {/* Os atalhos vêm antes da lista: quem chega para lançar algo novo não precisa rolar o pátio inteiro. */}
       <div className="acoes-patio !mt-0">
         <SoSemInternet>
-          <Link href="/patio/recebimentos/novo" className="acao-patio acao-patio-principal" style={atraso(0)}>
-            {ICONE_RECEBER(30)}
-            <strong>Nova descarga</strong>
-            <span>Caminhão chegando com trilhos para o pátio.</span>
-          </Link>
           <Link href="/patio/remetidos" className="acao-patio" style={atraso(1)}>
             {aguardando > 0 && (
               <em className="acao-patio-aviso">

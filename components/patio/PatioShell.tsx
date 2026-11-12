@@ -8,7 +8,7 @@ import { BarraAbas, type Aba } from '@/components/ui/BarraAbas';
 import { GestosApp } from '@/components/ui/GestosApp';
 import { AquecerOffline } from '@/components/patio/AquecerOffline';
 import { TrocarAreaLink } from '@/components/patio/TrocarAreaLink';
-import { ICONE_CARGA, ICONE_INICIO, ICONE_RECEBER, ICONE_SAIDAS, ICONE_TROCAR_AREA } from '@/components/patio/icones';
+import { ICONE_CARGA, ICONE_INICIO, ICONE_SAIDAS, ICONE_TROCAR_AREA } from '@/components/patio/icones';
 
 /**
  * Abas do rodapé: as quatro telas de trabalho. "Trocar área" sai daqui de propósito —
@@ -16,7 +16,6 @@ import { ICONE_CARGA, ICONE_INICIO, ICONE_RECEBER, ICONE_SAIDAS, ICONE_TROCAR_AR
  */
 const ABAS: Aba[] = [
   { href: '/patio', rotulo: 'Início', icone: ICONE_INICIO(24) },
-  { href: '/patio/recebimentos/novo', rotulo: 'Receber', prefixo: '/patio/recebimentos', icone: ICONE_RECEBER(24) },
   { href: '/patio/remetidos', rotulo: 'Cargas', prefixo: '/patio/remetidos', icone: ICONE_CARGA(24) },
   { href: '/patio/saidas', rotulo: 'Já saíram', icone: ICONE_SAIDAS(24) },
 ];

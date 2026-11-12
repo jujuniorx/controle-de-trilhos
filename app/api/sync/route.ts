@@ -38,6 +38,10 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ erro: 'Payload inválido', detalhes: parsed.error.flatten() }, { status: 400 });
   }
+  // O Pátio não começa descarga sozinho: a carreta precisa ter sido registrada pela Portaria.
+  if (!parsed.data.chegadaId) {
+    return NextResponse.json({ erro: 'Todo recebimento começa numa carreta que a Portaria registrou.' }, { status: 400 });
+  }
 
   try {
     const movimentacao = await criarRecebimentoCaminhao(parsed.data);

@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import { listarFatoresCadastrados } from '@/lib/services/calculo';
 import { buscarChegadaLiberada } from '@/lib/services/chegada';
 import { RecebimentoWizard } from './RecebimentoWizard';
@@ -9,11 +10,14 @@ export default async function NovoRecebimentoPage({
 }) {
   const parametro = (await searchParams).chegada;
   const chegadaId = typeof parametro === 'string' ? parametro : null;
+  // Sem uma carreta registrada pela Portaria, não há descarga para lançar.
+  if (!chegadaId) redirect('/patio');
   const [fatores, chegada] = await Promise.all([
     listarFatoresCadastrados(),
     // Só pré-preenche se a Portaria já liberou e o caminhão ainda não foi descarregado.
-    chegadaId ? buscarChegadaLiberada(chegadaId).catch(() => null) : Promise.resolve(null),
+    buscarChegadaLiberada(chegadaId).catch(() => null),
   ]);
+  if (!chegada) redirect('/patio');
   return (
     <>
       {chegada?.observacao && (
