@@ -73,8 +73,8 @@ export interface ConfigTlsForm {
   fabricantesSalvos: Record<string, string>;
 }
 
-/** Lê o formulário da Produção (na tela) e devolve a situação do TLS em cada hora. */
-export function tlsDoForm(form: HTMLFormElement, cfg: ConfigTlsForm): Record<string, SituacaoTls> {
+/** Lê as horas do formulário da Produção (na tela): soldas, fabricante, perfil e resposta de cada hora. */
+function linhasDoForm(form: HTMLFormElement, cfg: ConfigTlsForm): HoraTls[] {
   const valor = (nome: string) => (form.elements.namedItem(nome) as HTMLInputElement | HTMLSelectElement | null)?.value?.trim() ?? '';
   const topo = valor('fabricante') || cfg.fabricanteSalvo;
   const horaTroca = valor('hora_troca_fabricante');
@@ -82,7 +82,7 @@ export function tlsDoForm(form: HTMLFormElement, cfg: ConfigTlsForm): Record<str
   const horaTrocaPerfil = valor('hora_troca_perfil');
   let trocado: string | undefined;
   let trocadoPerfil: string | undefined;
-  const linhas = cfg.horas.map((hora) => {
+  return cfg.horas.map((hora) => {
     const troca = valor(`troca_fabricante_${hora}`);
     if (troca) trocado = troca;
     const salvo = cfg.fabricantesSalvos[hora];
@@ -94,6 +94,52 @@ export function tlsDoForm(form: HTMLFormElement, cfg: ConfigTlsForm): Record<str
     const n = parseInt(valor(`soldas_${hora}`), 10);
     return { soldas: Number.isFinite(n) && n > 0 ? n : 0, fabricante, perfil, resposta: valor(`tls_${hora}`) };
   });
-  const { porHora } = contarTls(cfg.sobraEntrada, linhas);
+}
+
+/** Lê o formulário da Produção (na tela) e devolve a situação do TLS em cada hora. */
+export function tlsDoForm(form: HTMLFormElement, cfg: ConfigTlsForm): Record<string, SituacaoTls> {
+  const { porHora } = contarTls(cfg.sobraEntrada, linhasDoForm(form, cfg));
   return Object.fromEntries(cfg.horas.map((hora, i) => [hora, porHora[i]]));
+}
+
+export interface ResumoTls {
+  /** Soldas lançadas hoje. */
+  soldasHoje: number;
+  /** TLS formados que contam para hoje (o que fecha o TLS que veio de ontem conta para ontem). */
+  tlsHoje: number;
+  /** Fechou hoje o TLS que tinha começado ontem. */
+  fechouOntem: boolean;
+  /** Soldas no TLS em aberto agora. */
+  aberto: number;
+  /** Dessas, quantas foram feitas ontem (ainda não fechou nenhum TLS hoje). */
+  deOntem: number;
+  /** A última hora com solda é de reemprego: o TLS não fecha em 12. */
+  reemprego: boolean;
+}
+
+/** Resumo do TLS em montagem a partir do formulário, para o painel ao vivo. */
+export function resumoTlsDoForm(form: HTMLFormElement, cfg: ConfigTlsForm): ResumoTls {
+  const linhas = linhasDoForm(form, cfg);
+  const { tls, sobra } = contarTls(cfg.sobraEntrada, linhas);
+  // Trocou de perfil antes de fechar o TLS de ontem: a contagem recomeçou, e o de ontem ficou para trás.
+  let recomecou = false;
+  let perfilAnterior: string | undefined;
+  let fechou = false;
+  let aberto = cfg.sobraEntrada;
+  for (const h of linhas) {
+    if (!fechou && h.perfil !== undefined && perfilAnterior !== undefined && h.perfil !== perfilAnterior) recomecou = true;
+    perfilAnterior = h.perfil ?? perfilAnterior;
+    aberto += h.soldas;
+    if (h.fabricante !== FABRICANTE_REEMPREGO ? aberto >= SOLDAS_POR_TLS : soldasDoTlsEncerrado(h.resposta, aberto) > 0) fechou = true;
+  }
+  const fechouOntem = cfg.sobraEntrada > 0 && tls > 0 && !recomecou;
+  const ultima = [...linhas].reverse().find((h) => h.soldas > 0) ?? linhas.at(-1);
+  return {
+    soldasHoje: linhas.reduce((t, h) => t + h.soldas, 0),
+    tlsHoje: fechouOntem ? tls - 1 : tls,
+    fechouOntem,
+    aberto: sobra,
+    deOntem: tls === 0 && !recomecou ? Math.min(cfg.sobraEntrada, sobra) : 0,
+    reemprego: ultima?.fabricante === FABRICANTE_REEMPREGO,
+  };
 }

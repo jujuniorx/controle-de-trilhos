@@ -921,6 +921,25 @@ html[data-tema]:root .trilho-tls-feito .trilho-tls-emenda { fill: var(--surface)
 html[data-tema]:root .trilho-tls-feito .trilho-tls-ultima { fill: var(--warn); }
 html[data-tema]:root .trilho-tls-perfil { fill: var(--ink); stroke: var(--surface); stroke-width: 1; paint-order: stroke; }
 html[data-tema]:root .trilho-tls-solta rect { fill: none; stroke: var(--ink-muted); stroke-width: .8; opacity: .55; }
+/* Soldas de ontem no trilho: listras claras por cima do trecho e um fio separando de hoje. */
+html[data-tema]:root .trilho-tls-ontem line { stroke: var(--surface); stroke-width: .9; opacity: .6; }
+html[data-tema]:root .trilho-tls-ontem-fim { fill: var(--surface); opacity: .95; }
+/* Painel "TLS em montagem" da Produção: preso no topo, compacto no celular (toque abre o detalhe). */
+html[data-tema]:root .trilho-ao-vivo { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 8px); z-index: 20; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 10px 14px 12px; box-shadow: 0 6px 18px -10px rgba(0,0,0,.35); }
+html[data-tema]:root .trilho-ao-vivo-topo { display: flex; align-items: baseline; gap: 10px; width: 100%; min-height: 32px; padding: 0; background: none; border: 0; color: var(--ink); text-align: left; cursor: pointer; }
+html[data-tema]:root .trilho-ao-vivo-rotulo { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); }
+html[data-tema]:root .trilho-ao-vivo-numero { font-family: var(--font-barlow-cond), var(--font-barlow), sans-serif; font-size: 22px; font-weight: 700; line-height: 1; }
+html[data-tema]:root .trilho-ao-vivo-tls { margin-left: auto; font-size: 13px; font-weight: 600; color: var(--ink-muted); }
+html[data-tema]:root .trilho-ao-vivo .trilho-tls { max-width: none; margin-top: 6px; }
+html[data-tema]:root .trilho-ao-vivo-detalhe { display: none; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 8px; font-size: 13px; color: var(--ink-muted); }
+html[data-tema]:root .trilho-ao-vivo[data-aberto="sim"] .trilho-ao-vivo-detalhe { display: flex; }
+html[data-tema]:root .trilho-ao-vivo-hoje { color: var(--ink); font-weight: 700; }
+html[data-tema]:root .trilho-ao-vivo-ontem { font-weight: 600; }
+html[data-tema]:root .trilho-ao-vivo-dia { flex-basis: 100%; font-size: 12px; }
+@media (min-width: 640px) {
+  html[data-tema]:root .trilho-ao-vivo-detalhe { display: flex; }
+  html[data-tema]:root .trilho-ao-vivo-topo { cursor: default; }
+}
 /* Cartão "Continua na segunda": o trilho do TLS aberto e, embaixo, feitas x faltam. */
 html[data-tema]:root .sobra-trilho { max-width: 22rem; padding-top: 2px; }
 html[data-tema]:root .sobra-trilho .trilho-tls { margin-top: 6px; }
