@@ -2253,6 +2253,6 @@ html[data-tema="claro"] select option { background: #ffffff; color: #13202f; }
 html[data-tema="pastel"] select option { background: #ffffff; color: #2b1d4d; }
 html[data-tema="escuro"] select option { background: #0b0b0c; color: #fafafa; }
 html[data-tema="vermelho"] select option { background: #161616; color: #ffffff; }
-html[data-tema="laranja"] select option { background: #fffdf8; color: #2a1400; }
+html[data-tema="laranja"] select option { background: #3d1d06; color: #fff7e6; }
 html[data-tema="azul"] select option { background: #0e1a2e; color: #e8f1fc; }
 select option:checked, select option:hover { background: var(--primary, #3b82f6); color: #fff; }
