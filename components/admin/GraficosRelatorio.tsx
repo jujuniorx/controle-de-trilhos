@@ -146,13 +146,13 @@ export function GraficosRelatorio({ dados, tipo }: { dados: DadosGraficos; tipo?
                 {mostraRec && (
                   <div className="grafico-col">
                     {p.recebido > 0 && <span className="grafico-val">{fmtPeso(p.recebido)}</span>}
-                    <span className="grafico-barra grafico-cor-rec" style={{ height: `${altura(p.recebido)}%` }} />
+                    <span className="grafico-barra grafico-barra-trilho grafico-cor-rec" style={{ height: `${altura(p.recebido)}%` }} />
                   </div>
                 )}
                 {mostraEnv && (
                   <div className="grafico-col">
                     {p.enviado > 0 && <span className="grafico-val">{fmtPeso(p.enviado)}</span>}
-                    <span className="grafico-barra grafico-cor-env" style={{ height: `${altura(p.enviado)}%` }} />
+                    <span className="grafico-barra grafico-barra-trilho grafico-cor-env" style={{ height: `${altura(p.enviado)}%` }} />
                   </div>
                 )}
               </div>

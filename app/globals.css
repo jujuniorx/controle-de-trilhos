@@ -870,6 +870,12 @@ html[data-tema="pastel"] .grafico-area { --viz-2: #f29bbf; --viz-outros: #cfc6ee
 .grafico-col { flex: 1; max-width: 28px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; min-width: 0; }
 .grafico-barra { width: 100%; border-radius: 4px 4px 0 0; transform-origin: bottom; animation: grafico-sobe .8s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i, 0) * 70ms + 150ms); transition: filter .15s; }
 .grafico-grupo:hover .grafico-barra { filter: brightness(1.15); }
+/* Barras como trilhos em pé: cabeça em cima, alma no meio e patim embaixo */
+.grafico-barra-trilho { position: relative; background: linear-gradient(90deg, transparent 0 22%, var(--c) 22% 78%, transparent 78%); border-radius: 0; overflow: visible; }
+.grafico-barra-trilho.grafico-cor-rec { --c: var(--viz-1); }
+.grafico-barra-trilho.grafico-cor-env { --c: var(--viz-2); }
+.grafico-barra-trilho::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 5px; border-radius: 3px; background: var(--c); }
+.grafico-barra-trilho::after { content: ""; position: absolute; left: -14%; right: -14%; bottom: 0; height: 4px; border-radius: 2px; background: var(--c); }
 .grafico-val { font-size: .7rem; color: var(--ink-muted); font-variant-numeric: tabular-nums; margin-bottom: 2px; white-space: nowrap; animation: grafico-fade .5s ease-out both; animation-delay: calc(var(--i, 0) * 70ms + 650ms); }
 .grafico-eixo { font-size: .7rem; color: var(--ink-muted); text-align: center; white-space: nowrap; }
 
