@@ -154,8 +154,12 @@ export default async function RelatoriosPage({
         </div>
       </div>
 
-      <form method="get" className="card">
-        <div className="filtros-form grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <form method="get" className="card space-y-4" aria-label="Filtros do relatório">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="section-title">Filtros</h2>
+          <a href="/admin/relatorios" className="btn btn-ghost btn-sm">Limpar</a>
+        </div>
+        <div className="filtros-form grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
           <div className="filtros-base">
           <div className="field">
             <label htmlFor="f-inicio">Período (início)</label>
@@ -237,7 +241,7 @@ export default async function RelatoriosPage({
           </div>
           </div>
         </div>
-        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <div className="flex flex-col gap-2 border-t border-line pt-4 sm:flex-row sm:justify-end">
           <button type="submit" className="btn btn-primary w-full sm:w-auto sm:min-w-32">
             Filtrar
           </button>
