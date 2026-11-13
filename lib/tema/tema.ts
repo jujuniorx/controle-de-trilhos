@@ -6,7 +6,7 @@
 // Quem ainda não escolheu nada (sem cookie) começa no Azul-marinho.
 export const TEMA_COOKIE = 'ct_tema';
 
-export const TEMAS = ['claro', 'escuro', 'vidro', 'azul', 'pastel'] as const;
+export const TEMAS = ['claro', 'escuro', 'azul', 'pastel', 'vermelho', 'laranja'] as const;
 export type Tema = (typeof TEMAS)[number];
 
 export const TEMA_PADRAO: Tema = 'azul';
@@ -14,10 +14,10 @@ export const TEMA_PADRAO: Tema = 'azul';
 export const ROTULOS_TEMA: Record<Tema, string> = {
   claro: 'Claro',
   escuro: 'Escuro',
-  // O identificador continua 'vidro' para não perder a escolha já salva no cookie de quem usa este tema.
-  vidro: 'Âmbar',
   azul: 'Azul-marinho',
   pastel: 'Pastel',
+  vermelho: 'Vermelho',
+  laranja: 'Laranja',
 };
 
 export function temaValido(valor: string | undefined | null): Tema | undefined {
@@ -30,7 +30,8 @@ export const COR_APP: Record<Tema, string> = {
   escuro: '#000000',
   azul: '#050a1c',
   pastel: '#efe6ff',
-  vidro: '#4f4843',
+  vermelho: '#0b0b0b',
+  laranja: '#f7a524',
 };
 
 /** Ícones do app por tema (pasta public/icons/<tema>). */

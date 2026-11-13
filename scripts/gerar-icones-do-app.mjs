@@ -12,8 +12,9 @@ const TEMAS = {
   azul: { de: '#6a85fe', ate: '#304ce0', trilho: '#ffffff', dorm: '#c3ceff' },
   escuro: { de: '#19191b', ate: '#0b0b0c', trilho: '#fafafa', dorm: '#a1a1aa', contorno: 'rgba(255,255,255,.4)' },
   claro: { de: '#292929', ate: '#0e0e0e', trilho: '#ffffff', dorm: '#9a9a95' },
-  vidro: { de: '#796e67', ate: '#4f4843', trilho: '#ffb054', dorm: '#d6cfc9', contorno: 'rgba(255,176,84,.6)' },
   pastel: { de: '#292047', ate: '#1b1530', trilho: '#ffffff', dorm: '#b9a6ff' },
+  vermelho: { de: '#ff3b3f', ate: '#7a0d10', trilho: '#ffffff', dorm: '#ff9a9c' },
+  laranja: { de: '#ffb020', ate: '#e85d04', trilho: '#ffffff', dorm: '#ffe6bd' },
 };
 
 /** SVG do ícone. raio = canto arredondado (0 = fundo até a borda); escala = tamanho da marca dentro do quadro. */

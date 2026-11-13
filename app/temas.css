@@ -5,7 +5,8 @@
      escuro  = Sales Dashboard (escuro): preto com detalhes brancos
      azul    = @_code_and_chill_: azul-marinho com brilhos azuis e pilula deslizante
      pastel  = Dashboard V15: degrade lilas e rosa, cards brancos bem redondos
-     vidro   = "Ambar" na tela (Glassy Dashboard V30): paineis de vidro sobre fundo quente, com detalhes laranja
+     vermelho = vermelho e preto: fundo preto, cards escuros e detalhes vermelhos
+     laranja  = laranja e amarelo: fundo laranja com cards creme e detalhes amarelos
    Como funciona: cada tema so define variaveis (--v-*). As regras do fim do
    arquivo aplicam essas variaveis em todos os componentes, iguais para todos.
    Sem backdrop-filter e sem animacao continua: precisa ser liso em PC comum.
@@ -141,42 +142,71 @@ html[data-tema="pastel"]:root :is(.area-admin, .area-patio) {
   --pilula-fundo: var(--v-pill); --pilula-sombra: var(--v-pill-shadow);
 }
 
-/* ---------- VIDRO ---------- */
-html[data-tema="vidro"]:root,
-html[data-tema="vidro"]:root :is(.area-admin, .area-patio) {
+/* ---------- VERMELHO ---------- */
+html[data-tema="vermelho"]:root,
+html[data-tema="vermelho"]:root :is(.area-admin, .area-patio) {
   color-scheme: dark;
-  --g0: #4f4843; --g1: #57504a; --g2: #615953; --g3: #6b635c; --g4: #776e67; --g5: #8a8079; --g6: #a59b93;
-  --b0: #6f6660; --b1: #7b716a; --b2: #e8e2dc; --b3: #ffb054; --b4: #ffb054; --b5: #ffc47a; --b6: #ffd9a8;
-  --t1: #ffffff; --t2: rgba(255, 255, 255, .76); --t3: rgba(255, 255, 255, .56); --ln: rgba(255, 255, 255, .13); --ln2: rgba(255, 255, 255, .22);
-  --ok: #86efac; --ok-bg: rgba(134, 239, 172, .14); --warn: #fcd34d; --warn-bg: rgba(252, 211, 77, .14); --err: #fca5a5; --err-bg: rgba(252, 165, 165, .16);
-  --background: #5f5751; --foreground: #ffffff;
-  --primary: #ffb054; --primary-dark: #f2761b; --primary-light: #776e67; --on-primary: #2a1a0c;
-  --surface: #615953; --surface-2: #6b635c; --surface-3: #776e67; --line: var(--ln); --line-2: var(--ln2);
-  --ink: #ffffff; --ink-muted: rgba(255, 255, 255, .76); --ink-dim: rgba(255, 255, 255, .56);
+  --g0: #0b0b0b; --g1: #121212; --g2: #181818; --g3: #202020; --g4: #2a2a2a; --g5: #3a3a3a; --g6: #5a5a5a;
+  --b0: #1c1c1c; --b1: #2a2a2a; --b2: #e6282e; --b3: #ff3b3f; --b4: #ff5a5e; --b5: #ff9a9c; --b6: #ffd0d1;
+  --t1: #ffffff; --t2: #b8b8b8; --t3: #7d7d7d; --ln: rgba(255, 255, 255, .09); --ln2: rgba(255, 255, 255, .16);
+  --ok: #4ade80; --ok-bg: rgba(74, 222, 128, .12); --warn: #fbbf24; --warn-bg: rgba(251, 191, 36, .12); --err: #ff5a5e; --err-bg: rgba(255, 90, 94, .14);
+  --background: #0b0b0b; --foreground: #ffffff;
+  --primary: #e6282e; --primary-dark: #b71217; --primary-light: #2a1214; --on-primary: #ffffff;
+  --surface: #161616; --surface-2: #1d1d1d; --surface-3: #262626; --line: var(--ln); --line-2: var(--ln2);
+  --ink: #ffffff; --ink-muted: #b8b8b8; --ink-dim: #7d7d7d;
 
   --v-bg:
-    radial-gradient(38% 42% at 92% 4%, rgba(255, 138, 40, .30) 0%, transparent 70%),
-    radial-gradient(34% 40% at 4% 100%, rgba(255, 150, 60, .16) 0%, transparent 70%),
-    radial-gradient(55% 60% at 18% 20%, #7f746d 0%, transparent 62%),
-    radial-gradient(45% 55% at 84% 16%, #71675f 0%, transparent 60%),
-    radial-gradient(50% 50% at 72% 88%, #867a71 0%, transparent 60%),
-    radial-gradient(60% 60% at 8% 96%, #3f3935 0%, transparent 65%),
-    #5f5751;
-  --v-card: linear-gradient(160deg, rgba(255, 255, 255, .14), rgba(255, 255, 255, .07)); --v-card-line: rgba(255, 255, 255, .20); --v-radius: 22px;
-  --v-shadow: 0 10px 32px rgba(20, 14, 10, .22), inset 0 1px 0 rgba(255, 255, 255, .22);
-  --v-shadow-hover: 0 20px 44px rgba(20, 14, 10, .36), 0 0 0 1px rgba(255, 176, 84, .45), inset 0 1px 0 rgba(255, 255, 255, .34); --v-lift: -5px;
-  --v-side: rgba(255, 255, 255, .07); --v-side-line: rgba(255, 255, 255, .16); --v-side-ink: rgba(255, 255, 255, .74); --v-side-strong: #ffffff; --v-side-hover: rgba(255, 255, 255, .10);
-  --v-pill: linear-gradient(90deg, #ffb054, #f2761b); --v-pill-ink: #2a1a0c; --v-pill-shadow: 0 10px 26px rgba(242, 118, 27, .38), inset 0 1px 0 rgba(255, 255, 255, .40); --v-pill-radius: 14px;
-  --v-icon: rgba(255, 255, 255, .10); --v-pill-icon: rgba(42, 26, 12, .14); --v-icon-radius: 10px;
-  --v-top: rgba(98, 90, 84, .9); --v-top-line: rgba(255, 255, 255, .14);
-  --v-field: rgba(255, 255, 255, .10); --v-field-line: rgba(255, 255, 255, .24); --v-field-radius: 12px; --v-focus: #ffb054;
-  --v-btn: linear-gradient(180deg, #ffb859, #f2761b); --v-btn-ink: #2a1a0c; --v-btn-shadow: 0 6px 18px rgba(242, 118, 27, .34), inset 0 1px 0 rgba(255, 255, 255, .40); --v-btn-radius: 999px;
-  --v-ghost: rgba(255, 255, 255, .10); --v-ghost-ink: #ffffff; --v-ghost-line: rgba(255, 255, 255, .28); --v-sec: rgba(255, 255, 255, .16);
-  --v-hero: linear-gradient(120deg, rgba(255, 150, 60, .42), rgba(255, 255, 255, .10) 55%, rgba(255, 255, 255, .06)); --v-hero-ink: #ffffff; --v-hero-sub: rgba(255, 255, 255, .8); --v-hero-line: rgba(255, 190, 120, .40);
-  --v-hero-haze: radial-gradient(closest-side, rgba(60, 52, 48, .5) 40%, transparent);
-  --v-accent: #ffb054; --v-scroll: #8a8079;
-  --v-home-haze: radial-gradient(closest-side, rgba(84, 76, 70, .7) 35%, transparent); --v-tile-icon-radius: 50%;
-  --home-topo: #5f5751; --home-base: #5f5751; --via-neblina: rgba(255, 255, 255, .10); --via-lastro-borda: rgba(255, 255, 255, .12); --via-trilho-corpo: #8a7f77; --via-trilho-topo: #ffb054;
+    radial-gradient(60% 50% at 95% -5%, rgba(230, 40, 46, .36), transparent 70%),
+    radial-gradient(45% 45% at 0% 110%, rgba(230, 40, 46, .22), transparent 70%),
+    #0b0b0b;
+  --v-card: linear-gradient(180deg, #1a1a1a, #111111); --v-card-line: rgba(255, 255, 255, .09); --v-radius: 16px;
+  --v-shadow: 0 10px 28px rgba(0, 0, 0, .5); --v-shadow-hover: 0 18px 40px rgba(0, 0, 0, .6), 0 0 0 1px rgba(230, 40, 46, .45); --v-lift: -3px;
+  --v-side: #0b0b0b; --v-side-line: rgba(255, 255, 255, .08); --v-side-ink: #b8b8b8; --v-side-strong: #ffffff; --v-side-hover: rgba(255, 255, 255, .07);
+  --v-pill: linear-gradient(90deg, #e6282e, #ff4a4f); --v-pill-ink: #ffffff; --v-pill-shadow: 0 8px 22px rgba(230, 40, 46, .4); --v-pill-radius: 10px;
+  --v-icon: rgba(255, 255, 255, .07); --v-pill-icon: rgba(255, 255, 255, .2); --v-icon-radius: 9px;
+  --v-top: rgba(11, 11, 11, .94); --v-top-line: rgba(255, 255, 255, .08);
+  --v-field: #111111; --v-field-line: rgba(255, 255, 255, .16); --v-field-radius: 10px; --v-focus: #ff4a4f;
+  --v-btn: linear-gradient(180deg, #ff3b3f, #d91d22); --v-btn-ink: #ffffff; --v-btn-shadow: 0 6px 18px rgba(230, 40, 46, .35); --v-btn-radius: 10px;
+  --v-ghost: transparent; --v-ghost-ink: #ffffff; --v-ghost-line: rgba(255, 255, 255, .22); --v-sec: #1d1d1d;
+  --v-hero: linear-gradient(120deg, #e6282e, #6e0d10 60%, #161616); --v-hero-ink: #ffffff; --v-hero-sub: #ffd0d1; --v-hero-line: rgba(255, 90, 94, .35);
+  --v-hero-haze: radial-gradient(closest-side, rgba(11, 11, 11, .55) 40%, transparent);
+  --v-accent: #ff4a4f; --v-scroll: #3a3a3a;
+  --v-home-haze: radial-gradient(closest-side, rgba(11, 11, 11, .9) 35%, transparent); --v-tile-icon-radius: 12px;
+  --home-topo: #0b0b0b; --home-base: #000000; --via-neblina: rgba(255, 60, 63, .10); --via-lastro-borda: rgba(255, 255, 255, .08); --via-trilho-corpo: #3a3a3a; --via-trilho-topo: #ff4a4f;
+  --pilula-fundo: var(--v-pill); --pilula-sombra: var(--v-pill-shadow);
+}
+
+/* ---------- LARANJA ---------- */
+html[data-tema="laranja"]:root,
+html[data-tema="laranja"]:root :is(.area-admin, .area-patio) {
+  color-scheme: light;
+  --g0: #ffffff; --g1: #fff8ec; --g2: #fff1d9; --g3: #ffe6bd; --g4: #ffd796; --g5: #f7bd6a; --g6: #d9963c;
+  --b0: #fff1d9; --b1: #ffe2b0; --b2: #f5a623; --b3: #2a1400; --b4: #2a1400; --b5: #2a1400; --b6: #140900;
+  --t1: #2a1400; --t2: #6b4321; --t3: #9a7450; --ln: rgba(90, 40, 0, .10); --ln2: rgba(90, 40, 0, .18);
+  --ok: #15803d; --ok-bg: #dcf5e4; --warn: #b45309; --warn-bg: #fdecc8; --err: #c0392b; --err-bg: #fce4e1;
+  --background: #f7a524; --foreground: #2a1400;
+  --primary: #f26b0f; --primary-dark: #c24f00; --primary-light: #ffe6bd; --on-primary: #ffffff;
+  --surface: #fffdf8; --surface-2: #fff4e2; --surface-3: #ffe9c7; --line: var(--ln); --line-2: var(--ln2);
+  --ink: #2a1400; --ink-muted: #6b4321; --ink-dim: #9a7450;
+
+  --v-bg:
+    radial-gradient(55% 50% at 92% 0%, rgba(255, 210, 63, .85) 0%, transparent 70%),
+    radial-gradient(50% 55% at 0% 100%, rgba(255, 184, 48, .85) 0%, transparent 70%),
+    linear-gradient(160deg, #f9a825 0%, #f58a1b 100%);
+  --v-card: linear-gradient(180deg, #fffdf8, #fff6e6); --v-card-line: rgba(120, 55, 0, .12); --v-radius: 18px;
+  --v-shadow: 0 10px 26px rgba(120, 55, 0, .18); --v-shadow-hover: 0 18px 38px rgba(120, 55, 0, .28); --v-lift: -4px;
+  --v-side: rgba(255, 250, 240, .94); --v-side-line: rgba(120, 55, 0, .12); --v-side-ink: #6b4321; --v-side-strong: #2a1400; --v-side-hover: rgba(242, 107, 15, .10);
+  --v-pill: linear-gradient(90deg, #ffb020, #f26b0f); --v-pill-ink: #ffffff; --v-pill-shadow: 0 8px 22px rgba(242, 107, 15, .38); --v-pill-radius: 12px;
+  --v-icon: rgba(242, 107, 15, .10); --v-pill-icon: rgba(255, 255, 255, .25); --v-icon-radius: 10px;
+  --v-top: rgba(255, 250, 240, .95); --v-top-line: rgba(120, 55, 0, .10);
+  --v-field: #ffffff; --v-field-line: rgba(120, 55, 0, .20); --v-field-radius: 12px; --v-focus: #f26b0f;
+  --v-btn: linear-gradient(180deg, #ff8a1f, #e85d04); --v-btn-ink: #ffffff; --v-btn-shadow: 0 6px 18px rgba(232, 93, 4, .35); --v-btn-radius: 10px;
+  --v-ghost: #fffdf8; --v-ghost-ink: #2a1400; --v-ghost-line: rgba(120, 55, 0, .22); --v-sec: #fff4e2;
+  --v-hero: linear-gradient(120deg, #ffb020, #f26b0f 60%, #d94b00); --v-hero-ink: #ffffff; --v-hero-sub: #fff3d6; --v-hero-line: rgba(255, 230, 150, .5);
+  --v-hero-haze: radial-gradient(closest-side, rgba(255, 160, 40, .5) 40%, transparent);
+  --v-accent: #f26b0f; --v-scroll: #f0b060;
+  --v-home-haze: radial-gradient(closest-side, rgba(255, 246, 230, .92) 35%, transparent); --v-tile-icon-radius: 12px;
+  --home-topo: #fff3d9; --home-base: #fbb440; --via-neblina: rgba(120, 55, 0, .08); --via-lastro-borda: rgba(120, 55, 0, .12); --via-trilho-corpo: #c98a4a; --via-trilho-topo: #2a1400;
   --pilula-fundo: var(--v-pill); --pilula-sombra: var(--v-pill-shadow);
 }
 
@@ -277,9 +307,12 @@ html[data-tema="azul"]:root :is(.ct-logo-mark, .logo-animada) .logo-trilho { fil
 html[data-tema="pastel"]:root :is(.ct-logo-mark, .logo-animada) .logo-tile { fill: #1b1530; stroke: none; }
 html[data-tema="pastel"]:root :is(.ct-logo-mark, .logo-animada) .logo-dorm { fill: #b9a6ff; }
 html[data-tema="pastel"]:root :is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: #ffffff; }
-html[data-tema="vidro"]:root :is(.ct-logo-mark, .logo-animada) .logo-tile { fill: rgba(255, 255, 255, .2); stroke: rgba(255, 255, 255, .45); stroke-width: 1.5; }
-html[data-tema="vidro"]:root :is(.ct-logo-mark, .logo-animada) .logo-dorm { fill: rgba(255, 255, 255, .6); }
-html[data-tema="vidro"]:root :is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: #ffb054; }
+html[data-tema="vermelho"]:root :is(.ct-logo-mark, .logo-animada) .logo-tile { fill: #e6282e; stroke: none; }
+html[data-tema="vermelho"]:root :is(.ct-logo-mark, .logo-animada) .logo-dorm { fill: #ff9a9c; }
+html[data-tema="vermelho"]:root :is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: #ffffff; }
+html[data-tema="laranja"]:root :is(.ct-logo-mark, .logo-animada) .logo-tile { fill: #f26b0f; stroke: none; }
+html[data-tema="laranja"]:root :is(.ct-logo-mark, .logo-animada) .logo-dorm { fill: #ffd796; }
+html[data-tema="laranja"]:root :is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: #ffffff; }
 
 /* Tela inicial (escolha do setor): mesmo fundo e mesmos cartoes do tema */
 html[data-tema]:root .home-entrada {
@@ -348,10 +381,6 @@ html[data-tema="claro"]:root .vg-tile, html[data-tema="escuro"]:root .vg-tile { 
 html[data-tema="claro"]:root .vg-tile:not(:first-child) .stat-value { color: #141414 !important; }
 html[data-tema="escuro"]:root .vg-tile:not(:first-child) .stat-value { color: #fafafa !important; }
 
-/* Vidro: numeros brancos (as cores fortes somem no vidro) e so o filete colorido no topo */
-html[data-tema="vidro"]:root .vg-tile .stat-value { color: #ffffff !important; }
-html[data-tema="vidro"]:root .vg-tile::after { opacity: .16; }
-
 /* Pastel: os quatro numeros do dono tambem em cartoes coloridos */
 html[data-tema="pastel"]:root .vg-tile { border-top-width: 1px !important; border-color: transparent !important; }
 html[data-tema="pastel"]:root .vg-tile:nth-child(4n + 1) { background: #e9e1ff !important; }
@@ -373,7 +402,8 @@ html[data-tema="claro"]:root  { --v-menu: #ffffff; --v-menu-line: rgba(20, 20, 2
 html[data-tema="escuro"]:root { --v-menu: #161616; --v-menu-line: rgba(255, 255, 255, .12); --v-menu-shadow: 0 18px 44px rgba(0, 0, 0, .6); }
 html[data-tema="azul"]:root   { --v-menu: #0b1332; --v-menu-line: rgba(125, 150, 255, .26); --v-menu-shadow: 0 18px 44px rgba(2, 6, 23, .6), 0 0 0 1px rgba(91, 123, 255, .08); }
 html[data-tema="pastel"]:root { --v-menu: #ffffff; --v-menu-line: rgba(27, 21, 48, .08); --v-menu-shadow: 0 18px 44px rgba(90, 70, 160, .20); }
-html[data-tema="vidro"]:root  { --v-menu: #3b332e; --v-menu-line: rgba(255, 255, 255, .16); --v-menu-shadow: 0 18px 44px rgba(10, 6, 4, .5); }
+html[data-tema="vermelho"]:root  { --v-menu: #161616; --v-menu-line: rgba(255, 255, 255, .14); --v-menu-shadow: 0 18px 44px rgba(0, 0, 0, .6); }
+html[data-tema="laranja"]:root  { --v-menu: #fffdf8; --v-menu-line: rgba(120, 55, 0, .14); --v-menu-shadow: 0 18px 44px rgba(120, 55, 0, .24); }
 
 /* Botoes: peso, foco visivel, subida leve ao passar o mouse e estado "em andamento" */
 html[data-tema]:root .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; letter-spacing: .005em; white-space: nowrap; text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
@@ -432,7 +462,6 @@ html[data-tema]:root .home-entrada .home-tema .tema-botao { height: 40px; border
 html[data-tema]:root .tema-amostra { width: 18px; height: 18px; flex: none; border-radius: 50%; box-shadow: 0 0 0 1px rgba(128, 128, 128, .45); }
 html[data-tema]:root .tema-amostra[data-amostra="claro"]  { background: linear-gradient(135deg, #f4f4f2 50%, #141414 50%); }
 html[data-tema]:root .tema-amostra[data-amostra="escuro"] { background: linear-gradient(135deg, #0a0a0a 50%, #fafafa 50%); }
-html[data-tema]:root .tema-amostra[data-amostra="vidro"]  { background: linear-gradient(135deg, #5a4a40 50%, #f0a35e 50%); }
 html[data-tema]:root .tema-amostra[data-amostra="azul"]   { background: linear-gradient(135deg, #0b1332 50%, #5b7bff 50%); }
 html[data-tema]:root .tema-amostra[data-amostra="pastel"] { background: linear-gradient(135deg, #d9ccff 50%, #ffc4dc 50%); }
 html[data-tema]:root .tema-menu {
@@ -524,13 +553,20 @@ html[data-tema]:root .ct-nav-btn:focus-visible { outline: 2px solid var(--v-focu
 }
 
 
-/* Ambar (data-tema="vidro"): detalhes laranja nos pontos de destaque */
-html[data-tema="vidro"]:root :is(.area-admin, .area-patio) main h1::after { background: linear-gradient(90deg, #ffb054, transparent) !important; }
-html[data-tema="vidro"]:root .stat-tile { border-top-color: rgba(255, 176, 84, .55) !important; }
-html[data-tema="vidro"]:root .badge-info { color: #ffc47a !important; background: rgba(255, 176, 84, .16) !important; }
-html[data-tema="vidro"]:root .ct-user-avatar, html[data-tema="vidro"]:root .ct-topbar .bg-primary { background: linear-gradient(180deg, #ffb859, #f2761b) !important; color: #2a1a0c !important; }
-html[data-tema="vidro"]:root .tema-amostra[data-amostra="vidro"] { background: linear-gradient(135deg, #5f5751 50%, #ff9a3d 50%); }
-html[data-tema="vidro"]:root ::selection { background: rgba(255, 176, 84, .45); color: #fff; }
+/* Vermelho: detalhes vermelhos nos pontos de destaque */
+html[data-tema="vermelho"]:root :is(.area-admin, .area-patio) main h1::after { background: linear-gradient(90deg, #ff3b3f, transparent) !important; }
+html[data-tema="vermelho"]:root .stat-tile { border-top-color: rgba(255, 59, 63, .6) !important; }
+html[data-tema="vermelho"]:root .badge-info { color: #ff9a9c !important; background: rgba(255, 59, 63, .16) !important; }
+html[data-tema="vermelho"]:root .ct-user-avatar, html[data-tema="vermelho"]:root .ct-topbar .bg-primary { background: linear-gradient(180deg, #ff3b3f, #b71217) !important; color: #ffffff !important; }
+html[data-tema="vermelho"]:root ::selection { background: rgba(255, 59, 63, .45); color: #fff; }
+/* Laranja: detalhes laranja e amarelos nos pontos de destaque */
+html[data-tema="laranja"]:root :is(.area-admin, .area-patio) main h1::after { background: linear-gradient(90deg, #f26b0f, transparent) !important; }
+html[data-tema="laranja"]:root .stat-tile { border-top-color: rgba(242, 107, 15, .6) !important; }
+html[data-tema="laranja"]:root .badge-info { color: #b4480a !important; background: rgba(255, 176, 32, .22) !important; }
+html[data-tema="laranja"]:root .ct-user-avatar, html[data-tema="laranja"]:root .ct-topbar .bg-primary { background: linear-gradient(180deg, #ffb020, #f26b0f) !important; color: #ffffff !important; }
+html[data-tema="laranja"]:root ::selection { background: rgba(255, 176, 32, .45); color: #2a1400; }
+html[data-tema]:root .tema-amostra[data-amostra="vermelho"] { background: linear-gradient(135deg, #0b0b0b 50%, #e6282e 50%); }
+html[data-tema]:root .tema-amostra[data-amostra="laranja"] { background: linear-gradient(135deg, #f58a1b 50%, #fff3d6 50%); }
 
 
 /* Producao: tabela de paradas (Inicio, Fim, Tempo calculado, Descricao) */
@@ -582,7 +618,7 @@ html[data-tema]:root input[type="date"]::-webkit-calendar-picker-indicator {
   position: absolute; right: 0; top: 0; width: 44px; height: 100%; margin: 0; padding: 0; opacity: 0; cursor: pointer;
 }
 
-/* Textos cinza fixos (slate) passam a seguir o tema: no Ambar, Azul e Escuro ficavam apagados */
+/* Textos cinza fixos (slate) passam a seguir o tema: no Azul e Escuro ficavam apagados */
 html[data-tema]:root :is(.text-slate-400, .text-slate-500, .text-slate-600) { color: var(--ink-muted) !important; }
 
 /* Botao sem variante (ex.: Redefinir senha, Desativar) aparecia so como texto */
@@ -822,7 +858,6 @@ html[data-tema]:root .inicio-cartao-selo {
 html[data-tema]:root { --ct-dy: 12px; --ct-curva: cubic-bezier(.2, .8, .2, 1); --ct-tempo: .42s; }
 html[data-tema="claro"]:root { --ct-dy: 4px; --ct-tempo: .32s; }
 html[data-tema="pastel"]:root { --ct-dy: 16px; --ct-curva: cubic-bezier(.34, 1.56, .64, 1); --ct-tempo: .5s; }
-html[data-tema="vidro"]:root { --ct-dy: 18px; --ct-tempo: .5s; }
 @keyframes ct-surge { from { opacity: 0; transform: translateY(var(--ct-dy)); } to { opacity: 1; transform: none; } }
 html[data-tema]:root :is(.inicio-resumos, .inicio-grade, .hora-lista) > * {
   animation: ct-surge var(--ct-tempo) var(--ct-curva) backwards; animation-delay: calc(var(--ordem, 0) * 45ms);

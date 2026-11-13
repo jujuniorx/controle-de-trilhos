@@ -274,9 +274,6 @@ html[data-tema="claro"] :is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: #
 html[data-tema="azul"] :is(.ct-logo-mark, .logo-animada) .logo-tile { fill: #0E1A2E; }
 html[data-tema="azul"] :is(.ct-logo-mark, .logo-animada) .logo-dorm { fill: #3B82F6; }
 html[data-tema="azul"] :is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: #60A5FA; }
-html[data-tema="vidro"] :is(.ct-logo-mark, .logo-animada) .logo-tile { fill: rgba(255, 255, 255, .14); }
-html[data-tema="vidro"] :is(.ct-logo-mark, .logo-animada) .logo-dorm { fill: #FF9A4D; }
-html[data-tema="vidro"] :is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: #FF7A1A; }
 html[data-tema="pastel"] :is(.ct-logo-mark, .logo-animada) .logo-tile { fill: #EFE6FF; }
 html[data-tema="pastel"] :is(.ct-logo-mark, .logo-animada) .logo-dorm { fill: #B89CF8; }
 html[data-tema="pastel"] :is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: #9B7CF6; }
@@ -850,7 +847,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--primary); outlin
 }
 html[data-tema="escuro"] .grafico-area { --viz-2: #7c7c85; --viz-outros: #4b4b52; --cat-l: .8; --cat-c: .075; --cat-h: 250; }
 html[data-tema="azul"] .grafico-area { --viz-2: #f2a36b; --viz-outros: #5a6f97; --cat-l: .72; --cat-c: .14; --cat-h: 268; }
-html[data-tema="vidro"] .grafico-area { --viz-2: #8ecbff; --viz-outros: #6b7280; --cat-l: .74; --cat-c: .15; --cat-h: 52; }
+html[data-tema="vermelho"] .grafico-area { --viz-2: #ff9a9c; --viz-outros: #5a5a5a; --cat-l: .72; --cat-c: .16; --cat-h: 25; }
+html[data-tema="laranja"] .grafico-area { --viz-2: #2f7fd6; --viz-outros: #8a6a4a; --cat-l: .62; --cat-c: .14; --cat-h: 250; }
 html[data-tema="pastel"] .grafico-area { --viz-2: #f29bbf; --viz-outros: #cfc6ee; --cat-l: .76; --cat-c: .1; --cat-h: 295; }
 /* Os perfis mais usados (TR60, TR68, TR57, TR45, TR50) ficam bem afastados na roda; o TR60 leva a cor do tema. */
 .grafico-area { --cat-0: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 30)); --cat-1: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 60)); --cat-2: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 120)); --cat-3: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 180)); --cat-4: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 90)); --cat-5: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 210)); --cat-6: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 240)); --cat-7: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 270)); --cat-8: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 300)); --cat-9: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 0)); --cat-10: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 150)); --cat-11: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 330)); }
@@ -1727,114 +1725,6 @@ html[data-tema="claro"] .home-entrada .setor-tile { color: var(--h-texto); backg
 .ct-seletor-tema select:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
 /* ═══════════════════════════════════════════════
-   TEMA VIDRO — cards translúcidos sobre fundo em gradiente, menu lateral de vidro,
-   transições suaves. Inspirado no painel "Glassy Dashboard" (escuro, cinza, laranja).
-   Tokens: mesmos nomes dos temas acima, para o restante do CSS não mudar.
-   ═══════════════════════════════════════════════ */
-html[data-tema="vidro"] {
-  color-scheme: dark;
-  --g0: #0b0d10;
-  --g1: rgba(255, 255, 255, .05);
-  --g2: rgba(255, 255, 255, .07);
-  --g3: rgba(255, 255, 255, .11);
-  --g4: rgba(255, 255, 255, .16);
-  --g5: #4a4f57;
-  --g6: #6b7280;
-
-  --b0: rgba(255, 122, 26, .14);
-  --b1: rgba(255, 122, 26, .28);
-  --b2: #c2410c;
-  --b3: #ff7a1a;
-  --b4: #ff9a4d;
-  --b5: #ffc08a;
-  --b6: #fff1e4;
-
-  --ok: #34d399;
-  --ok-bg: rgba(52, 211, 153, .14);
-  --warn: #fbbf24;
-  --warn-bg: rgba(251, 191, 36, .14);
-  --err: #f87171;
-  --err-bg: rgba(248, 113, 113, .14);
-
-  --t1: #f5f3f0;
-  --t2: #b7b2ab;
-  --t3: #7d7871;
-  --ln: rgba(255, 255, 255, .09);
-  --ln2: rgba(255, 255, 255, .16);
-
-  --radius: 12px;
-  --radius-lg: 18px;
-
-  --primary: var(--b3);
-  --primary-dark: var(--b1);
-  --primary-light: var(--b0);
-  --surface: rgba(20, 20, 24, .58);
-  --surface-2: rgba(255, 255, 255, .06);
-  --surface-3: rgba(255, 255, 255, .1);
-  --background: #0b0d10;
-  --foreground: var(--t1);
-  --card-shadow: 0 10px 40px rgba(0, 0, 0, .35);
-}
-
-html[data-tema="vidro"] body {
-  background:
-    radial-gradient(1100px 600px at 12% -10%, rgba(255, 122, 26, .18), transparent 60%),
-    radial-gradient(900px 600px at 110% 20%, rgba(255, 154, 77, .10), transparent 55%),
-    linear-gradient(180deg, #111418 0%, #0b0d10 100%);
-  background-attachment: fixed;
-  color: var(--t1);
-}
-
-html[data-tema="vidro"] .ct-sidebar,
-html[data-tema="vidro"] .ct-topbar {
-  background: rgba(16, 17, 20, .55);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  backdrop-filter: blur(18px) saturate(140%);
-  border-color: var(--ln);
-}
-
-html[data-tema="vidro"] .card,
-html[data-tema="vidro"] .stat-tile {
-  background: rgba(255, 255, 255, .05);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
-  border: 1px solid var(--ln);
-  box-shadow: var(--card-shadow);
-  transition: transform .25s ease, border-color .25s ease, background .25s ease;
-}
-html[data-tema="vidro"] .card:hover,
-html[data-tema="vidro"] .stat-tile:hover {
-  transform: translateY(-2px);
-  border-color: rgba(255, 122, 26, .35);
-}
-
-html[data-tema="vidro"] .ct-sidebar-nav a {
-  transition: background .2s ease, color .2s ease, transform .2s ease;
-  border-radius: 10px;
-}
-html[data-tema="vidro"] .ct-sidebar-nav a:hover { transform: translateX(3px); }
-html[data-tema="vidro"] .ct-sidebar-nav a[data-active="true"] {
-  background: linear-gradient(90deg, rgba(255, 122, 26, .28), rgba(255, 122, 26, .06));
-  color: #fff;
-  box-shadow: inset 3px 0 0 var(--b3);
-}
-
-@keyframes ct-entrada-vidro {
-  from { opacity: 0; transform: translateY(8px) scale(.99); }
-  to { opacity: 1; transform: none; }
-}
-html[data-tema="vidro"] .pagina-admin > * {
-  animation: ct-entrada-vidro .45s ease both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html[data-tema="vidro"] .pagina-admin > *,
-  html[data-tema="vidro"] .card,
-  html[data-tema="vidro"] .stat-tile,
-  html[data-tema="vidro"] .ct-sidebar-nav a { animation: none; transition: none; transform: none; }
-}
-
-/* ═══════════════════════════════════════════════
    TEMA AZUL-MARINHO — fundo azul-noite, cards com brilho azul, menu com pílula
    deslizante e gráficos em verde/azul. Inspirado no painel "@_code_and_chill_".
    ═══════════════════════════════════════════════ */
@@ -2045,157 +1935,6 @@ html[data-tema="pastel"] .pagina-admin > * {
   html[data-tema="pastel"] .ct-sidebar-nav a { animation: none; transition: none; transform: none; }
 }
 
-/* ───────────────────────────────────────────────
-   VIDRO, PARTE 2 — cenário de fundo animado, cards e banner de vidro,
-   menu com pílula de vidro e entradas em cascata. Mira o visual do vídeo
-   "Glassy Dashboard": fundo escuro com brilho laranja em movimento, painéis
-   translúcidos com borda de luz, números que entram e itens que sobem em sequência.
-   ─────────────────────────────────────────────── */
-@keyframes ct-orbe-vidro-1 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(6vw, 4vh) scale(1.12); }
-}
-@keyframes ct-orbe-vidro-2 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-5vw, -6vh) scale(1.08); }
-}
-@keyframes ct-brilho-vidro {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-@keyframes ct-entrada-vidro-cascata {
-  from { opacity: 0; transform: translateY(18px) scale(.985); filter: blur(6px); }
-  to { opacity: 1; transform: none; filter: none; }
-}
-@keyframes ct-numero-vidro {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: none; }
-}
-
-html[data-tema="vidro"] body {
-  position: relative;
-  isolation: isolate;
-  background: #0a0c0f;
-  background-attachment: scroll;
-}
-/* Cenário: dois focos de luz laranja que flutuam e uma película de ruído. */
-html[data-tema="vidro"] body::before,
-html[data-tema="vidro"] body::after {
-  content: '';
-  position: fixed;
-  pointer-events: none;
-  z-index: -1;
-  border-radius: 50%;
-}
-html[data-tema="vidro"] body::before {
-  width: 46vw; height: 46vw; min-width: 320px; min-height: 320px;
-  top: -12vw; left: -8vw;
-  background: radial-gradient(circle, rgba(255, 122, 26, .42), rgba(255, 122, 26, 0) 70%);
-  animation: ct-orbe-vidro-1 18s ease-in-out infinite;
-}
-html[data-tema="vidro"] body::after {
-  width: 38vw; height: 38vw; min-width: 280px; min-height: 280px;
-  bottom: -10vw; right: -6vw;
-  background: radial-gradient(circle, rgba(255, 154, 77, .28), rgba(255, 154, 77, 0) 70%);
-  animation: ct-orbe-vidro-2 22s ease-in-out infinite;
-}
-
-/* Painéis de vidro: todos os cards, métricas e o banner de saudação. */
-html[data-tema="vidro"] .card,
-html[data-tema="vidro"] .stat-tile,
-html[data-tema="vidro"] .saudacao-hero,
-html[data-tema="vidro"] .acao-patio {
-  background: linear-gradient(160deg, rgba(255, 255, 255, .11), rgba(255, 255, 255, .04)) !important;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  border: 1px solid rgba(255, 255, 255, .12);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), 0 18px 50px rgba(0, 0, 0, .45);
-  border-radius: 18px;
-  position: relative;
-  overflow: hidden;
-}
-/* Borda de luz que varre o painel no hover. */
-html[data-tema="vidro"] .card::after,
-html[data-tema="vidro"] .stat-tile::after {
-  content: '';
-  position: absolute; inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(110deg, transparent 30%, rgba(255, 154, 77, .7) 50%, transparent 70%);
-  background-size: 250% 100%;
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0;
-  transition: opacity .3s ease;
-  pointer-events: none;
-}
-html[data-tema="vidro"] .card:hover::after,
-html[data-tema="vidro"] .stat-tile:hover::after {
-  opacity: 1;
-  animation: ct-brilho-vidro .9s ease-out 1 both;
-}
-html[data-tema="vidro"] .card:hover,
-html[data-tema="vidro"] .stat-tile:hover {
-  transform: translateY(-3px);
-  border-color: rgba(255, 154, 77, .4);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 26px 60px rgba(255, 122, 26, .14);
-}
-html[data-tema="vidro"] .card,
-html[data-tema="vidro"] .stat-tile {
-  transition: transform .35s cubic-bezier(.2, .7, .2, 1), box-shadow .35s ease, border-color .35s ease;
-}
-
-/* Banner de saudação: troca o gradiente azul por vidro com brilho laranja. */
-html[data-tema="vidro"] .saudacao-hero {
-  background:
-    radial-gradient(600px 220px at 100% 0%, rgba(255, 122, 26, .35), transparent 70%),
-    linear-gradient(160deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .02)) !important;
-}
-html[data-tema="vidro"] .saudacao-hero-texto::before {
-  background: radial-gradient(closest-side, rgba(8, 9, 11, .55) 40%, transparent) !important;
-}
-
-/* Números e títulos entram em sequência. */
-html[data-tema="vidro"] .stat-value,
-html[data-tema="vidro"] .saudacao-hero-saudacao {
-  animation: ct-numero-vidro .6s ease-out .3s both;
-}
-html[data-tema="vidro"] .stat-tile:nth-child(2) .stat-value { animation-delay: .42s; }
-
-/* Entrada em cascata da tela inteira. */
-html[data-tema="vidro"] .pagina-admin > * {
-  animation: ct-entrada-vidro-cascata .6s cubic-bezier(.2, .7, .2, 1) both;
-}
-html[data-tema="vidro"] .pagina-admin > *:nth-child(2) { animation-delay: .08s; }
-html[data-tema="vidro"] .pagina-admin > *:nth-child(3) { animation-delay: .16s; }
-html[data-tema="vidro"] .pagina-admin > *:nth-child(4) { animation-delay: .24s; }
-
-/* Menu lateral: itens entram um a um e o ativo tem pílula de vidro laranja. */
-html[data-tema="vidro"] .ct-sidebar-nav a {
-  animation: ct-entrada-vidro-cascata .5s cubic-bezier(.2, .7, .2, 1) both;
-  animation-delay: calc(var(--i, 0) * 0ms + 60ms);
-}
-html[data-tema="vidro"] .ct-sidebar-nav a[data-active="true"] {
-  background: linear-gradient(90deg, rgba(255, 122, 26, .42), rgba(255, 122, 26, .08)) !important;
-  border: 1px solid rgba(255, 154, 77, .35);
-  box-shadow: 0 8px 26px rgba(255, 122, 26, .28), inset 0 1px 0 rgba(255, 255, 255, .15);
-}
-html[data-tema="vidro"] .ct-sidebar-nav a:not([data-active="true"]):hover {
-  background: rgba(255, 255, 255, .07);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html[data-tema="vidro"] body::before,
-  html[data-tema="vidro"] body::after,
-  html[data-tema="vidro"] .card::after,
-  html[data-tema="vidro"] .stat-tile::after,
-  html[data-tema="vidro"] .pagina-admin > *,
-  html[data-tema="vidro"] .stat-value,
-  html[data-tema="vidro"] .saudacao-hero-saudacao,
-  html[data-tema="vidro"] .ct-sidebar-nav a { animation: none !important; transition: none !important; }
-}
-
 /* Pílula deslizante do menu lateral (medida pelo SidebarNav): desliza até o item ativo. */
 .ct-sidebar-nav { position: relative; }
 .ct-sidebar-nav::before {
@@ -2216,9 +1955,6 @@ html[data-tema="vidro"] .ct-sidebar-nav a:not([data-active="true"]):hover {
 .ct-sidebar-nav a { position: relative; z-index: 1; animation: ct-nav-entrada .5s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--i, 0) * 55ms + 80ms); }
 @keyframes ct-nav-entrada { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
 
-html[data-tema="vidro"] { --pilula-fundo: linear-gradient(90deg, rgba(255, 122, 26, .42), rgba(255, 122, 26, .08)); --pilula-sombra: 0 8px 26px rgba(255, 122, 26, .28), inset 0 1px 0 rgba(255, 255, 255, .15); }
-html[data-tema="vidro"] .ct-sidebar-nav a[data-active="true"] { background: transparent !important; box-shadow: none !important; border: none !important; }
-
 html[data-tema="azul"] { --pilula-fundo: linear-gradient(90deg, #2f5bd3, #3b6fe0); --pilula-sombra: 0 6px 18px rgba(47, 91, 211, .35); }
 html[data-tema="azul"] .ct-sidebar-nav a[data-active="true"] { background: transparent !important; box-shadow: none !important; }
 
@@ -2232,10 +1968,10 @@ html[data-tema="pastel"] .ct-sidebar-nav a[data-active="true"] .nav-icone { back
 }
 
 /* ============================================================
-   Brilho nos títulos (Vidro e Azul-marinho), só CSS.
+   Brilho nos títulos (Azul-marinho), só CSS.
    Isolado no fim do arquivo para ser fácil de remover.
    ============================================================ */
-html[data-tema="vidro"] .pagina-admin h1,
+
 html[data-tema="azul"] .pagina-admin h1 {
   background: linear-gradient(100deg, var(--t1, #fff) 0%, var(--primary, #7cc4ff) 45%, var(--t1, #fff) 90%);
   background-size: 220% 100%;
@@ -2251,22 +1987,15 @@ html[data-tema="azul"] .pagina-admin h1 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html[data-tema="vidro"] .pagina-admin h1,
+  
   html[data-tema="azul"] .pagina-admin h1 { animation: none; }
 }
 
-/* Números das métricas com largura fixa (não "dançam" ao mudar), nos temas com vidro e azul. */
-html[data-tema="vidro"] .stat-value,
+/* Números das métricas com largura fixa (não "dançam" ao mudar), no tema azul-marinho. */
+
 html[data-tema="azul"] .stat-value,
-html[data-tema="vidro"] .card table td,
 html[data-tema="azul"] .card table td {
   font-variant-numeric: tabular-nums;
-}
-
-/* Vidro: a área do Admin não pode pintar fundo sólido por cima das luzes do body. */
-html[data-tema="vidro"] .area-admin,
-html[data-tema="vidro"] .area-admin > main {
-  background: transparent !important;
 }
 
 /* Pastel: números de destaque em degradê lilás e rosa. */
@@ -2280,7 +2009,7 @@ html[data-tema="pastel"] .stat-value {
 /* ============================================================
    CARDS E MOVIMENTO POR TEMA (cada tema tem a sua forma).
    Referências: Escuro = app do pátio (cards sólidos, chips âmbar);
-   Vidro = Glassy Dashboard (painéis de vidro, luz varrendo);
+   Vermelho e Laranja = cards sólidos com a cor do tema no topo;
    Azul = @_code_and_chill_ (cards finos, linha de luz no topo);
    Pastel = Dashboard V15 (cards bem arredondados, quique suave);
    Claro = base limpa e sóbria (sombra leve, entrada discreta).
@@ -2343,20 +2072,6 @@ html[data-tema="pastel"] .card:hover,
 html[data-tema="pastel"] .stat-tile:hover { transform: translateY(-4px); box-shadow: 0 20px 44px rgba(124,92,224,.2); }
 @keyframes ct-quica-pastel { 0% { opacity: 0; transform: translateY(18px) scale(.96); } 100% { opacity: 1; transform: none; } }
 
-/* Vidro: painéis de vidro com desfoque, entrada com nitidez gradual */
-/* Sem backdrop-filter nos cards (pesado em PC comum): o vidro vem do gradiente e da borda de luz. */
-html[data-tema="vidro"] .card,
-html[data-tema="vidro"] .stat-tile {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  animation: ct-nitido-vidro .5s ease-out both;
-  transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease;
-}
-/* Glassy Dashboard: o painel sobe uns 5px no hover e ganha brilho */
-html[data-tema="vidro"] .card:hover,
-html[data-tema="vidro"] .stat-tile:hover { transform: translateY(-5px); box-shadow: 0 18px 40px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.18); }
-@keyframes ct-nitido-vidro { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-
 /* Troca de tema: circulo que se expande a partir do seletor (referencia Sales Dashboard) */
 ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
 ::view-transition-new(root) { animation: ct-vt-circulo .6s cubic-bezier(.4,0,.2,1) both; }
@@ -2372,10 +2087,6 @@ html[data-tema="vidro"] .stat-tile:hover { transform: translateY(-5px); box-shad
 @media (prefers-reduced-motion: reduce) {
   html[data-tema] .card, html[data-tema] .stat-tile { animation: none !important; transition: none !important; }
 }
-
-/* Menu "Mais" dos cards: o painel de ações (Excluir, Baixar PDF) não pode ser cortado pelo card. */
-html[data-tema="vidro"] .card,
-html[data-tema="vidro"] .stat-tile { overflow: visible !important; }
 .card:has(details[open]) { z-index: 30; }
 
 /* ───────────────────────────────────────────────
@@ -2385,7 +2096,6 @@ html[data-tema="vidro"] .stat-tile { overflow: visible !important; }
 html[data-tema="azul"] { --home-topo: #0b1b31; --home-base: #0b1118; --via-neblina: rgba(150, 190, 235, .13); --via-lastro-borda: rgba(150, 175, 205, .13); --via-trilho-corpo: #4a6180; --via-trilho-topo: #e8f1fc; }
 html[data-tema="escuro"] { --home-topo: #0a0a0a; --home-base: #000000; --via-neblina: rgba(255, 255, 255, .06); --via-lastro-borda: rgba(255, 255, 255, .08); --via-trilho-corpo: #3a3a40; --via-trilho-topo: #f5f5f5; }
 html[data-tema="escuro"] .home-entrada { --h-card: rgba(12, 12, 14, .82); --h-borda: rgba(255, 255, 255, .18); --h-botao: #fafafa; }
-html[data-tema="vidro"] { --home-topo: #1c120c; --home-base: #0b0a09; --via-neblina: rgba(255, 154, 77, .13); --via-lastro-borda: rgba(255, 160, 90, .12); --via-trilho-corpo: #6b4a33; --via-trilho-topo: #ffd2a8; }
 html[data-tema="claro"] { --home-topo: #e9eff7; --home-base: #f4f7fb; --via-neblina: rgba(120, 150, 190, .18); --via-lastro-borda: rgba(40, 60, 90, .12); --via-trilho-corpo: #9aaec6; --via-trilho-topo: #3e5878; }
 html[data-tema="pastel"] { --home-topo: #e9ddfb; --home-base: #f7f2ff; --via-neblina: rgba(200, 170, 250, .25); --via-lastro-borda: rgba(140, 110, 210, .14); --via-trilho-corpo: #b9a4e8; --via-trilho-topo: #6f55c8; }
 html[data-tema="pastel"] .home-entrada { color: #2b1d4d; --h-texto: #2b1d4d; --h-muted: #5d4f80; --h-card: rgba(255, 255, 255, .85); --h-borda: rgba(90, 60, 160, .15); --h-botao: #4a3a78; }
@@ -2402,16 +2112,12 @@ html[data-tema="claro"] .setor-tile-icone { border-radius: 12px; background: #1f
 /* Escuro: quadrado preto com contorno branco, icone branco e linhas retas */
 html[data-tema="escuro"] .setor-tile-icone { border-radius: 4px; background: #0B0B0C; color: #FAFAFA; border: 1px solid #FAFAFA; box-shadow: none; }
 html[data-tema="escuro"] .setor-tile:hover .setor-tile-icone { background: #FAFAFA; color: #000; }
-/* Vidro: circulo de vidro com contorno laranja e brilho */
-html[data-tema="vidro"] .setor-tile-icone { border-radius: 50%; background: linear-gradient(160deg, rgba(255, 255, 255, .18), rgba(255, 255, 255, .03)); border: 1px solid rgba(255, 154, 77, .55); color: #FF9A4D; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 0 18px rgba(255, 122, 26, .25); }
 /* Pastel: bloco bem arredondado, lilas e rosa, sombra macia */
 html[data-tema="pastel"] .setor-tile-icone { border-radius: 26px; background: linear-gradient(135deg, #b89cf8, #f5a3cf); box-shadow: 0 10px 22px rgba(155, 124, 246, .35); }
 
 /* Logo por tema: forma e contorno, alem da cor */
 html[data-tema="escuro"] :is(.ct-logo-mark, .logo-animada) .logo-tile { rx: 4px; stroke: #FAFAFA; stroke-width: 1; }
 html[data-tema="escuro"] :is(.ct-logo-mark, .logo-animada) .logo-trilho { rx: 0; }
-html[data-tema="vidro"] :is(.ct-logo-mark, .logo-animada) .logo-tile { rx: 28px; stroke: rgba(255, 154, 77, .6); stroke-width: 1.5; }
-html[data-tema="vidro"] :is(.ct-logo-mark, .logo-animada) .logo-trilho { rx: 4px; }
 html[data-tema="pastel"] :is(.ct-logo-mark, .logo-animada) .logo-tile { rx: 18px; stroke: #B89CF8; stroke-width: 1.2; }
 html[data-tema="pastel"] :is(.ct-logo-mark, .logo-animada) .logo-dorm { rx: 3px; }
 html[data-tema="claro"] :is(.ct-logo-mark, .logo-animada) .logo-tile { rx: 12px; }
@@ -2431,9 +2137,6 @@ html[data-tema="escuro"] .home-entrada .home-conteudo::before { background: radi
 html[data-tema="escuro"] .entrada-marca { background: linear-gradient(155deg, #000000, #0b0b0c 70%, #141416); color: #FAFAFA; }
 html[data-tema="escuro"] .entrada-marca-frase { color: #A1A1AA; }
 html[data-tema="escuro"] .entrada-form { background: #000000; }
-html[data-tema="vidro"] .entrada-marca { background: linear-gradient(155deg, #1c120c, #0b0a09 70%, #140d08); color: #FFF4EA; }
-html[data-tema="vidro"] .entrada-marca-frase { color: #E9C9A8; }
-html[data-tema="vidro"] .entrada-form { background: radial-gradient(55% 45% at 50% 42%, rgba(255, 122, 26, .14), transparent 72%), #0b0a09; }
 html[data-tema="pastel"] .entrada-marca { background: linear-gradient(155deg, #e9ddfb, #f7f2ff 70%, #fbeaf6); color: #2b1d4d; }
 html[data-tema="pastel"] .entrada-marca-frase { color: #5d4f80; }
 html[data-tema="pastel"] .entrada-form { background: radial-gradient(55% 45% at 50% 42%, rgba(184, 156, 248, .22), transparent 72%), #f7f2ff; }
@@ -2549,6 +2252,7 @@ select option { background: var(--surface-2, #1c1f24); color: var(--ink, #f2f3f5
 html[data-tema="claro"] select option { background: #ffffff; color: #13202f; }
 html[data-tema="pastel"] select option { background: #ffffff; color: #2b1d4d; }
 html[data-tema="escuro"] select option { background: #0b0b0c; color: #fafafa; }
-html[data-tema="vidro"] select option { background: #1a120c; color: #fff4ea; }
+html[data-tema="vermelho"] select option { background: #161616; color: #ffffff; }
+html[data-tema="laranja"] select option { background: #fffdf8; color: #2a1400; }
 html[data-tema="azul"] select option { background: #0e1a2e; color: #e8f1fc; }
 select option:checked, select option:hover { background: var(--primary, #3b82f6); color: #fff; }
