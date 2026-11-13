@@ -565,6 +565,7 @@ html[data-tema="laranja"]:root .stat-tile { border-top-color: rgba(255, 210, 63,
 html[data-tema="laranja"]:root .badge-info { color: #ffd23f !important; background: rgba(255, 210, 63, .16) !important; }
 html[data-tema="laranja"]:root .ct-user-avatar, html[data-tema="laranja"]:root .ct-topbar .bg-primary { background: linear-gradient(180deg, #ffd23f, #ffb020) !important; color: #2a1400 !important; }
 html[data-tema="laranja"]:root ::selection { background: rgba(255, 210, 63, .4); color: #2a1400; }
+html[data-tema]:root .tema-amostra[data-amostra="vermelho"] { background: linear-gradient(135deg, #0b0b0b 50%, #e6282e 50%); }
 html[data-tema]:root .tema-amostra[data-amostra="laranja"] { background: linear-gradient(135deg, #f58a1b 50%, #3d1d06 50%); }
 
 
