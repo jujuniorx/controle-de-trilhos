@@ -26,6 +26,8 @@ export interface DadosImagemProducao {
   perfil: string;
   fabricante: string;
   indicadores: { rotulo: string; valor: string; detalhe?: string }[];
+  /** TLS em montagem que continua no próximo dia útil: vira o desenho do trilho no terceiro indicador. */
+  trilho?: { feitas: number; total: number; quando: string };
   linhas: LinhaImagemProducao[];
   totalSoldas: number;
   totalCortes: number;
@@ -90,6 +92,61 @@ function quebrar(ctx: Ctx, trechos: Trecho[], largura: number, fonte: (forte: bo
   return linhas;
 }
 
+
+// Mesma geometria do componente TrilhoTls (na tela): barra de 20 por pedaço, perfil na ponta esquerda.
+const TRILHO_INICIO = 6.5;
+const TRILHO_PASSO = 20;
+const TRILHO_PERFIL =
+  'M3.5,0 H9.5 Q11,0 11,1.5 V3.5 Q11,5 9.5,5.2 L7.6,5.8 V11 L12.4,12.6 Q13,12.8 13,13.5 V15 Q13,15.5 12.5,15.5 H0.5 Q0,15.5 0,15 V13.5 Q0,12.8 0.6,12.6 L5.4,11 V5.8 L3.5,5.2 Q2,5 2,3.5 V1.5 Q2,0 3.5,0 Z';
+const TRILHO_LARGURA = TRILHO_INICIO + 13 * TRILHO_PASSO + 2;
+
+/** Desenha o trilho em montagem com a largura `larg` (em pontos), com origem em (x, y). */
+function desenharTrilho(ctx: Ctx, x: number, y: number, larg: number, feitas: number, total: number) {
+  const s = larg / TRILHO_LARGURA;
+  const barras = total + 1;
+  const n = feitas > 0 ? Math.min(feitas + 1, barras) : 0;
+  const sol = n * TRILHO_PASSO;
+  const fim = TRILHO_INICIO + sol;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(s, s);
+  // Pedaços que faltam: só o contorno, mais claro.
+  ctx.strokeStyle = SUAVE;
+  ctx.lineWidth = 0.9;
+  ctx.globalAlpha = 0.55;
+  for (let k = 0; k < barras - n; k++) {
+    const bx = TRILHO_INICIO + (n + k) * TRILHO_PASSO + 3;
+    const w = TRILHO_PASSO - 6;
+    ctx.strokeRect(bx, 1.5, w, 4.2);
+    ctx.strokeRect(bx + 1, 5.7, w - 2, 7.8);
+    ctx.strokeRect(bx - 1, 13.5, w + 2, 2.5);
+  }
+  ctx.globalAlpha = 1;
+  if (n > 0) {
+    ctx.fillStyle = TINTA;
+    ctx.fillRect(TRILHO_INICIO, 1, sol, 5.2);
+    ctx.fillRect(TRILHO_INICIO, 13, sol, 3.5);
+    ctx.globalAlpha = 0.55;
+    ctx.fillRect(TRILHO_INICIO, 5.7, sol, 7.8);
+    ctx.globalAlpha = 1;
+    // Emendas das soldas já frias, em branco.
+    ctx.fillStyle = '#ffffff';
+    ctx.globalAlpha = 0.3;
+    for (let i = 0; i < n - 1; i++) ctx.fillRect(TRILHO_INICIO + (i + 1) * TRILHO_PASSO - 0.4, 1, 0.8, 14.5);
+    ctx.globalAlpha = 1;
+    // Solda mais recente, em destaque.
+    ctx.fillStyle = '#e8890c';
+    ctx.fillRect(fim - 1.6, 0, 3.2, 17.5);
+    // Perfil do trilho na ponta esquerda.
+    ctx.save();
+    ctx.translate(0, 1);
+    ctx.fillStyle = TINTA;
+    ctx.fill(new Path2D(TRILHO_PERFIL));
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
 /** Desenha a folha inteira e devolve a altura usada. Roda duas vezes: uma para medir, outra para valer. */
 function desenhar(ctx: Ctx, d: DadosImagemProducao, logo: HTMLImageElement | null): number {
   const f = fontes();
@@ -146,9 +203,10 @@ function desenhar(ctx: Ctx, d: DadosImagemProducao, logo: HTMLImageElement | nul
   // ---- Indicadores ----
   const vao = 14;
   const larg = (L - 2 * M - vao * 3) / 4;
+  const altInd = d.trilho ? 150 : 112;
   d.indicadores.slice(0, 4).forEach((ind, i) => {
     const ix = M + i * (larg + vao);
-    caixa(ctx, ix, y, larg, 112, 12);
+    caixa(ctx, ix, y, larg, altInd, 12);
     if (i === 0) {
       ctx.fillStyle = TINTA;
       ctx.fill();
@@ -165,13 +223,43 @@ function desenhar(ctx: Ctx, d: DadosImagemProducao, logo: HTMLImageElement | nul
     ctx.fillStyle = i === 0 ? '#ffffff' : TINTA;
     ctx.font = `700 44px ${f.cond}`;
     ctx.fillText(ind.valor, ix + 18, y + 72);
-    if (ind.detalhe) {
+    const t = i === 2 ? d.trilho : undefined;
+    if (t) {
+      const tx0 = ix + 18;
+      const tw0 = larg - 36;
+      if (t.feitas > 0) {
+        desenharTrilho(ctx, tx0, y + 82, tw0, t.feitas, t.total);
+        const pct = Math.min(1, (TRILHO_INICIO + (t.feitas + 1) * TRILHO_PASSO) / TRILHO_LARGURA);
+        ctx.fillStyle = TINTA;
+        ctx.fillRect(tx0, y + 106, tw0 * pct, 3);
+        ctx.setLineDash([4, 3]);
+        ctx.strokeStyle = SUAVE;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(tx0 + tw0 * pct + 2, y + 107.5);
+        ctx.lineTo(tx0 + tw0, y + 107.5);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.font = `700 12px ${f.base}`;
+        ctx.fillStyle = TINTA;
+        ctx.fillText(`${t.feitas} ${t.feitas === 1 ? 'feita' : 'feitas'} hoje`, tx0, y + 128);
+        ctx.font = `400 12px ${f.base}`;
+        ctx.fillStyle = SUAVE;
+        ctx.textAlign = 'right';
+        ctx.fillText(`faltam ${t.total - t.feitas}`, tx0 + tw0, y + 128);
+        ctx.textAlign = 'left';
+      } else {
+        ctx.font = `400 13px ${f.base}`;
+        ctx.fillStyle = SUAVE;
+        ctx.fillText(`nenhum TLS em aberto: ${t.quando === 'amanhã' ? 'amanhã' : 'na ' + t.quando} começa do zero`, tx0, y + 100);
+      }
+    } else if (ind.detalhe) {
       ctx.fillStyle = i === 0 ? '#ffffff' : SUAVE;
       ctx.font = `400 13px ${f.base}`;
       ctx.fillText(ind.detalhe, ix + 18, y + 96);
     }
   });
-  y += 112 + 20;
+  y += altInd + 20;
 
   // ---- Ritmo por hora ----
   const passo = 27;

@@ -87,6 +87,7 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
   // Os mesmos números da folha impressa, prontos para virar imagem no navegador.
   const dataBr = dataTexto.split('-').reverse().join('/');
   const dadosImagem: DadosImagemProducao = {
+    trilho: terminouEmReemprego ? undefined : { feitas: sobra, total: SOLDAS_POR_TLS, quando },
     arquivo: `producao-${dataTexto}.png`,
     dataExtensa: dataExtensa(dataTexto),
     soldador: dia?.soldadores || '—',
