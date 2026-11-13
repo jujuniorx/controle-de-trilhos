@@ -176,7 +176,7 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
                 ) : (
                   <>
                     {/* O trilho do TLS em montagem: cada solda emenda mais uma barra (12 fecham um TLS). */}
-                    <TrilhoTls feitas={sobra} total={SOLDAS_POR_TLS} />
+                    <TrilhoTls feitas={sobra} total={SOLDAS_POR_TLS} completo={sobra === 0 && (dia?.tlsFormados ?? 0) > 0} />
                     <span className="turno-quebra">{sobra} de {SOLDAS_POR_TLS} soldas no próximo TLS</span>
                   </>
                 )}

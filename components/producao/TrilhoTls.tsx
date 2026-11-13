@@ -5,7 +5,25 @@
 const PASSO = 20; // largura de cada barra no desenho
 const FOLGA = 3; // espaço entre as barras ainda soltas
 
-export function TrilhoTls({ feitas, total }: { feitas: number; total: number }) {
+/** Trilho inteiro: quando o TLS fecha (todas as soldas feitas), o desenho mostra o trilho completo, com as emendas e as pontas. */
+export function TrilhoTls({ feitas, total, completo = false }: { feitas: number; total: number; completo?: boolean }) {
+  if (completo) {
+    const largura = total * PASSO;
+    return (
+      <svg className="trilho-tls trilho-tls-completo" viewBox={`0 0 ${largura} 16`} role="img" aria-label={`TLS formado: trilho completo com ${total} soldas`}>
+        <g className="trilho-tls-feito">
+          <rect x={0} y={1} width={largura} height={5} rx={1.2} />
+          <rect className="trilho-tls-alma" x={0} y={6} width={largura} height={4.5} />
+          <rect x={0} y={10.5} width={largura} height={3.5} rx={1} />
+          {Array.from({ length: total - 1 }, (_, i) => (
+            <rect key={i} className="trilho-tls-emenda" x={(i + 1) * PASSO - 0.6} y={1} width={1.2} height={13} />
+          ))}
+        </g>
+        <rect className="trilho-tls-pontas" x={0} y={0} width={1.6} height={16} rx={0.8} />
+        <rect className="trilho-tls-pontas" x={largura - 1.6} y={0} width={1.6} height={16} rx={0.8} />
+      </svg>
+    );
+  }
   const n = Math.max(0, Math.min(feitas, total));
   const soldado = n * PASSO;
   return (

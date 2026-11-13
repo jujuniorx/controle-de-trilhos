@@ -931,6 +931,9 @@ html[data-tema]:root .trilho-tls-feito rect { fill: var(--ink); }
 html[data-tema]:root .trilho-tls-feito .trilho-tls-alma { opacity: .55; }
 html[data-tema]:root .trilho-tls-feito .trilho-tls-emenda { fill: var(--v-card, var(--surface)); opacity: .55; }
 html[data-tema]:root .trilho-tls-feito .trilho-tls-ultima { fill: var(--warn); }
+html[data-tema]:root .trilho-tls-completo .trilho-tls-feito rect { fill: var(--ink); }
+html[data-tema]:root .trilho-tls-completo .trilho-tls-emenda { fill: var(--v-card, var(--surface)); opacity: .7; }
+html[data-tema]:root .trilho-tls-pontas { fill: var(--ok); }
 html[data-tema]:root .trilho-tls-solta rect { fill: none; stroke: var(--ink-muted); stroke-width: .8; opacity: .55; }
 html[data-tema]:root .turno-linha[data-parada] dt, html[data-tema]:root .turno-linha[data-parada] dd { color: var(--warn); font-weight: 700; }
 
