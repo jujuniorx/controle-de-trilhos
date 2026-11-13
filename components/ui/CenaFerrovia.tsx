@@ -9,9 +9,8 @@ import { useEffect, useRef } from 'react';
  *   a tela sai do escuro, o farol acende, a luz corre pelos trilhos até o horizonte e a composição arranca.
  *   Nas outras vezes a cena só aparece, já em movimento. Na hora em que o logo fecha os trilhos, a emenda
  *   é soldada e saem faíscas.
- * inicio (tela inicial, escolha do setor): o mapa do pátio, como no painel de um centro de controle. As linhas
- *   se desenham a partir do logo, os sinais acendem e as composições correm pelas linhas, trocando de linha nos
- *   AMVs. O meio da tela fica calmo, por trás dos cartões dos setores.
+ * inicio (tela inicial, escolha do setor): o TLS saindo do estaleiro. O trilho longo desliza sobre roletes na
+ *   parte de baixo; a cada barra para, a emenda é soldada e segue esfriando. Atrás, o galpão com as luminárias.
  * saudacao (faixa "Bom dia"): a via vista de lado, com o céu da hora de verdade (sol nascendo, de tarde,
  *   pondo, lua e estrelas à noite), a serra ao fundo, postes com fios, os dormentes passando e, de tempos
  *   em tempos, uma composição de TLS (trilhos longos sobre vagões plataforma) cruzando.
@@ -598,12 +597,14 @@ function iniciarSaudacao(cv: HTMLCanvasElement) {
   return typeof controle === 'function' ? controle : controle.parar;
 }
 
-// ---------- início: o mapa do pátio, como no painel do centro de controle ----------
+// ---------- início: o TLS saindo do estaleiro ----------
 
-interface Linha { y: number }
-interface Amv { x: number; de: number; para: number; dx: number }
-interface Composicao { linha: number; x: number; dir: 1 | -1; vel: number; rastro: [number, number][]; amv: { a: Amv; p: number } | null; comp: number }
-
+/**
+ * O trilho longo atravessa a parte de baixo da tela, de lado e um pouco visto de cima, deslizando sobre roletes.
+ * A cada barra, ele para no meio, a emenda é soldada (clarão e faíscas) e segue andando enquanto a solda esfria:
+ * branca, amarela, laranja, vermelha e depois aço. Atrás, o galpão do estaleiro: colunas, luminárias que acendem
+ * uma a uma na abertura, fachos de luz, brasas subindo e o clarão de outra estação soldando ao fundo.
+ */
 function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
   const caixa = cv.parentElement ?? cv;
   let pal = paletaAbertura(caixa);
@@ -615,176 +616,334 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     /* sem armazenamento: abertura curta */
   }
   const parado = reduzirMovimento();
-  const T = completa ? { linhas: [0.15, 1.6], trens: 1.2, solda: 1.25 } : { linhas: [0, 0.5], trens: 0.2, solda: 1.25 };
-  let semente = 23;
-  const rnd = () => (semente = (semente * 16807) % 2147483647) / 2147483647;
+  // A primeira emenda chega no meio em CHEGA e é soldada em SOLDA, junto com a emenda do logo.
+  const CHEGA = 1.0, SOLDA = 1.25, PAUSA = 1.3, VEL = 70;
   const faiscas: Faisca[] = [];
-  let soldou = false;
+  const brasas: { x: number; y: number; vy: number; vx: number; v: number }[] = [];
+  let soldouLogo = false;
 
-  // Desenho do pátio em frações da tela; refeito quando a tela muda de tamanho.
-  let linhas: Linha[] = [];
-  let amvs: Amv[] = [];
-  let sinais: { x: number; y: number; f: number }[] = [];
-  let trens: Composicao[] = [];
-  let ultimoW = 0, ultimoH = 0;
+  // Emendas: k = 0 é a que chega no meio na abertura. Guarda quando cada uma foi soldada (s).
+  const soldada = new Map<number, number>();
+  if (!completa) for (let k = -6; k < 0; k++) soldada.set(k, -60);
+  if (reduzirMovimento()) for (let k = -6; k <= 6; k++) soldada.set(k, -60);
+  let u = 0; // quanto o trilho andou desde que a emenda 0 ficou no meio (px)
+  let vel = 0;
+  let pausaAte = -1;
+  let proxima = 0; // próxima emenda a soldar
+  let ultimoT = 0;
 
-  const montar = (W: number, H: number) => {
-    semente = 23;
-    const fr = W < 640 ? [0.1, 0.24, 0.4, 0.6, 0.76, 0.9] : [0.1, 0.27, 0.44, 0.61, 0.78, 0.93];
-    linhas = fr.map((f) => ({ y: Math.round(H * f) }));
-    amvs = [];
-    for (let i = 0; i < linhas.length - 1; i++) {
-      const n = 2;
-      for (let k = 0; k < n; k++) {
-        const x = W * (0.06 + (k + 0.15 + rnd() * 0.7) * (0.88 / n));
-        // AMV curto, como no mapa do pátio (o desvio liga uma linha à vizinha)
-        const dx = (linhas[i + 1].y - linhas[i].y) * (1.05 + rnd() * 0.45) * (rnd() < 0.5 ? 1 : -1);
-        amvs.push({ x, de: i, para: i + 1, dx });
-      }
+  // Textura do aço (pontinhos e manchas), desenhada uma vez e repetida.
+  const tex = document.createElement('canvas');
+  tex.width = 256; tex.height = 64;
+  const tc = tex.getContext('2d');
+  if (tc) {
+    let sem = 3;
+    const r = () => (sem = (sem * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 520; i++) {
+      tc.fillStyle = r() < 0.5 ? `rgba(255,255,255,${0.05 + r() * 0.08})` : `rgba(0,0,0,${0.08 + r() * 0.12})`;
+      tc.fillRect(r() * 256, r() * 64, 1 + r() * 2, 1);
     }
-    sinais = amvs.map((a) => ({ x: a.x, y: linhas[a.de].y, f: rnd() * 6.28 }));
-    trens = Array.from({ length: W < 640 ? 4 : 7 }, (_, i) => ({
-      linha: i % linhas.length,
-      x: rnd() * W,
-      dir: (i % 2 ? 1 : -1) as 1 | -1,
-      vel: 55 + rnd() * 60,
-      rastro: [],
-      amv: null,
-      comp: 18 + Math.round(rnd() * 22),
-    }));
+    for (let i = 0; i < 14; i++) {
+      tc.fillStyle = `rgba(120,70,40,${0.05 + r() * 0.06})`;
+      tc.beginPath(); tc.ellipse(r() * 256, r() * 64, 6 + r() * 14, 2 + r() * 4, 0, 0, 6.283); tc.fill();
+    }
+  }
+  let padrao: CanvasPattern | null = null;
+
+  /** Cor da solda pela idade (s): branco, amarelo, laranja, vermelho, e então some (fica o aço). */
+  const calor = (idade: number): { c: RGB; a: number } => {
+    if (idade < 0) return { c: [255, 255, 255], a: 0 };
+    const pontos: [number, RGB][] = [[0, [255, 255, 245]], [0.35, [255, 236, 170]], [1.4, [255, 170, 70]], [3.2, [232, 84, 28]], [6.5, [150, 30, 14]], [11, [90, 20, 10]]];
+    for (let i = 0; i < pontos.length - 1; i++) {
+      const [t0, c0] = pontos[i], [t1, c1] = pontos[i + 1];
+      if (idade <= t1) return { c: misturar(c0, c1, (idade - t0) / (t1 - t0)), a: 1 - suave(6.5, 11, idade) * 0.999 };
+    }
+    return { c: [90, 20, 10], a: 0 };
   };
 
-  const controle = laco(cv, 2, () => { pal = paletaAbertura(caixa); }, (ctx, W, H, t, dt) => {
-    if (W !== ultimoW || H !== ultimoH) { montar(W, H); ultimoW = W; ultimoH = H; }
-    const cx = W / 2;
-    const revela = parado ? 1 : suave(T.linhas[0], T.linhas[1], t);
-    const alcance = revela * W * 0.62; // as linhas se desenham do centro para as bordas
+  const soltarFaiscas = (x: number, y: number, n: number, forca: number) => {
+    faiscas.push({ x, y, vx: 0, vy: 0, v: 1, clarao: true });
+    for (let i = 0; i < n; i++) {
+      const ang = -Math.PI / 2 + (Math.random() - 0.5) * 3.1;
+      const v = (140 + Math.random() * 320) * forca;
+      faiscas.push({ x, y, vx: Math.cos(ang) * v, vy: Math.sin(ang) * v, v: 0.5 + Math.random() * 0.6 });
+    }
+  };
 
-    // fundo: céu do tema, mais claro no meio
-    const fundo = ctx.createRadialGradient(cx, H * 0.42, 0, cx, H * 0.42, Math.max(W, H) * 0.75);
-    fundo.addColorStop(0, cor(pal.ceuHorizonte));
+  const controle = laco(cv, 2, () => { pal = paletaAbertura(caixa); padrao = null; }, (ctx, W, H, t, dt) => {
+    const escuro = pal.estrelas > 0;
+    const xc = W / 2;
+    const L = Math.max(520, W * 0.72); // uma barra de 12 m na tela
+    const R = Math.max(62, Math.min(132, H * 0.105)); // altura do perfil
+    const topo = H - R * 2.05; // topo do boleto
+    const rr = R * 0.2; // raio do rolete
+    const piso = topo + R + rr * 2 + R * 0.16;
+
+    // ---------- movimento do trilho ----------
+    if (parado) {
+      u = L * 0.35; vel = 0;
+    } else if (t < CHEGA) {
+      // abertura: o trilho entra pela direita e freia com a emenda 0 no meio
+      const D = completa ? W * 0.95 : W * 0.35;
+      const e = 1 - Math.pow(1 - t / CHEGA, 3);
+      u = -D * (1 - e);
+      vel = 0;
+      pausaAte = SOLDA + PAUSA;
+    } else {
+      if (t < pausaAte) {
+        vel = 0;
+      } else {
+        vel = mix(vel, VEL, 1 - Math.pow(0.05, dt));
+        const antes = u;
+        u += vel * dt;
+        // a próxima emenda chegou no meio: para e solda
+        const alvo = proxima * L;
+        if (antes < alvo && u >= alvo) { u = alvo; vel = 0; pausaAte = t + PAUSA + 0.25; }
+      }
+      const emenda = Math.round(u / L);
+      if (Math.abs(u - emenda * L) < 0.5 && !soldada.has(emenda) && (emenda > 0 ? t > pausaAte - PAUSA : t >= SOLDA)) {
+        soldada.set(emenda, t);
+        proxima = emenda + 1;
+        soltarFaiscas(xc, topo + R * 0.05, emenda === 0 && completa ? 44 : 30, 1);
+        soltarFaiscas(xc, topo + R * 0.86, 14, 0.7);
+      }
+    }
+    ultimoT = t;
+
+    // ---------- galpão ao fundo ----------
+    const fundo = ctx.createLinearGradient(0, 0, 0, H);
+    fundo.addColorStop(0, cor(pal.ceuTopo));
+    fundo.addColorStop(0.75, cor(pal.ceuHorizonte));
     fundo.addColorStop(1, cor(pal.ceuTopo));
     ctx.fillStyle = fundo;
     ctx.fillRect(0, 0, W, H);
-    // grade fina do painel
-    ctx.strokeStyle = cor(pal.neblina, 0.18);
-    ctx.lineWidth = 1;
-    const passoGrade = 48;
-    ctx.beginPath();
-    for (let x = (cx % passoGrade); x < W; x += passoGrade) { ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, H); }
-    for (let y = 0; y < H; y += passoGrade) { ctx.moveTo(0, y + 0.5); ctx.lineTo(W, y + 0.5); }
-    ctx.stroke();
 
-    // via desenhada como no mapa: dois trilhos finos com os dormentes em traços
-    const via = (x1: number, y1: number, x2: number, y2: number, alfa: number) => {
-      const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy);
-      if (L < 1) return;
-      const nx = -dy / L, ny = dx / L;
-      ctx.strokeStyle = cor(pal.dorm, alfa * 0.9);
+    // colunas e tesouras do telhado (andam devagar, parallax)
+    const par = (u * 0.12) % (W / 5);
+    const corColuna = escuro ? misturar(pal.neblina, pal.ceuTopo, 0.3) : misturar(pal.poste, pal.ceuHorizonte, 0.55);
+    for (let x = -par - W / 5; x < W + W / 5; x += W / 5) {
+      const perto = Math.min(1, Math.abs(x - xc) / (W * 0.36)); // mais apagado atrás dos cartões
+      const a = (escuro ? 0.55 : 0.4) * perto;
+      ctx.fillStyle = cor(corColuna, a);
+      ctx.fillRect(x - 7, H * 0.06, 14, piso - H * 0.06);
+      ctx.strokeStyle = cor(corColuna, a * 0.7);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, H * 0.06); ctx.lineTo(x + W / 10, H * 0.015); ctx.lineTo(x + W / 5, H * 0.06);
+      ctx.moveTo(x, H * 0.06); ctx.lineTo(x + W / 5, H * 0.06);
+      ctx.stroke();
+    }
+
+    // luminárias do galpão: acendem uma a uma na abertura, com fachos de luz
+    const nLamp = W < 640 ? 4 : 6;
+    for (let i = 0; i < nLamp; i++) {
+      const lx = (W / nLamp) * (i + 0.5);
+      const ly = H * 0.085;
+      const liga = parado ? 1 : suave(0.15 + i * 0.12, 0.35 + i * 0.12, t * (completa ? 1 : 3));
+      const tremula = 0.94 + 0.06 * Math.sin(t * 7 + i * 2.1);
+      const a = liga * tremula;
+      ctx.strokeStyle = cor(corColuna, 0.5);
       ctx.lineWidth = 1;
-      ctx.beginPath();
-      for (let d = 0; d < L; d += 7) {
-        const px = x1 + (dx * d) / L, py = y1 + (dy * d) / L;
-        ctx.moveTo(px - nx * 4, py - ny * 4); ctx.lineTo(px + nx * 4, py + ny * 4);
+      ctx.beginPath(); ctx.moveTo(lx, 0); ctx.lineTo(lx, ly - 6); ctx.stroke();
+      ctx.fillStyle = cor(corColuna, 0.9);
+      ctx.beginPath(); ctx.moveTo(lx - 14, ly); ctx.lineTo(lx - 6, ly - 7); ctx.lineTo(lx + 6, ly - 7); ctx.lineTo(lx + 14, ly); ctx.closePath(); ctx.fill();
+      // facho
+      const facho = ctx.createLinearGradient(0, ly, 0, piso);
+      facho.addColorStop(0, cor(pal.farol, (escuro ? 0.1 : 0.07) * a));
+      facho.addColorStop(1, cor(pal.farol, 0));
+      ctx.fillStyle = facho;
+      ctx.beginPath(); ctx.moveTo(lx - 13, ly); ctx.lineTo(lx + 13, ly); ctx.lineTo(lx + W * 0.11, piso); ctx.lineTo(lx - W * 0.11, piso); ctx.closePath(); ctx.fill();
+      const g = ctx.createRadialGradient(lx, ly + 2, 0, lx, ly + 2, 40);
+      g.addColorStop(0, cor(pal.farol, 0.9 * a)); g.addColorStop(1, cor(pal.farol, 0));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(lx, ly + 2, 40, 0, 6.283); ctx.fill();
+      ctx.fillStyle = `rgba(255,250,235,${0.95 * a})`;
+      ctx.fillRect(lx - 9, ly - 1, 18, 2.5);
+    }
+
+    // outra estação soldando lá no fundo: um clarão que pisca de vez em quando
+    const pisca = Math.max(0, Math.sin(t * 13) * Math.sin(t * 2.3) * Math.sin(t * 0.7 + 1));
+    if (!parado && pisca > 0.2) {
+      const fx = W * 0.16, fy = piso - R * 0.9;
+      const g = ctx.createRadialGradient(fx, fy, 0, fx, fy, R * 1.6);
+      g.addColorStop(0, `rgba(255,190,110,${0.28 * pisca})`); g.addColorStop(1, 'rgba(255,140,60,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(fx, fy, R * 1.6, 0, 6.283); ctx.fill();
+    }
+
+    // piso do estaleiro
+    const chao = ctx.createLinearGradient(0, piso, 0, H);
+    chao.addColorStop(0, cor(misturar(pal.brita, pal.ceuTopo, 0.25)));
+    chao.addColorStop(1, cor(pal.ceuTopo));
+    ctx.fillStyle = chao;
+    ctx.fillRect(0, piso, W, H - piso);
+    ctx.fillStyle = cor(pal.aco, escuro ? 0.06 : 0.25);
+    ctx.fillRect(0, piso, W, 1);
+
+    // ---------- roletes ----------
+    const esp = Math.max(170, W * 0.15);
+    const yRol = topo + R + rr;
+    for (let x = (xc % esp) - esp; x < W + esp; x += esp) {
+      // pé do rolete
+      ctx.fillStyle = cor(misturar(pal.acoLado, pal.ceuTopo, 0.55));
+      ctx.beginPath(); ctx.moveTo(x - rr * 0.5, yRol); ctx.lineTo(x + rr * 0.5, yRol); ctx.lineTo(x + rr * 1.3, piso); ctx.lineTo(x - rr * 1.3, piso); ctx.closePath(); ctx.fill();
+      // rolete com reflexo e marcas que giram
+      const g = ctx.createRadialGradient(x - rr * 0.3, yRol - rr * 0.4, rr * 0.1, x, yRol, rr);
+      g.addColorStop(0, cor(pal.aco)); g.addColorStop(1, cor(misturar(pal.acoLado, pal.ceuTopo, 0.3)));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, yRol, rr, 0, 6.283); ctx.fill();
+      const ang = -u / rr;
+      ctx.strokeStyle = cor(misturar(pal.acoLado, [0, 0, 0], 0.55), 0.7);
+      ctx.lineWidth = Math.max(1, rr * 0.12);
+      for (let k = 0; k < 3; k++) {
+        const a = ang + (k * 2 * Math.PI) / 3;
+        ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * rr * 0.25, yRol + Math.sin(a) * rr * 0.25); ctx.lineTo(x + Math.cos(a) * rr * 0.8, yRol + Math.sin(a) * rr * 0.8); ctx.stroke();
       }
-      ctx.stroke();
-      ctx.strokeStyle = cor(pal.acoLado, alfa);
-      ctx.lineWidth = 1.3;
-      ctx.beginPath();
-      ctx.moveTo(x1 - nx * 2.2, y1 - ny * 2.2); ctx.lineTo(x2 - nx * 2.2, y2 - ny * 2.2);
-      ctx.moveTo(x1 + nx * 2.2, y1 + ny * 2.2); ctx.lineTo(x2 + nx * 2.2, y2 + ny * 2.2);
-      ctx.stroke();
-    };
-    for (const l of linhas) via(Math.max(0, cx - alcance), l.y, Math.min(W, cx + alcance), l.y, 0.75);
-    for (const a of amvs) {
-      if (Math.abs(a.x - cx) > alcance) continue;
-      via(a.x, linhas[a.de].y, a.x + a.dx, linhas[a.para].y, 0.6);
-    }
-    // sinais nos AMVs: alternam verde e âmbar devagar
-    for (const s of sinais) {
-      if (Math.abs(s.x - cx) > alcance) continue;
-      const verde = parado || Math.sin(t * 0.35 + s.f) > -0.3;
-      const c = verde ? pal.sinal1 : pal.sinal2;
-      const g = ctx.createRadialGradient(s.x, s.y - 9, 0, s.x, s.y - 9, 9);
-      g.addColorStop(0, cor(c, 0.85 * revela)); g.addColorStop(1, cor(c, 0));
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(s.x, s.y - 9, 9, 0, 6.283); ctx.fill();
-      ctx.fillStyle = cor(c, revela); ctx.beginPath(); ctx.arc(s.x, s.y - 9, 2, 0, 6.283); ctx.fill();
+      ctx.fillStyle = cor(misturar(pal.acoLado, [0, 0, 0], 0.6), 0.8);
+      ctx.beginPath(); ctx.arc(x, yRol, rr * 0.18, 0, 6.283); ctx.fill();
     }
 
-    // composições: um traço de luz com a cabeça acesa, seguindo as linhas e trocando nos AMVs
-    if (t > T.trens) {
-      const entra = parado ? 1 : suave(T.trens, T.trens + 0.8, t);
-      // Nos temas claros a composição é escura (o traço claro sumiria no fundo).
-      const escuro = pal.estrelas > 0;
-      const corTrem = escuro ? pal.aco : pal.poste;
-      const corCabeca = escuro ? pal.farol : pal.sinal2;
-      for (const c of trens) {
-        if (!parado) {
-          const passo = c.vel * dt * c.dir;
-          if (c.amv) {
-            const a = c.amv.a;
-            c.amv.p += Math.abs(passo) / Math.hypot(a.dx, linhas[a.para].y - linhas[a.de].y);
-            if (c.amv.p >= 1) { c.linha = c.linha === a.de ? a.para : a.de; c.x = c.linha === a.para ? a.x + a.dx : a.x; c.amv = null; }
-          } else {
-            const antes = c.x;
-            c.x += passo;
-            // entrou num AMV? (às vezes troca de linha)
-            for (const a of amvs) {
-              const daLinha = a.de === c.linha ? a.x : a.para === c.linha ? a.x + a.dx : null;
-              if (daLinha === null) continue;
-              const sentidoOk = a.de === c.linha ? Math.sign(a.dx) === c.dir : Math.sign(-a.dx) === c.dir;
-              if (sentidoOk && (antes - daLinha) * (c.x - daLinha) <= 0 && rnd() < 0.45) { c.amv = { a, p: 0 }; c.x = daLinha; break; }
-            }
-            if (c.x < -80 || c.x > W + 80) { c.linha = Math.floor(rnd() * linhas.length); c.dir = (rnd() < 0.5 ? 1 : -1) as 1 | -1; c.x = c.dir === 1 ? -60 : W + 60; c.rastro = []; }
-          }
-        }
-        let px = c.x, py = linhas[c.linha].y;
-        if (c.amv) {
-          const a = c.amv.a, deY = linhas[a.de].y, paraY = linhas[a.para].y;
-          const indo = c.linha === a.de;
-          const p = c.amv.p;
-          px = indo ? a.x + a.dx * p : a.x + a.dx * (1 - p);
-          py = indo ? deY + (paraY - deY) * p : paraY + (deY - paraY) * p;
-        }
-        c.rastro.push([px, py]);
-        if (c.rastro.length > c.comp) c.rastro.shift();
-        if (c.rastro.length > 1) {
-          ctx.lineCap = 'round';
-          for (let i = 1; i < c.rastro.length; i++) {
-            const k = i / c.rastro.length;
-            ctx.strokeStyle = cor(corTrem, 0.75 * k * entra);
-            ctx.lineWidth = 3.2;
-            ctx.beginPath(); ctx.moveTo(c.rastro[i - 1][0], c.rastro[i - 1][1]); ctx.lineTo(c.rastro[i][0], c.rastro[i][1]); ctx.stroke();
-          }
-          const g = ctx.createRadialGradient(px, py, 0, px, py, 14);
-          g.addColorStop(0, cor(corCabeca, 0.9 * entra)); g.addColorStop(1, cor(corCabeca, 0));
-          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px, py, 14, 0, 6.283); ctx.fill();
+    // ---------- o trilho (perfil de lado, um pouco visto de cima) ----------
+    const escuroAco = misturar(pal.acoLado, pal.ceuTopo, 0.62);
+    const faixas: { y0: number; y1: number; topo: RGB; base: RGB }[] = [
+      { y0: -0.06, y1: 0.0, topo: misturar(pal.aco, pal.acoLado, 0.15), base: pal.aco }, // superfície de rolamento, polida
+      { y0: 0.0, y1: 0.25, topo: misturar(pal.aco, pal.acoLado, 0.45), base: misturar(pal.acoLado, pal.ceuTopo, 0.2) }, // lateral do boleto
+      { y0: 0.25, y1: 0.31, topo: misturar(pal.acoLado, pal.ceuTopo, 0.3), base: escuroAco }, // concordância, entrando na sombra
+      { y0: 0.31, y1: 0.76, topo: escuroAco, base: misturar(pal.acoLado, pal.ceuTopo, 0.42) }, // alma, recuada na sombra do boleto
+      { y0: 0.76, y1: 0.85, topo: misturar(pal.acoLado, pal.ceuTopo, 0.3), base: misturar(pal.aco, pal.acoLado, 0.45) }, // rampa do patim, pegando a luz
+      { y0: 0.85, y1: 1.0, topo: misturar(pal.acoLado, pal.ceuTopo, 0.15), base: misturar(pal.acoLado, pal.ceuTopo, 0.55) }, // borda do patim
+    ];
+    // sombra no piso
+    const sombra = ctx.createLinearGradient(0, piso, 0, piso + R * 0.5);
+    sombra.addColorStop(0, 'rgba(0,0,0,.35)'); sombra.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = sombra; ctx.fillRect(0, piso, W, R * 0.5);
+    for (const f of faixas) {
+      const y0 = topo + f.y0 * R, y1 = topo + f.y1 * R;
+      const g = ctx.createLinearGradient(0, y0, 0, y1);
+      g.addColorStop(0, cor(f.topo)); g.addColorStop(1, cor(f.base));
+      ctx.fillStyle = g;
+      ctx.fillRect(0, y0, W, y1 - y0 + 0.5);
+    }
+    // fios de luz nas arestas (boleto e patim) e a sombra do boleto caindo na alma
+    ctx.fillStyle = `rgba(255,255,255,${escuro ? 0.55 : 0.8})`;
+    ctx.fillRect(0, topo - R * 0.06, W, 1.2);
+    ctx.fillStyle = `rgba(255,255,255,${escuro ? 0.22 : 0.4})`;
+    ctx.fillRect(0, topo + R * 0.765, W, 1);
+    const somb = ctx.createLinearGradient(0, topo + R * 0.29, 0, topo + R * 0.42);
+    somb.addColorStop(0, 'rgba(0,0,0,.35)'); somb.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = somb; ctx.fillRect(0, topo + R * 0.29, W, R * 0.13);
+    // textura do aço andando com o trilho
+    if (!padrao) padrao = ctx.createPattern(tex, 'repeat');
+    if (padrao) {
+      ctx.save();
+      ctx.translate(-(u % 256), topo - R * 0.07);
+      ctx.fillStyle = padrao;
+      ctx.globalAlpha = escuro ? 0.9 : 0.55;
+      ctx.fillRect(0, 0, W + 256, R * 1.07);
+      ctx.restore();
+    }
+    // brilho que corre na lateral do boleto
+    const pos = ((t * 0.05) % 1.6) - 0.3;
+    const brilho = ctx.createLinearGradient(0, 0, W, 0);
+    brilho.addColorStop(0, 'rgba(255,255,255,0)');
+    brilho.addColorStop(Math.min(1, Math.max(0, pos)), 'rgba(255,255,255,0)');
+    brilho.addColorStop(Math.min(1, Math.max(0, pos + 0.12)), `rgba(255,255,255,${escuro ? 0.22 : 0.35})`);
+    brilho.addColorStop(Math.min(1, Math.max(0, pos + 0.24)), 'rgba(255,255,255,0)');
+    brilho.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = brilho;
+    ctx.fillRect(0, topo + R * 0.04, W, R * 0.05);
+    ctx.fillRect(0, topo + R * 0.79, W, R * 0.03);
+
+    // emendas e marcas de giz
+    const kMin = Math.floor((u - xc) / L) - 1, kMax = Math.ceil((u + W - xc) / L) + 1;
+    ctx.font = `600 ${Math.round(R * 0.19)}px var(--font-barlow-cond), "Barlow Condensed", "Arial Narrow", sans-serif`;
+    ctx.textBaseline = 'middle';
+    for (let k = kMin; k <= kMax; k++) {
+      const x = xc + k * L - u;
+      // giz no meio da barra
+      const xg = x + L / 2;
+      if (xg > -100 && xg < W + 100) {
+        ctx.fillStyle = `rgba(255,255,255,${escuro ? 0.32 : 0.6})`;
+        ctx.fillText(`TLS ${212 + Math.floor(k / 26)} · B${(((k % 13) + 13) % 13) + 1}`, xg - R * 0.6, topo + R * 0.56);
+        ctx.fillRect(xg - R * 0.6, topo + R * 0.66, R * 0.9, 1.2);
+      }
+      if (x < -R || x > W + R) continue;
+      const quando = soldada.get(k);
+      if (quando === undefined) {
+        // ainda não soldada: fresta entre as barras
+        ctx.fillStyle = cor(pal.ceuTopo, 0.95);
+        ctx.fillRect(x - 1.5, topo - R * 0.07, 3, R * 1.07);
+        continue;
+      }
+      // colar da solda aluminotérmica: um "anel" um pouco mais alto e largo que o perfil, arredondado
+      const cw = R * 0.2;
+      const colar = (c: CanvasRenderingContext2D) => {
+        c.beginPath();
+        c.roundRect(x - cw * 0.42, topo - R * 0.085, cw * 0.84, R * 0.36, R * 0.04); // boleto
+        c.roundRect(x - cw * 0.5, topo + R * 0.26, cw, R * 0.54, R * 0.08); // alma (o colar é mais largo)
+        c.roundRect(x - cw * 0.72, topo + R * 0.76, cw * 1.44, R * 0.26, R * 0.05); // patim
+      };
+      const frio = ctx.createLinearGradient(0, topo - R * 0.08, 0, topo + R);
+      frio.addColorStop(0, cor(misturar(pal.aco, pal.acoLado, 0.35)));
+      frio.addColorStop(0.3, cor(misturar(pal.acoLado, pal.ceuTopo, 0.15)));
+      frio.addColorStop(0.7, cor(misturar(pal.acoLado, pal.ceuTopo, 0.4)));
+      frio.addColorStop(1, cor(misturar(pal.acoLado, pal.ceuTopo, 0.2)));
+      ctx.fillStyle = frio;
+      colar(ctx);
+      ctx.fill();
+      // contorno do colar, para a emenda fria continuar visível no trilho
+      ctx.strokeStyle = 'rgba(0,0,0,.32)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      // topo do boleto esmerilhado depois da solda
+      ctx.fillStyle = cor(pal.aco, 0.9);
+      ctx.fillRect(x - cw * 0.42, topo - R * 0.06, cw * 0.84, 1.4);
+      // calor
+      const h = calor(ultimoT - quando);
+      if (h.a > 0.01) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        const g = ctx.createRadialGradient(x, topo + R * 0.45, 0, x, topo + R * 0.45, R * 1.9);
+        g.addColorStop(0, cor(h.c, 0.5 * h.a)); g.addColorStop(0.4, cor(h.c, 0.16 * h.a)); g.addColorStop(1, cor(h.c, 0));
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, topo + R * 0.45, R * 1.9, 0, 6.283); ctx.fill();
+        // reflexo no piso
+        const gp = ctx.createRadialGradient(x, piso + 2, 0, x, piso + 2, R * 1.3);
+        gp.addColorStop(0, cor(h.c, 0.32 * h.a)); gp.addColorStop(1, cor(h.c, 0));
+        ctx.fillStyle = gp; ctx.fillRect(x - R * 1.3, piso, R * 2.6, R * 0.7);
+        ctx.restore();
+        // o metal em brasa: mais claro no miolo, escurecendo para as bordas
+        const quente = ctx.createRadialGradient(x, topo + R * 0.45, 0, x, topo + R * 0.45, R * 0.75);
+        quente.addColorStop(0, cor(misturar(h.c, [255, 255, 240], 0.35), h.a));
+        quente.addColorStop(0.6, cor(h.c, h.a));
+        quente.addColorStop(1, cor(misturar(h.c, [60, 10, 5], 0.45), h.a * 0.9));
+        ctx.fillStyle = quente;
+        colar(ctx);
+        ctx.fill();
+        // brasas subindo da solda quente
+        if (!parado && h.a > 0.35 && Math.random() < dt * 14 * h.a) {
+          brasas.push({ x: x + (Math.random() - 0.5) * cw, y: topo, vy: -(20 + Math.random() * 40), vx: (Math.random() - 0.5) * 14, v: 1 });
         }
       }
     }
+    // brasas
+    if (brasas.length) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      for (const b of brasas) {
+        b.x += (b.vx + Math.sin(b.y * 0.05) * 6 - vel) * dt; b.y += b.vy * dt; b.v -= dt * 0.45;
+        ctx.fillStyle = `rgba(255,${(120 + 100 * b.v) | 0},60,${Math.max(0, b.v) * 0.9})`;
+        ctx.beginPath(); ctx.arc(b.x, b.y, 1.4, 0, 6.283); ctx.fill();
+      }
+      ctx.restore();
+      for (let i = brasas.length - 1; i >= 0; i--) if (brasas[i].v <= 0) brasas.splice(i, 1);
+    }
 
-    // calmaria no meio, por trás do logo e dos cartões
-    ctx.save();
-    ctx.globalCompositeOperation = 'destination-out';
-    const raio = Math.min(W * 0.42, 330);
-    ctx.translate(cx, H * 0.47);
-    ctx.scale(1, 1.35);
-    const calma = ctx.createRadialGradient(0, 0, raio * 0.35, 0, 0, raio);
-    calma.addColorStop(0, 'rgba(0,0,0,.82)');
-    calma.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = calma;
-    ctx.beginPath(); ctx.arc(0, 0, raio, 0, 6.283); ctx.fill();
-    ctx.restore();
-    // o recorte deixa ver o fundo da página; por cima, de novo o céu bem leve
-    ctx.save();
-    ctx.globalCompositeOperation = 'destination-over';
-    ctx.fillStyle = cor(pal.ceuHorizonte);
-    ctx.fillRect(0, 0, W, H);
-    ctx.restore();
-
-    if (!parado && !soldou && t >= T.solda) { soldou = true; soldarLogo(cv, faiscas); }
+    // solda do logo (junto com a primeira emenda do trilho)
+    if (!parado && !soldouLogo && t >= SOLDA) { soldouLogo = true; soldarLogo(cv, faiscas); }
     if (faiscas.length) desenharFaiscas(ctx, faiscas, dt, H);
-    const cortina = parado ? 0 : 1 - suave(0, completa ? 0.6 : 0.3, t);
+
+    // vinheta suave e saída do escuro
+    const v = ctx.createRadialGradient(xc, H * 0.45, Math.min(W, H) * 0.3, xc, H * 0.5, Math.max(W, H) * 0.8);
+    v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, escuro ? 'rgba(0,0,0,.45)' : 'rgba(40,50,70,.12)');
+    ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+    const cortina = parado ? 0 : 1 - suave(0, completa ? 0.7 : 0.3, t);
     if (cortina > 0) { ctx.fillStyle = cor(pal.ceuTopo, cortina); ctx.fillRect(0, 0, W, H); }
   });
   return typeof controle === 'function' ? controle : controle.parar;
