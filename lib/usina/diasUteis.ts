@@ -59,3 +59,18 @@ export function diasUteisNaUsina(
 export function conjuntoFeriados(extras: string[] = []): Set<string> {
   return new Set([...FERIADOS_2026.map((f) => f.data), ...extras]);
 }
+
+// Próximo dia útil depois de `iso` (pula fim de semana e feriado).
+export function proximoDiaUtil(iso: string, feriados: ReadonlySet<string>): string {
+  let d = somarDias(iso, 1);
+  while (!ehDiaUtil(d, feriados)) d = somarDias(d, 1);
+  return d;
+}
+
+// Rótulo da sobra: "amanhã" quando o próximo dia de trabalho é o dia seguinte, senão o nome do dia (ex.: "segunda").
+export function rotuloSobraProximoDia(iso: string, feriados: ReadonlySet<string>): string {
+  const prox = proximoDiaUtil(iso, feriados);
+  if (prox === somarDias(iso, 1)) return 'Sobra para amanhã';
+  const nomes = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+  return `Sobra para ${nomes[new Date(`${prox}T12:00:00Z`).getUTCDay()]}`;
+}

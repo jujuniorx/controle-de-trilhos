@@ -1,4 +1,5 @@
 import { TrilhoTls } from '@/components/producao/TrilhoTls';
+import { conjuntoFeriados, rotuloSobraProximoDia } from '@/lib/usina/diasUteis';
 import { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, buscarDia, horasDoDia, paradasDaLinha, paradasEmAndamento, respostaTlsDaLinha } from '@/lib/services/producao';
 import { AoVivo } from '@/components/producao/AoVivo';
 import { BotaoImprimirPagina } from '@/components/producao/BotaoImprimirPagina';
@@ -90,7 +91,7 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
     indicadores: [
       { rotulo: 'Soldas no dia', valor: String(totalSoldas) },
       { rotulo: 'TLS formados', valor: String(dia?.tlsFormados ?? 0), detalhe: temReemprego ? 'reemprego: quando o soldador encerra' : `a cada ${SOLDAS_POR_TLS} soldas` },
-      { rotulo: terminouEmReemprego ? 'TLS em aberto' : 'Sobra para amanhã', valor: String(dia?.sobraSaida ?? 0), detalhe: terminouEmReemprego ? 'soldas no TLS de reemprego' : undefined },
+      { rotulo: terminouEmReemprego ? 'TLS em aberto' : rotuloSobraProximoDia(dataTexto, conjuntoFeriados()), valor: String(dia?.sobraSaida ?? 0), detalhe: terminouEmReemprego ? 'soldas no TLS de reemprego' : undefined },
       { rotulo: 'Cortes', valor: String(totalCortes), detalhe: totalParadaMin ? `${totalParadaMin} min de parada` : 'sem paradas' },
     ],
     linhas: linhas.map(({ hora, l, acumulado: acc, tlsCom }) => ({
@@ -215,7 +216,7 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
       <section className="doc-indicadores grid grid-cols-2 gap-3 md:grid-cols-4">
         <Indicador rotulo="Soldas no dia" valor={totalSoldas} />
         <Indicador rotulo="TLS formados" valor={dia?.tlsFormados ?? 0} detalhe={temReemprego ? 'reemprego: quando o soldador encerra' : `a cada ${SOLDAS_POR_TLS} soldas`} />
-        <Indicador rotulo={terminouEmReemprego ? 'TLS em aberto' : 'Sobra para amanhã'} valor={dia?.sobraSaida ?? 0} detalhe={terminouEmReemprego ? 'soldas no TLS de reemprego' : undefined} />
+        <Indicador rotulo={terminouEmReemprego ? 'TLS em aberto' : rotuloSobraProximoDia(dataTexto, conjuntoFeriados())} valor={dia?.sobraSaida ?? 0} detalhe={terminouEmReemprego ? 'soldas no TLS de reemprego' : undefined} />
         <Indicador rotulo="Cortes" valor={totalCortes} detalhe={totalParadaMin ? `${totalParadaMin} min de parada` : 'sem paradas'} />
       </section>
 
