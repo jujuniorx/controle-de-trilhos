@@ -2,6 +2,7 @@
 import { prisma } from '@/lib/db';
 import { intervaloDoPeriodo, inicioDaSemana, type Periodo } from '@/lib/usina/periodo';
 import { somarDias, diasUteisNaUsina, conjuntoFeriados } from '@/lib/usina/diasUteis';
+import { METROS_POR_BARRA } from '@/lib/domain/informativo';
 
 export const TIPOS_TLS = ['UIC60_REEMPREGO', 'UIC60_NOVO', 'GB60_REEMPREGO', 'TR68_REEMPREGO', 'TR68_NOVO'] as const;
 export type TipoTlsValor = (typeof TIPOS_TLS)[number];
@@ -630,4 +631,34 @@ export async function montarEscalaDaSemana(semana: string) {
   const ant = semanaAnterior(semana);
   const [texto, textoAnt] = await Promise.all([buscarEscalaSemana(semana), buscarEscalaSemana(ant)]);
   return montarEscalaSemana(semana, texto, montarEscalaSemana(ant, textoAnt));
+}
+
+/**
+ * Acumulado do ano, de 1 de janeiro até a data escolhida (inclusive), de todos os setores da usina.
+ * Mesmos números das colunas do relatório: soldas e cortes, metros de geração, metros da serra e soldas dos caminhões.
+ */
+export async function totaisDoAnoAte(data: string) {
+  const ano = data.slice(0, 4);
+  const faixa = { gte: dataBanco(`${ano}-01-01`), lte: dataBanco(data) };
+  const [est, ger, serra, cam] = await Promise.all([
+    prisma.estaleiroDia.aggregate({ where: { data: faixa }, _sum: { soldas: true, cortes: true } }),
+    prisma.geracaoDia.findMany({ where: { data: faixa }, include: { carretas: true } }),
+    prisma.composicaoDia.findMany({ where: { data: faixa }, select: { ativo: true, barras: true } }),
+    prisma.caminhaoSoldaDia.findMany({ where: { data: faixa }, select: { caminhao: true, producaoDiaria: true } }),
+  ]);
+  const metrosGeracao = round2(
+    ger.reduce((t, x) => t + x.carretas.reduce((a, c) => a + Number(c.carregamentoM ?? 0) + Number(c.deixadaViaM ?? 0), 0), 0),
+  );
+  const barrasSerra = serra.reduce((t, x) => t + (x.barras ?? 0), 0);
+  const producaoCaminhao = (c: string) => cam.filter((x) => x.caminhao === c).reduce((t, x) => t + (x.producaoDiaria ?? 0), 0);
+  return {
+    ano,
+    inicio: `${ano}-01-01`,
+    fim: data,
+    soldas: est._sum.soldas ?? 0,
+    cortes: est._sum.cortes ?? 0,
+    metrosGeracao,
+    metrosSerra: round2(barrasSerra * METROS_POR_BARRA),
+    caminhoes: CAMINHOES_ATIVOS.map((c) => ({ caminhao: c, soldas: producaoCaminhao(c) })),
+  };
 }

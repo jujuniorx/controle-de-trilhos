@@ -1,4 +1,6 @@
 import { montarDadosRelatorio, montarTrilheirosRelatorio } from '@/lib/services/onePageUsina';
+import { totaisDoAnoAte } from '@/lib/services/usina';
+import { fmtMetros } from '@/lib/format';
 import { Setor, Resumo, TrilheirosBloco, CaminhoesBloco } from '@/components/usina/RelatorioSetores';
 import { CampoObservacao, CHAVE_SETOR } from '@/components/usina/ObservacoesSetorRelatorio';
 import { ehIsoValido, modoValido, linksModo, rotuloPeriodo, colunasValidas, TODAS_COLUNAS, type Coluna } from '@/lib/usina/periodo';
@@ -28,6 +30,7 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
   const data = ehIsoValido(params.data) ? params.data : new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
   const dados = await montarDadosRelatorio(data);
   const tril = await montarTrilheirosRelatorio(data);
+  const anual = await totaisDoAnoAte(data);
   // O estoque de TLS fica fora do relatório por enquanto: tira as linhas dele do cartão do estaleiro.
   const estaleiro = dados.setores.find((s) => s.titulo === 'Estaleiro de solda');
   const iTls = estaleiro ? estaleiro.linhas.findIndex((l) => l.secao?.startsWith('Estoque TLS')) : -1;
@@ -85,6 +88,24 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
             <Resumo key={r.rotulo} rotulo={r.rotulo} cor={r.cor} dia={r.dia} semana={r.semana} mes={r.mes} mensal={modo === 'mensal'} linhas={r.linhas} legenda={r.legenda} colunas={colunas} rotuloDia={modo === 'diario' ? 'Do dia' : dados.rotuloDia} />
           ))}
         </div>
+
+        <section className="space-y-2" aria-label="Acumulado do ano">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">No ano (de {br(anual.inicio)} a {br(anual.fim)})</p>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+            {[
+              { rotulo: 'Soldas (und)', valor: `${anual.soldas}` },
+              { rotulo: 'Cortes (und)', valor: `${anual.cortes}` },
+              { rotulo: 'Geração de trilho (m)', valor: fmtMetros(anual.metrosGeracao) },
+              { rotulo: 'Recolhimento serra (m)', valor: fmtMetros(anual.metrosSerra) },
+              ...anual.caminhoes.map((c) => ({ rotulo: `${c.caminhao} soldas (und)`, valor: `${c.soldas}` })),
+            ].map((c) => (
+              <div key={c.rotulo} className="rounded-xl border border-slate-200 bg-white p-3">
+                <p className="text-[11px] uppercase tracking-wide text-slate-500">{c.rotulo}</p>
+                <p className="text-xl font-bold tabular-nums">{c.valor}</p>
+              </div>
+            ))}
+          </div>
+        </section>
 
         <p className="text-xs text-slate-500">{legendaColunas(colunas, modo)}</p>
         <div className="grid gap-4">
