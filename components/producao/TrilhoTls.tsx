@@ -59,7 +59,7 @@ export function TrilhoTls({ feitas, total, completo = false }: { feitas: number;
           {/* Perfil do trilho na ponta esquerda, com um fio de respiro em volta. */}
           <path className="trilho-tls-perfil" d={PERFIL} transform={`translate(0 ${TOPO})`} />
           {/* Com o TLS fechado, a outra ponta também ganha o perfil, espelhado. */}
-          {completo && <path className="trilho-tls-perfil" d={PERFIL} transform={`translate(${fim + 13} ${TOPO}) scale(-1 1)`} />}
+          {completo && <path className="trilho-tls-perfil" d={PERFIL} transform={`translate(${fim + INICIO} ${TOPO}) scale(-1 1)`} />}
         </g>
       )}
     </svg>
