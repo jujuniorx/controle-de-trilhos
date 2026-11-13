@@ -868,13 +868,6 @@ html[data-tema="pastel"] .grafico-area { --viz-2: #f29bbf; --viz-outros: #cfc6ee
 .grafico-barra { width: 100%; border-radius: 4px 4px 0 0; transform-origin: bottom; animation: grafico-sobe .8s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i, 0) * 70ms + 150ms); transition: filter .15s; }
 .grafico-grupo:hover .grafico-barra { filter: brightness(1.15); }
 /* Barras como trilhos em pé: cabeça em cima, alma no meio e patim embaixo */
-.grafico-barra-trilho { position: relative; width: 10px; flex: none; border-radius: 0; overflow: visible; background: repeating-linear-gradient(180deg, var(--c) 0 8px, rgba(0, 0, 0, .38) 8px 10px); }
-.grafico-barra-trilho.grafico-cor-rec { --c: var(--viz-1); }
-.grafico-barra-trilho.grafico-cor-env { --c: var(--viz-2); }
-/* Boleto: cabeca do trilho, mais larga que o corpo */
-.grafico-barra-trilho::before { content: ""; position: absolute; left: -4px; right: -4px; top: 0; height: 5px; border-radius: 2px; background: var(--c); box-shadow: 0 1px 0 rgba(0, 0, 0, .3); }
-/* Patim: base do trilho */
-.grafico-barra-trilho::after { content: ""; position: absolute; left: -6px; right: -6px; bottom: 0; height: 4px; border-radius: 2px; background: var(--c); box-shadow: 0 -1px 0 rgba(0, 0, 0, .3); }
 .grafico-val { font-size: .7rem; color: var(--ink-muted); font-variant-numeric: tabular-nums; margin-bottom: 2px; white-space: nowrap; animation: grafico-fade .5s ease-out both; animation-delay: calc(var(--i, 0) * 70ms + 650ms); }
 .grafico-eixo { font-size: .7rem; color: var(--ink-muted); text-align: center; white-space: nowrap; }
 
