@@ -2211,6 +2211,17 @@ html[data-tema="pastel"] .entrada-marca-conteudo::before { background: radial-gr
   main.planilha-producao .doc-ritmo-linha:last-child { margin-bottom: 0 !important; }
   main.planilha-producao .doc-ritmo-linha > :first-child { color: #3c4350 !important; white-space: nowrap; }
   main.planilha-producao .doc-ritmo-linha > :last-child { text-align: right; font-weight: 700; }
+  /* Trilho do TLS na folha: cores sólidas (sem transparência, que vira pontilhado na impressora) e traços mais firmes. */
+  main.planilha-producao .trilho-tls { max-width: none !important; margin-top: 2mm !important; }
+  main.planilha-producao .trilho-tls-feito rect { fill: #16191f !important; opacity: 1 !important; }
+  main.planilha-producao .trilho-tls-feito .trilho-tls-alma { fill: #6b7380 !important; }
+  main.planilha-producao .trilho-tls-feito .trilho-tls-emenda { fill: #ffffff !important; stroke: #ffffff !important; stroke-width: .5 !important; }
+  main.planilha-producao .trilho-tls-feito .trilho-tls-ultima { fill: #e8590c !important; }
+  main.planilha-producao .trilho-tls-perfil { fill: #16191f !important; stroke: #ffffff !important; stroke-width: 1 !important; }
+  main.planilha-producao .trilho-tls-solta rect { fill: none !important; stroke: #6b7380 !important; stroke-width: 1 !important; opacity: 1 !important; }
+  main.planilha-producao .sobra-trilho { max-width: none !important; }
+  main.planilha-producao .sobra-legenda { margin-top: 2mm !important; font-size: 9pt !important; color: #5b6472 !important; }
+  main.planilha-producao .sobra-legenda-feito { color: #16191f !important; }
   main.planilha-producao .barra-trilho { display: block; height: 2.6mm !important; border: 0 !important; border-radius: 1.3mm !important; background: #e8ebf0 !important; overflow: hidden; }
   main.planilha-producao .barra-fill { display: block; height: 100%; border-radius: 1.3mm !important; background: #16191f !important; }
 

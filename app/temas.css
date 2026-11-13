@@ -921,13 +921,10 @@ html[data-tema]:root .trilho-tls-feito .trilho-tls-emenda { fill: var(--surface)
 html[data-tema]:root .trilho-tls-feito .trilho-tls-ultima { fill: var(--warn); }
 html[data-tema]:root .trilho-tls-perfil { fill: var(--ink); stroke: var(--surface); stroke-width: 1; paint-order: stroke; }
 html[data-tema]:root .trilho-tls-solta rect { fill: none; stroke: var(--ink-muted); stroke-width: .8; opacity: .55; }
-/* Cartão "Continua na segunda": o trilho do TLS aberto com uma régua embaixo (feito x falta). */
+/* Cartão "Continua na segunda": o trilho do TLS aberto e, embaixo, feitas x faltam. */
 html[data-tema]:root .sobra-trilho { max-width: 22rem; padding-top: 2px; }
 html[data-tema]:root .sobra-trilho .trilho-tls { margin-top: 6px; }
-html[data-tema]:root .sobra-regua { display: flex; gap: 3px; margin-top: 7px; height: 3px; }
-html[data-tema]:root .sobra-regua-feito { flex: none; border-radius: 2px; background: var(--ink); }
-html[data-tema]:root .sobra-regua-falta { flex: 1; border-top: 2px dashed var(--ink-muted); opacity: .6; }
-html[data-tema]:root .sobra-legenda { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; font-size: 11px; line-height: 1.2; color: var(--ink-muted); white-space: nowrap; }
+html[data-tema]:root .sobra-legenda { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; font-size: 11px; line-height: 1.2; color: var(--ink-muted); white-space: nowrap; }
 html[data-tema]:root .sobra-legenda-feito { color: var(--ink); font-weight: 600; }
 html[data-tema]:root .turno-linha[data-parada] dt, html[data-tema]:root .turno-linha[data-parada] dd { color: var(--warn); font-weight: 700; }
 
