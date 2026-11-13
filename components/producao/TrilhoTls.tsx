@@ -24,7 +24,7 @@ export function TrilhoTls({ feitas, total, completo = false }: { feitas: number;
   return (
     <svg
       className={completo ? 'trilho-tls trilho-tls-completo' : 'trilho-tls'}
-      viewBox={`0 0 ${INICIO + total * PASSO + 2} 17.5`}
+      viewBox={`0 0 ${INICIO + total * PASSO + (completo ? 15 : 2)} 17.5`}
       role="img"
       aria-label={completo ? `TLS formado: barra completa com ${total} soldas` : `${n} de ${total} soldas no próximo TLS`}
     >
@@ -55,6 +55,8 @@ export function TrilhoTls({ feitas, total, completo = false }: { feitas: number;
           {!completo && <rect className="trilho-tls-ultima" x={fim - 1.6} y={0} width={3.2} height={17.5} rx={1.4} />}
           {/* Perfil do trilho na ponta esquerda, com um fio de respiro em volta. */}
           <path className="trilho-tls-perfil" d={PERFIL} transform={`translate(0 ${TOPO})`} />
+          {/* Com o TLS fechado, a outra ponta também ganha o perfil, espelhado. */}
+          {completo && <path className="trilho-tls-perfil" d={PERFIL} transform={`translate(${fim + 13} ${TOPO}) scale(-1 1)`} />}
         </g>
       )}
     </svg>
