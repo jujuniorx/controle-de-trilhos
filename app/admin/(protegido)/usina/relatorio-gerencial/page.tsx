@@ -35,82 +35,91 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
   const estaleiro = dados.setores.find((s) => s.titulo === 'Estaleiro de solda');
   const iTls = estaleiro ? estaleiro.linhas.findIndex((l) => l.secao?.startsWith('Estoque TLS')) : -1;
   const setoresTela = dados.setores.map((s) => (s.titulo === 'Estaleiro de solda' && iTls >= 0 ? { ...s, linhas: s.linhas.slice(0, iTls) } : s));
+  const periodo = rotuloPeriodo(data, modo);
 
   return (
-    <main className="mx-auto w-full max-w-6xl space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <span className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Formato</span>
-        <div className="flex overflow-hidden rounded-lg border border-line" role="group" aria-label="Formato do relatório">
-          {linksModo('/admin/usina/relatorio-gerencial', modo, { data }, true).map((l) => (
-            <a key={l.modo} href={l.href} aria-current={l.ativo ? 'true' : undefined} className={`h-11 px-4 leading-[2.75rem] text-sm font-semibold ${l.ativo ? 'bg-slate-900 text-white' : 'bg-surface text-ink-muted'}`}>{l.rotulo}</a>
-          ))}
+    <main className="mx-auto w-full max-w-7xl space-y-8">
+      <header className="page-header">
+        <div>
+          <h1 className="page-title">Relatório gerencial</h1>
+          <p className="text-sm text-ink-muted">{periodo.titulo}: {periodo.valor}</p>
         </div>
-        <form action="" method="get" className="flex flex-wrap items-center gap-2 text-sm" aria-label="Colunas do relatório">
-          <input type="hidden" name="data" value={data} />
-          <input type="hidden" name="modo" value={modo} />
-          <span className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Colunas</span>
-          {TODAS_COLUNAS.map((c) => (
-            <label key={c} className="flex h-11 items-center gap-2 rounded-lg border border-line px-3">
-              <input type="checkbox" name="col" value={c} defaultChecked={colunas.includes(c)} />
-              {NOME_COLUNA[c]}
-            </label>
-          ))}
-          <button className="btn btn-ghost h-11" type="submit">Aplicar colunas</button>
-        </form>
-        <BotaoCompartilharPdf url={`/api/usina/relatorio-gerencial/pdf?data=${data}&modo=${modo}&pagina=tudo&col=${colunas.join(',')}`} nomeArquivo={`relatorio-gerencial-usina-${data}.png`} titulo={`Relatório da usina ${br(data)}`} rotulo="Imagem do relatório" png />
-        <a className="btn btn-ghost h-11" href={`/admin/usina?data=${data}`}>Voltar</a>
-        <form action="" className="flex items-center gap-2 text-sm">
-          <label htmlFor="data">Dia</label>
-          <input id="data" name="data" type="date" defaultValue={data} className="h-11" />
-          <button className="btn btn-ghost h-11" type="submit">Ver</button>
-        </form>
-      </div>
+        <div className="usina-acoes">
+          <a className="btn btn-ghost h-11" href={`/admin/usina?data=${data}`}>Voltar</a>
+          <BotaoCompartilharPdf url={`/api/usina/relatorio-gerencial/pdf?data=${data}&modo=${modo}&pagina=tudo&col=${colunas.join(',')}`} nomeArquivo={`relatorio-gerencial-usina-${data}.png`} titulo={`Relatório da usina ${br(data)}`} rotulo="Imagem do relatório" png />
+        </div>
+      </header>
 
-      <article className="space-y-4 rounded-2xl bg-slate-50 p-5 text-slate-900">
-        {/* Faixa com os setores da usina, para o relatório da tela (o PDF não usa). */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/banner-relatorio.jpg" alt="Estaleiro de solda, caminhão de solda, geração de trilhos reemprego e trilheiro" className="w-full rounded-xl object-cover" />
-        <header className="flex flex-wrap items-end justify-between gap-3 border-b-2 border-slate-900 pb-3">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Controle de Trilhos</p>
-            <h1 className="text-2xl font-extrabold tracking-tight">Relatório gerencial</h1>
+      <section className="card space-y-4" aria-label="Opções do relatório">
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="space-y-1">
+            <p className="kv-label">Formato</p>
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Formato do relatório">
+              {linksModo('/admin/usina/relatorio-gerencial', modo, { data }, true).map((l) => (
+                <a key={l.modo} href={l.href} aria-current={l.ativo ? 'true' : undefined} className={`btn h-11 ${l.ativo ? 'btn-secondary' : 'btn-ghost'}`}>{l.rotulo}</a>
+              ))}
+            </div>
           </div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-rumo.png" alt="Rumo" className="h-10 w-auto self-center" />
-          <div className="text-right">
-            <p className="text-[11px] uppercase tracking-wide text-slate-500">{rotuloPeriodo(data, modo).titulo}</p>
-            <p className="text-lg font-bold tabular-nums">{rotuloPeriodo(data, modo).valor}</p>
-          </div>
-        </header>
 
+          <form action="" method="get" className="space-y-1" aria-label="Colunas do relatório">
+            <input type="hidden" name="data" value={data} />
+            <input type="hidden" name="modo" value={modo} />
+            <p className="kv-label">Colunas</p>
+            <div className="flex flex-wrap items-center gap-2">
+              {TODAS_COLUNAS.map((c) => (
+                <label key={c} className="flex h-11 items-center gap-2 rounded-lg border border-line px-3 text-sm">
+                  <input type="checkbox" name="col" value={c} defaultChecked={colunas.includes(c)} />
+                  {NOME_COLUNA[c]}
+                </label>
+              ))}
+              <button className="btn btn-ghost h-11" type="submit">Aplicar colunas</button>
+            </div>
+          </form>
+
+          <form action="" className="space-y-1">
+            <label className="kv-label" htmlFor="data">Dia</label>
+            <div className="flex items-center gap-2">
+              <input id="data" name="data" type="date" defaultValue={data} className="h-11" />
+              <button className="btn btn-ghost h-11" type="submit">Ver</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section className="space-y-3" aria-labelledby="resumo-relatorio">
+        <h2 id="resumo-relatorio" className="section-title scroll-mt-24">Resumo</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {dados.resumo.map((r) => (
             <Resumo key={r.rotulo} rotulo={r.rotulo} cor={r.cor} dia={r.dia} semana={r.semana} mes={r.mes} mensal={modo === 'mensal'} linhas={r.linhas} legenda={r.legenda} colunas={colunas} rotuloDia={modo === 'diario' ? 'Do dia' : dados.rotuloDia} />
           ))}
         </div>
+      </section>
 
-        <section className="space-y-2" aria-label="Acumulado do ano">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">No ano (de {br(anual.inicio)} a {br(anual.fim)})</p>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
-            {[
-              { rotulo: 'Soldas (und)', valor: `${anual.soldas}` },
-              { rotulo: 'Cortes (und)', valor: `${anual.cortes}` },
-              { rotulo: 'Geração de trilho (m)', valor: fmtMetros(anual.metrosGeracao) },
-              { rotulo: 'Recolhimento serra (m)', valor: fmtMetros(anual.metrosSerra) },
-              ...anual.caminhoes.map((c) => ({ rotulo: `${c.caminhao} soldas (und)`, valor: `${c.soldas}` })),
-            ].map((c) => (
-              <div key={c.rotulo} className="rounded-xl border border-slate-200 bg-white p-3">
-                <p className="text-[11px] uppercase tracking-wide text-slate-500">{c.rotulo}</p>
-                <p className="text-xl font-bold tabular-nums">{c.valor}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+      <section className="space-y-3" aria-labelledby="ano-relatorio">
+        <h2 id="ano-relatorio" className="section-title scroll-mt-24">No ano</h2>
+        <p className="text-sm text-ink-muted">De {br(anual.inicio)} a {br(anual.fim)}.</p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+          {[
+            { rotulo: 'Soldas (und)', valor: `${anual.soldas}` },
+            { rotulo: 'Cortes (und)', valor: `${anual.cortes}` },
+            { rotulo: 'Geração de trilho (m)', valor: fmtMetros(anual.metrosGeracao) },
+            { rotulo: 'Recolhimento serra (m)', valor: fmtMetros(anual.metrosSerra) },
+            ...anual.caminhoes.map((c) => ({ rotulo: `${c.caminhao} soldas (und)`, valor: `${c.soldas}` })),
+          ].map((c) => (
+            <div key={c.rotulo} className="card">
+              <p className="kv-label">{c.rotulo}</p>
+              <p className="text-2xl font-semibold tabular-nums">{c.valor}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
-        <p className="text-xs text-slate-500">{legendaColunas(colunas, modo)}</p>
+      <section className="space-y-3" aria-labelledby="setores-relatorio">
+        <h2 id="setores-relatorio" className="section-title scroll-mt-24">Setores</h2>
+        <p className="text-sm text-ink-muted">{legendaColunas(colunas, modo)}</p>
         <div className="grid gap-4">
           {setoresTela.filter((s) => s.titulo !== 'Trilheiros').map((s) => (
-            <div key={s.titulo}>
+            <div key={s.titulo} className="card">
               {s.caminhoes ? (
                 <CaminhoesBloco s={s} modo={modo} colunas={colunas} />
               ) : (
@@ -127,8 +136,12 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="card space-y-3" aria-labelledby="trilheiros-relatorio">
+        <h2 id="trilheiros-relatorio" className="section-title scroll-mt-24">Trilheiros</h2>
         <TrilheirosBloco t={tril} />
-      </article>
+      </section>
     </main>
   );
 }
