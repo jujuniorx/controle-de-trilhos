@@ -17,6 +17,6 @@ export const MOTIVOS_PARADA = [
   'Troca de perfil e alinhamento das facas',
   'Troca de perfil e regulagem das facas',
   'Manutenção do pórtico 1.2.3',
-  'Manutenção na Schlatter',
+  'Manutenção corretiva na Schlatter',
   'Manutenção preventiva na Schlatter',
 ] as const;
