@@ -33,18 +33,14 @@ export function TrilhoTls({ feitas, total, completo = false }: { feitas: number;
       role="img"
       aria-label={`${n} de ${total} soldas no próximo TLS`}
     >
-      {/* Barras que ainda faltam soldar: soltas, só o contorno do perfil. */}
-      {Array.from({ length: total - n }, (_, k) => {
-        const x = (n + k) * PASSO + FOLGA;
-        const w = PASSO - FOLGA * 2;
-        return (
-          <g key={k} className="trilho-tls-solta">
-            <rect x={x} y={1.5} width={w} height={4} rx={1} />
-            <rect x={x + 1} y={5.5} width={w - 2} height={5} />
-            <rect x={x - 1} y={10.5} width={w + 2} height={3} rx={0.8} />
-          </g>
-        );
-      })}
+      {/* Trilho que ainda falta soldar: um trilho completo, contínuo, só no contorno. */}
+      {n < total && (
+        <g className="trilho-tls-solta">
+          <rect x={soldado} y={1} width={(total - n) * PASSO} height={5} rx={1.2} />
+          <rect x={soldado} y={6} width={(total - n) * PASSO} height={4.5} />
+          <rect x={soldado} y={10.5} width={(total - n) * PASSO} height={3.5} rx={1} />
+        </g>
+      )}
 
       {/* Trecho já soldado: um trilho só. */}
       {n > 0 && (
