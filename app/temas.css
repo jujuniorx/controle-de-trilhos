@@ -925,9 +925,13 @@ html[data-tema]:root .turno-linha dd b { font-family: var(--font-barlow-cond), v
 html[data-tema]:root .turno-soldas dd b { font-size: 3.2rem; }
 html[data-tema]:root .turno-forte { font-weight: 700; color: var(--ink); }
 html[data-tema]:root .turno-quebra { flex-basis: 100%; }
-html[data-tema]:root .turno-riscos { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; flex-basis: 100%; max-width: 19rem; height: 10px; margin-top: 4px; }
-html[data-tema]:root .turno-riscos i { border-radius: 2px; background: var(--v-field-line); }
-html[data-tema]:root .turno-riscos i[data-feita] { background: var(--ink); }
+/* Trilho do TLS em montagem (uma barra por solda) */
+html[data-tema]:root .trilho-tls { display: block; flex-basis: 100%; width: 100%; max-width: 21rem; height: auto; margin-top: 6px; overflow: visible; }
+html[data-tema]:root .trilho-tls-feito rect { fill: var(--ink); }
+html[data-tema]:root .trilho-tls-feito .trilho-tls-alma { opacity: .55; }
+html[data-tema]:root .trilho-tls-feito .trilho-tls-emenda { fill: var(--v-card, var(--surface)); opacity: .55; }
+html[data-tema]:root .trilho-tls-feito .trilho-tls-ultima { fill: var(--warn); }
+html[data-tema]:root .trilho-tls-solta rect { fill: none; stroke: var(--ink-muted); stroke-width: .8; opacity: .55; }
 html[data-tema]:root .turno-linha[data-parada] dt, html[data-tema]:root .turno-linha[data-parada] dd { color: var(--warn); font-weight: 700; }
 
 /* Tela inicial: resuminho dentro do cartao (Producao de hoje) */

@@ -1,3 +1,4 @@
+import { TrilhoTls } from '@/components/producao/TrilhoTls';
 import { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, buscarDia, horasDoDia, paradasDaLinha, paradasEmAndamento, respostaTlsDaLinha, totaisDoAno } from '@/lib/services/producao';
 import { AoVivo } from '@/components/producao/AoVivo';
 import { BotaoImprimirPagina } from '@/components/producao/BotaoImprimirPagina';
@@ -174,10 +175,8 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
                   <span className="turno-quebra">TLS de reemprego em aberto com {sobra} soldas</span>
                 ) : (
                   <>
-                    {/* Um risco por solda do TLS que está sendo montado (12 fecham um TLS). */}
-                    <span className="turno-riscos" aria-hidden="true">
-                      {Array.from({ length: SOLDAS_POR_TLS }, (_, i) => <i key={i} data-feita={i < sobra ? 'true' : undefined} />)}
-                    </span>
+                    {/* O trilho do TLS em montagem: cada solda emenda mais uma barra (12 fecham um TLS). */}
+                    <TrilhoTls feitas={sobra} total={SOLDAS_POR_TLS} />
                     <span className="turno-quebra">{sobra} de {SOLDAS_POR_TLS} soldas no próximo TLS</span>
                   </>
                 )}
