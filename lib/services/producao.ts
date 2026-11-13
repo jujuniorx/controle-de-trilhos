@@ -92,18 +92,44 @@ export function horasDoDia(data: Date): string[] {
  * A sobra de um dia vira a entrada do seguinte: 53 soldas = 4 TLS + sobra 5.
  * No reemprego o TLS só fecha na hora em que o soldador respondeu que encerrou.
  */
-export async function recalcularAPartir(desde: Date): Promise<void> {
-  const anterior = await prisma.producaoDia.findFirst({ where: { data: { lt: desde } }, orderBy: { data: 'desc' } });
-  let sobra = anterior?.sobraSaida ?? 0;
-  const dias = await prisma.producaoDia.findMany({ where: { data: { gte: desde } }, orderBy: { data: 'asc' }, include: { linhas: { orderBy: { hora: 'asc' } } } });
+export async function recalcularAPartir(_desde: Date): Promise<void> {
+  // Refaz a conta de todos os dias em ordem: o TLS é contado no dia em que começou,
+  // mesmo que feche em um dia seguinte (a solda de hoje fecha o TLS de ontem, que conta para ontem).
+  const dias = await prisma.producaoDia.findMany({ orderBy: { data: 'asc' }, include: { linhas: { orderBy: { hora: 'asc' } } } });
+  const creditos = new Map<string, number>();
+  const credita = (id: string, n: number) => creditos.set(id, (creditos.get(id) ?? 0) + n);
+  const contas: { id: string; entrada: number; total: number; saida: number }[] = [];
+  let sobra = 0;
+  let inicioSobra: string | null = null; // dia em que começou o TLS que está em aberto
   for (const d of dias) {
     const total = d.linhas.reduce((t, l) => t + l.soldas, 0);
     const { tls, sobra: novaSobra } = contarTls(sobra, d.linhas.map((l) => ({ soldas: l.soldas, fabricante: l.fabricante, perfil: l.perfil, resposta: respostaTlsDaLinha(l.paradas) })));
-    await prisma.producaoDia.update({
-      where: { id: d.id },
-      data: { sobraEntrada: sobra, totalSoldas: total, tlsFormados: tls, sobraSaida: novaSobra },
-    });
+    if (tls > 0) {
+      if (sobra > 0 && inicioSobra) {
+        // O primeiro TLS fechado hoje é o que já estava aberto de antes: conta no dia em que começou.
+        credita(inicioSobra, 1);
+        credita(d.id, tls - 1);
+      } else {
+        credita(d.id, tls);
+      }
+    }
+    if (novaSobra > 0) {
+      // Se fechou algum TLS hoje, ou não havia nada aberto, o TLS em aberto começou hoje.
+      if (tls > 0 || sobra === 0 || !inicioSobra) inicioSobra = d.id;
+    } else {
+      inicioSobra = null;
+    }
+    contas.push({ id: d.id, entrada: sobra, total, saida: novaSobra });
     sobra = novaSobra;
+  }
+  for (const c of contas) {
+    const d = dias.find((x) => x.id === c.id)!;
+    const tlsFormados = creditos.get(c.id) ?? 0;
+    if (d.sobraEntrada === c.entrada && d.totalSoldas === c.total && d.tlsFormados === tlsFormados && d.sobraSaida === c.saida) continue;
+    await prisma.producaoDia.update({
+      where: { id: c.id },
+      data: { sobraEntrada: c.entrada, totalSoldas: c.total, tlsFormados, sobraSaida: c.saida },
+    });
   }
 }
 
