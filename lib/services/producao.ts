@@ -155,16 +155,19 @@ export async function buscarDia(data: Date) {
   return prisma.producaoDia.findUnique({ where: { data }, include: { linhas: { orderBy: { hora: 'asc' } } } });
 }
 
-/** Soldas, cortes e dias lançados do ano inteiro (para o Administrativo ver o total anual). */
+/**
+ * Soldas e cortes do ano inteiro, como estão na Usina (estaleiro): é o número que o Administrativo já usa.
+ * Os dias contados são os que têm soldas lançadas.
+ */
 export async function totaisDoAno(ano: number): Promise<{ soldas: number; cortes: number; dias: number }> {
   const faixa = { gte: new Date(`${ano}-01-01T00:00:00Z`), lte: new Date(`${ano}-12-31T00:00:00Z`) };
-  const [dias, cortes] = await Promise.all([
-    prisma.producaoDia.aggregate({ where: { data: faixa }, _sum: { totalSoldas: true }, _count: { _all: true } }),
-    prisma.producaoLinha.aggregate({ where: { dia: { data: faixa } }, _sum: { cortes: true } }),
+  const [soma, comSoldas] = await Promise.all([
+    prisma.estaleiroDia.aggregate({ where: { data: faixa }, _sum: { soldas: true, cortes: true } }),
+    prisma.estaleiroDia.count({ where: { data: faixa, soldas: { gt: 0 } } }),
   ]);
   return {
-    soldas: dias._sum.totalSoldas ?? 0,
-    cortes: cortes._sum.cortes ?? 0,
-    dias: dias._count._all,
+    soldas: soma._sum.soldas ?? 0,
+    cortes: soma._sum.cortes ?? 0,
+    dias: comSoldas,
   };
 }
