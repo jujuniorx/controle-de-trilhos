@@ -231,7 +231,7 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
           {linhas.map(({ hora, l }) => {
             const pct = Math.round(((l?.soldas ?? 0) / maiorHora) * 100);
             return (
-              <li key={hora} className="doc-ritmo-linha grid grid-cols-[7.5rem_1fr_3rem] items-center gap-3 text-sm">
+              <li key={hora} className="doc-ritmo-linha grid grid-cols-[auto_minmax(0,1fr)_2.5rem] items-center gap-3 text-sm">
                 <span className="whitespace-nowrap text-ink-muted">{hora} às {fimDaHora(hora)}</span>
                 <span className="barra-trilho h-3 overflow-hidden rounded-full bg-surface-2">
                   <span className="barra-fill block h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
