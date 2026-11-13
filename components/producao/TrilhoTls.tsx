@@ -17,19 +17,22 @@ const PATIM = { y: TOPO + 12, h: 3.5 };
 const PERFIL =
   'M3.5,0 H9.5 Q11,0 11,1.5 V3.5 Q11,5 9.5,5.2 L7.6,5.8 V11 L12.4,12.6 Q13,12.8 13,13.5 V15 Q13,15.5 12.5,15.5 H0.5 Q0,15.5 0,15 V13.5 Q0,12.8 0.6,12.6 L5.4,11 V5.8 L3.5,5.2 Q2,5 2,3.5 V1.5 Q2,0 3.5,0 Z';
 
+/** total = soldas do TLS (12). O TLS tem total + 1 barras (13): cada solda une uma barra à seguinte. */
 export function TrilhoTls({ feitas, total, completo = false }: { feitas: number; total: number; completo?: boolean }) {
-  const n = completo ? total : Math.max(0, Math.min(feitas, total));
+  const barras = total + 1;
+  // Com 1 solda já há 2 barras unidas; com 0 soldas nada foi soldado ainda.
+  const n = completo ? barras : feitas > 0 ? Math.min(feitas + 1, barras) : 0;
   const soldado = n * PASSO;
   const fim = INICIO + soldado;
   return (
     <svg
       className={completo ? 'trilho-tls trilho-tls-completo' : 'trilho-tls'}
-      viewBox={`0 0 ${INICIO + total * PASSO + (completo ? 15 : 2)} 17.5`}
+      viewBox={`0 0 ${INICIO + barras * PASSO + (completo ? 15 : 2)} 17.5`}
       role="img"
       aria-label={completo ? `TLS formado: barra completa com ${total} soldas` : `${n} de ${total} soldas no próximo TLS`}
     >
       {/* Pedaços que ainda faltam soldar: trilhos menores, soltos, só no contorno. */}
-      {Array.from({ length: total - n }, (_, k) => {
+      {Array.from({ length: barras - n }, (_, k) => {
         const x = INICIO + (n + k) * PASSO + FOLGA;
         const w = PASSO - FOLGA * 2;
         return (
