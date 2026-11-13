@@ -929,7 +929,7 @@ html[data-tema]:root .turno-quebra { flex-basis: 100%; }
 html[data-tema]:root .trilho-tls { display: block; flex-basis: 100%; width: 100%; max-width: 22rem; height: auto; margin-top: 8px; overflow: visible; }
 html[data-tema]:root .trilho-tls-feito rect { fill: var(--ink); }
 html[data-tema]:root .trilho-tls-feito .trilho-tls-alma { opacity: .55; }
-html[data-tema]:root .trilho-tls-feito .trilho-tls-emenda { fill: var(--v-card, var(--surface)); opacity: .3; }
+html[data-tema]:root .trilho-tls-feito .trilho-tls-emenda { fill: var(--surface); opacity: .3; }
 html[data-tema]:root .trilho-tls-feito .trilho-tls-ultima { fill: var(--warn); }
 html[data-tema]:root .trilho-tls-perfil { fill: var(--ink); stroke: var(--v-card, var(--surface)); stroke-width: 1; paint-order: stroke; }
 html[data-tema]:root .trilho-tls-solta rect { fill: none; stroke: var(--ink-muted); stroke-width: .8; opacity: .55; }
