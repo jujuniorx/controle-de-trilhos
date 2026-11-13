@@ -250,6 +250,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         linhas: [
           { rotulo: 'Carregado (m)', dia: fmtMetros(geraDia((l) => l.periodo.carregamentoM)), semana: fmtMetros(geraSem((l) => l.periodo.carregamentoM)), mes: fmtMetros(geraSem((l) => l.mes.carregamentoM)), porDia: serie.geracao.carregado.map((v) => fmtMetros(v)) },
           { rotulo: 'Na via (m)', dia: fmtMetros(geraDia((l) => l.periodo.deixadaViaM)), semana: fmtMetros(geraSem((l) => l.periodo.deixadaViaM)), mes: fmtMetros(geraSem((l) => l.mes.deixadaViaM)), porDia: serie.geracao.deixado.map((v) => fmtMetros(v)) },
+          { rotulo: 'Cortes (m)', dia: fmtMetros(geraDia((l) => l.periodo.corteM)), semana: fmtMetros(geraSem((l) => l.periodo.corteM)), mes: fmtMetros(geraSem((l) => l.mes.corteM)) },
           { rotulo: 'Barras (und)', dia: `${geraDia((l) => l.periodo.quantidade)}`, semana: `${geraSem((l) => l.periodo.quantidade)}`, mes: `${geraSem((l) => l.mes.quantidade)}` },
         ],
         grafico: {
