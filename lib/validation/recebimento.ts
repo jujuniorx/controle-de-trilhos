@@ -10,7 +10,7 @@ export const MSG_NF_INVALIDA = 'Informe a nota fiscal (números, pode ter traço
 
 // NF é sempre opcional: campo em branco (inclusive texto vazio) vira "sem NF".
 export const nfOpcional = z.preprocess(
-  (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+  (v) => (typeof v === 'string' ? (v.trim() === '' ? undefined : v.trim()) : v),
   z.string().regex(NF_REGEX, MSG_NF_INVALIDA).optional(),
 );
 

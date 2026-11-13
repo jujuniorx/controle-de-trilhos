@@ -2260,3 +2260,13 @@ html[data-tema="escuro"] select option { background: #0b0b0c; color: #fafafa; }
 html[data-tema="vermelho"] select option { background: #161616; color: #ffffff; }
 html[data-tema="azul"] select option { background: #0e1a2e; color: #e8f1fc; }
 select option:checked, select option:hover { background: var(--primary, #3b82f6); color: #fff; }
+
+/* Pátio (tablet e celular): alvos de toque maiores, texto de campo sem zoom automático no iPhone,
+   e erro de campo em destaque (cor forte, ícone e borda). */
+.patio-toque .btn { min-height: 48px; }
+.patio-toque .btn-sm { min-height: 44px; }
+.patio-toque input:not([type="checkbox"]):not([type="radio"]), .patio-toque select, .patio-toque textarea { min-height: 48px; font-size: 16px; }
+.patio-toque input[type="checkbox"], .patio-toque input[type="radio"] { width: 22px; height: 22px; }
+.patio-toque label { padding-block: 4px; }
+.erro-campo { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 14px; font-weight: 700; color: var(--bad); }
+.erro-campo svg { flex: none; }

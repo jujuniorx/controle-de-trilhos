@@ -1,6 +1,7 @@
 'use client';
 
 import { ProgressoEtapas } from '@/components/ui/ProgressoEtapas';
+import { IconeAlerta } from '@/components/icones/Icones';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import {
   PERFIS,
@@ -162,7 +163,7 @@ function validarDados(d: Dados) {
   const erros: Partial<Record<keyof Dados, string>> = {};
   if (!d.data) erros.data = 'Informe a data da descarga.';
   if (!d.numeroDocumento.trim()) erros.numeroDocumento = 'Informe a nota fiscal.';
-  else if (!NF_REGEX.test(d.numeroDocumento)) erros.numeroDocumento = MSG_NF_INVALIDA;
+  else if (!NF_REGEX.test(d.numeroDocumento.trim())) erros.numeroDocumento = MSG_NF_INVALIDA;
   if (!d.origem.trim()) erros.origem = 'Informe a origem do material.';
   // Nenhuma placa é individualmente obrigatória — a regra é "pelo menos uma das três".
   if (!d.placaCavalo && !d.placaCarreta && !d.placaCarreta2) {
@@ -569,7 +570,7 @@ export function RecebimentoWizard({
                 setDados({ ...dados, data: e.target.value });
               }}
             />
-            {errosDados.data && <p className="text-sm text-bad">{errosDados.data}</p>}
+            {errosDados.data && <p className="erro-campo" role="alert"><IconeAlerta size={18} aria-hidden="true" />{errosDados.data}</p>}
           </div>
           <div className="field">
             <label htmlFor="f-nf">Nota fiscal *</label>
@@ -582,13 +583,13 @@ export function RecebimentoWizard({
               value={dados.numeroDocumento}
               onChange={(e) => setDados({ ...dados, numeroDocumento: formatarNF(e.target.value) })}
             />
-            {errosDados.numeroDocumento && <p className="text-sm text-bad">{errosDados.numeroDocumento}</p>}
+            {errosDados.numeroDocumento && <p className="erro-campo" role="alert"><IconeAlerta size={18} aria-hidden="true" />{errosDados.numeroDocumento}</p>}
           </div>
           <div className="field">
             <label htmlFor="f-origem">Origem *</label>
             <input id="f-origem"
               aria-invalid={Boolean(errosDados.origem)} className="h-12 uppercase" placeholder="Ex.: EVANGELISTA-SP" autoComplete="off" value={dados.origem} onChange={(e) => setDados({ ...dados, origem: e.target.value.toLocaleUpperCase('pt-BR') })} />
-            {errosDados.origem && <p className="text-sm text-bad">{errosDados.origem}</p>}
+            {errosDados.origem && <p className="erro-campo" role="alert"><IconeAlerta size={18} aria-hidden="true" />{errosDados.origem}</p>}
           </div>
           <p className="text-sm text-ink-dim">Transporte: Caminhão (único suportado nesta etapa)</p>
 
@@ -611,7 +612,7 @@ export function RecebimentoWizard({
                 value={dados.placaCarreta}
                 onChange={(e) => setDados({ ...dados, placaCarreta: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
               />
-              {errosDados.placaCarreta && <p className="text-sm text-bad">{errosDados.placaCarreta}</p>}
+              {errosDados.placaCarreta && <p className="erro-campo" role="alert"><IconeAlerta size={18} aria-hidden="true" />{errosDados.placaCarreta}</p>}
             </div>
 
             {mostrarCarreta2 ? (
@@ -627,7 +628,7 @@ export function RecebimentoWizard({
                   value={dados.placaCarreta2}
                   onChange={(e) => setDados({ ...dados, placaCarreta2: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
                 />
-                {errosDados.placaCarreta2 && <p className="text-sm text-bad">{errosDados.placaCarreta2}</p>}
+                {errosDados.placaCarreta2 && <p className="erro-campo" role="alert"><IconeAlerta size={18} aria-hidden="true" />{errosDados.placaCarreta2}</p>}
               </div>
             ) : (
               <button type="button" className="btn btn-ghost mt-2 h-11" onClick={() => setMostrarCarreta2(true)}>
@@ -648,7 +649,7 @@ export function RecebimentoWizard({
                 onChange={(e) => setDados({ ...dados, placaCavalo: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
               />
               {errosDados.placaCavalo && errosDados.placaCavalo !== MSG_PELO_MENOS_UMA_PLACA && (
-                <p className="text-sm text-bad">{errosDados.placaCavalo}</p>
+                <p className="erro-campo" role="alert"><IconeAlerta size={18} aria-hidden="true" />{errosDados.placaCavalo}</p>
               )}
             </div>
           </div>
@@ -668,7 +669,7 @@ export function RecebimentoWizard({
             <label htmlFor="f-resp">Responsável pelo preenchimento *</label>
             <input id="f-resp"
               aria-invalid={Boolean(errosDados.responsavelPatio)} className="h-11" value={dados.responsavelPatio} onChange={(e) => setDados({ ...dados, responsavelPatio: e.target.value })} />
-            {errosDados.responsavelPatio && <p className="text-sm text-bad">{errosDados.responsavelPatio}</p>}
+            {errosDados.responsavelPatio && <p className="erro-campo" role="alert"><IconeAlerta size={18} aria-hidden="true" />{errosDados.responsavelPatio}</p>}
           </div>
           <div className="field">
           <label htmlFor="f-obs">Observação (opcional)</label>
@@ -905,7 +906,7 @@ export function RecebimentoWizard({
               Adicionar
             </button>
           </div>
-          {draft.erro && <p className="text-sm text-bad">{draft.erro}</p>}
+          {draft.erro && <p className="erro-campo" role="alert"><IconeAlerta size={18} aria-hidden="true" />{draft.erro}</p>}
 
           <div className="grupo-card !mb-0">
             {grupoAtivo.medicoes.map((m, i) => (
@@ -1000,7 +1001,7 @@ export function RecebimentoWizard({
             </div>
           </div>
 
-          {erroFinal && <p className="text-sm text-bad">{erroFinal}</p>}
+          {erroFinal && <p className="erro-campo" role="alert"><IconeAlerta size={18} aria-hidden="true" />{erroFinal}</p>}
 
           <div className="flex gap-3">
             <button className="btn btn-secondary h-12 flex-1" onClick={() => irPara(2)}>

@@ -6,7 +6,7 @@ import { verificarPinComBloqueio, criarAcessoPatio } from '@/lib/services/patioA
 import { ipDoCliente } from '@/lib/services/clienteIp';
 
 export async function acessarPatio(formData: FormData): Promise<{ ok: boolean; erro?: string }> {
-  const pin = String(formData.get('pin') ?? '');
+  const pin = String(formData.get('pin') ?? '').trim();
   const resultado = await verificarPinComBloqueio(pin, await ipDoCliente());
   if (!resultado.ok) return { ok: false, erro: resultado.erro };
 

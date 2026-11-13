@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
+import { IconeAlerta } from '@/components/icones/Icones';
 import {
   CLASSIFICACOES_REEMPREGO_REMETIDO,
   TIPOS_REMETIDO,
@@ -513,7 +514,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
           <div className="field">
             <label htmlFor="f-destino">Destino *</label>
             <input id="f-destino" className="h-11 uppercase" value={identificacao.destino} onChange={(e) => setIdentificacao({ ...identificacao, destino: e.target.value })} />
-            {errosIdentificacao.destino && <p className="text-sm text-bad">{errosIdentificacao.destino}</p>}
+            {errosIdentificacao.destino && <p className="erro-campo" role="alert"><IconeAlerta size={18} aria-hidden="true" />{errosIdentificacao.destino}</p>}
           </div>
         </section>
       )}
@@ -532,7 +533,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
               setDados({ ...dadosBrutos, data: e.target.value });
             }}
           />
-          {errosDados.data && <p className="text-sm text-bad">{errosDados.data}</p>}
+          {errosDados.data && <p className="erro-campo" role="alert"><IconeAlerta size={18} aria-hidden="true" />{errosDados.data}</p>}
         </div>
         {/* Aguardando chegada: NF, placas e transportadora são da Portaria/Administrativo, não do Pátio. */}
         {props.modo !== 'confirmar' && (
@@ -548,7 +549,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
               value={dadosBrutos.numeroDocumento}
               onChange={(e) => setDados({ ...dadosBrutos, numeroDocumento: formatarNF(e.target.value) })}
             />
-            {errosDados.numeroDocumento && <p className="text-sm text-bad">{errosDados.numeroDocumento}</p>}
+            {errosDados.numeroDocumento && <p className="erro-campo" role="alert"><IconeAlerta size={18} aria-hidden="true" />{errosDados.numeroDocumento}</p>}
           </div>
 
           <div className="rounded-lg border-2 p-3" style={{ borderColor: 'var(--b1)', background: 'color-mix(in srgb, var(--b0) 40%, transparent)' }}>
@@ -567,7 +568,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
                 value={dadosBrutos.placaCarreta}
                 onChange={(e) => setDados({ ...dadosBrutos, placaCarreta: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
               />
-              {errosDados.placaCarreta && <p className="text-sm text-bad">{errosDados.placaCarreta}</p>}
+              {errosDados.placaCarreta && <p className="erro-campo" role="alert"><IconeAlerta size={18} aria-hidden="true" />{errosDados.placaCarreta}</p>}
             </div>
 
             {mostrarCarreta2 ? (
@@ -580,7 +581,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
                   value={dadosBrutos.placaCarreta2}
                   onChange={(e) => setDados({ ...dadosBrutos, placaCarreta2: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
                 />
-                {errosDados.placaCarreta2 && <p className="text-sm text-bad">{errosDados.placaCarreta2}</p>}
+                {errosDados.placaCarreta2 && <p className="erro-campo" role="alert"><IconeAlerta size={18} aria-hidden="true" />{errosDados.placaCarreta2}</p>}
               </div>
             ) : (
               <button type="button" className="mt-2 text-sm text-primary underline" onClick={() => setMostrarCarreta2(true)}>
@@ -598,7 +599,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
                 onChange={(e) => setDados({ ...dadosBrutos, placaCavalo: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7) })}
               />
               {errosDados.placaCavalo && errosDados.placaCavalo !== MSG_PELO_MENOS_UMA_PLACA && (
-                <p className="text-sm text-bad">{errosDados.placaCavalo}</p>
+                <p className="erro-campo" role="alert"><IconeAlerta size={18} aria-hidden="true" />{errosDados.placaCavalo}</p>
               )}
             </div>
           </div>
@@ -612,7 +613,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
         <div className="field">
           <label htmlFor="f-resp">Responsável (Pátio) *</label>
           <input id="f-resp" className="h-11" value={dadosBrutos.responsavelPatio} onChange={(e) => setDados({ ...dadosBrutos, responsavelPatio: e.target.value })} />
-          {errosDados.responsavelPatio && <p className="text-sm text-bad">{errosDados.responsavelPatio}</p>}
+          {errosDados.responsavelPatio && <p className="erro-campo" role="alert"><IconeAlerta size={18} aria-hidden="true" />{errosDados.responsavelPatio}</p>}
         </div>
         <div className="field">
           <label htmlFor="f-obs">Observação (opcional)</label>

@@ -40,7 +40,7 @@ export function PatioShell({ children }: { children: ReactNode }) {
         <AquecerOffline />
         <IndicadorSincronizacao />
         <InstalarApp />
-        <main className="min-w-0 flex-1">{children}</main>
+        <main className="patio-toque min-w-0 flex-1">{children}</main>
       </div>
       <BarraAbas abas={ABAS} raiz="/patio" />
     </div>
