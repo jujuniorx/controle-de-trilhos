@@ -5,17 +5,15 @@ import { useEffect, useRef } from 'react';
 /**
  * Cena da ferrovia em canvas, usada no fundo das telas.
  *
- * abertura (tela inicial, logins, abertura do app): quem olha está na cabine. Na primeira vez da sessão
- *   a tela sai do escuro, o farol acende, a luz corre pelos trilhos até o horizonte e a composição arranca.
- *   Nas outras vezes a cena só aparece, já em movimento. Na hora em que o logo fecha os trilhos, a emenda
- *   é soldada e saem faíscas.
- * inicio (tela inicial, escolha do setor): o TLS saindo do estaleiro. O trilho longo desliza sobre roletes na
- *   parte de baixo; a cada barra para, a emenda é soldada e segue esfriando. Atrás, o galpão com as luminárias.
+ * inicio (tela inicial, logins e abertura do app): o TLS saindo do estaleiro. O trilho longo desliza sobre
+ *   roletes na parte de baixo e para na Schlatter a cada barra: as garras descem, a emenda centelha, recalca,
+ *   é rebarbada e segue esfriando. Atrás, o galpão com as luminárias; ao lado da máquina, o soldador.
+ *   A primeira solda acontece junto com a solda do logo. ("abertura" é o nome antigo e cai aqui também.)
  * saudacao (faixa "Bom dia"): a via vista de lado, com o céu da hora de verdade (sol nascendo, de tarde,
  *   pondo, lua e estrelas à noite), a serra ao fundo, postes com fios, os dormentes passando e, de tempos
- *   em tempos, uma composição de TLS (trilhos longos sobre vagões plataforma) cruzando.
+ *   em tempos, uma composição da Rumo (locomotiva prata e azul) levando TLS sobre vagões plataforma.
  *
- * As cores vêm do tema: na abertura, das variáveis --cena-* (app/temas.css); na saudação, da cor do texto da
+ * As cores vêm do tema: no estaleiro, das variáveis --cena-* (app/temas.css); na saudação, da cor do texto da
  * faixa, então a cena funciona sobre o fundo de qualquer tema. Com "reduzir movimento" fica um quadro parado.
  * O desenho para quando a tela não está visível.
  */
@@ -30,7 +28,7 @@ export function CenaFerrovia({ modo, intro = 'auto' }: { modo: Modo; intro?: 'au
   useEffect(() => {
     const cv = ref.current;
     if (!cv) return;
-    return modo === 'abertura' ? iniciarAbertura(cv, intro) : modo === 'inicio' ? iniciarInicio(cv, intro) : iniciarSaudacao(cv);
+    return modo === 'saudacao' ? iniciarSaudacao(cv) : iniciarInicio(cv, intro);
   }, [modo, intro]);
   return <canvas ref={ref} className={`cena-ferrovia cena-${modo}`} aria-hidden="true" />;
 }
@@ -199,7 +197,7 @@ function desenharFaiscas(ctx: CanvasRenderingContext2D, faiscas: Faisca[], dt: n
   ctx.restore();
 }
 
-// ---------- abertura: a via em perspectiva, vista da cabine ----------
+// ---------- cores da cena (variáveis --cena-* de app/temas.css) ----------
 
 interface PaletaAbertura {
   ceuTopo: RGB; ceuHorizonte: RGB; neblina: RGB; brita: RGB; britaPerto: RGB; dorm: RGB;
@@ -223,199 +221,6 @@ function paletaAbertura(el: Element): PaletaAbertura {
     sinal2: lerRGB(e, '--cena-sinal-2', [255, 170, 70]),
     estrelas: Number(e.getPropertyValue('--cena-estrelas').trim() || '1'),
   };
-}
-
-function iniciarAbertura(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
-  const caixa = cv.parentElement ?? cv;
-  let pal = paletaAbertura(caixa);
-  let completa = intro === 'completa';
-  try {
-    if (intro === 'auto') completa = !sessionStorage.getItem(CHAVE_INTRO);
-    sessionStorage.setItem(CHAVE_INTRO, '1');
-  } catch {
-    /* sem armazenamento: abertura curta */
-  }
-  const parado = reduzirMovimento();
-  // Linha do tempo da abertura (s). Curta: já começa andando.
-  const T = completa
-    ? { cortina: 0.9, farol: [0.3, 1.4], luz: [0.7, 2.4], arranque: [0.6, 3.0], solda: 1.25 }
-    : { cortina: 0.45, farol: [0, 0.4], luz: [0, 0.01], arranque: [0, 0.01], solda: 1.25 };
-
-  const BITOLA = 1.0, BRITA = 1.75, DORM_LARG = 1.35, DORM_ESP = 0.6, ALTURA_CAM = 1.55, LONGE = 140, PERTO = 0.9;
-  const curva = (z: number) => 3.2 * Math.sin(z * 0.018) + 1.4 * Math.sin(z * 0.041 + 1.3);
-  let semente = 11;
-  const rnd = () => (semente = (semente * 16807) % 2147483647) / 2147483647;
-  const estrelas = Array.from({ length: 120 }, () => ({ x: rnd(), y: rnd(), r: rnd() * 1.1 + 0.2, f: rnd() * 6.28 }));
-  const poeira = Array.from({ length: 46 }, () => ({ x: (rnd() - 0.5) * 6, y: rnd() * 2 + 0.1, z: rnd() * 40 + 2 }));
-  const faiscas: Faisca[] = [];
-  let soldou = false;
-  let camZ = 37;
-  let vel = completa ? 0 : 7;
-
-  // Altura do horizonte vem do CSS (--horizonte, muda por tela e largura): relida de tempos em tempos.
-  const lerHorizonte = () => {
-    const v = getComputedStyle(caixa).getPropertyValue('--horizonte').trim();
-    return v.endsWith('%') ? parseFloat(v) / 100 : 0.5;
-  };
-  let fracHorizonte = lerHorizonte();
-  let quadros = 0;
-  const controle = laco(cv, 2, () => { pal = paletaAbertura(caixa); fracHorizonte = lerHorizonte(); }, (ctx, W, H, t, dt) => {
-    if (++quadros % 45 === 0) fracHorizonte = lerHorizonte();
-    const horizonte = H * fracHorizonte;
-    const f = Math.min(W, (H - horizonte) * 2.6) * 0.95;
-    const alvo = parado ? 0 : 7 * suave(T.arranque[0], T.arranque[1], t);
-    vel = mix(vel, alvo, 1 - Math.pow(0.02, dt));
-    camZ += vel * dt;
-    const camX = curva(camZ + 3);
-    const farol = parado ? 1 : suave(T.farol[0], T.farol[1], t);
-    const acesoAte = parado ? LONGE : mix(2, LONGE, suave(T.luz[0], T.luz[1], t));
-    const proj = (x: number, y: number, d: number): [number, number] => [W / 2 + ((x - camX) * f) / d, horizonte + ((ALTURA_CAM - y) * f) / d];
-    const nevoa = (d: number) => suave(18, LONGE, d);
-    const luzFarol = (d: number) => farol * Math.exp(-d / 26);
-
-    // céu
-    const ceu = ctx.createLinearGradient(0, 0, 0, horizonte);
-    ceu.addColorStop(0, cor(pal.ceuTopo));
-    ceu.addColorStop(1, cor(pal.ceuHorizonte));
-    ctx.fillStyle = ceu;
-    ctx.fillRect(0, 0, W, horizonte + 2);
-    if (pal.estrelas > 0) {
-      for (const s of estrelas) {
-        const y = s.y * horizonte * 0.92;
-        const a = (0.3 + 0.35 * Math.sin(t * 1.3 + s.f)) * pal.estrelas * suave(0, 1.2, t);
-        ctx.fillStyle = `rgba(222,232,255,${a})`;
-        ctx.beginPath();
-        ctx.arc(s.x * W, y, s.r, 0, 6.283);
-        ctx.fill();
-      }
-    }
-    // clarão para onde a via vai e neblina rente ao horizonte
-    const fuga = proj(curva(camZ + LONGE), 0, LONGE);
-    const halo = ctx.createRadialGradient(fuga[0], horizonte, 0, fuga[0], horizonte, W * 0.55);
-    halo.addColorStop(0, cor(pal.neblina, 0.5));
-    halo.addColorStop(1, cor(pal.neblina, 0));
-    ctx.fillStyle = halo;
-    ctx.fillRect(0, 0, W, H);
-    const chao = ctx.createLinearGradient(0, horizonte, 0, H);
-    chao.addColorStop(0, cor(misturar(pal.ceuHorizonte, pal.ceuTopo, 0.35)));
-    chao.addColorStop(1, cor(pal.ceuTopo));
-    ctx.fillStyle = chao;
-    ctx.fillRect(0, horizonte, W, H - horizonte);
-    const faixa = ctx.createLinearGradient(0, horizonte - H * 0.05, 0, horizonte + H * 0.09);
-    faixa.addColorStop(0, cor(pal.neblina, 0));
-    faixa.addColorStop(0.45, cor(pal.neblina, 0.32));
-    faixa.addColorStop(1, cor(pal.neblina, 0));
-    ctx.fillStyle = faixa;
-    ctx.fillRect(0, horizonte - H * 0.05, W, H * 0.14);
-
-    // fatias da via, do fundo para perto
-    const passos = W < 500 ? 80 : 120;
-    const fatias: { d: number; x: number }[] = [];
-    for (let i = 0; i <= passos; i++) {
-      const d = mix(LONGE, PERTO, Math.pow(i / passos, 0.55));
-      fatias.push({ d, x: curva(camZ + d) });
-    }
-    for (let i = 0; i < fatias.length - 1; i++) {
-      const a = fatias[i], b = fatias[i + 1];
-      const base = misturar(pal.britaPerto, pal.brita, Math.min(1, a.d / 40));
-      const c = misturar(misturar(base, pal.farol, luzFarol(a.d) * 0.14), pal.neblina, nevoa(a.d) * 0.85);
-      if (i % 2) { c[0] *= 0.96; c[1] *= 0.96; c[2] *= 0.96; }
-      const p1 = proj(a.x - BRITA, 0, a.d), p2 = proj(a.x + BRITA, 0, a.d), p3 = proj(b.x + BRITA, 0, b.d), p4 = proj(b.x - BRITA, 0, b.d);
-      ctx.fillStyle = cor(c);
-      ctx.beginPath();
-      ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.lineTo(p3[0], p3[1] + 0.6); ctx.lineTo(p4[0], p4[1] + 0.6);
-      ctx.fill();
-    }
-
-    // sinais ao lado da via, a cada 30 m (verde e âmbar)
-    for (let k = Math.floor((camZ + LONGE) / 30); k * 30 > camZ + 9; k--) {
-      const d = k * 30 - camZ;
-      const lado = k % 2 ? 1 : -1;
-      const x = curva(k * 30) + lado * 3.4;
-      const pe = proj(x, 0, d), topo = proj(x, 4.2, d);
-      const n = nevoa(d), a = 1 - n * 0.9;
-      ctx.strokeStyle = cor(misturar(pal.poste, pal.neblina, n), a);
-      ctx.lineWidth = Math.max(1, (0.12 * f) / d);
-      ctx.beginPath(); ctx.moveTo(pe[0], pe[1]); ctx.lineTo(topo[0], topo[1]); ctx.stroke();
-      const r = Math.min(6, Math.max(1.2, (0.16 * f) / d));
-      const lamp = k % 3 ? pal.sinal1 : pal.sinal2;
-      const g = ctx.createRadialGradient(topo[0], topo[1], 0, topo[0], topo[1], r * 4);
-      g.addColorStop(0, cor(lamp, 0.9 * a)); g.addColorStop(1, cor(lamp, 0));
-      ctx.fillStyle = g;
-      ctx.beginPath(); ctx.arc(topo[0], topo[1], r * 4, 0, 6.283); ctx.fill();
-    }
-
-    // dormentes
-    const primeiro = Math.ceil((camZ + PERTO) / DORM_ESP);
-    for (let k = Math.floor((camZ + LONGE) / DORM_ESP); k >= primeiro; k--) {
-      const z = k * DORM_ESP, d = z - camZ, d2 = d + 0.24;
-      const x1 = curva(z), x2 = curva(z + 0.24), n = nevoa(d);
-      const c = misturar(misturar(pal.dorm, pal.farol, luzFarol(d) * 0.18), pal.neblina, n * 0.9);
-      const a = proj(x1 - DORM_LARG, 0.02, d), b = proj(x1 + DORM_LARG, 0.02, d), c2 = proj(x2 + DORM_LARG, 0.02, d2), d3 = proj(x2 - DORM_LARG, 0.02, d2);
-      ctx.fillStyle = cor(c, 1 - n * 0.4);
-      ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(c2[0], c2[1]); ctx.lineTo(d3[0], d3[1]); ctx.fill();
-    }
-
-    // trilhos: lado do perfil + boleto brilhante, acesos até onde a luz chegou, com um brilho correndo
-    for (const lado of [-1, 1]) {
-      for (let i = 0; i < fatias.length - 1; i++) {
-        const a = fatias[i], b = fatias[i + 1];
-        const xa = a.x + (lado * BITOLA) / 2, xb = b.x + (lado * BITOLA) / 2;
-        const n = nevoa(a.d);
-        const aceso = a.d <= acesoAte ? 1 : 0.18;
-        const pa = proj(xa, 0.16, a.d), pb = proj(xb, 0.16, b.d), pba = proj(xa, 0.02, a.d), pbb = proj(xb, 0.02, b.d);
-        const wa = Math.max(0.6, (0.075 * f) / a.d), wb = Math.max(0.6, (0.075 * f) / b.d);
-        ctx.fillStyle = cor(misturar(pal.acoLado, pal.neblina, n * 0.8), 0.95);
-        ctx.beginPath();
-        ctx.moveTo(pa[0] - wa / 2, pa[1]); ctx.lineTo(pb[0] - wb / 2, pb[1]); ctx.lineTo(pbb[0] - wb / 2, pbb[1]); ctx.lineTo(pba[0] - wa / 2, pba[1]);
-        ctx.fill();
-        const corre = parado ? 0 : Math.max(0, 1 - Math.abs((a.d - ((t * 22) % 160)) / 7));
-        const intens = Math.min(1, aceso * (0.55 + 0.45 * luzFarol(a.d) * 3) + corre * 0.9);
-        ctx.fillStyle = cor(misturar(misturar(pal.acoLado, pal.aco, intens), pal.neblina, n * 0.7));
-        ctx.beginPath();
-        ctx.moveTo(pa[0] - wa / 2, pa[1]); ctx.lineTo(pa[0] + wa / 2, pa[1]); ctx.lineTo(pb[0] + wb / 2, pb[1]); ctx.lineTo(pb[0] - wb / 2, pb[1]);
-        ctx.fill();
-      }
-    }
-    // frente da luz correndo pelos trilhos (só na abertura completa)
-    if (!parado && acesoAte < LONGE - 1 && t > T.luz[0]) {
-      for (const lado of [-1, 1]) {
-        const d = acesoAte;
-        const p = proj(curva(camZ + d) + (lado * BITOLA) / 2, 0.16, d);
-        const r = Math.max(3, (0.9 * f) / d);
-        const g = ctx.createRadialGradient(p[0], p[1], 0, p[0], p[1], r);
-        g.addColorStop(0, 'rgba(255,240,215,.95)'); g.addColorStop(1, 'rgba(255,200,140,0)');
-        ctx.fillStyle = g;
-        ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, 6.283); ctx.fill();
-      }
-    }
-    // poeira no facho do farol
-    if (!parado) {
-      for (const p of poeira) {
-        p.z -= vel * dt;
-        if (p.z < 1.2) { p.z += 40; p.x = (rnd() - 0.5) * 6; }
-        const q = proj(curva(camZ + p.z) + p.x, p.y, p.z);
-        const a = luzFarol(p.z) * 0.4;
-        if (a < 0.02 || q[1] < horizonte * 0.9) continue;
-        ctx.fillStyle = cor(pal.farol, a);
-        ctx.beginPath(); ctx.arc(q[0], q[1], Math.min(1.8, Math.max(0.5, 9 / p.z)), 0, 6.283); ctx.fill();
-      }
-    }
-    // facho do farol vindo de baixo
-    if (farol > 0) {
-      const fx = ctx.createRadialGradient(W / 2, H * 1.08, 0, W / 2, H * 1.08, (H - horizonte) * 1.5);
-      fx.addColorStop(0, cor(pal.farol, 0.16 * farol)); fx.addColorStop(1, cor(pal.farol, 0));
-      ctx.fillStyle = fx;
-      ctx.fillRect(0, horizonte, W, H - horizonte);
-    }
-    // solda do logo
-    if (!parado && !soldou && t >= T.solda) { soldou = true; soldarLogo(cv, faiscas); }
-    if (faiscas.length) desenharFaiscas(ctx, faiscas, dt, H);
-    // sai do escuro
-    const cortina = parado ? 0 : 1 - suave(0, T.cortina, t);
-    if (cortina > 0) { ctx.fillStyle = cor(pal.ceuTopo, cortina); ctx.fillRect(0, 0, W, H); }
-  });
-  return typeof controle === 'function' ? controle : controle.parar;
 }
 
 // ---------- saudação: a via vista de lado, com o céu da hora ----------
@@ -528,40 +333,75 @@ function iniciarSaudacao(cv: HTMLCanvasElement) {
       if (xFrente > -comp - 40) {
         const trilhoY = chao - H * 0.06;
         const alto = Math.max(16, H * 0.15);
-        const a = 0.34 * entra;
-        ctx.fillStyle = cor(tinta, a);
-        // locomotiva (vai para a esquerda: cabine na frente)
+        const a = 0.94 * entra;
+        // Composição da Rumo: locomotiva prata e azul com o nome no capô, vagões plataforma levando o TLS.
+        const PRATA: RGB = [200, 206, 214], AZUL_RUMO: RGB = [22, 58, 136], ESCURO: RGB = [40, 44, 52];
         const lx = xFrente;
-        ctx.beginPath();
-        ctx.moveTo(lx, trilhoY - alto * 0.25);
-        ctx.lineTo(lx + 10, trilhoY - alto);
-        ctx.lineTo(lx + 44, trilhoY - alto);
-        ctx.lineTo(lx + 44, trilhoY - alto * 0.78);
-        ctx.lineTo(lx + 150, trilhoY - alto * 0.78);
-        ctx.lineTo(lx + 150, trilhoY - alto * 0.18);
-        ctx.lineTo(lx, trilhoY - alto * 0.18);
-        ctx.closePath();
+        const corpo = () => {
+          ctx.beginPath();
+          ctx.moveTo(lx, trilhoY - alto * 0.22);
+          ctx.lineTo(lx + 8, trilhoY - alto);
+          ctx.lineTo(lx + 44, trilhoY - alto);
+          ctx.lineTo(lx + 46, trilhoY - alto * 0.8);
+          ctx.lineTo(lx + 150, trilhoY - alto * 0.8);
+          ctx.lineTo(lx + 150, trilhoY - alto * 0.2);
+          ctx.lineTo(lx, trilhoY - alto * 0.2);
+          ctx.closePath();
+        };
+        const lataria = ctx.createLinearGradient(0, trilhoY - alto, 0, trilhoY - alto * 0.2);
+        lataria.addColorStop(0, cor(misturar(PRATA, [255, 255, 255], 0.35), a));
+        lataria.addColorStop(1, cor(misturar(PRATA, [0, 0, 0], 0.18), a));
+        ctx.fillStyle = lataria;
+        corpo();
         ctx.fill();
-        // janela da cabine e farol aceso
-        ctx.fillStyle = 'rgba(255,214,150,.75)';
-        ctx.fillRect(lx + 14, trilhoY - alto * 0.88, 16, alto * 0.22);
-        const g = ctx.createRadialGradient(lx, trilhoY - alto * 0.32, 0, lx, trilhoY - alto * 0.32, alto * 1.6);
-        g.addColorStop(0, 'rgba(255,226,170,.7)'); g.addColorStop(1, 'rgba(255,226,170,0)');
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(lx, trilhoY - alto * 0.32, alto * 1.6, 0, 6.283); ctx.fill();
-        // vagões plataforma
-        ctx.fillStyle = cor(tinta, a);
+        // faixa azul embaixo, com o nome
+        ctx.save();
+        corpo();
+        ctx.clip();
+        ctx.fillStyle = cor(AZUL_RUMO, a);
+        ctx.fillRect(lx, trilhoY - alto * 0.5, 152, alto * 0.3);
+        ctx.fillStyle = cor(misturar(AZUL_RUMO, [255, 255, 255], 0.25), a);
+        ctx.fillRect(lx, trilhoY - alto * 0.52, 152, alto * 0.03);
+        ctx.restore();
+        ctx.fillStyle = `rgba(255,255,255,${a})`;
+        ctx.font = `700 ${Math.round(alto * 0.24)}px var(--font-barlow), "Barlow", Arial, sans-serif`;
+        ctx.textBaseline = 'middle';
+        ctx.fillText('rumo', lx + 78, trilhoY - alto * 0.355);
+        // teto do capô, janelas da cabine com luz e a faixa de segurança da frente
+        ctx.fillStyle = cor(misturar(PRATA, [0, 0, 0], 0.35), a);
+        ctx.fillRect(lx + 46, trilhoY - alto * 0.82, 104, alto * 0.04);
+        ctx.fillStyle = `rgba(255,214,150,${0.85 * a})`;
+        ctx.fillRect(lx + 12, trilhoY - alto * 0.9, 13, alto * 0.2);
+        ctx.fillRect(lx + 28, trilhoY - alto * 0.9, 12, alto * 0.2);
+        ctx.fillStyle = cor([235, 190, 40], a);
+        ctx.fillRect(lx, trilhoY - alto * 0.26, 10, alto * 0.06);
+        // farol aceso
+        const g = ctx.createRadialGradient(lx, trilhoY - alto * 0.36, 0, lx, trilhoY - alto * 0.36, alto * 1.6);
+        g.addColorStop(0, `rgba(255,226,170,${0.75 * entra})`); g.addColorStop(1, 'rgba(255,226,170,0)');
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(lx, trilhoY - alto * 0.36, alto * 1.6, 0, 6.283); ctx.fill();
+        // truques da locomotiva
+        ctx.fillStyle = cor(ESCURO, a);
+        ctx.fillRect(lx + 8, trilhoY - alto * 0.22, 46, alto * 0.08);
+        ctx.fillRect(lx + 96, trilhoY - alto * 0.22, 46, alto * 0.08);
+        // vagões plataforma (cinza escuro) com o TLS por cima, em duas camadas
         for (let v = 0; v < 8; v++) {
           const vx = lx + 154 + v * 96;
+          ctx.fillStyle = cor(ESCURO, a);
           ctx.fillRect(vx, trilhoY - alto * 0.3, 92, alto * 0.12);
-          ctx.fillRect(vx + 30, trilhoY - alto * 0.34, 4, alto * 0.06);
+          ctx.fillStyle = cor(misturar(ESCURO, [255, 255, 255], 0.15), a);
+          ctx.fillRect(vx, trilhoY - alto * 0.3, 92, alto * 0.025);
+          ctx.fillStyle = cor(AZUL_RUMO, a);
+          ctx.fillRect(vx + 30, trilhoY - alto * 0.36, 4, alto * 0.06);
+          ctx.fillRect(vx + 62, trilhoY - alto * 0.36, 4, alto * 0.06);
         }
-        // trilhos longos (TLS) correndo por cima de todos os vagões, em duas camadas
-        ctx.fillStyle = cor(tinta, a * 1.25);
-        ctx.fillRect(lx + 160, trilhoY - alto * 0.42, 8 * 96 - 14, alto * 0.06);
-        ctx.fillRect(lx + 166, trilhoY - alto * 0.52, 8 * 96 - 26, alto * 0.06);
+        const tls = ctx.createLinearGradient(0, trilhoY - alto * 0.55, 0, trilhoY - alto * 0.36);
+        tls.addColorStop(0, cor([236, 240, 246], a)); tls.addColorStop(1, cor([140, 150, 165], a));
+        ctx.fillStyle = tls;
+        ctx.fillRect(lx + 160, trilhoY - alto * 0.43, 8 * 96 - 14, alto * 0.06);
+        ctx.fillRect(lx + 166, trilhoY - alto * 0.53, 8 * 96 - 26, alto * 0.06);
         // rodas
-        ctx.fillStyle = cor(tinta, a * 1.1);
-        const rodas = [lx + 18, lx + 40, lx + 110, lx + 132];
+        ctx.fillStyle = cor([24, 26, 30], a);
+        const rodas = [lx + 18, lx + 42, lx + 108, lx + 132];
         for (let v = 0; v < 8; v++) rodas.push(lx + 154 + v * 96 + 14, lx + 154 + v * 96 + 78);
         for (const rx of rodas) { ctx.beginPath(); ctx.arc(rx, trilhoY - alto * 0.12, alto * 0.08, 0, 6.283); ctx.fill(); }
       }
@@ -616,8 +456,11 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     /* sem armazenamento: abertura curta */
   }
   const parado = reduzirMovimento();
-  // A primeira emenda chega no meio em CHEGA e é soldada em SOLDA, junto com a emenda do logo.
-  const CHEGA = 1.0, SOLDA = 1.25, PAUSA = 1.3, VEL = 70;
+  // A primeira emenda chega na Schlatter em CHEGA; o centelhamento passa por SOLDA, junto com a emenda do logo.
+  const CHEGA = 0.55, SOLDA = 1.25, VEL = 70;
+  // Ciclo da Schlatter (s desde a chegada da emenda): garras descem, centelhamento, recalque, rebarbação, garras sobem.
+  const F = { garra: 0.35, centelha: 1.75, recalque: 1.95, rebarba: 2.4, sobe: 2.75 };
+  let ciclo: { k: number; inicio: number } | null = null;
   const faiscas: Faisca[] = [];
   const brasas: { x: number; y: number; vy: number; vx: number; v: number }[] = [];
   let soldouLogo = false;
@@ -628,7 +471,6 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
   if (reduzirMovimento()) for (let k = -6; k <= 6; k++) soldada.set(k, -60);
   let u = 0; // quanto o trilho andou desde que a emenda 0 ficou no meio (px)
   let vel = 0;
-  let pausaAte = -1;
   let proxima = 0; // próxima emenda a soldar
   let ultimoT = 0;
 
@@ -661,14 +503,6 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     return { c: [90, 20, 10], a: 0 };
   };
 
-  const soltarFaiscas = (x: number, y: number, n: number, forca: number) => {
-    faiscas.push({ x, y, vx: 0, vy: 0, v: 1, clarao: true });
-    for (let i = 0; i < n; i++) {
-      const ang = -Math.PI / 2 + (Math.random() - 0.5) * 3.1;
-      const v = (140 + Math.random() * 320) * forca;
-      faiscas.push({ x, y, vx: Math.cos(ang) * v, vy: Math.sin(ang) * v, v: 0.5 + Math.random() * 0.6 });
-    }
-  };
 
   const controle = laco(cv, 2, () => { pal = paletaAbertura(caixa); padrao = null; }, (ctx, W, H, t, dt) => {
     const escuro = pal.estrelas > 0;
@@ -679,35 +513,50 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     const rr = R * 0.2; // raio do rolete
     const piso = topo + R + rr * 2 + R * 0.16;
 
-    // ---------- movimento do trilho ----------
+    // Schlatter à direita no computador (fora dos cartões); no celular, mais para a direita também.
+    const xm = W >= 900 ? W * 0.74 : W * 0.78;
+
+    // ---------- movimento do trilho e ciclo da solda ----------
     if (parado) {
       u = L * 0.35; vel = 0;
     } else if (t < CHEGA) {
-      // abertura: o trilho entra pela direita e freia com a emenda 0 no meio
+      // abertura: o trilho entra pela direita e freia com a emenda 0 dentro da máquina
       const D = completa ? W * 0.95 : W * 0.35;
       const e = 1 - Math.pow(1 - t / CHEGA, 3);
       u = -D * (1 - e);
       vel = 0;
-      pausaAte = SOLDA + PAUSA;
+      if (!ciclo) ciclo = { k: 0, inicio: CHEGA };
+    } else if (ciclo && t - ciclo.inicio < F.sobe) {
+      vel = 0;
+      u = ciclo.k * L;
     } else {
-      if (t < pausaAte) {
-        vel = 0;
-      } else {
-        vel = mix(vel, VEL, 1 - Math.pow(0.05, dt));
-        const antes = u;
-        u += vel * dt;
-        // a próxima emenda chegou no meio: para e solda
-        const alvo = proxima * L;
-        if (antes < alvo && u >= alvo) { u = alvo; vel = 0; pausaAte = t + PAUSA + 0.25; }
-      }
-      const emenda = Math.round(u / L);
-      if (Math.abs(u - emenda * L) < 0.5 && !soldada.has(emenda) && (emenda > 0 ? t > pausaAte - PAUSA : t >= SOLDA)) {
-        soldada.set(emenda, t);
-        proxima = emenda + 1;
-        soltarFaiscas(xc, topo + R * 0.05, emenda === 0 && completa ? 44 : 30, 1);
-        soltarFaiscas(xc, topo + R * 0.86, 14, 0.7);
+      if (ciclo) { proxima = ciclo.k + 1; ciclo = null; }
+      vel = mix(vel, VEL, 1 - Math.pow(0.05, dt));
+      const antes = u;
+      u += vel * dt;
+      const alvo = proxima * L;
+      if (antes < alvo && u >= alvo) { u = alvo; vel = 0; ciclo = { k: proxima, inicio: t }; }
+    }
+    const fase = ciclo ? t - ciclo.inicio : 99;
+    if (ciclo && fase >= F.centelha && !soldada.has(ciclo.k)) soldada.set(ciclo.k, ciclo.inicio + F.centelha);
+    // centelhamento: chuva de faíscas saindo da fresta para os dois lados
+    const centelhando = !parado && ciclo !== null && fase > F.garra && fase < F.centelha;
+    const forcaCentelha = centelhando ? suave(F.garra, F.garra + 0.4, fase) * (0.75 + 0.25 * Math.sin(t * 40)) : 0;
+    if (centelhando) {
+      const n = Math.round(320 * dt * forcaCentelha + Math.random());
+      for (let i = 0; i < n; i++) {
+        const lado = Math.random() < 0.5 ? -1 : 1;
+        faiscas.push({
+          x: xm + lado * 2,
+          y: topo + R * (Math.random() < 0.6 ? Math.random() * 0.3 : Math.random()),
+          vx: lado * (120 + Math.random() * 420),
+          vy: -(40 + Math.random() * 280),
+          v: 0.3 + Math.random() * 0.45,
+        });
       }
     }
+    // garras: 0 em cima, 1 apertando o trilho
+    const garra = !ciclo ? 0 : fase < F.garra ? suave(0, F.garra, fase) : fase < F.rebarba ? 1 : 1 - suave(F.rebarba, F.sobe, fase);
     ultimoT = t;
 
     // ---------- galpão ao fundo ----------
@@ -777,6 +626,19 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     ctx.fillRect(0, piso, W, H - piso);
     ctx.fillStyle = cor(pal.aco, escuro ? 0.06 : 0.25);
     ctx.fillRect(0, piso, W, 1);
+
+    // ---------- Schlatter: medidas e o interior escuro que aparece pela janela ----------
+    const mq = (c: RGB): RGB => (escuro ? misturar(c, pal.ceuTopo, 0.3) : c);
+    const LARANJA: RGB = [235, 161, 58], CREME: RGB = [216, 204, 176], AZUL: RGB = [44, 90, 147], TUBO: RGB = [120, 166, 214], CINZA: RGB = [70, 74, 80];
+    const mL = xm - R * 1.75, mR = xm + R * 1.75, mT = topo - R * 1.35;
+    const wL = xm - R * 0.75, wR = xm + R * 0.75, wT = topo - R * 0.5, wB = topo + R * 1.12;
+    ctx.fillStyle = 'rgb(22,24,28)';
+    ctx.fillRect(wL, wT, wR - wL, wB - wT);
+    if (forcaCentelha > 0) {
+      const g = ctx.createRadialGradient(xm, topo + R * 0.4, 0, xm, topo + R * 0.4, R * 1.2);
+      g.addColorStop(0, `rgba(255,200,120,${0.55 * forcaCentelha})`); g.addColorStop(1, 'rgba(255,140,60,0)');
+      ctx.fillStyle = g; ctx.fillRect(wL, wT, wR - wL, wB - wT);
+    }
 
     // ---------- roletes ----------
     const esp = Math.max(170, W * 0.15);
@@ -852,11 +714,11 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     ctx.fillRect(0, topo + R * 0.79, W, R * 0.03);
 
     // emendas e marcas de giz
-    const kMin = Math.floor((u - xc) / L) - 1, kMax = Math.ceil((u + W - xc) / L) + 1;
+    const kMin = Math.floor((u - xm) / L) - 1, kMax = Math.ceil((u + W - xm) / L) + 1;
     ctx.font = `600 ${Math.round(R * 0.19)}px var(--font-barlow-cond), "Barlow Condensed", "Arial Narrow", sans-serif`;
     ctx.textBaseline = 'middle';
     for (let k = kMin; k <= kMax; k++) {
-      const x = xc + k * L - u;
+      const x = xm + k * L - u;
       // giz no meio da barra
       const xg = x + L / 2;
       if (xg > -100 && xg < W + 100) {
@@ -866,59 +728,64 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       }
       if (x < -R || x > W + R) continue;
       const quando = soldada.get(k);
+      const naMaquina = ciclo !== null && ciclo.k === k;
       if (quando === undefined) {
-        // ainda não soldada: fresta entre as barras
-        ctx.fillStyle = cor(pal.ceuTopo, 0.95);
-        ctx.fillRect(x - 1.5, topo - R * 0.07, 3, R * 1.07);
+        if (naMaquina && fase > F.garra) {
+          // centelhamento: as pontas em brasa se aproximando, com a fresta brilhando
+          const fecha = suave(F.garra, F.centelha, fase);
+          const larg = mix(4, 1, fecha);
+          const brilho = Math.min(1, forcaCentelha + 0.2);
+          const g = ctx.createLinearGradient(x - R * 0.35, 0, x + R * 0.35, 0);
+          g.addColorStop(0, 'rgba(255,120,40,0)');
+          g.addColorStop(0.5, `rgba(255,200,110,${0.85 * brilho})`);
+          g.addColorStop(1, 'rgba(255,120,40,0)');
+          ctx.fillStyle = g;
+          ctx.fillRect(x - R * 0.35, topo - R * 0.06, R * 0.7, R * 1.06);
+          ctx.fillStyle = `rgba(255,250,230,${brilho})`;
+          ctx.fillRect(x - larg / 2, topo - R * 0.06, larg, R * 1.06);
+        } else {
+          // ainda não soldada: fresta entre as barras
+          ctx.fillStyle = cor(pal.ceuTopo, 0.95);
+          ctx.fillRect(x - 1.5, topo - R * 0.06, 3, R * 1.06);
+        }
         continue;
       }
-      // colar da solda aluminotérmica: um "anel" um pouco mais alto e largo que o perfil, arredondado
-      const cw = R * 0.2;
-      const colar = (c: CanvasRenderingContext2D) => {
-        c.beginPath();
-        c.roundRect(x - cw * 0.42, topo - R * 0.085, cw * 0.84, R * 0.36, R * 0.04); // boleto
-        c.roundRect(x - cw * 0.5, topo + R * 0.26, cw, R * 0.54, R * 0.08); // alma (o colar é mais largo)
-        c.roundRect(x - cw * 0.72, topo + R * 0.76, cw * 1.44, R * 0.26, R * 0.05); // patim
-      };
-      const frio = ctx.createLinearGradient(0, topo - R * 0.08, 0, topo + R);
-      frio.addColorStop(0, cor(misturar(pal.aco, pal.acoLado, 0.35)));
-      frio.addColorStop(0.3, cor(misturar(pal.acoLado, pal.ceuTopo, 0.15)));
-      frio.addColorStop(0.7, cor(misturar(pal.acoLado, pal.ceuTopo, 0.4)));
-      frio.addColorStop(1, cor(misturar(pal.acoLado, pal.ceuTopo, 0.2)));
-      ctx.fillStyle = frio;
-      colar(ctx);
-      ctx.fill();
-      // contorno do colar, para a emenda fria continuar visível no trilho
-      ctx.strokeStyle = 'rgba(0,0,0,.32)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      // topo do boleto esmerilhado depois da solda
-      ctx.fillStyle = cor(pal.aco, 0.9);
-      ctx.fillRect(x - cw * 0.42, topo - R * 0.06, cw * 0.84, 1.4);
-      // calor
-      const h = calor(ultimoT - quando);
+      const idade = ultimoT - quando;
+      // rebordo do recalque: aparece na hora e a lâmina da rebarbação tira
+      const rebordo = idade < F.recalque - F.centelha ? 1 : 1 - suave(F.recalque - F.centelha, F.rebarba - F.centelha, idade);
+      // marca fina da emenda depois de rebarbada e esmerilhada
+      ctx.fillStyle = 'rgba(255,255,255,.28)';
+      ctx.fillRect(x - R * 0.06, topo - R * 0.06, R * 0.12, R * 0.06);
+      ctx.fillStyle = 'rgba(0,0,0,.28)';
+      ctx.fillRect(x - 0.75, topo, 1.5, R);
+      const h = calor(idade);
       if (h.a > 0.01) {
+        // zona quente espalhando pelo trilho dos dois lados da emenda
+        const hw = R * (0.3 + 0.35 * Math.min(1, idade / 5));
         ctx.save();
         ctx.globalCompositeOperation = 'lighter';
         const g = ctx.createRadialGradient(x, topo + R * 0.45, 0, x, topo + R * 0.45, R * 1.9);
-        g.addColorStop(0, cor(h.c, 0.5 * h.a)); g.addColorStop(0.4, cor(h.c, 0.16 * h.a)); g.addColorStop(1, cor(h.c, 0));
+        g.addColorStop(0, cor(h.c, 0.45 * h.a)); g.addColorStop(0.4, cor(h.c, 0.14 * h.a)); g.addColorStop(1, cor(h.c, 0));
         ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, topo + R * 0.45, R * 1.9, 0, 6.283); ctx.fill();
-        // reflexo no piso
         const gp = ctx.createRadialGradient(x, piso + 2, 0, x, piso + 2, R * 1.3);
-        gp.addColorStop(0, cor(h.c, 0.32 * h.a)); gp.addColorStop(1, cor(h.c, 0));
+        gp.addColorStop(0, cor(h.c, 0.3 * h.a)); gp.addColorStop(1, cor(h.c, 0));
         ctx.fillStyle = gp; ctx.fillRect(x - R * 1.3, piso, R * 2.6, R * 0.7);
         ctx.restore();
-        // o metal em brasa: mais claro no miolo, escurecendo para as bordas
-        const quente = ctx.createRadialGradient(x, topo + R * 0.45, 0, x, topo + R * 0.45, R * 0.75);
-        quente.addColorStop(0, cor(misturar(h.c, [255, 255, 240], 0.35), h.a));
-        quente.addColorStop(0.6, cor(h.c, h.a));
-        quente.addColorStop(1, cor(misturar(h.c, [60, 10, 5], 0.45), h.a * 0.9));
-        ctx.fillStyle = quente;
-        colar(ctx);
-        ctx.fill();
+        const zona = ctx.createLinearGradient(x - hw, 0, x + hw, 0);
+        zona.addColorStop(0, cor(h.c, 0));
+        zona.addColorStop(0.5, cor(misturar(h.c, [255, 255, 240], 0.25), 0.95 * h.a));
+        zona.addColorStop(1, cor(h.c, 0));
+        ctx.fillStyle = zona;
+        ctx.fillRect(x - hw, topo - R * 0.06, hw * 2, R * 1.06);
+        if (rebordo > 0.01) {
+          ctx.fillStyle = cor(misturar(h.c, [255, 255, 235], 0.4), h.a);
+          ctx.beginPath();
+          ctx.roundRect(x - R * 0.07, topo - R * 0.06 - R * 0.07 * rebordo, R * 0.14, R * (1.06 + 0.11 * rebordo), R * 0.04);
+          ctx.fill();
+        }
         // brasas subindo da solda quente
         if (!parado && h.a > 0.35 && Math.random() < dt * 14 * h.a) {
-          brasas.push({ x: x + (Math.random() - 0.5) * cw, y: topo, vy: -(20 + Math.random() * 40), vx: (Math.random() - 0.5) * 14, v: 1 });
+          brasas.push({ x: x + (Math.random() - 0.5) * R * 0.4, y: topo, vy: -(20 + Math.random() * 40), vx: (Math.random() - 0.5) * 14, v: 1 });
         }
       }
     }
@@ -933,6 +800,142 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       }
       ctx.restore();
       for (let i = brasas.length - 1; i >= 0; i--) if (brasas[i].v <= 0) brasas.splice(i, 1);
+    }
+
+    // ---------- Schlatter: garras, lâmina e a frente da máquina com a janela ----------
+    {
+      const aco = (c: number) => `rgb(${c},${c + 4},${c + 10})`;
+      // garras de baixo (fixas, sob o patim) e de cima (descem até o boleto), com a ponta de cobre
+      for (const [x0, x1] of [[xm - R * 0.6, xm - R * 0.14], [xm + R * 0.14, xm + R * 0.6]]) {
+        ctx.fillStyle = aco(58);
+        ctx.fillRect(x0, topo + R * 1.0, x1 - x0, wB - topo - R * 1.0);
+        const fundoGarra = mix(topo - R * 0.42, topo - R * 0.06, garra);
+        ctx.fillStyle = aco(64);
+        ctx.fillRect(x0, fundoGarra - R * 0.36, x1 - x0, R * 0.36);
+        ctx.fillStyle = 'rgb(196,120,62)';
+        ctx.fillRect(x0 + 2, fundoGarra - R * 0.05, x1 - x0 - 4, R * 0.05);
+      }
+      // lâmina da rebarbação passando pela emenda
+      if (ciclo && fase > F.recalque && fase < F.rebarba) {
+        const y = mix(topo - R * 0.4, topo + R * 1.05, suave(F.recalque, F.rebarba, fase));
+        ctx.fillStyle = aco(150);
+        ctx.fillRect(xm - R * 0.12, y - R * 0.08, R * 0.24, R * 0.08);
+        ctx.fillStyle = 'rgba(255,255,255,.6)';
+        ctx.fillRect(xm - R * 0.12, y - 1, R * 0.24, 1);
+      }
+      // painéis: creme à esquerda, laranja à direita (porta), faixa de cima e base azul
+      const painel = (x: number, y: number, w: number, h: number, c: RGB) => {
+        const g = ctx.createLinearGradient(x, y, x + w, y + h);
+        g.addColorStop(0, cor(misturar(mq(c), [255, 255, 255], 0.08)));
+        g.addColorStop(1, cor(misturar(mq(c), [0, 0, 0], 0.12)));
+        ctx.fillStyle = g;
+        ctx.fillRect(x, y, w, h);
+      };
+      painel(mL, mT, wL - mL, wB - mT, CREME);
+      painel(wR, mT, mR - wR, wB - mT, LARANJA);
+      painel(wL, mT, wR - wL, wT - mT, CREME);
+      painel(mL, wB, mR - mL, piso - wB, AZUL);
+      painel(mL - R * 0.08, mT - R * 0.12, mR - mL + R * 0.16, R * 0.12, AZUL);
+      // detalhes: grade de ventilação no creme, caixa de comando com luz, puxador da porta
+      ctx.strokeStyle = cor(mq(misturar(CREME, [0, 0, 0], 0.35)), 0.6);
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 5; i++) {
+        const y = mT + R * 0.35 + i * R * 0.12;
+        ctx.beginPath(); ctx.moveTo(mL + R * 0.2, y); ctx.lineTo(wL - R * 0.25, y); ctx.stroke();
+      }
+      ctx.fillStyle = cor(mq(CINZA));
+      ctx.fillRect(wR + R * 0.2, mT + R * 0.35, R * 0.42, R * 0.55);
+      const luz = ciclo && fase < F.sobe ? (Math.sin(t * 12) > 0 ? [255, 190, 60] : [120, 80, 30]) : [90, 220, 140];
+      ctx.fillStyle = cor(luz as RGB);
+      ctx.beginPath(); ctx.arc(wR + R * 0.41, mT + R * 0.52, R * 0.06, 0, 6.283); ctx.fill();
+      ctx.fillStyle = 'rgb(230,60,50)';
+      ctx.beginPath(); ctx.arc(wR + R * 0.41, mT + R * 0.74, R * 0.05, 0, 6.283); ctx.fill();
+      ctx.fillStyle = cor(mq(misturar(LARANJA, [0, 0, 0], 0.4)));
+      ctx.fillRect(mR - R * 0.22, mT + R * 0.7, R * 0.06, R * 0.6);
+      // moldura da janela
+      ctx.strokeStyle = 'rgba(0,0,0,.45)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(wL, wT, wR - wL, wB - wT);
+      // tubo de exaustão azul saindo de cima e subindo para o telhado
+      ctx.lineCap = 'round';
+      const tubo = (largura: number, c: string) => {
+        ctx.strokeStyle = c;
+        ctx.lineWidth = largura;
+        ctx.beginPath();
+        ctx.moveTo(mL + R * 0.55, mT - R * 0.1);
+        ctx.lineTo(mL + R * 0.55, mT - R * 0.7);
+        ctx.quadraticCurveTo(mL + R * 0.55, mT - R * 1.15, mL + R * 1.1, mT - R * 1.15);
+        ctx.lineTo(mR + R * 0.4, mT - R * 1.15);
+        ctx.quadraticCurveTo(mR + R * 1.0, mT - R * 1.15, mR + R * 1.0, mT - R * 1.8);
+        ctx.lineTo(mR + R * 1.0, mT - R * 3.2);
+        ctx.stroke();
+      };
+      tubo(R * 0.3, cor(mq(TUBO)));
+      tubo(R * 0.08, cor(mq(misturar(TUBO, [255, 255, 255], 0.45)), 0.7));
+      // grade de proteção à esquerda da máquina
+      const gL = mL - R * 1.25, gR = mL - R * 0.15, gT = mT + R * 0.1;
+      ctx.strokeStyle = cor(mq(CINZA), 0.9);
+      ctx.lineWidth = 2;
+      ctx.strokeRect(gL, gT, gR - gL, piso - gT);
+      ctx.strokeStyle = cor(mq(CINZA), 0.4);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let x = gL; x < gR; x += R * 0.1) { ctx.moveTo(x, gT); ctx.lineTo(x, piso); }
+      for (let y = gT; y < piso; y += R * 0.1) { ctx.moveTo(gL, y); ctx.lineTo(gR, y); }
+      ctx.stroke();
+
+      // o soldador ao lado da máquina, de capacete e uniforme com faixas refletivas
+      const Hs = R * 1.85;
+      const sx = mR + R * 0.75;
+      if (sx + Hs * 0.3 < W) {
+        const respira = parado ? 0 : Math.sin(t * 1.6) * Hs * 0.004;
+        const azulUni = cor(mq([34, 44, 92]));
+        const faixa = cor(mq([200, 226, 74]));
+        const prata = 'rgba(220,225,230,.95)';
+        const y0 = piso;
+        // pernas e botas
+        ctx.fillStyle = azulUni;
+        ctx.fillRect(sx - Hs * 0.1, y0 - Hs * 0.46, Hs * 0.09, Hs * 0.44);
+        ctx.fillRect(sx + Hs * 0.01, y0 - Hs * 0.46, Hs * 0.09, Hs * 0.44);
+        ctx.fillStyle = 'rgb(30,30,32)';
+        ctx.fillRect(sx - Hs * 0.13, y0 - Hs * 0.04, Hs * 0.13, Hs * 0.04);
+        ctx.fillRect(sx + Hs * 0.0, y0 - Hs * 0.04, Hs * 0.13, Hs * 0.04);
+        ctx.fillStyle = faixa;
+        ctx.fillRect(sx - Hs * 0.1, y0 - Hs * 0.16, Hs * 0.2, Hs * 0.025);
+        ctx.fillStyle = prata;
+        ctx.fillRect(sx - Hs * 0.1, y0 - Hs * 0.15, Hs * 0.2, Hs * 0.008);
+        // tronco com as faixas
+        ctx.fillStyle = azulUni;
+        ctx.beginPath();
+        ctx.roundRect(sx - Hs * 0.14, y0 - Hs * 0.8 + respira, Hs * 0.28, Hs * 0.36, Hs * 0.05);
+        ctx.fill();
+        ctx.fillStyle = faixa;
+        ctx.fillRect(sx - Hs * 0.14, y0 - Hs * 0.58 + respira, Hs * 0.28, Hs * 0.03);
+        ctx.fillStyle = prata;
+        ctx.fillRect(sx - Hs * 0.14, y0 - Hs * 0.57 + respira, Hs * 0.28, Hs * 0.01);
+        // braço indo até a porta da máquina
+        ctx.strokeStyle = azulUni;
+        ctx.lineWidth = Hs * 0.07;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(sx - Hs * 0.06, y0 - Hs * 0.74 + respira);
+        ctx.lineTo(sx - Hs * 0.2, y0 - Hs * 0.6 + respira);
+        ctx.lineTo(mR - R * 0.12, mT + R * 1.05);
+        ctx.stroke();
+        ctx.fillStyle = 'rgb(40,40,44)'; // luva no puxador da porta
+        ctx.beginPath(); ctx.arc(mR - R * 0.14, mT + R * 1.05, Hs * 0.035, 0, 6.283); ctx.fill();
+        // cabeça, capacete branco e abafador
+        ctx.fillStyle = 'rgb(176,128,98)';
+        ctx.beginPath(); ctx.arc(sx, y0 - Hs * 0.87 + respira, Hs * 0.065, 0, 6.283); ctx.fill();
+        ctx.fillStyle = 'rgb(240,242,244)';
+        ctx.beginPath(); ctx.ellipse(sx, y0 - Hs * 0.9 + respira, Hs * 0.085, Hs * 0.06, 0, Math.PI, 0); ctx.fill();
+        ctx.fillRect(sx - Hs * 0.1, y0 - Hs * 0.905 + respira, Hs * 0.2, Hs * 0.015);
+        // aba do capacete para a frente (ele olha para a máquina) e o abafador atrás da orelha
+        ctx.fillStyle = 'rgb(240,242,244)';
+        ctx.fillRect(sx - Hs * 0.13, y0 - Hs * 0.9 + respira, Hs * 0.06, Hs * 0.014);
+        ctx.fillStyle = 'rgb(60,62,66)';
+        ctx.beginPath(); ctx.ellipse(sx + Hs * 0.03, y0 - Hs * 0.86 + respira, Hs * 0.022, Hs * 0.03, 0, 0, 6.283); ctx.fill();
+      }
     }
 
     // solda do logo (junto com a primeira emenda do trilho)

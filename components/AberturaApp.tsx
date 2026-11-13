@@ -33,7 +33,7 @@ export function AberturaApp() {
   if (!visivel) return null;
   return (
     <div className={`abertura ${saindo ? 'abertura-saindo' : ''}`} role="presentation">
-      <FundoTrilhos modo="abertura" intro="completa" />
+      <FundoTrilhos modo="inicio" intro="completa" />
       <div className="abertura-marca">
         <LogoAnimada size={96} />
         <p className="abertura-nome">Controle de Trilhos</p>
