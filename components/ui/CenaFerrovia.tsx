@@ -457,7 +457,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
   }
   const parado = reduzirMovimento();
   // A primeira emenda chega na Schlatter em CHEGA; o centelhamento passa por SOLDA, junto com a emenda do logo.
-  const CHEGA = 0.55, SOLDA = 1.25, VEL = 70;
+  const CHEGA = 0.55, SOLDA = 1.25;
   // Ciclo da Schlatter (s desde a chegada da emenda): garras descem, centelhamento, recalque, rebarbação, garras sobem.
   const F = { garra: 0.35, centelha: 1.75, recalque: 1.95, rebarba: 2.4, sobe: 2.75 };
   let ciclo: { k: number; inicio: number } | null = null;
@@ -507,14 +507,17 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
   const controle = laco(cv, 2, () => { pal = paletaAbertura(caixa); padrao = null; }, (ctx, W, H, t, dt) => {
     const escuro = pal.estrelas > 0;
     const xc = W / 2;
-    const L = Math.max(520, W * 0.72); // uma barra de 12 m na tela
-    const R = Math.max(62, Math.min(132, H * 0.105)); // altura do perfil
-    const topo = H - R * 2.05; // topo do boleto
-    const rr = R * 0.2; // raio do rolete
-    const piso = topo + R + rr * 2 + R * 0.16;
+    // Escala de verdade: a máquina (2,6 m de altura) ocupa cerca de 30% da altura da tela; o soldador tem 1,75 m.
+    // O perfil (TR68, 186 mm) sai só um pouco maior que o real (23 cm), para continuar lendo como trilho.
+    const M = Math.max(28, Math.min(H * 0.115, W / 11)); // um metro (no celular a máquina fica menor, embaixo dos cartões)
+    const R = 0.23 * M; // altura do perfil
+    const L = 12 * M; // uma barra de 12 m
+    const piso = H * 0.95;
+    const topo = piso - 0.85 * M; // o trilho corre a 85 cm do chão, sobre os roletes
+    const rr = 0.1 * M; // rolete de 20 cm
 
     // Schlatter à direita no computador (fora dos cartões); no celular, mais para a direita também.
-    const xm = W >= 900 ? W * 0.74 : W * 0.78;
+    const xm = W >= 900 ? W * 0.8 : W * 0.6;
 
     // ---------- movimento do trilho e ciclo da solda ----------
     if (parado) {
@@ -531,7 +534,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       u = ciclo.k * L;
     } else {
       if (ciclo) { proxima = ciclo.k + 1; ciclo = null; }
-      vel = mix(vel, VEL, 1 - Math.pow(0.05, dt));
+      vel = mix(vel, 1.1 * M, 1 - Math.pow(0.05, dt)); // cerca de 1 m/s
       const antes = u;
       u += vel * dt;
       const alvo = proxima * L;
@@ -630,18 +633,18 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     // ---------- Schlatter: medidas e o interior escuro que aparece pela janela ----------
     const mq = (c: RGB): RGB => (escuro ? misturar(c, pal.ceuTopo, 0.3) : c);
     const LARANJA: RGB = [235, 161, 58], CREME: RGB = [216, 204, 176], AZUL: RGB = [44, 90, 147], TUBO: RGB = [120, 166, 214], CINZA: RGB = [70, 74, 80];
-    const mL = xm - R * 1.75, mR = xm + R * 1.75, mT = topo - R * 1.35;
-    const wL = xm - R * 0.75, wR = xm + R * 0.75, wT = topo - R * 0.5, wB = topo + R * 1.12;
+    const mL = xm - 1.8 * M, mR = xm + 1.8 * M, mT = piso - 2.6 * M; // a máquina tem 3,6 m de largura e 2,6 m de altura
+    const wL = xm - 0.6 * M, wR = xm + 0.6 * M, wT = topo - 0.45 * M, wB = topo + R + 0.2 * M;
     ctx.fillStyle = 'rgb(22,24,28)';
     ctx.fillRect(wL, wT, wR - wL, wB - wT);
     if (forcaCentelha > 0) {
-      const g = ctx.createRadialGradient(xm, topo + R * 0.4, 0, xm, topo + R * 0.4, R * 1.2);
+      const g = ctx.createRadialGradient(xm, topo + R * 0.4, 0, xm, topo + R * 0.4, 0.9 * M);
       g.addColorStop(0, `rgba(255,200,120,${0.55 * forcaCentelha})`); g.addColorStop(1, 'rgba(255,140,60,0)');
       ctx.fillStyle = g; ctx.fillRect(wL, wT, wR - wL, wB - wT);
     }
 
     // ---------- roletes ----------
-    const esp = Math.max(170, W * 0.15);
+    const esp = 2.5 * M; // roletes a cada 2,5 m
     const yRol = topo + R + rr;
     for (let x = (xc % esp) - esp; x < W + esp; x += esp) {
       // pé do rolete
@@ -715,7 +718,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
 
     // emendas e marcas de giz
     const kMin = Math.floor((u - xm) / L) - 1, kMax = Math.ceil((u + W - xm) / L) + 1;
-    ctx.font = `600 ${Math.round(R * 0.19)}px var(--font-barlow-cond), "Barlow Condensed", "Arial Narrow", sans-serif`;
+    ctx.font = `600 ${Math.round(Math.max(9, R * 0.42))}px var(--font-barlow-cond), "Barlow Condensed", "Arial Narrow", sans-serif`;
     ctx.textBaseline = 'middle';
     for (let k = kMin; k <= kMax; k++) {
       const x = xm + k * L - u;
@@ -723,8 +726,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       const xg = x + L / 2;
       if (xg > -100 && xg < W + 100) {
         ctx.fillStyle = `rgba(255,255,255,${escuro ? 0.32 : 0.6})`;
-        ctx.fillText(`TLS ${212 + Math.floor(k / 26)} · B${(((k % 13) + 13) % 13) + 1}`, xg - R * 0.6, topo + R * 0.56);
-        ctx.fillRect(xg - R * 0.6, topo + R * 0.66, R * 0.9, 1.2);
+        ctx.fillText(`TLS ${212 + Math.floor(k / 13)} · B${(((k % 13) + 13) % 13) + 1}`, xg - R * 1.2, topo + R * 0.55);
       }
       if (x < -R || x > W + R) continue;
       const quando = soldada.get(k);
@@ -735,12 +737,12 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
           const fecha = suave(F.garra, F.centelha, fase);
           const larg = mix(4, 1, fecha);
           const brilho = Math.min(1, forcaCentelha + 0.2);
-          const g = ctx.createLinearGradient(x - R * 0.35, 0, x + R * 0.35, 0);
+          const g = ctx.createLinearGradient(x - 0.1 * M, 0, x + 0.1 * M, 0);
           g.addColorStop(0, 'rgba(255,120,40,0)');
           g.addColorStop(0.5, `rgba(255,200,110,${0.85 * brilho})`);
           g.addColorStop(1, 'rgba(255,120,40,0)');
           ctx.fillStyle = g;
-          ctx.fillRect(x - R * 0.35, topo - R * 0.06, R * 0.7, R * 1.06);
+          ctx.fillRect(x - 0.1 * M, topo - R * 0.06, 0.2 * M, R * 1.06);
           ctx.fillStyle = `rgba(255,250,230,${brilho})`;
           ctx.fillRect(x - larg / 2, topo - R * 0.06, larg, R * 1.06);
         } else {
@@ -755,21 +757,21 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       const rebordo = idade < F.recalque - F.centelha ? 1 : 1 - suave(F.recalque - F.centelha, F.rebarba - F.centelha, idade);
       // marca fina da emenda depois de rebarbada e esmerilhada
       ctx.fillStyle = 'rgba(255,255,255,.28)';
-      ctx.fillRect(x - R * 0.06, topo - R * 0.06, R * 0.12, R * 0.06);
+      ctx.fillRect(x - 0.03 * M, topo - R * 0.06, 0.06 * M, R * 0.06);
       ctx.fillStyle = 'rgba(0,0,0,.28)';
       ctx.fillRect(x - 0.75, topo, 1.5, R);
       const h = calor(idade);
       if (h.a > 0.01) {
         // zona quente espalhando pelo trilho dos dois lados da emenda
-        const hw = R * (0.3 + 0.35 * Math.min(1, idade / 5));
+        const hw = M * (0.08 + 0.17 * Math.min(1, idade / 5)); // a zona quente vai se espalhando
         ctx.save();
         ctx.globalCompositeOperation = 'lighter';
-        const g = ctx.createRadialGradient(x, topo + R * 0.45, 0, x, topo + R * 0.45, R * 1.9);
+        const g = ctx.createRadialGradient(x, topo + R * 0.45, 0, x, topo + R * 0.45, 0.7 * M);
         g.addColorStop(0, cor(h.c, 0.45 * h.a)); g.addColorStop(0.4, cor(h.c, 0.14 * h.a)); g.addColorStop(1, cor(h.c, 0));
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, topo + R * 0.45, R * 1.9, 0, 6.283); ctx.fill();
-        const gp = ctx.createRadialGradient(x, piso + 2, 0, x, piso + 2, R * 1.3);
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, topo + R * 0.45, 0.7 * M, 0, 6.283); ctx.fill();
+        const gp = ctx.createRadialGradient(x, piso + 2, 0, x, piso + 2, 0.5 * M);
         gp.addColorStop(0, cor(h.c, 0.3 * h.a)); gp.addColorStop(1, cor(h.c, 0));
-        ctx.fillStyle = gp; ctx.fillRect(x - R * 1.3, piso, R * 2.6, R * 0.7);
+        ctx.fillStyle = gp; ctx.fillRect(x - 0.5 * M, piso, M, 0.2 * M);
         ctx.restore();
         const zona = ctx.createLinearGradient(x - hw, 0, x + hw, 0);
         zona.addColorStop(0, cor(h.c, 0));
@@ -780,7 +782,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         if (rebordo > 0.01) {
           ctx.fillStyle = cor(misturar(h.c, [255, 255, 235], 0.4), h.a);
           ctx.beginPath();
-          ctx.roundRect(x - R * 0.07, topo - R * 0.06 - R * 0.07 * rebordo, R * 0.14, R * (1.06 + 0.11 * rebordo), R * 0.04);
+          ctx.roundRect(x - 0.03 * M, topo - R * 0.06 - 0.02 * M * rebordo, 0.06 * M, R * 1.06 + 0.04 * M * rebordo, 0.01 * M);
           ctx.fill();
         }
         // brasas subindo da solda quente
@@ -806,22 +808,22 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     {
       const aco = (c: number) => `rgb(${c},${c + 4},${c + 10})`;
       // garras de baixo (fixas, sob o patim) e de cima (descem até o boleto), com a ponta de cobre
-      for (const [x0, x1] of [[xm - R * 0.6, xm - R * 0.14], [xm + R * 0.14, xm + R * 0.6]]) {
+      for (const [x0, x1] of [[xm - 0.5 * M, xm - 0.1 * M], [xm + 0.1 * M, xm + 0.5 * M]]) {
         ctx.fillStyle = aco(58);
-        ctx.fillRect(x0, topo + R * 1.0, x1 - x0, wB - topo - R * 1.0);
-        const fundoGarra = mix(topo - R * 0.42, topo - R * 0.06, garra);
+        ctx.fillRect(x0, topo + R, x1 - x0, wB - topo - R);
+        const fundoGarra = mix(topo - 0.3 * M, topo - M * 0.06, garra);
         ctx.fillStyle = aco(64);
-        ctx.fillRect(x0, fundoGarra - R * 0.36, x1 - x0, R * 0.36);
+        ctx.fillRect(x0, fundoGarra - 0.3 * M, x1 - x0, 0.3 * M);
         ctx.fillStyle = 'rgb(196,120,62)';
-        ctx.fillRect(x0 + 2, fundoGarra - R * 0.05, x1 - x0 - 4, R * 0.05);
+        ctx.fillRect(x0 + 1, fundoGarra - 0.035 * M, x1 - x0 - 2, 0.035 * M);
       }
       // lâmina da rebarbação passando pela emenda
       if (ciclo && fase > F.recalque && fase < F.rebarba) {
-        const y = mix(topo - R * 0.4, topo + R * 1.05, suave(F.recalque, F.rebarba, fase));
+        const y = mix(topo - 0.3 * M, topo + M * 1.05, suave(F.recalque, F.rebarba, fase));
         ctx.fillStyle = aco(150);
-        ctx.fillRect(xm - R * 0.12, y - R * 0.08, R * 0.24, R * 0.08);
+        ctx.fillRect(xm - 0.1 * M, y - 0.05 * M, 0.2 * M, 0.05 * M);
         ctx.fillStyle = 'rgba(255,255,255,.6)';
-        ctx.fillRect(xm - R * 0.12, y - 1, R * 0.24, 1);
+        ctx.fillRect(xm - 0.1 * M, y - 1, 0.2 * M, 1);
       }
       // painéis: creme à esquerda, laranja à direita (porta), faixa de cima e base azul
       const painel = (x: number, y: number, w: number, h: number, c: RGB) => {
@@ -835,23 +837,23 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       painel(wR, mT, mR - wR, wB - mT, LARANJA);
       painel(wL, mT, wR - wL, wT - mT, CREME);
       painel(mL, wB, mR - mL, piso - wB, AZUL);
-      painel(mL - R * 0.08, mT - R * 0.12, mR - mL + R * 0.16, R * 0.12, AZUL);
+      painel(mL - M * 0.08, mT - M * 0.12, mR - mL + M * 0.16, M * 0.12, AZUL);
       // detalhes: grade de ventilação no creme, caixa de comando com luz, puxador da porta
       ctx.strokeStyle = cor(mq(misturar(CREME, [0, 0, 0], 0.35)), 0.6);
       ctx.lineWidth = 1;
-      for (let i = 0; i < 5; i++) {
-        const y = mT + R * 0.35 + i * R * 0.12;
-        ctx.beginPath(); ctx.moveTo(mL + R * 0.2, y); ctx.lineTo(wL - R * 0.25, y); ctx.stroke();
+      for (let i = 0; i < 7; i++) {
+        const y = mT + M * 0.35 + i * M * 0.12;
+        ctx.beginPath(); ctx.moveTo(mL + M * 0.2, y); ctx.lineTo(wL - M * 0.25, y); ctx.stroke();
       }
       ctx.fillStyle = cor(mq(CINZA));
-      ctx.fillRect(wR + R * 0.2, mT + R * 0.35, R * 0.42, R * 0.55);
+      ctx.fillRect(wR + M * 0.2, mT + M * 0.35, M * 0.42, M * 0.55);
       const luz = ciclo && fase < F.sobe ? (Math.sin(t * 12) > 0 ? [255, 190, 60] : [120, 80, 30]) : [90, 220, 140];
       ctx.fillStyle = cor(luz as RGB);
-      ctx.beginPath(); ctx.arc(wR + R * 0.41, mT + R * 0.52, R * 0.06, 0, 6.283); ctx.fill();
+      ctx.beginPath(); ctx.arc(wR + M * 0.41, mT + M * 0.52, M * 0.06, 0, 6.283); ctx.fill();
       ctx.fillStyle = 'rgb(230,60,50)';
-      ctx.beginPath(); ctx.arc(wR + R * 0.41, mT + R * 0.74, R * 0.05, 0, 6.283); ctx.fill();
+      ctx.beginPath(); ctx.arc(wR + M * 0.41, mT + M * 0.74, M * 0.05, 0, 6.283); ctx.fill();
       ctx.fillStyle = cor(mq(misturar(LARANJA, [0, 0, 0], 0.4)));
-      ctx.fillRect(mR - R * 0.22, mT + R * 0.7, R * 0.06, R * 0.6);
+      ctx.fillRect(mR - M * 0.22, piso - M * 1.4, M * 0.06, M * 0.55); // puxador a uns 1,1 m do chão
       // moldura da janela
       ctx.strokeStyle = 'rgba(0,0,0,.45)';
       ctx.lineWidth = 2;
@@ -862,31 +864,31 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.strokeStyle = c;
         ctx.lineWidth = largura;
         ctx.beginPath();
-        ctx.moveTo(mL + R * 0.55, mT - R * 0.1);
-        ctx.lineTo(mL + R * 0.55, mT - R * 0.7);
-        ctx.quadraticCurveTo(mL + R * 0.55, mT - R * 1.15, mL + R * 1.1, mT - R * 1.15);
-        ctx.lineTo(mR + R * 0.4, mT - R * 1.15);
-        ctx.quadraticCurveTo(mR + R * 1.0, mT - R * 1.15, mR + R * 1.0, mT - R * 1.8);
-        ctx.lineTo(mR + R * 1.0, mT - R * 3.2);
+        ctx.moveTo(mL + M * 0.55, mT - M * 0.1);
+        ctx.lineTo(mL + M * 0.55, mT - M * 0.7);
+        ctx.quadraticCurveTo(mL + M * 0.55, mT - M * 1.15, mL + M * 1.1, mT - M * 1.15);
+        ctx.lineTo(mR + M * 0.4, mT - M * 1.15);
+        ctx.quadraticCurveTo(mR + M * 1.0, mT - M * 1.15, mR + M * 1.0, mT - M * 1.8);
+        ctx.lineTo(mR + M * 1.0, mT - M * 3.2);
         ctx.stroke();
       };
-      tubo(R * 0.3, cor(mq(TUBO)));
-      tubo(R * 0.08, cor(mq(misturar(TUBO, [255, 255, 255], 0.45)), 0.7));
+      tubo(M * 0.3, cor(mq(TUBO)));
+      tubo(M * 0.08, cor(mq(misturar(TUBO, [255, 255, 255], 0.45)), 0.7));
       // grade de proteção à esquerda da máquina
-      const gL = mL - R * 1.25, gR = mL - R * 0.15, gT = mT + R * 0.1;
+      const gL = mL - M * 0.75, gR = mL - M * 0.1, gT = mT + M * 0.5;
       ctx.strokeStyle = cor(mq(CINZA), 0.9);
       ctx.lineWidth = 2;
       ctx.strokeRect(gL, gT, gR - gL, piso - gT);
       ctx.strokeStyle = cor(mq(CINZA), 0.4);
       ctx.lineWidth = 1;
       ctx.beginPath();
-      for (let x = gL; x < gR; x += R * 0.1) { ctx.moveTo(x, gT); ctx.lineTo(x, piso); }
-      for (let y = gT; y < piso; y += R * 0.1) { ctx.moveTo(gL, y); ctx.lineTo(gR, y); }
+      for (let x = gL; x < gR; x += M * 0.08) { ctx.moveTo(x, gT); ctx.lineTo(x, piso); }
+      for (let y = gT; y < piso; y += M * 0.08) { ctx.moveTo(gL, y); ctx.lineTo(gR, y); }
       ctx.stroke();
 
       // o soldador ao lado da máquina, de capacete e uniforme com faixas refletivas
-      const Hs = R * 1.85;
-      const sx = mR + R * 0.75;
+      const Hs = 1.75 * M; // o soldador tem 1,75 m
+      const sx = mR + 0.62 * M;
       if (sx + Hs * 0.3 < W) {
         const respira = parado ? 0 : Math.sin(t * 1.6) * Hs * 0.004;
         const azulUni = cor(mq([34, 44, 92]));
@@ -920,10 +922,10 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.beginPath();
         ctx.moveTo(sx - Hs * 0.06, y0 - Hs * 0.74 + respira);
         ctx.lineTo(sx - Hs * 0.2, y0 - Hs * 0.6 + respira);
-        ctx.lineTo(mR - R * 0.12, mT + R * 1.05);
+        ctx.lineTo(mR - 0.19 * M, piso - 1.12 * M);
         ctx.stroke();
         ctx.fillStyle = 'rgb(40,40,44)'; // luva no puxador da porta
-        ctx.beginPath(); ctx.arc(mR - R * 0.14, mT + R * 1.05, Hs * 0.035, 0, 6.283); ctx.fill();
+        ctx.beginPath(); ctx.arc(mR - 0.19 * M, piso - 1.12 * M, Hs * 0.035, 0, 6.283); ctx.fill();
         // cabeça, capacete branco e abafador
         ctx.fillStyle = 'rgb(176,128,98)';
         ctx.beginPath(); ctx.arc(sx, y0 - Hs * 0.87 + respira, Hs * 0.065, 0, 6.283); ctx.fill();
