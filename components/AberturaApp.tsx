@@ -1,5 +1,6 @@
 'use client';
 
+import { CordaoTls } from '@/components/ui/CordaoTls';
 import { useEffect, useState } from 'react';
 import { LogoAnimada } from '@/components/ui/LogoAnimada';
 import { FundoTrilhos } from '@/components/ui/FundoTrilhos';
@@ -36,7 +37,7 @@ export function AberturaApp() {
       <div className="abertura-marca">
         <LogoAnimada size={96} />
         <p className="abertura-nome">Controle de Trilhos</p>
-        <span className="cordao-solda" aria-hidden="true" />
+        <CordaoTls />
       </div>
     </div>
   );

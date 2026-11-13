@@ -9,6 +9,9 @@ import { useEffect, useRef } from 'react';
  *   a tela sai do escuro, o farol acende, a luz corre pelos trilhos até o horizonte e a composição arranca.
  *   Nas outras vezes a cena só aparece, já em movimento. Na hora em que o logo fecha os trilhos, a emenda
  *   é soldada e saem faíscas.
+ * inicio (tela inicial, escolha do setor): o mapa do pátio, como no painel de um centro de controle. As linhas
+ *   se desenham a partir do logo, os sinais acendem e as composições correm pelas linhas, trocando de linha nos
+ *   AMVs. O meio da tela fica calmo, por trás dos cartões dos setores.
  * saudacao (faixa "Bom dia"): a via vista de lado, com o céu da hora de verdade (sol nascendo, de tarde,
  *   pondo, lua e estrelas à noite), a serra ao fundo, postes com fios, os dormentes passando e, de tempos
  *   em tempos, uma composição de TLS (trilhos longos sobre vagões plataforma) cruzando.
@@ -18,7 +21,7 @@ import { useEffect, useRef } from 'react';
  * O desenho para quando a tela não está visível.
  */
 
-type Modo = 'abertura' | 'saudacao';
+type Modo = 'abertura' | 'saudacao' | 'inicio';
 type RGB = [number, number, number];
 
 const CHAVE_INTRO = 'ct_cena_intro';
@@ -28,7 +31,7 @@ export function CenaFerrovia({ modo, intro = 'auto' }: { modo: Modo; intro?: 'au
   useEffect(() => {
     const cv = ref.current;
     if (!cv) return;
-    return modo === 'abertura' ? iniciarAbertura(cv, intro) : iniciarSaudacao(cv);
+    return modo === 'abertura' ? iniciarAbertura(cv, intro) : modo === 'inicio' ? iniciarInicio(cv, intro) : iniciarSaudacao(cv);
   }, [modo, intro]);
   return <canvas ref={ref} className={`cena-ferrovia cena-${modo}`} aria-hidden="true" />;
 }
@@ -137,7 +140,7 @@ function laco(
 }
 
 /** Faíscas de solda saindo da emenda dos trilhos do logo, desenhadas no mesmo canvas. */
-interface Faisca { x: number; y: number; vx: number; vy: number; v: number }
+interface Faisca { x: number; y: number; vx: number; vy: number; v: number; clarao?: boolean }
 function soldarLogo(cv: HTMLCanvasElement, faiscas: Faisca[]) {
   const raiz = cv.closest('main, section, .abertura') ?? document;
   const logo = raiz.querySelector('.logo-animada');
@@ -149,30 +152,52 @@ function soldarLogo(cv: HTMLCanvasElement, faiscas: Faisca[]) {
   for (const yRel of [15 / 56, 41 / 56]) {
     const x = r.left - c.left + r.width / 2;
     const y = r.top - c.top + r.height * yRel;
-    for (let i = 0; i < 22; i++) {
-      const ang = -Math.PI / 2 + (Math.random() - 0.5) * 2.7;
-      const v = 160 + Math.random() * 300;
-      faiscas.push({ x, y, vx: Math.cos(ang) * v, vy: Math.sin(ang) * v, v: 0.6 + Math.random() * 0.5 });
+    faiscas.push({ x, y, vx: 0, vy: 0, v: 1, clarao: true });
+    for (let i = 0; i < 16; i++) {
+      // Faíscas saem para os lados e para cima, caem com a gravidade e apagam piscando.
+      const ang = -Math.PI / 2 + (Math.random() - 0.5) * 3.0;
+      const v = 120 + Math.random() * 260;
+      faiscas.push({ x, y, vx: Math.cos(ang) * v, vy: Math.sin(ang) * v, v: 0.45 + Math.random() * 0.55 });
     }
   }
 }
 function desenharFaiscas(ctx: CanvasRenderingContext2D, faiscas: Faisca[], dt: number, H: number) {
   for (const s of faiscas) {
-    s.vy += 900 * dt;
+    if (s.clarao) { s.v -= dt * 2.6; continue; }
+    s.vy += 820 * dt;
+    s.vx *= 1 - dt * 0.8;
     s.x += s.vx * dt;
     s.y += s.vy * dt;
-    s.v -= dt * 1.3;
+    s.v -= dt * 1.25;
   }
   for (let i = faiscas.length - 1; i >= 0; i--) if (faiscas[i].v <= 0 || faiscas[i].y > H) faiscas.splice(i, 1);
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
   ctx.lineCap = 'round';
   for (const s of faiscas) {
-    ctx.strokeStyle = `rgba(255,${(150 + 95 * s.v) | 0},70,${Math.min(1, s.v)})`;
-    ctx.lineWidth = 1.5;
+    if (s.clarao) {
+      // Clarão da solda: branco no centro, laranja em volta, some rápido.
+      const r = 10 + (1 - s.v) * 26;
+      const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, r);
+      g.addColorStop(0, `rgba(255,255,240,${0.95 * s.v})`);
+      g.addColorStop(0.35, `rgba(255,190,90,${0.6 * s.v})`);
+      g.addColorStop(1, 'rgba(255,120,40,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(s.x, s.y, r, 0, 6.283); ctx.fill();
+      continue;
+    }
+    const pisca = 0.7 + 0.3 * Math.sin(s.x * 0.7 + s.y);
+    const a = Math.min(1, s.v * 1.4) * pisca;
+    // Esfria do branco-amarelado para o laranja e o vermelho.
+    const g = Math.round(110 + 140 * s.v), b = Math.round(40 + 120 * Math.max(0, s.v - 0.6));
+    ctx.strokeStyle = `rgba(255,${g},${b},${a})`;
+    ctx.lineWidth = 1.2;
     ctx.beginPath();
     ctx.moveTo(s.x, s.y);
-    ctx.lineTo(s.x - s.vx * 0.02, s.y - s.vy * 0.02);
+    ctx.lineTo(s.x - s.vx * 0.016, s.y - s.vy * 0.016);
     ctx.stroke();
   }
+  ctx.restore();
 }
 
 // ---------- abertura: a via em perspectiva, vista da cabine ----------
@@ -569,6 +594,198 @@ function iniciarSaudacao(cv: HTMLCanvasElement) {
     ctx.fillStyle = calma;
     ctx.fillRect(0, 0, W, chao - 4);
     ctx.restore();
+  });
+  return typeof controle === 'function' ? controle : controle.parar;
+}
+
+// ---------- início: o mapa do pátio, como no painel do centro de controle ----------
+
+interface Linha { y: number }
+interface Amv { x: number; de: number; para: number; dx: number }
+interface Composicao { linha: number; x: number; dir: 1 | -1; vel: number; rastro: [number, number][]; amv: { a: Amv; p: number } | null; comp: number }
+
+function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
+  const caixa = cv.parentElement ?? cv;
+  let pal = paletaAbertura(caixa);
+  let completa = intro === 'completa';
+  try {
+    if (intro === 'auto') completa = !sessionStorage.getItem(CHAVE_INTRO);
+    sessionStorage.setItem(CHAVE_INTRO, '1');
+  } catch {
+    /* sem armazenamento: abertura curta */
+  }
+  const parado = reduzirMovimento();
+  const T = completa ? { linhas: [0.15, 1.6], trens: 1.2, solda: 1.25 } : { linhas: [0, 0.5], trens: 0.2, solda: 1.25 };
+  let semente = 23;
+  const rnd = () => (semente = (semente * 16807) % 2147483647) / 2147483647;
+  const faiscas: Faisca[] = [];
+  let soldou = false;
+
+  // Desenho do pátio em frações da tela; refeito quando a tela muda de tamanho.
+  let linhas: Linha[] = [];
+  let amvs: Amv[] = [];
+  let sinais: { x: number; y: number; f: number }[] = [];
+  let trens: Composicao[] = [];
+  let ultimoW = 0, ultimoH = 0;
+
+  const montar = (W: number, H: number) => {
+    semente = 23;
+    const fr = W < 640 ? [0.1, 0.24, 0.4, 0.6, 0.76, 0.9] : [0.1, 0.27, 0.44, 0.61, 0.78, 0.93];
+    linhas = fr.map((f) => ({ y: Math.round(H * f) }));
+    amvs = [];
+    for (let i = 0; i < linhas.length - 1; i++) {
+      const n = 2;
+      for (let k = 0; k < n; k++) {
+        const x = W * (0.06 + (k + 0.15 + rnd() * 0.7) * (0.88 / n));
+        // AMV curto, como no mapa do pátio (o desvio liga uma linha à vizinha)
+        const dx = (linhas[i + 1].y - linhas[i].y) * (1.05 + rnd() * 0.45) * (rnd() < 0.5 ? 1 : -1);
+        amvs.push({ x, de: i, para: i + 1, dx });
+      }
+    }
+    sinais = amvs.map((a) => ({ x: a.x, y: linhas[a.de].y, f: rnd() * 6.28 }));
+    trens = Array.from({ length: W < 640 ? 4 : 7 }, (_, i) => ({
+      linha: i % linhas.length,
+      x: rnd() * W,
+      dir: (i % 2 ? 1 : -1) as 1 | -1,
+      vel: 55 + rnd() * 60,
+      rastro: [],
+      amv: null,
+      comp: 18 + Math.round(rnd() * 22),
+    }));
+  };
+
+  const controle = laco(cv, 2, () => { pal = paletaAbertura(caixa); }, (ctx, W, H, t, dt) => {
+    if (W !== ultimoW || H !== ultimoH) { montar(W, H); ultimoW = W; ultimoH = H; }
+    const cx = W / 2;
+    const revela = parado ? 1 : suave(T.linhas[0], T.linhas[1], t);
+    const alcance = revela * W * 0.62; // as linhas se desenham do centro para as bordas
+
+    // fundo: céu do tema, mais claro no meio
+    const fundo = ctx.createRadialGradient(cx, H * 0.42, 0, cx, H * 0.42, Math.max(W, H) * 0.75);
+    fundo.addColorStop(0, cor(pal.ceuHorizonte));
+    fundo.addColorStop(1, cor(pal.ceuTopo));
+    ctx.fillStyle = fundo;
+    ctx.fillRect(0, 0, W, H);
+    // grade fina do painel
+    ctx.strokeStyle = cor(pal.neblina, 0.18);
+    ctx.lineWidth = 1;
+    const passoGrade = 48;
+    ctx.beginPath();
+    for (let x = (cx % passoGrade); x < W; x += passoGrade) { ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, H); }
+    for (let y = 0; y < H; y += passoGrade) { ctx.moveTo(0, y + 0.5); ctx.lineTo(W, y + 0.5); }
+    ctx.stroke();
+
+    // via desenhada como no mapa: dois trilhos finos com os dormentes em traços
+    const via = (x1: number, y1: number, x2: number, y2: number, alfa: number) => {
+      const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy);
+      if (L < 1) return;
+      const nx = -dy / L, ny = dx / L;
+      ctx.strokeStyle = cor(pal.dorm, alfa * 0.9);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let d = 0; d < L; d += 7) {
+        const px = x1 + (dx * d) / L, py = y1 + (dy * d) / L;
+        ctx.moveTo(px - nx * 4, py - ny * 4); ctx.lineTo(px + nx * 4, py + ny * 4);
+      }
+      ctx.stroke();
+      ctx.strokeStyle = cor(pal.acoLado, alfa);
+      ctx.lineWidth = 1.3;
+      ctx.beginPath();
+      ctx.moveTo(x1 - nx * 2.2, y1 - ny * 2.2); ctx.lineTo(x2 - nx * 2.2, y2 - ny * 2.2);
+      ctx.moveTo(x1 + nx * 2.2, y1 + ny * 2.2); ctx.lineTo(x2 + nx * 2.2, y2 + ny * 2.2);
+      ctx.stroke();
+    };
+    for (const l of linhas) via(Math.max(0, cx - alcance), l.y, Math.min(W, cx + alcance), l.y, 0.75);
+    for (const a of amvs) {
+      if (Math.abs(a.x - cx) > alcance) continue;
+      via(a.x, linhas[a.de].y, a.x + a.dx, linhas[a.para].y, 0.6);
+    }
+    // sinais nos AMVs: alternam verde e âmbar devagar
+    for (const s of sinais) {
+      if (Math.abs(s.x - cx) > alcance) continue;
+      const verde = parado || Math.sin(t * 0.35 + s.f) > -0.3;
+      const c = verde ? pal.sinal1 : pal.sinal2;
+      const g = ctx.createRadialGradient(s.x, s.y - 9, 0, s.x, s.y - 9, 9);
+      g.addColorStop(0, cor(c, 0.85 * revela)); g.addColorStop(1, cor(c, 0));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(s.x, s.y - 9, 9, 0, 6.283); ctx.fill();
+      ctx.fillStyle = cor(c, revela); ctx.beginPath(); ctx.arc(s.x, s.y - 9, 2, 0, 6.283); ctx.fill();
+    }
+
+    // composições: um traço de luz com a cabeça acesa, seguindo as linhas e trocando nos AMVs
+    if (t > T.trens) {
+      const entra = parado ? 1 : suave(T.trens, T.trens + 0.8, t);
+      // Nos temas claros a composição é escura (o traço claro sumiria no fundo).
+      const escuro = pal.estrelas > 0;
+      const corTrem = escuro ? pal.aco : pal.poste;
+      const corCabeca = escuro ? pal.farol : pal.sinal2;
+      for (const c of trens) {
+        if (!parado) {
+          const passo = c.vel * dt * c.dir;
+          if (c.amv) {
+            const a = c.amv.a;
+            c.amv.p += Math.abs(passo) / Math.hypot(a.dx, linhas[a.para].y - linhas[a.de].y);
+            if (c.amv.p >= 1) { c.linha = c.linha === a.de ? a.para : a.de; c.x = c.linha === a.para ? a.x + a.dx : a.x; c.amv = null; }
+          } else {
+            const antes = c.x;
+            c.x += passo;
+            // entrou num AMV? (às vezes troca de linha)
+            for (const a of amvs) {
+              const daLinha = a.de === c.linha ? a.x : a.para === c.linha ? a.x + a.dx : null;
+              if (daLinha === null) continue;
+              const sentidoOk = a.de === c.linha ? Math.sign(a.dx) === c.dir : Math.sign(-a.dx) === c.dir;
+              if (sentidoOk && (antes - daLinha) * (c.x - daLinha) <= 0 && rnd() < 0.45) { c.amv = { a, p: 0 }; c.x = daLinha; break; }
+            }
+            if (c.x < -80 || c.x > W + 80) { c.linha = Math.floor(rnd() * linhas.length); c.dir = (rnd() < 0.5 ? 1 : -1) as 1 | -1; c.x = c.dir === 1 ? -60 : W + 60; c.rastro = []; }
+          }
+        }
+        let px = c.x, py = linhas[c.linha].y;
+        if (c.amv) {
+          const a = c.amv.a, deY = linhas[a.de].y, paraY = linhas[a.para].y;
+          const indo = c.linha === a.de;
+          const p = c.amv.p;
+          px = indo ? a.x + a.dx * p : a.x + a.dx * (1 - p);
+          py = indo ? deY + (paraY - deY) * p : paraY + (deY - paraY) * p;
+        }
+        c.rastro.push([px, py]);
+        if (c.rastro.length > c.comp) c.rastro.shift();
+        if (c.rastro.length > 1) {
+          ctx.lineCap = 'round';
+          for (let i = 1; i < c.rastro.length; i++) {
+            const k = i / c.rastro.length;
+            ctx.strokeStyle = cor(corTrem, 0.75 * k * entra);
+            ctx.lineWidth = 3.2;
+            ctx.beginPath(); ctx.moveTo(c.rastro[i - 1][0], c.rastro[i - 1][1]); ctx.lineTo(c.rastro[i][0], c.rastro[i][1]); ctx.stroke();
+          }
+          const g = ctx.createRadialGradient(px, py, 0, px, py, 14);
+          g.addColorStop(0, cor(corCabeca, 0.9 * entra)); g.addColorStop(1, cor(corCabeca, 0));
+          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px, py, 14, 0, 6.283); ctx.fill();
+        }
+      }
+    }
+
+    // calmaria no meio, por trás do logo e dos cartões
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-out';
+    const raio = Math.min(W * 0.42, 330);
+    ctx.translate(cx, H * 0.47);
+    ctx.scale(1, 1.35);
+    const calma = ctx.createRadialGradient(0, 0, raio * 0.35, 0, 0, raio);
+    calma.addColorStop(0, 'rgba(0,0,0,.82)');
+    calma.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = calma;
+    ctx.beginPath(); ctx.arc(0, 0, raio, 0, 6.283); ctx.fill();
+    ctx.restore();
+    // o recorte deixa ver o fundo da página; por cima, de novo o céu bem leve
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.fillStyle = cor(pal.ceuHorizonte);
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+
+    if (!parado && !soldou && t >= T.solda) { soldou = true; soldarLogo(cv, faiscas); }
+    if (faiscas.length) desenharFaiscas(ctx, faiscas, dt, H);
+    const cortina = parado ? 0 : 1 - suave(0, completa ? 0.6 : 0.3, t);
+    if (cortina > 0) { ctx.fillStyle = cor(pal.ceuTopo, cortina); ctx.fillRect(0, 0, W, H); }
   });
   return typeof controle === 'function' ? controle : controle.parar;
 }

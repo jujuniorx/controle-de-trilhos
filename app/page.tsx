@@ -1,3 +1,4 @@
+import { CordaoTls } from '@/components/ui/CordaoTls';
 import Link from 'next/link';
 import type { CSSProperties } from 'react';
 import { BotaoInstalar } from '@/components/InstalarApp';
@@ -48,12 +49,12 @@ function IconeProducao() {
 export default function Home() {
   return (
     <main className="home-entrada">
-      <FundoTrilhos modo="abertura" />
+      <FundoTrilhos modo="inicio" />
       <AlternarTema className="home-tema" />
       <div className="home-conteudo">
         <LogoAnimada size={84} />
         <h1 className="home-titulo">Controle de Trilhos</h1>
-        <span className="cordao-solda" aria-hidden="true" />
+        <CordaoTls />
         <p className="home-frase">Recebimento, remessa e conferência de trilhos.</p>
 
         <nav className="home-grade" aria-label="Setores">

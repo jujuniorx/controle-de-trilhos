@@ -1,3 +1,4 @@
+import { CordaoTls } from '@/components/ui/CordaoTls';
 import type { ReactNode } from 'react';
 import { FundoTrilhos } from '@/components/ui/FundoTrilhos';
 import { LogoAnimada } from '@/components/ui/LogoAnimada';
@@ -17,7 +18,7 @@ export function TelaEntrada({
         <div className="entrada-marca-conteudo">
           <LogoAnimada size={76} />
           <h2 className="entrada-marca-nome">Controle de Trilhos</h2>
-          <span className="cordao-solda" aria-hidden="true" />
+          <CordaoTls />
           <p className="entrada-marca-frase">Recebimento, remessa e conferência de trilhos.</p>
         </div>
       </section>
