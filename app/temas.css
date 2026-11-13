@@ -6,7 +6,6 @@
      azul    = @_code_and_chill_: azul-marinho com brilhos azuis e pilula deslizante
      pastel  = Dashboard V15: degrade lilas e rosa, cards brancos bem redondos
      vermelho = vermelho e preto: fundo preto, cards escuros e detalhes vermelhos
-     laranja  = laranja e amarelo: fundo laranja com cards creme e detalhes amarelos
    Como funciona: cada tema so define variaveis (--v-*). As regras do fim do
    arquivo aplicam essas variaveis em todos os componentes, iguais para todos.
    Sem backdrop-filter e sem animacao continua: precisa ser liso em PC comum.
@@ -276,9 +275,6 @@ html[data-tema="pastel"]:root :is(.ct-logo-mark, .logo-animada) .logo-trilho { f
 html[data-tema="vermelho"]:root :is(.ct-logo-mark, .logo-animada) .logo-tile { fill: #e6282e; stroke: none; }
 html[data-tema="vermelho"]:root :is(.ct-logo-mark, .logo-animada) .logo-dorm { fill: #ff9a9c; }
 html[data-tema="vermelho"]:root :is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: #ffffff; }
-html[data-tema="laranja"]:root :is(.ct-logo-mark, .logo-animada) .logo-tile { fill: #f26b0f; stroke: none; }
-html[data-tema="laranja"]:root :is(.ct-logo-mark, .logo-animada) .logo-dorm { fill: #ffd796; }
-html[data-tema="laranja"]:root :is(.ct-logo-mark, .logo-animada) .logo-trilho { fill: #ffffff; }
 
 /* Tela inicial (escolha do setor): mesmo fundo e mesmos cartoes do tema */
 html[data-tema]:root .home-entrada {
