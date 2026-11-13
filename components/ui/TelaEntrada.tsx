@@ -13,10 +13,11 @@ export function TelaEntrada({
   return (
     <main className={`${area} entrada-tela`}>
       <section className="entrada-marca">
-        <FundoTrilhos />
+        <FundoTrilhos modo="abertura" />
         <div className="entrada-marca-conteudo">
           <LogoAnimada size={76} />
           <h2 className="entrada-marca-nome">Controle de Trilhos</h2>
+          <span className="cordao-solda" aria-hidden="true" />
           <p className="entrada-marca-frase">Recebimento, remessa e conferência de trilhos.</p>
         </div>
       </section>

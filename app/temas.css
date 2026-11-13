@@ -951,3 +951,31 @@ html[data-tema]:root .turno-linha[data-parada] dt, html[data-tema]:root .turno-l
 html[data-tema]:root .inicio-resumo-itens { display: flex; flex-direction: column; gap: 3px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--v-card-line); font-size: .82rem; color: var(--ink-muted); }
 html[data-tema]:root .inicio-resumo-itens > span { overflow-wrap: anywhere; }
 html[data-tema]:root .inicio-resumo-itens > [data-destaque="true"] { font-weight: 700; color: var(--warn); }
+
+/* Cores da cena da ferrovia na abertura (tela inicial, logins e abertura do app), por tema.
+   Valores "R G B". Os temas escuros são noite com estrelas; claro e pastel são amanhecer. */
+:root, html[data-tema="azul"]:root {
+  --cena-ceu-topo: 5 9 18; --cena-ceu-horizonte: 26 42 66; --cena-neblina: 44 66 98; --cena-brita: 36 47 64; --cena-brita-perto: 46 56 72;
+  --cena-dormente: 22 27 36; --cena-aco: 232 241 252; --cena-aco-lado: 74 97 128; --cena-farol: 255 214 160; --cena-poste: 120 140 165;
+  --cena-sinal-1: 90 230 160; --cena-sinal-2: 255 170 70; --cena-estrelas: 1;
+}
+html[data-tema="escuro"]:root {
+  --cena-ceu-topo: 4 4 6; --cena-ceu-horizonte: 22 24 30; --cena-neblina: 40 44 54; --cena-brita: 34 36 42; --cena-brita-perto: 42 44 50;
+  --cena-dormente: 18 18 22; --cena-aco: 245 245 248; --cena-aco-lado: 90 92 102; --cena-farol: 255 220 170; --cena-poste: 120 122 130;
+  --cena-sinal-1: 120 230 170; --cena-sinal-2: 255 180 80; --cena-estrelas: 1;
+}
+html[data-tema="vermelho"]:root {
+  --cena-ceu-topo: 10 6 7; --cena-ceu-horizonte: 46 14 16; --cena-neblina: 90 28 30; --cena-brita: 40 30 32; --cena-brita-perto: 50 38 40;
+  --cena-dormente: 22 16 17; --cena-aco: 255 240 240; --cena-aco-lado: 120 70 72; --cena-farol: 255 200 160; --cena-poste: 140 110 112;
+  --cena-sinal-1: 255 70 76; --cena-sinal-2: 255 180 90; --cena-estrelas: .8;
+}
+html[data-tema="claro"]:root {
+  --cena-ceu-topo: 196 208 222; --cena-ceu-horizonte: 240 226 210; --cena-neblina: 232 230 226; --cena-brita: 168 170 172; --cena-brita-perto: 140 142 146;
+  --cena-dormente: 92 84 78; --cena-aco: 255 255 255; --cena-aco-lado: 110 118 130; --cena-farol: 255 240 220; --cena-poste: 80 84 92;
+  --cena-sinal-1: 40 170 110; --cena-sinal-2: 230 140 40; --cena-estrelas: 0;
+}
+html[data-tema="pastel"]:root {
+  --cena-ceu-topo: 214 200 250; --cena-ceu-horizonte: 250 214 232; --cena-neblina: 238 226 250; --cena-brita: 186 172 220; --cena-brita-perto: 160 146 200;
+  --cena-dormente: 100 86 140; --cena-aco: 255 255 255; --cena-aco-lado: 130 110 180; --cena-farol: 255 236 245; --cena-poste: 110 96 150;
+  --cena-sinal-1: 90 200 170; --cena-sinal-2: 255 150 190; --cena-estrelas: 0;
+}

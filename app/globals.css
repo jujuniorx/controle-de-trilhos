@@ -2270,3 +2270,27 @@ select option:checked, select option:hover { background: var(--primary, #3b82f6)
 .patio-toque label { padding-block: 4px; }
 .erro-campo { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 14px; font-weight: 700; color: var(--bad); }
 .erro-campo svg { flex: none; }
+
+/* Cena da ferrovia (components/ui/CenaFerrovia.tsx): canvas no fundo das telas de abertura e das faixas de saudação. */
+.cena-ferrovia { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.abertura .fundo-trilhos { --horizonte: 60%; }
+.abertura-marca { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+/* Emenda do logo: acende em brasa quando os trilhos fecham e esfria. */
+.logo-animada .la-solda { fill: #ff8a2a; opacity: 0; transform-box: fill-box; transform-origin: center; animation: la-solda 1.4s ease-out 1.15s both; }
+@keyframes la-solda {
+  0% { opacity: 0; transform: scale(.4); filter: drop-shadow(0 0 0 rgba(255, 138, 42, 0)); }
+  18% { opacity: 1; transform: scale(1.7); filter: drop-shadow(0 0 3px rgba(255, 170, 80, .95)); }
+  45% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1); filter: drop-shadow(0 0 0 rgba(255, 138, 42, 0)); }
+}
+/* Cordão de solda aceso embaixo do nome: abre do centro e fica brilhando de leve. */
+.cordao-solda { display: block; width: min(220px, 60%); height: 3px; margin: 12px auto 0; border-radius: 3px; transform: scaleX(0); opacity: 0;
+  background: linear-gradient(90deg, transparent, #ff8a2a 18%, #ffd29a 50%, #ff8a2a 82%, transparent);
+  box-shadow: 0 0 12px rgba(255, 138, 42, .65); animation: cordao-solda 1.6s cubic-bezier(.2, .8, .2, 1) 1.3s forwards; }
+.abertura-marca .cordao-solda { margin-top: -4px; }
+@keyframes cordao-solda { 0% { transform: scaleX(0); opacity: 1; } 50% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(1); opacity: .5; } }
+@media (prefers-reduced-motion: reduce) {
+  .logo-animada .la-solda { animation: none; opacity: 0; }
+  .cordao-solda { animation: none; transform: none; opacity: .5; }
+}
+@media print { .cena-ferrovia, .cordao-solda { display: none !important; } }

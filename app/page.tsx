@@ -48,11 +48,12 @@ function IconeProducao() {
 export default function Home() {
   return (
     <main className="home-entrada">
-      <FundoTrilhos />
+      <FundoTrilhos modo="abertura" />
       <AlternarTema className="home-tema" />
       <div className="home-conteudo">
         <LogoAnimada size={84} />
         <h1 className="home-titulo">Controle de Trilhos</h1>
+        <span className="cordao-solda" aria-hidden="true" />
         <p className="home-frase">Recebimento, remessa e conferência de trilhos.</p>
 
         <nav className="home-grade" aria-label="Setores">

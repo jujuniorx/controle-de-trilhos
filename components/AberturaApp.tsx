@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { LogoAnimada } from '@/components/ui/LogoAnimada';
+import { FundoTrilhos } from '@/components/ui/FundoTrilhos';
 import { jaInstalado } from '@/lib/pwa/instalacao';
 
 const CHAVE = 'ct_abertura';
 
-/** Tela de abertura curta, só no app instalado e uma vez por sessão (como num app de verdade). */
+/** Tela de abertura do app instalado, uma vez por sessão: a abertura completa da cena da ferrovia (cerca de 3 s). */
 export function AberturaApp() {
   const [visivel, setVisivel] = useState(false);
   const [saindo, setSaindo] = useState(false);
@@ -20,8 +21,8 @@ export function AberturaApp() {
       /* sem armazenamento: mostra mesmo assim */
     }
     setVisivel(true);
-    const sair = setTimeout(() => setSaindo(true), 1300);
-    const fim = setTimeout(() => setVisivel(false), 1800);
+    const sair = setTimeout(() => setSaindo(true), 2700);
+    const fim = setTimeout(() => setVisivel(false), 3200);
     return () => {
       clearTimeout(sair);
       clearTimeout(fim);
@@ -31,8 +32,12 @@ export function AberturaApp() {
   if (!visivel) return null;
   return (
     <div className={`abertura ${saindo ? 'abertura-saindo' : ''}`} role="presentation">
-      <LogoAnimada size={96} />
-      <p className="abertura-nome">Controle de Trilhos</p>
+      <FundoTrilhos modo="abertura" intro="completa" />
+      <div className="abertura-marca">
+        <LogoAnimada size={96} />
+        <p className="abertura-nome">Controle de Trilhos</p>
+        <span className="cordao-solda" aria-hidden="true" />
+      </div>
     </div>
   );
 }
