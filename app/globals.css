@@ -848,7 +848,6 @@ input:focus, select:focus, textarea:focus { border-color: var(--primary); outlin
 html[data-tema="escuro"] .grafico-area { --viz-2: #7c7c85; --viz-outros: #4b4b52; --cat-l: .8; --cat-c: .075; --cat-h: 250; }
 html[data-tema="azul"] .grafico-area { --viz-2: #f2a36b; --viz-outros: #5a6f97; --cat-l: .72; --cat-c: .14; --cat-h: 268; }
 html[data-tema="vermelho"] .grafico-area { --viz-2: #ff9a9c; --viz-outros: #5a5a5a; --cat-l: .72; --cat-c: .16; --cat-h: 25; }
-html[data-tema="laranja"] .grafico-area { --viz-2: #2f7fd6; --viz-outros: #8a6a4a; --cat-l: .62; --cat-c: .14; --cat-h: 250; }
 html[data-tema="pastel"] .grafico-area { --viz-2: #f29bbf; --viz-outros: #cfc6ee; --cat-l: .76; --cat-c: .1; --cat-h: 295; }
 /* Os perfis mais usados (TR60, TR68, TR57, TR45, TR50) ficam bem afastados na roda; o TR60 leva a cor do tema. */
 .grafico-area { --cat-0: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 30)); --cat-1: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 60)); --cat-2: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 120)); --cat-3: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 180)); --cat-4: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 90)); --cat-5: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 210)); --cat-6: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 240)); --cat-7: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 270)); --cat-8: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 300)); --cat-9: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 0)); --cat-10: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 150)); --cat-11: oklch(var(--cat-l) var(--cat-c) calc(var(--cat-h) + 330)); }
@@ -2253,6 +2252,5 @@ html[data-tema="claro"] select option { background: #ffffff; color: #13202f; }
 html[data-tema="pastel"] select option { background: #ffffff; color: #2b1d4d; }
 html[data-tema="escuro"] select option { background: #0b0b0c; color: #fafafa; }
 html[data-tema="vermelho"] select option { background: #161616; color: #ffffff; }
-html[data-tema="laranja"] select option { background: #3d1d06; color: #fff7e6; }
 html[data-tema="azul"] select option { background: #0e1a2e; color: #e8f1fc; }
 select option:checked, select option:hover { background: var(--primary, #3b82f6); color: #fff; }
