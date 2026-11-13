@@ -1,5 +1,6 @@
 import { TrilhoTls } from '@/components/producao/TrilhoTls';
-import { conjuntoFeriados, rotuloSobraProximoDia } from '@/lib/usina/diasUteis';
+import { conjuntoFeriados, quandoProximoDiaUtil } from '@/lib/usina/diasUteis';
+import { SobraProximoDia } from '@/components/producao/SobraProximoDia';
 import { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, buscarDia, horasDoDia, paradasDaLinha, paradasEmAndamento, respostaTlsDaLinha } from '@/lib/services/producao';
 import { AoVivo } from '@/components/producao/AoVivo';
 import { BotaoImprimirPagina } from '@/components/producao/BotaoImprimirPagina';
@@ -79,6 +80,9 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
   const paradaAberta = (dia?.linhas ?? []).flatMap((l) => paradasEmAndamento(l.paradas)).at(-1);
   const atualizado = dia ? new Date(dia.atualizadoEm.getTime() - 3 * 60 * 60 * 1000).toISOString().slice(11, 16) : null;
   const sobra = dia?.sobraSaida ?? 0;
+  // Próximo dia de trabalho (pula fim de semana e feriado de Bauru): é quando o TLS aberto continua.
+  const quando = quandoProximoDiaUtil(dataTexto, conjuntoFeriados());
+  const noDia = quando === 'amanhã' ? 'amanhã' : `na ${quando}`;
 
   // Os mesmos números da folha impressa, prontos para virar imagem no navegador.
   const dataBr = dataTexto.split('-').reverse().join('/');
@@ -91,7 +95,9 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
     indicadores: [
       { rotulo: 'Soldas no dia', valor: String(totalSoldas) },
       { rotulo: 'TLS formados', valor: String(dia?.tlsFormados ?? 0), detalhe: temReemprego ? 'reemprego: quando o soldador encerra' : `a cada ${SOLDAS_POR_TLS} soldas` },
-      { rotulo: terminouEmReemprego ? 'TLS em aberto' : rotuloSobraProximoDia(dataTexto, conjuntoFeriados()), valor: String(dia?.sobraSaida ?? 0), detalhe: terminouEmReemprego ? 'soldas no TLS de reemprego' : undefined },
+      terminouEmReemprego
+        ? { rotulo: 'TLS em aberto', valor: String(sobra), detalhe: 'soldas no TLS de reemprego' }
+        : { rotulo: `Continua ${noDia}`, valor: sobra ? `${sobra} de ${SOLDAS_POR_TLS}` : '0', detalhe: sobra ? `faltam ${SOLDAS_POR_TLS - sobra} para fechar o TLS` : 'nenhum TLS em aberto' },
       { rotulo: 'Cortes', valor: String(totalCortes), detalhe: totalParadaMin ? `${totalParadaMin} min de parada` : 'sem paradas' },
     ],
     linhas: linhas.map(({ hora, l, acumulado: acc, tlsCom }) => ({
@@ -216,7 +222,11 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
       <section className="doc-indicadores grid grid-cols-2 gap-3 md:grid-cols-4">
         <Indicador rotulo="Soldas no dia" valor={totalSoldas} />
         <Indicador rotulo="TLS formados" valor={dia?.tlsFormados ?? 0} detalhe={temReemprego ? 'reemprego: quando o soldador encerra' : `a cada ${SOLDAS_POR_TLS} soldas`} />
-        <Indicador rotulo={terminouEmReemprego ? 'TLS em aberto' : rotuloSobraProximoDia(dataTexto, conjuntoFeriados())} valor={dia?.sobraSaida ?? 0} detalhe={terminouEmReemprego ? 'soldas no TLS de reemprego' : undefined} />
+        {terminouEmReemprego ? (
+          <Indicador rotulo="TLS em aberto" valor={sobra} detalhe="soldas no TLS de reemprego" />
+        ) : (
+          <SobraProximoDia feitas={sobra} total={SOLDAS_POR_TLS} quando={quando} />
+        )}
         <Indicador rotulo="Cortes" valor={totalCortes} detalhe={totalParadaMin ? `${totalParadaMin} min de parada` : 'sem paradas'} />
       </section>
 

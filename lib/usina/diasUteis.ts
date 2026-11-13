@@ -67,10 +67,10 @@ export function proximoDiaUtil(iso: string, feriados: ReadonlySet<string>): stri
   return d;
 }
 
-// Rótulo da sobra: "amanhã" quando o próximo dia de trabalho é o dia seguinte, senão o nome do dia (ex.: "segunda").
-export function rotuloSobraProximoDia(iso: string, feriados: ReadonlySet<string>): string {
+// Quando é o próximo dia de trabalho: 'amanhã' se for o dia seguinte, senão o nome do dia (ex.: 'segunda').
+export function quandoProximoDiaUtil(iso: string, feriados: ReadonlySet<string>): string {
   const prox = proximoDiaUtil(iso, feriados);
-  if (prox === somarDias(iso, 1)) return 'Sobra para amanhã';
+  if (prox === somarDias(iso, 1)) return 'amanhã';
   const nomes = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
-  return `Sobra para ${nomes[new Date(`${prox}T12:00:00Z`).getUTCDay()]}`;
+  return nomes[new Date(`${prox}T12:00:00Z`).getUTCDay()];
 }
