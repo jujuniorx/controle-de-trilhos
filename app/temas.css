@@ -925,16 +925,17 @@ html[data-tema]:root .turno-linha dd b { font-family: var(--font-barlow-cond), v
 html[data-tema]:root .turno-soldas dd b { font-size: 3.2rem; }
 html[data-tema]:root .turno-forte { font-weight: 700; color: var(--ink); }
 html[data-tema]:root .turno-quebra { flex-basis: 100%; }
-/* Trilho do TLS em montagem (uma barra por solda) */
-html[data-tema]:root .trilho-tls { display: block; flex-basis: 100%; width: 100%; max-width: 21rem; height: auto; margin-top: 6px; overflow: visible; }
+/* Trilho do TLS em montagem: visto de lado, sobre os dormentes (uma barra por solda) */
+html[data-tema]:root .trilho-tls { display: block; flex-basis: 100%; width: 100%; max-width: 23rem; height: auto; margin-top: 8px; overflow: visible; }
 html[data-tema]:root .trilho-tls-feito rect { fill: var(--ink); }
-html[data-tema]:root .trilho-tls-feito .trilho-tls-alma { opacity: .55; }
-html[data-tema]:root .trilho-tls-feito .trilho-tls-emenda { fill: var(--v-card, var(--surface)); opacity: .55; }
+html[data-tema]:root .trilho-tls-feito .trilho-tls-alma { opacity: .62; }
+html[data-tema]:root .trilho-tls-feito .trilho-tls-brilho { fill: var(--v-card, var(--surface)); opacity: .28; }
 html[data-tema]:root .trilho-tls-feito .trilho-tls-ultima { fill: var(--warn); }
-html[data-tema]:root .trilho-tls-completo .trilho-tls-feito rect { fill: var(--ink); }
-html[data-tema]:root .trilho-tls-completo .trilho-tls-emenda { fill: var(--v-card, var(--surface)); opacity: .7; }
-html[data-tema]:root .trilho-tls-pontas { fill: var(--ok); }
-html[data-tema]:root .trilho-tls-solta rect { fill: none; stroke: var(--ink-muted); stroke-width: .8; opacity: .55; }
+html[data-tema]:root .trilho-tls-feito .trilho-tls-ultima-halo { fill: var(--warn); opacity: .2; }
+html[data-tema]:root .trilho-tls-solta rect { fill: none; stroke: var(--ink-muted); stroke-width: .9; opacity: .6; }
+html[data-tema]:root .trilho-tls-solta line { stroke: var(--ink-muted); stroke-width: .6; opacity: .35; }
+html[data-tema]:root .trilho-tls-dormente { fill: var(--ink-muted); opacity: .22; }
+html[data-tema]:root .trilho-tls-dormente-firme { opacity: .55; }
 html[data-tema]:root .turno-linha[data-parada] dt, html[data-tema]:root .turno-linha[data-parada] dd { color: var(--warn); font-weight: 700; }
 
 /* Tela inicial: resuminho dentro do cartao (Producao de hoje) */
