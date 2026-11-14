@@ -660,14 +660,11 @@ function desenharPortaSchlatter(c: CanvasRenderingContext2D, M: number, w: numbe
   c.beginPath(); c.arc(j.caixaX + j.caixaW * 0.25, j.y - 0.04 * M, 0.035 * M, 0, 6.283); c.fill();
   c.strokeStyle = 'rgb(28,30,34)';
   c.beginPath(); c.moveTo(j.caixaX + j.caixaW * 0.25, j.y - 0.01 * M); c.lineTo(j.caixaX + j.caixaW * 0.25, j.y); c.stroke();
-  // abertura (escura) com a moldura creme e as dobradiças da grade em cima
+  // abertura (escura) com a moldura creme
   c.fillStyle = 'rgb(20,22,26)';
   c.fillRect(j.abX, j.y, j.abW, j.h);
   c.strokeStyle = cor(mq([214, 204, 176])); c.lineWidth = Math.max(2, 0.03 * M);
   c.strokeRect(j.abX, j.y, j.abW, j.h);
-  c.fillStyle = 'rgb(40,42,46)';
-  c.fillRect(j.abX + j.abW * 0.1, j.y - 0.03 * M, j.abW * 0.18, 0.045 * M);
-  c.fillRect(j.abX + j.abW * 0.72, j.y - 0.03 * M, j.abW * 0.18, 0.045 * M);
 }
 
 /** Posição da janelinha de visita na porta (em relação ao canto da porta). */
@@ -1328,59 +1325,58 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.fillRect(abX, abY, jn.abW, jn.h);
         ctx.restore();
       }
-      // A grade é uma peça rígida: só muda o ângulo. Cada ponto dela (u de lado a lado, v da dobradiça até a beirada de baixo)
-      // vai para fora conforme gira; vista de frente e um pouco de baixo, a beirada que vem para fora fica mais larga e mais baixa.
-      // As barras e a moldura mantêm a espessura (não "esmaga" como sanfona).
-      const giro = (1 - gradeDesce) * Math.PI / 2; // 0 em pé (fechada), 90° deitada para fora (aberta)
+      // A grade gira num eixo atravessado no meio da altura, com um pino em cada lateral (como virar uma faca de lado).
+      // Fechada fica de pé, de frente, tampando a janelinha; aberta fica deitada e, vista de frente, vira uma faixa fina
+      // atravessando a janelinha. Peça rígida: barras e moldura mantêm a espessura, só o ângulo muda.
+      const giro = (1 - gradeDesce) * Math.PI / 2; // 0 de pé (fechada), 90° deitada (aberta)
       const cg = Math.cos(giro), sg = Math.sin(giro);
+      const eixoY = abY + jn.h / 2;
+      // v = 0 em cima, 1 embaixo; a metade de baixo vem para fora (na direção do soldador), a de cima vai para dentro
       const pt = (u: number, v: number): [number, number] => {
-        const larg = jn.abW * (1 + 0.16 * v * sg);
-        return [abX + jn.abW / 2 + (u - 0.5) * larg, abY + v * jn.h * (cg + 0.24 * sg)];
+        const d = (v - 0.5) * jn.h; // distância até o eixo
+        const fora = d * sg; // quanto vem para fora
+        const larg = jn.abW * (1 + 0.1 * fora / jn.h);
+        return [abX + jn.abW / 2 + (u - 0.5) * larg, eixoY + d * cg + 0.12 * fora];
       };
       const faixa = (v0: number, v1: number, u0 = 0, u1 = 1) => {
         const a1 = pt(u0, v0), a2 = pt(u1, v0), a3 = pt(u1, v1), a4 = pt(u0, v1);
         ctx.beginPath(); ctx.moveTo(a1[0], a1[1]); ctx.lineTo(a2[0], a2[1]); ctx.lineTo(a3[0], a3[1]); ctx.lineTo(a4[0], a4[1]); ctx.closePath(); ctx.fill();
       };
-      const espV = (e: number) => e / Math.max(0.0001, jn.h * (cg + 0.24 * sg)); // espessura fixa em pixels, convertida para v
-      const sombra = 0.25 * sg; // deitada, a grade fica um pouco mais na sombra
-      const creme = (rgb: RGB) => cor(mq(misturar(rgb, [60, 56, 48], sombra)));
-      // sombra da grade aberta na porta, logo embaixo da janelinha
-      if (sg > 0.02) {
-        ctx.fillStyle = `rgba(0,0,0,${0.28 * sg})`;
-        const b1 = pt(0, 1), b2 = pt(1, 1);
-        ctx.beginPath(); ctx.moveTo(abX, abY); ctx.lineTo(abX + jn.abW, abY);
-        ctx.lineTo(b2[0] - 0.02 * M, b2[1] + 0.1 * M * sg); ctx.lineTo(b1[0] + 0.02 * M, b1[1] + 0.1 * M * sg); ctx.closePath(); ctx.fill();
-      }
-      // barras horizontais (espessura fixa)
+      const escalaV = Math.max(0.0001, jn.h * Math.abs(cg + 0.12 * sg));
+      const espV = (e: number) => Math.min(0.5, e / escalaV); // espessura fixa em pixels, convertida para v
+      const creme = (rgb: RGB) => cor(mq(misturar(rgb, [60, 56, 48], 0.2 * sg)));
       const ladoU = Math.max(2, 0.025 * M) / jn.abW;
-      for (let i = 1; i <= 5; i++) {
-        const v = i / 6, e = espV(0.032 * M);
-        ctx.fillStyle = creme([206, 196, 170]);
-        faixa(v - e / 2, v + e / 2, ladoU, 1 - ladoU);
-        ctx.fillStyle = creme([150, 142, 120]);
-        faixa(v + e / 2, Math.min(1, v + e / 2 + espV(Math.max(1, 0.006 * M))), ladoU, 1 - ladoU);
+      // barras horizontais
+      if (cg > 0.08) {
+        for (let i = 1; i <= 5; i++) {
+          const v = i / 6, e = espV(0.032 * M);
+          ctx.fillStyle = creme([206, 196, 170]);
+          faixa(v - e / 2, v + e / 2, ladoU, 1 - ladoU);
+          ctx.fillStyle = creme([150, 142, 120]);
+          faixa(v + e / 2, Math.min(1, v + e / 2 + espV(Math.max(1, 0.006 * M))), ladoU, 1 - ladoU);
+        }
       }
-      // moldura: laterais, travessa da dobradiça e a beirada de baixo (mais grossa, com o puxador)
+      // moldura: laterais, travessa de cima e beirada de baixo com o puxador
       ctx.fillStyle = creme([222, 212, 186]);
       faixa(0, 1, 0, ladoU);
       faixa(0, 1, 1 - ladoU, 1);
       faixa(0, espV(Math.max(2, 0.03 * M)));
       faixa(1 - espV(Math.max(2, 0.03 * M)), 1);
-      // de baixo, com a grade deitada, aparece a espessura da beirada
-      const espessura = Math.max(2, 0.05 * M) * sg;
-      if (espessura > 0.5) {
+      // deitada, aparece a espessura da moldura (o "fio" da grade)
+      const fio = Math.max(2, 0.045 * M) * sg;
+      if (fio > 0.5) {
         const b1 = pt(0, 1), b2 = pt(1, 1);
         ctx.fillStyle = creme([176, 166, 140]);
-        ctx.fillRect(b1[0], b1[1], b2[0] - b1[0], espessura);
+        ctx.fillRect(b1[0], b1[1] - fio / 2, b2[0] - b1[0], fio);
       }
       const pux0 = pt(0.32, 1), pux1 = pt(0.68, 1);
       ctx.fillStyle = creme([206, 196, 170]);
-      ctx.fillRect(pux0[0], pux0[1] + espessura, pux1[0] - pux0[0], 0.04 * M);
-      // pinos da dobradiça
+      ctx.fillRect(pux0[0], pux0[1] + fio / 2 - 0.005 * M, pux1[0] - pux0[0], 0.035 * M);
+      // pinos do eixo, um em cada lateral
       ctx.fillStyle = 'rgb(40,42,46)';
-      ctx.fillRect(abX + jn.abW * 0.1, abY - 0.02 * M, jn.abW * 0.18, 0.035 * M);
-      ctx.fillRect(abX + jn.abW * 0.72, abY - 0.02 * M, jn.abW * 0.18, 0.035 * M);
-      const puxador: [number, number] = [(pux0[0] + pux1[0]) / 2, pux0[1] + espessura + 0.02 * M];
+      ctx.beginPath(); ctx.arc(abX - 0.012 * M, eixoY, 0.025 * M, 0, 6.283); ctx.fill();
+      ctx.beginPath(); ctx.arc(abX + jn.abW + 0.012 * M, eixoY, 0.025 * M, 0, 6.283); ctx.fill();
+      const puxador: [number, number] = [(pux0[0] + pux1[0]) / 2, pux0[1] + fio / 2 + 0.015 * M];
 
       // painel de comando no pedestal, ao lado da máquina: verde pronta, âmbar piscando soldando, vermelha apagada
       const pedX = mR + (W < 600 ? 0.5 : 0.75) * M;
