@@ -981,4 +981,5 @@ html[data-tema="pastel"]:root {
 }
 
 /* Celular: a tela inicial reserva o espaço do estaleiro (trilho, Schlatter e soldador) embaixo dos cartões. */
-@media (max-width: 599px) { html[data-tema]:root .home-entrada { padding-bottom: 190px !important; } }
+@media (max-width: 599px) { html[data-tema]:root .home-entrada { padding-bottom: 230px !important; } }
+@media (min-width: 600px) and (max-width: 899px) { html[data-tema]:root .home-entrada { padding-bottom: 260px !important; } }
