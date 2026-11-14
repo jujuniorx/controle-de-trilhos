@@ -675,28 +675,6 @@ function JANELINHA(M: number) {
   return { caixaX: 0.2 * M, caixaW: 0.24 * M, abX: 0.48 * M, abW: 0.32 * M, y: 0.55 * M, h: 0.5 * M };
 }
 
-/** Grade de barras da janelinha, na cor da moldura (creme), desenhada a partir de (0, 0) do tamanho da abertura.
- *  Ela é presa por dobradiça em cima: fechada fica na vertical tampando a janelinha; aberta gira para fora e fica na horizontal. */
-function desenharGradeJanelinha(c: CanvasRenderingContext2D, M: number, w: number, h: number, mq: (c: RGB) => RGB) {
-  const borda = Math.max(2, 0.03 * M), lado = Math.max(2, 0.025 * M);
-  c.fillStyle = cor(mq([222, 212, 186]));
-  c.fillRect(0, 0, w, borda);
-  c.fillRect(0, h - borda, w, borda);
-  c.fillRect(0, 0, lado, h);
-  c.fillRect(w - lado, 0, lado, h);
-  const n = 5;
-  for (let i = 1; i <= n; i++) {
-    const y = (h / (n + 1)) * i;
-    c.fillStyle = cor(mq([206, 196, 170]));
-    c.fillRect(0, y - 0.016 * M, w, 0.032 * M);
-    c.fillStyle = cor(mq([150, 142, 120]));
-    c.fillRect(0, y + 0.012 * M, w, 0.006 * M);
-  }
-  c.fillStyle = cor(mq([206, 196, 170])); // puxador embaixo
-  c.fillRect(w * 0.32, h - 0.005 * M, w * 0.36, 0.04 * M);
-}
-
-
 interface PoseSoldador {
   sx: number; piso: number; Hs: number; t: number; mq: (c: RGB) => RGB; parado: boolean;
   /** andando (0 parado, 1 andando) e a fase do passo */
@@ -1350,23 +1328,59 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.fillRect(abX, abY, jn.abW, jn.h);
         ctx.restore();
       }
-      const giro = (1 - gradeDesce) * Math.PI / 2; // 0 vertical (fechada), 90° horizontal (aberta)
-      const altGrade = jn.h * (Math.cos(giro) + 0.2 * Math.sin(giro));
-      const largGrade = jn.abW * (1 + 0.06 * Math.sin(giro)); // a ponta que vem para fora parece um pouco maior
-      ctx.save();
-      ctx.translate(abX + jn.abW / 2, abY);
-      // trapézio: em cima na largura da dobradiça, embaixo um pouco mais larga quando gira para fora
-      ctx.transform(1, 0, 0, altGrade / jn.h, 0, 0);
-      ctx.beginPath();
-      ctx.moveTo(-jn.abW / 2, 0); ctx.lineTo(jn.abW / 2, 0); ctx.lineTo(largGrade / 2, jn.h); ctx.lineTo(-largGrade / 2, jn.h); ctx.closePath();
-      ctx.clip();
-      ctx.translate(-largGrade / 2, 0);
-      ctx.scale(largGrade / jn.abW, 1);
-      desenharGradeJanelinha(ctx, M, jn.abW, jn.h, mq);
-      // girada, a grade fica mais na sombra
-      if (giro > 0.01) { ctx.fillStyle = `rgba(0,0,0,${0.22 * Math.sin(giro)})`; ctx.fillRect(0, 0, jn.abW, jn.h); }
-      ctx.restore();
-      const puxador: [number, number] = [abX + jn.abW * 0.5, abY + altGrade];
+      // A grade é uma peça rígida: só muda o ângulo. Cada ponto dela (u de lado a lado, v da dobradiça até a beirada de baixo)
+      // vai para fora conforme gira; vista de frente e um pouco de baixo, a beirada que vem para fora fica mais larga e mais baixa.
+      // As barras e a moldura mantêm a espessura (não "esmaga" como sanfona).
+      const giro = (1 - gradeDesce) * Math.PI / 2; // 0 em pé (fechada), 90° deitada para fora (aberta)
+      const cg = Math.cos(giro), sg = Math.sin(giro);
+      const pt = (u: number, v: number): [number, number] => {
+        const larg = jn.abW * (1 + 0.16 * v * sg);
+        return [abX + jn.abW / 2 + (u - 0.5) * larg, abY + v * jn.h * (cg + 0.24 * sg)];
+      };
+      const faixa = (v0: number, v1: number, u0 = 0, u1 = 1) => {
+        const a1 = pt(u0, v0), a2 = pt(u1, v0), a3 = pt(u1, v1), a4 = pt(u0, v1);
+        ctx.beginPath(); ctx.moveTo(a1[0], a1[1]); ctx.lineTo(a2[0], a2[1]); ctx.lineTo(a3[0], a3[1]); ctx.lineTo(a4[0], a4[1]); ctx.closePath(); ctx.fill();
+      };
+      const espV = (e: number) => e / Math.max(0.0001, jn.h * (cg + 0.24 * sg)); // espessura fixa em pixels, convertida para v
+      const sombra = 0.25 * sg; // deitada, a grade fica um pouco mais na sombra
+      const creme = (rgb: RGB) => cor(mq(misturar(rgb, [60, 56, 48], sombra)));
+      // sombra da grade aberta na porta, logo embaixo da janelinha
+      if (sg > 0.02) {
+        ctx.fillStyle = `rgba(0,0,0,${0.28 * sg})`;
+        const b1 = pt(0, 1), b2 = pt(1, 1);
+        ctx.beginPath(); ctx.moveTo(abX, abY); ctx.lineTo(abX + jn.abW, abY);
+        ctx.lineTo(b2[0] - 0.02 * M, b2[1] + 0.1 * M * sg); ctx.lineTo(b1[0] + 0.02 * M, b1[1] + 0.1 * M * sg); ctx.closePath(); ctx.fill();
+      }
+      // barras horizontais (espessura fixa)
+      const ladoU = Math.max(2, 0.025 * M) / jn.abW;
+      for (let i = 1; i <= 5; i++) {
+        const v = i / 6, e = espV(0.032 * M);
+        ctx.fillStyle = creme([206, 196, 170]);
+        faixa(v - e / 2, v + e / 2, ladoU, 1 - ladoU);
+        ctx.fillStyle = creme([150, 142, 120]);
+        faixa(v + e / 2, Math.min(1, v + e / 2 + espV(Math.max(1, 0.006 * M))), ladoU, 1 - ladoU);
+      }
+      // moldura: laterais, travessa da dobradiça e a beirada de baixo (mais grossa, com o puxador)
+      ctx.fillStyle = creme([222, 212, 186]);
+      faixa(0, 1, 0, ladoU);
+      faixa(0, 1, 1 - ladoU, 1);
+      faixa(0, espV(Math.max(2, 0.03 * M)));
+      faixa(1 - espV(Math.max(2, 0.03 * M)), 1);
+      // de baixo, com a grade deitada, aparece a espessura da beirada
+      const espessura = Math.max(2, 0.05 * M) * sg;
+      if (espessura > 0.5) {
+        const b1 = pt(0, 1), b2 = pt(1, 1);
+        ctx.fillStyle = creme([176, 166, 140]);
+        ctx.fillRect(b1[0], b1[1], b2[0] - b1[0], espessura);
+      }
+      const pux0 = pt(0.32, 1), pux1 = pt(0.68, 1);
+      ctx.fillStyle = creme([206, 196, 170]);
+      ctx.fillRect(pux0[0], pux0[1] + espessura, pux1[0] - pux0[0], 0.04 * M);
+      // pinos da dobradiça
+      ctx.fillStyle = 'rgb(40,42,46)';
+      ctx.fillRect(abX + jn.abW * 0.1, abY - 0.02 * M, jn.abW * 0.18, 0.035 * M);
+      ctx.fillRect(abX + jn.abW * 0.72, abY - 0.02 * M, jn.abW * 0.18, 0.035 * M);
+      const puxador: [number, number] = [(pux0[0] + pux1[0]) / 2, pux0[1] + espessura + 0.02 * M];
 
       // painel de comando no pedestal, ao lado da máquina: verde pronta, âmbar piscando soldando, vermelha apagada
       const pedX = mR + (W < 600 ? 0.5 : 0.75) * M;
