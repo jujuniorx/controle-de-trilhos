@@ -328,64 +328,88 @@ function iniciarSaudacao(cv: HTMLCanvasElement) {
     // composição de TLS cruzando: locomotiva + vagões plataforma com os trilhos longos por cima
     if (!parado && t > PRIMEIRO_TLS) {
       const ciclo = (t - PRIMEIRO_TLS) % INTERVALO_TLS;
-      const comp = 150 + 8 * 96;
+      const alto0 = Math.max(16, H * 0.15);
+      const LL = alto0 * 4.8; // locomotiva AC44i: uns 22 m de comprimento para 4,7 m de altura
+      const comp = LL + 8 * 96;
       const xFrente = W + 40 - ciclo * VEL.tls;
       if (xFrente > -comp - 40) {
         const trilhoY = chao - H * 0.06;
-        const alto = Math.max(16, H * 0.15);
+        const alto = alto0;
         const a = 0.94 * entra;
-        // Composição da Rumo: locomotiva prata e azul com o nome no capô, vagões plataforma levando o TLS.
-        const PRATA: RGB = [200, 206, 214], AZUL_RUMO: RGB = [22, 58, 136], ESCURO: RGB = [40, 44, 52];
+        // Locomotiva da Rumo no desenho de uma AC44i: cinza-prateado com a faixa azul e o nome, cabine na frente,
+        // capô longo, radiadores atrás, estrado azul com faixa amarela, tanque e truques de três eixos.
+        const PRATA: RGB = [200, 206, 214], AZUL_RUMO: RGB = [22, 58, 136], AZUL_ESTRADO: RGB = [16, 38, 92], ESCURO: RGB = [40, 44, 52];
         const lx = xFrente;
+        const X = (f: number) => lx + f * LL;
+        const Y = (f: number) => trilhoY - f * alto;
         const corpo = () => {
           ctx.beginPath();
-          ctx.moveTo(lx, trilhoY - alto * 0.22);
-          ctx.lineTo(lx + 8, trilhoY - alto);
-          ctx.lineTo(lx + 44, trilhoY - alto);
-          ctx.lineTo(lx + 46, trilhoY - alto * 0.8);
-          ctx.lineTo(lx + 150, trilhoY - alto * 0.8);
-          ctx.lineTo(lx + 150, trilhoY - alto * 0.2);
-          ctx.lineTo(lx, trilhoY - alto * 0.2);
+          ctx.moveTo(X(0), Y(0.32));
+          ctx.lineTo(X(0), Y(0.58));
+          ctx.lineTo(X(0.025), Y(0.64));
+          ctx.lineTo(X(0.07), Y(0.64)); // nariz
+          ctx.lineTo(X(0.07), Y(0.9));
+          ctx.lineTo(X(0.085), Y(1.0));
+          ctx.lineTo(X(0.21), Y(1.0)); // cabine
+          ctx.lineTo(X(0.21), Y(0.84));
+          ctx.lineTo(X(0.84), Y(0.84)); // capô longo
+          ctx.lineTo(X(0.87), Y(0.92));
+          ctx.lineTo(X(0.995), Y(0.92)); // radiadores
+          ctx.lineTo(X(0.995), Y(0.32));
           ctx.closePath();
         };
-        const lataria = ctx.createLinearGradient(0, trilhoY - alto, 0, trilhoY - alto * 0.2);
-        lataria.addColorStop(0, cor(misturar(PRATA, [255, 255, 255], 0.35), a));
-        lataria.addColorStop(1, cor(misturar(PRATA, [0, 0, 0], 0.18), a));
+        const lataria = ctx.createLinearGradient(0, Y(1), 0, Y(0.32));
+        lataria.addColorStop(0, cor(misturar(PRATA, [255, 255, 255], 0.4), a));
+        lataria.addColorStop(1, cor(misturar(PRATA, [0, 0, 0], 0.15), a));
         ctx.fillStyle = lataria;
         corpo();
         ctx.fill();
-        // faixa azul embaixo, com o nome
         ctx.save();
         corpo();
         ctx.clip();
+        // faixa azul na metade de baixo, com um filete claro em cima
         ctx.fillStyle = cor(AZUL_RUMO, a);
-        ctx.fillRect(lx, trilhoY - alto * 0.5, 152, alto * 0.3);
-        ctx.fillStyle = cor(misturar(AZUL_RUMO, [255, 255, 255], 0.25), a);
-        ctx.fillRect(lx, trilhoY - alto * 0.52, 152, alto * 0.03);
+        ctx.fillRect(X(0), Y(0.56), LL, alto * 0.24);
+        ctx.fillStyle = cor(misturar(AZUL_RUMO, [255, 255, 255], 0.3), a);
+        ctx.fillRect(X(0), Y(0.575), LL, alto * 0.018);
+        // portas do capô e grade dos radiadores
+        ctx.fillStyle = cor([0, 0, 0], 0.16 * a);
+        for (let f = 0.27; f < 0.82; f += 0.055) ctx.fillRect(X(f), Y(0.82), 1, alto * 0.24);
+        for (let f = 0.62; f < 0.9; f += 0.06) ctx.fillRect(X(0.875), Y(f), LL * 0.11, 1);
         ctx.restore();
         ctx.fillStyle = `rgba(255,255,255,${a})`;
-        ctx.font = `700 ${Math.round(alto * 0.24)}px var(--font-barlow), "Barlow", Arial, sans-serif`;
+        ctx.font = `700 ${Math.round(alto * 0.2)}px var(--font-barlow), "Barlow", Arial, sans-serif`;
         ctx.textBaseline = 'middle';
-        ctx.fillText('rumo', lx + 78, trilhoY - alto * 0.355);
-        // teto do capô, janelas da cabine com luz e a faixa de segurança da frente
-        ctx.fillStyle = cor(misturar(PRATA, [0, 0, 0], 0.35), a);
-        ctx.fillRect(lx + 46, trilhoY - alto * 0.82, 104, alto * 0.04);
-        ctx.fillStyle = `rgba(255,214,150,${0.85 * a})`;
-        ctx.fillRect(lx + 12, trilhoY - alto * 0.9, 13, alto * 0.2);
-        ctx.fillRect(lx + 28, trilhoY - alto * 0.9, 12, alto * 0.2);
-        ctx.fillStyle = cor([235, 190, 40], a);
-        ctx.fillRect(lx, trilhoY - alto * 0.26, 10, alto * 0.06);
-        // farol aceso
-        const g = ctx.createRadialGradient(lx, trilhoY - alto * 0.36, 0, lx, trilhoY - alto * 0.36, alto * 1.6);
-        g.addColorStop(0, `rgba(255,226,170,${0.75 * entra})`); g.addColorStop(1, 'rgba(255,226,170,0)');
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(lx, trilhoY - alto * 0.36, alto * 1.6, 0, 6.283); ctx.fill();
-        // truques da locomotiva
+        ctx.textAlign = 'center';
+        ctx.fillText('rumo', X(0.52), Y(0.445));
+        ctx.textAlign = 'left';
+        // freio dinâmico e chaminé em cima do capô
+        ctx.fillStyle = cor(misturar(PRATA, [0, 0, 0], 0.25), a);
+        ctx.fillRect(X(0.45), Y(0.88), LL * 0.13, alto * 0.04);
         ctx.fillStyle = cor(ESCURO, a);
-        ctx.fillRect(lx + 8, trilhoY - alto * 0.22, 46, alto * 0.08);
-        ctx.fillRect(lx + 96, trilhoY - alto * 0.22, 46, alto * 0.08);
+        ctx.fillRect(X(0.63), Y(0.89), LL * 0.02, alto * 0.05);
+        // janelas da cabine com luz
+        ctx.fillStyle = `rgba(255,214,150,${0.85 * a})`;
+        ctx.fillRect(X(0.075), Y(0.9), LL * 0.022, alto * 0.15);
+        ctx.fillRect(X(0.12), Y(0.9), LL * 0.07, alto * 0.16);
+        // estrado azul com a faixa amarela, tanque e truques de três eixos
+        ctx.fillStyle = cor(AZUL_ESTRADO, a);
+        ctx.fillRect(X(0.005), Y(0.32), LL * 0.99, alto * 0.1);
+        ctx.fillStyle = cor([236, 190, 40], a);
+        ctx.fillRect(X(0.005), Y(0.24), LL * 0.99, alto * 0.025);
+        ctx.fillStyle = cor(misturar(ESCURO, [255, 255, 255], 0.1), a);
+        ctx.beginPath(); ctx.roundRect(X(0.36), Y(0.22), LL * 0.28, alto * 0.11, alto * 0.04); ctx.fill();
+        ctx.fillStyle = cor(ESCURO, a);
+        ctx.fillRect(X(0.06), Y(0.22), LL * 0.26, alto * 0.08);
+        ctx.fillRect(X(0.68), Y(0.22), LL * 0.26, alto * 0.08);
+        // farol aceso na frente
+        const g = ctx.createRadialGradient(X(0), Y(0.48), 0, X(0), Y(0.48), alto * 1.6);
+        g.addColorStop(0, `rgba(255,226,170,${0.75 * entra})`); g.addColorStop(1, 'rgba(255,226,170,0)');
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X(0), Y(0.48), alto * 1.6, 0, 6.283); ctx.fill();
         // vagões plataforma (cinza escuro) com o TLS por cima, em duas camadas
+        const v0 = lx + LL + 4;
         for (let v = 0; v < 8; v++) {
-          const vx = lx + 154 + v * 96;
+          const vx = v0 + v * 96;
           ctx.fillStyle = cor(ESCURO, a);
           ctx.fillRect(vx, trilhoY - alto * 0.3, 92, alto * 0.12);
           ctx.fillStyle = cor(misturar(ESCURO, [255, 255, 255], 0.15), a);
@@ -397,12 +421,13 @@ function iniciarSaudacao(cv: HTMLCanvasElement) {
         const tls = ctx.createLinearGradient(0, trilhoY - alto * 0.55, 0, trilhoY - alto * 0.36);
         tls.addColorStop(0, cor([236, 240, 246], a)); tls.addColorStop(1, cor([140, 150, 165], a));
         ctx.fillStyle = tls;
-        ctx.fillRect(lx + 160, trilhoY - alto * 0.43, 8 * 96 - 14, alto * 0.06);
-        ctx.fillRect(lx + 166, trilhoY - alto * 0.53, 8 * 96 - 26, alto * 0.06);
-        // rodas
+        ctx.fillRect(v0 + 6, trilhoY - alto * 0.43, 8 * 96 - 14, alto * 0.06);
+        ctx.fillRect(v0 + 12, trilhoY - alto * 0.53, 8 * 96 - 26, alto * 0.06);
+        // rodas (três por truque na locomotiva, duas por truque nos vagões)
         ctx.fillStyle = cor([24, 26, 30], a);
-        const rodas = [lx + 18, lx + 42, lx + 108, lx + 132];
-        for (let v = 0; v < 8; v++) rodas.push(lx + 154 + v * 96 + 14, lx + 154 + v * 96 + 78);
+        const rodas: number[] = [];
+        for (const f of [0.1, 0.19, 0.28, 0.72, 0.81, 0.9]) rodas.push(X(f));
+        for (let v = 0; v < 8; v++) rodas.push(v0 + v * 96 + 14, v0 + v * 96 + 78);
         for (const rx of rodas) { ctx.beginPath(); ctx.arc(rx, trilhoY - alto * 0.12, alto * 0.08, 0, 6.283); ctx.fill(); }
       }
     }
