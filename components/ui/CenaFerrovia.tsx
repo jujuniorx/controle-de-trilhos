@@ -660,14 +660,14 @@ function desenharPortaSchlatter(c: CanvasRenderingContext2D, M: number, w: numbe
   c.beginPath(); c.arc(j.caixaX + j.caixaW * 0.25, j.y - 0.04 * M, 0.035 * M, 0, 6.283); c.fill();
   c.strokeStyle = 'rgb(28,30,34)';
   c.beginPath(); c.moveTo(j.caixaX + j.caixaW * 0.25, j.y - 0.01 * M); c.lineTo(j.caixaX + j.caixaW * 0.25, j.y); c.stroke();
-  // abertura (escura) com a moldura creme e as guias da grade
+  // abertura (escura) com a moldura creme e as dobradiças da grade em cima
   c.fillStyle = 'rgb(20,22,26)';
   c.fillRect(j.abX, j.y, j.abW, j.h);
   c.strokeStyle = cor(mq([214, 204, 176])); c.lineWidth = Math.max(2, 0.03 * M);
   c.strokeRect(j.abX, j.y, j.abW, j.h);
-  c.fillStyle = cor(mq([170, 160, 136]));
-  c.fillRect(j.abX - 0.03 * M, j.y - j.h * 0.96, 0.025 * M, j.h * 1.96 + 0.04 * M);
-  c.fillRect(j.abX + j.abW + 0.005 * M, j.y - j.h * 0.96, 0.025 * M, j.h * 1.96 + 0.04 * M);
+  c.fillStyle = 'rgb(40,42,46)';
+  c.fillRect(j.abX + j.abW * 0.1, j.y - 0.03 * M, j.abW * 0.18, 0.045 * M);
+  c.fillRect(j.abX + j.abW * 0.72, j.y - 0.03 * M, j.abW * 0.18, 0.045 * M);
 }
 
 /** Posição da janelinha de visita na porta (em relação ao canto da porta). */
@@ -675,23 +675,25 @@ function JANELINHA(M: number) {
   return { caixaX: 0.2 * M, caixaW: 0.24 * M, abX: 0.48 * M, abW: 0.32 * M, y: 0.55 * M, h: 0.5 * M };
 }
 
-/** Grade de barras da janelinha (o soldador desce na mão), desenhada a partir de (0, 0) do tamanho da abertura. */
-function desenharGradeJanelinha(c: CanvasRenderingContext2D, M: number, w: number, h: number) {
-  c.fillStyle = 'rgb(222,212,186)';
-  c.fillRect(0, 0, w, Math.max(2, 0.03 * M));
-  c.fillRect(0, h - Math.max(2, 0.03 * M), w, Math.max(2, 0.03 * M));
-  c.fillRect(0, 0, Math.max(2, 0.025 * M), h);
-  c.fillRect(w - Math.max(2, 0.025 * M), 0, Math.max(2, 0.025 * M), h);
+/** Grade de barras da janelinha, na cor da moldura (creme), desenhada a partir de (0, 0) do tamanho da abertura.
+ *  Ela é presa por dobradiça em cima: fechada fica na vertical tampando a janelinha; aberta gira para fora e fica na horizontal. */
+function desenharGradeJanelinha(c: CanvasRenderingContext2D, M: number, w: number, h: number, mq: (c: RGB) => RGB) {
+  const borda = Math.max(2, 0.03 * M), lado = Math.max(2, 0.025 * M);
+  c.fillStyle = cor(mq([222, 212, 186]));
+  c.fillRect(0, 0, w, borda);
+  c.fillRect(0, h - borda, w, borda);
+  c.fillRect(0, 0, lado, h);
+  c.fillRect(w - lado, 0, lado, h);
   const n = 5;
   for (let i = 1; i <= n; i++) {
     const y = (h / (n + 1)) * i;
-    c.fillStyle = 'rgb(150,154,160)';
-    c.fillRect(0, y - 0.015 * M, w, 0.03 * M);
-    c.fillStyle = 'rgba(255,255,255,.4)';
-    c.fillRect(0, y - 0.015 * M, w, 1);
+    c.fillStyle = cor(mq([206, 196, 170]));
+    c.fillRect(0, y - 0.016 * M, w, 0.032 * M);
+    c.fillStyle = cor(mq([150, 142, 120]));
+    c.fillRect(0, y + 0.012 * M, w, 0.006 * M);
   }
-  c.fillStyle = 'rgb(28,30,34)'; // puxador embaixo
-  c.fillRect(w * 0.3, h - 0.01 * M, w * 0.4, 0.04 * M);
+  c.fillStyle = cor(mq([206, 196, 170])); // puxador embaixo
+  c.fillRect(w * 0.32, h - 0.005 * M, w * 0.36, 0.04 * M);
 }
 
 
@@ -1336,7 +1338,8 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.restore();
       }
 
-      // grade de barras da janelinha da porta: em cima (aberta) ou embaixo, fechando a abertura (o soldador desce na mão)
+      // grade de barras da janelinha: presa por dobradiça em cima. Fechada (gradeDesce = 1) fica na vertical e tampa tudo;
+      // aberta (0) o soldador gira para cima e ela fica na horizontal, saindo da porta, vista de baixo como uma faixa fina
       const jn = JANELINHA(M);
       const abX = portaX + jn.abX, abY = mT + jn.y;
       // com a grade fechada e a máquina soldando, a luz laranja aparece entre as barras
@@ -1347,15 +1350,23 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.fillRect(abX, abY, jn.abW, jn.h);
         ctx.restore();
       }
-      const gradeY = abY - (1 - gradeDesce) * jn.h * 0.92;
+      const giro = (1 - gradeDesce) * Math.PI / 2; // 0 vertical (fechada), 90° horizontal (aberta)
+      const altGrade = jn.h * (Math.cos(giro) + 0.2 * Math.sin(giro));
+      const largGrade = jn.abW * (1 + 0.06 * Math.sin(giro)); // a ponta que vem para fora parece um pouco maior
       ctx.save();
+      ctx.translate(abX + jn.abW / 2, abY);
+      // trapézio: em cima na largura da dobradiça, embaixo um pouco mais larga quando gira para fora
+      ctx.transform(1, 0, 0, altGrade / jn.h, 0, 0);
       ctx.beginPath();
-      ctx.rect(abX - 0.04 * M, abY - jn.h, jn.abW + 0.08 * M, jn.h * 2 + 0.02 * M);
+      ctx.moveTo(-jn.abW / 2, 0); ctx.lineTo(jn.abW / 2, 0); ctx.lineTo(largGrade / 2, jn.h); ctx.lineTo(-largGrade / 2, jn.h); ctx.closePath();
       ctx.clip();
-      ctx.translate(abX, gradeY);
-      desenharGradeJanelinha(ctx, M, jn.abW, jn.h);
+      ctx.translate(-largGrade / 2, 0);
+      ctx.scale(largGrade / jn.abW, 1);
+      desenharGradeJanelinha(ctx, M, jn.abW, jn.h, mq);
+      // girada, a grade fica mais na sombra
+      if (giro > 0.01) { ctx.fillStyle = `rgba(0,0,0,${0.22 * Math.sin(giro)})`; ctx.fillRect(0, 0, jn.abW, jn.h); }
       ctx.restore();
-      const puxador: [number, number] = [abX + jn.abW * 0.5, gradeY + jn.h];
+      const puxador: [number, number] = [abX + jn.abW * 0.5, abY + altGrade];
 
       // painel de comando no pedestal, ao lado da máquina: verde pronta, âmbar piscando soldando, vermelha apagada
       const pedX = mR + (W < 600 ? 0.5 : 0.75) * M;
