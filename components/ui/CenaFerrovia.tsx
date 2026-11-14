@@ -534,7 +534,8 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     const xc = W / 2;
     // Escala de verdade: a máquina (2,6 m de altura) ocupa cerca de 30% da altura da tela; o soldador tem 1,75 m.
     // O perfil (TR68, 186 mm) sai só um pouco maior que o real (23 cm), para continuar lendo como trilho.
-    const M = Math.max(28, Math.min(H * 0.115, W / 11)); // um metro (no celular a máquina fica menor, embaixo dos cartões)
+    // No celular a máquina fica menor e embaixo de tudo (a tela inicial e o login reservam esse espaço no CSS).
+    const M = W < 600 ? Math.max(34, Math.min(50, W / 9)) : Math.max(40, Math.min(H * 0.115, W / 11)); // um metro
     const R = 0.23 * M; // altura do perfil
     const L = 12 * M; // uma barra de 12 m
     const piso = H * 0.95;
@@ -542,7 +543,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     const rr = 0.1 * M; // rolete de 20 cm
 
     // Schlatter à direita no computador (fora dos cartões); no celular, mais para a direita também.
-    const xm = W >= 900 ? W * 0.8 : W * 0.6;
+    const xm = W >= 900 ? W * 0.8 : W * 0.58;
 
     // ---------- movimento do trilho e ciclo da solda ----------
     if (parado) {
@@ -890,11 +891,18 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.lineWidth = largura;
         ctx.beginPath();
         ctx.moveTo(mL + M * 0.55, mT - M * 0.1);
-        ctx.lineTo(mL + M * 0.55, mT - M * 0.7);
-        ctx.quadraticCurveTo(mL + M * 0.55, mT - M * 1.15, mL + M * 1.1, mT - M * 1.15);
-        ctx.lineTo(mR + M * 0.4, mT - M * 1.15);
-        ctx.quadraticCurveTo(mR + M * 1.0, mT - M * 1.15, mR + M * 1.0, mT - M * 1.8);
-        ctx.lineTo(mR + M * 1.0, mT - M * 3.2);
+        if (W < 600) {
+          // no celular o tubo fica baixo e some à direita, sem passar por cima do texto
+          ctx.lineTo(mL + M * 0.55, mT - M * 0.3);
+          ctx.quadraticCurveTo(mL + M * 0.55, mT - M * 0.55, mL + M * 0.9, mT - M * 0.55);
+          ctx.lineTo(W + M, mT - M * 0.55);
+        } else {
+          ctx.lineTo(mL + M * 0.55, mT - M * 0.7);
+          ctx.quadraticCurveTo(mL + M * 0.55, mT - M * 1.15, mL + M * 1.1, mT - M * 1.15);
+          ctx.lineTo(mR + M * 0.4, mT - M * 1.15);
+          ctx.quadraticCurveTo(mR + M * 1.0, mT - M * 1.15, mR + M * 1.0, mT - M * 1.8);
+          ctx.lineTo(mR + M * 1.0, mT - M * 3.2);
+        }
         ctx.stroke();
       };
       tubo(M * 0.3, cor(mq(TUBO)));

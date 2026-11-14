@@ -2304,4 +2304,4 @@ select option:checked, select option:hover { background: var(--primary, #3b82f6)
 }
 @media print { .cena-ferrovia, .cordao-tls { display: none !important; } }
 /* Login no celular: espaço para o estaleiro (trilho e Schlatter) embaixo do nome. */
-@media (max-width: 859px) { .entrada-marca { min-height: 360px; } }
+@media (max-width: 859px) { .entrada-marca { min-height: 400px; } }

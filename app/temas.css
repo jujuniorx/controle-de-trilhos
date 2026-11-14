@@ -979,3 +979,6 @@ html[data-tema="pastel"]:root {
   --cena-dormente: 100 86 140; --cena-aco: 255 255 255; --cena-aco-lado: 130 110 180; --cena-farol: 255 236 245; --cena-poste: 110 96 150;
   --cena-sinal-1: 90 200 170; --cena-sinal-2: 255 150 190; --cena-estrelas: 0;
 }
+
+/* Celular: a tela inicial reserva o espaço do estaleiro (trilho, Schlatter e soldador) embaixo dos cartões. */
+@media (max-width: 599px) { html[data-tema]:root .home-entrada { padding-bottom: 190px !important; } }
