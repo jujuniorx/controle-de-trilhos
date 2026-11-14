@@ -638,34 +638,62 @@ function desenharPortaSchlatter(c: CanvasRenderingContext2D, M: number, w: numbe
   c.fillRect(w * 0.35, h - 0.62 * M, 0.3 * M, 0.2 * M);
   c.fillStyle = 'rgb(30,30,30)';
   for (let i = 0; i < 4; i++) c.fillRect(w * 0.35 + i * 0.08 * M, h - 0.62 * M, 0.035 * M, 0.035 * M);
-  const tx = w * 0.55, ty = h * 0.3, ts = 0.11 * M;
+  const tx = w * 0.78, ty = h * 0.2, ts = 0.1 * M;
   c.fillStyle = cor(SCH.AMARELO);
   c.beginPath(); c.moveTo(tx, ty - ts); c.lineTo(tx + ts, ty + ts * 0.75); c.lineTo(tx - ts, ty + ts * 0.75); c.closePath(); c.fill();
   c.strokeStyle = 'rgb(30,30,30)'; c.lineWidth = Math.max(1, M * 0.012); c.stroke();
+
+  // conjunto da janelinha de visita (como na foto): caixa azul com etiqueta amarela, alavanca preta com bola
+  // vermelha em cima e, ao lado, a abertura com moldura creme onde desce a grade de barras
+  const j = JANELINHA(M);
+  const azulCx = c.createLinearGradient(j.caixaX, 0, j.caixaX + j.caixaW, 0);
+  azulCx.addColorStop(0, cor(mq([58, 104, 178]))); azulCx.addColorStop(1, cor(mq([34, 72, 138])));
+  c.fillStyle = azulCx;
+  c.fillRect(j.caixaX, j.y, j.caixaW, j.h);
+  c.fillStyle = cor(SCH.AMARELO);
+  c.fillRect(j.caixaX + j.caixaW * 0.55, j.y + j.h * 0.12, j.caixaW * 0.32, j.h * 0.42);
+  c.fillStyle = 'rgb(28,30,34)';
+  c.fillRect(j.caixaX + j.caixaW * 0.12, j.y + j.h * 0.62, j.caixaW * 0.4, j.h * 0.28);
+  c.strokeStyle = 'rgb(28,30,34)'; c.lineWidth = Math.max(1.5, 0.025 * M); c.lineCap = 'round';
+  c.beginPath(); c.moveTo(j.caixaX + j.caixaW * 0.7, j.y); c.lineTo(j.caixaX + j.caixaW * 0.7, j.y - 0.1 * M); c.lineTo(j.caixaX + j.caixaW * 0.15, j.y - 0.2 * M); c.stroke();
+  c.fillStyle = 'rgb(200,50,40)';
+  c.beginPath(); c.arc(j.caixaX + j.caixaW * 0.25, j.y - 0.04 * M, 0.035 * M, 0, 6.283); c.fill();
+  c.strokeStyle = 'rgb(28,30,34)';
+  c.beginPath(); c.moveTo(j.caixaX + j.caixaW * 0.25, j.y - 0.01 * M); c.lineTo(j.caixaX + j.caixaW * 0.25, j.y); c.stroke();
+  // abertura (escura) com a moldura creme e as guias da grade
+  c.fillStyle = 'rgb(20,22,26)';
+  c.fillRect(j.abX, j.y, j.abW, j.h);
+  c.strokeStyle = cor(mq([214, 204, 176])); c.lineWidth = Math.max(2, 0.03 * M);
+  c.strokeRect(j.abX, j.y, j.abW, j.h);
+  c.fillStyle = cor(mq([170, 160, 136]));
+  c.fillRect(j.abX - 0.03 * M, j.y - j.h * 0.96, 0.025 * M, j.h * 1.96 + 0.04 * M);
+  c.fillRect(j.abX + j.abW + 0.005 * M, j.y - j.h * 0.96, 0.025 * M, j.h * 1.96 + 0.04 * M);
 }
 
-/** Grade de proteção da frente da janela (o soldador desce e sobe na mão), desenhada a partir de (0, 0). */
-function desenharGradeSchlatter(c: CanvasRenderingContext2D, M: number, w: number, h: number) {
-  // tela galvanizada (cinza claro), visível tanto sobre a janela escura quanto sobre a porta laranja
-  c.fillStyle = 'rgba(20,22,26,.18)';
-  c.fillRect(0, 0, w, h);
-  c.strokeStyle = 'rgba(178,184,192,.75)';
-  c.lineWidth = 1;
-  c.beginPath();
-  const passo = Math.max(3, 0.05 * M);
-  for (let x = passo; x < w; x += passo) { c.moveTo(x, 0); c.lineTo(x, h); }
-  for (let y = passo; y < h; y += passo) { c.moveTo(0, y); c.lineTo(w, y); }
-  c.stroke();
-  c.strokeStyle = 'rgb(120,126,134)';
-  c.lineWidth = Math.max(2, 0.04 * M);
-  c.strokeRect(0, 0, w, h);
-  c.strokeStyle = 'rgba(0,0,0,.4)';
-  c.lineWidth = 1;
-  c.strokeRect(-1, -1, w + 2, h + 2);
-  // puxador embaixo, amarelo
-  c.fillStyle = cor(SCH.AMARELO);
-  c.fillRect(w * 0.3, h - 0.05 * M, w * 0.4, 0.06 * M);
+/** Posição da janelinha de visita na porta (em relação ao canto da porta). */
+function JANELINHA(M: number) {
+  return { caixaX: 0.2 * M, caixaW: 0.24 * M, abX: 0.48 * M, abW: 0.32 * M, y: 0.55 * M, h: 0.5 * M };
 }
+
+/** Grade de barras da janelinha (o soldador desce na mão), desenhada a partir de (0, 0) do tamanho da abertura. */
+function desenharGradeJanelinha(c: CanvasRenderingContext2D, M: number, w: number, h: number) {
+  c.fillStyle = 'rgb(222,212,186)';
+  c.fillRect(0, 0, w, Math.max(2, 0.03 * M));
+  c.fillRect(0, h - Math.max(2, 0.03 * M), w, Math.max(2, 0.03 * M));
+  c.fillRect(0, 0, Math.max(2, 0.025 * M), h);
+  c.fillRect(w - Math.max(2, 0.025 * M), 0, Math.max(2, 0.025 * M), h);
+  const n = 5;
+  for (let i = 1; i <= n; i++) {
+    const y = (h / (n + 1)) * i;
+    c.fillStyle = 'rgb(150,154,160)';
+    c.fillRect(0, y - 0.015 * M, w, 0.03 * M);
+    c.fillStyle = 'rgba(255,255,255,.4)';
+    c.fillRect(0, y - 0.015 * M, w, 1);
+  }
+  c.fillStyle = 'rgb(28,30,34)'; // puxador embaixo
+  c.fillRect(w * 0.3, h - 0.01 * M, w * 0.4, 0.04 * M);
+}
+
 
 interface PoseSoldador {
   sx: number; piso: number; Hs: number; t: number; mq: (c: RGB) => RGB; parado: boolean;
@@ -1308,14 +1336,26 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.restore();
       }
 
-      // grade da frente: em cima (aberta) sobre a faixa de cima, embaixo (fechada) na frente da janela
-      const gradeW = wR - wL + 0.08 * M, gradeH = wB - wT + 0.04 * M;
-      const gradeY = mix(wT - gradeH - 0.06 * M, wT - 0.02 * M, gradeDesce);
+      // grade de barras da janelinha da porta: em cima (aberta) ou embaixo, fechando a abertura (o soldador desce na mão)
+      const jn = JANELINHA(M);
+      const abX = portaX + jn.abX, abY = mT + jn.y;
+      // com a grade fechada e a máquina soldando, a luz laranja aparece entre as barras
+      if (forcaCentelha > 0 && portaFecha > 0.9) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = `rgba(255,170,80,${0.7 * forcaCentelha})`;
+        ctx.fillRect(abX, abY, jn.abW, jn.h);
+        ctx.restore();
+      }
+      const gradeY = abY - (1 - gradeDesce) * jn.h * 0.92;
       ctx.save();
-      ctx.translate(wL - 0.04 * M, gradeY);
-      desenharGradeSchlatter(ctx, M, gradeW, gradeH);
+      ctx.beginPath();
+      ctx.rect(abX - 0.04 * M, abY - jn.h, jn.abW + 0.08 * M, jn.h * 2 + 0.02 * M);
+      ctx.clip();
+      ctx.translate(abX, gradeY);
+      desenharGradeJanelinha(ctx, M, jn.abW, jn.h);
       ctx.restore();
-      const puxador: [number, number] = [wL - 0.04 * M + gradeW * 0.5, gradeY + gradeH];
+      const puxador: [number, number] = [abX + jn.abW * 0.5, gradeY + jn.h];
 
       // painel de comando no pedestal, ao lado da máquina: verde pronta, âmbar piscando soldando, vermelha apagada
       const pedX = mR + (W < 600 ? 0.5 : 0.75) * M;
@@ -1398,7 +1438,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         const anda = (fu > F.grade && fu < F.vai) || (fu > F.abre && fu < F.volta) ? 1 : 0;
         const naGrade = suave(0, 0.12, fu) * (1 - suave(F.grade - 0.1, F.grade + 0.1, fu)) + suave(F.volta - 0.1, F.volta + 0.1, fu) * (1 - suave(F.sobeGrade, F.sobeGrade + 0.2, fu));
         const noBotao = suave(F.vai - 0.15, F.vai + 0.1, fu) * (1 - suave(F.botao + 0.05, F.botao + 0.35, fu));
-        const alvo: [number, number] | null = naGrade > 0.01 ? [puxador[0] + 0.25 * M, puxador[1]] : noBotao > 0.01 ? botao : null;
+        const alvo: [number, number] | null = naGrade > 0.01 ? puxador : noBotao > 0.01 ? botao : null;
         desenharSoldador(ctx, {
           sx: sxS, piso, Hs, t, mq, parado,
           anda: parado ? 0 : anda, passo: (sxS - perto) / (Hs * 0.13),
