@@ -570,26 +570,23 @@ function desenharFrenteSchlatter(c: CanvasRenderingContext2D, g: GeoMaquina) {
   c.strokeStyle = 'rgb(30,30,30)'; c.lineWidth = Math.max(1, M * 0.012); c.stroke();
   c.beginPath(); c.moveTo(tx + 0.02 * M, ty - 0.06 * M); c.lineTo(tx - 0.03 * M, ty + 0.01 * M); c.lineTo(tx + 0.02 * M, ty + 0.01 * M); c.lineTo(tx - 0.02 * M, ty + 0.07 * M); c.stroke();
 
-  // porta laranja da direita
-  painel(wR, mT, mR - wR, wB - mT, SCH.LARANJA);
-  c.strokeStyle = sombraAresta; c.lineWidth = 1.2;
-  c.strokeRect(wR + 0.05 * M, mT + 0.08 * M, mR - wR - 0.1 * M, wB - mT - 0.16 * M);
-  linha(wR + 0.05 * M, mT + 0.08 * M + 1, mR - 0.05 * M, mT + 0.08 * M + 1, luzAresta);
-  c.fillStyle = 'rgba(40,30,20,.55)';
-  c.fillRect(wR + 0.03 * M, mT + 0.25 * M, 0.035 * M, 0.14 * M);
-  c.fillRect(wR + 0.03 * M, wB - 0.4 * M, 0.035 * M, 0.14 * M);
-  for (let i = 0; i < 5; i++) { parafuso(wR + 0.12 * M + i * 0.22 * M, mT + 0.14 * M); parafuso(wR + 0.12 * M + i * 0.22 * M, wB - 0.13 * M); }
-  // caixa de comando (as luzes acendem por cima, no desenho de cada quadro)
-  painel(mR - 0.72 * M, mT + 0.36 * M, 0.46 * M, 0.62 * M, SCH.CINZA, 0.12, 0.2);
-  c.fillStyle = 'rgba(0,0,0,.4)';
-  for (let i = 0; i < 3; i++) { c.beginPath(); c.arc(mR - 0.49 * M, mT + 0.52 * M + i * 0.15 * M, 0.055 * M, 0, 6.283); c.fill(); }
-  // puxador e etiqueta de alta tensão
-  c.fillStyle = cor(mq(misturar(SCH.LARANJA, [0, 0, 0], 0.45)));
-  c.fillRect(mR - 0.2 * M, piso - 1.38 * M, 0.05 * M, 0.5 * M);
-  c.fillStyle = cor(SCH.AMARELO);
-  c.fillRect(wR + 0.25 * M, wB - 0.62 * M, 0.3 * M, 0.2 * M);
-  c.fillStyle = 'rgb(30,30,30)';
-  for (let i = 0; i < 4; i++) c.fillRect(wR + 0.25 * M + i * 0.08 * M, wB - 0.62 * M, 0.035 * M, 0.035 * M);
+  // corpo da máquina atrás da porta (aparece quando a porta fecha sobre a janela)
+  painel(wR, mT, mR - wR, wB - mT, misturar(SCH.CREME, [0, 0, 0], 0.22), 0.04, 0.2);
+  for (let i = 0; i < 8; i++) {
+    const y = mT + 0.3 * M + i * 0.1 * M;
+    linha(wR + 0.2 * M, y, mR - 0.2 * M, y, 'rgba(0,0,0,.28)', 1.2);
+  }
+  // trilhos da porta (em cima e embaixo, da janela até a direita) e as guias da grade, dos lados da janela
+  c.fillStyle = 'rgb(58,62,70)';
+  c.fillRect(wL - 0.04 * M, mT - 0.02 * M, mR - wL + 0.04 * M, 0.05 * M);
+  c.fillRect(wL - 0.04 * M, wB - 0.03 * M, mR - wL + 0.04 * M, 0.05 * M);
+  c.fillRect(wL - 0.1 * M, mT + 0.05 * M, 0.04 * M, wB - mT - 0.05 * M);
+  c.fillRect(wR + 0.06 * M, mT + 0.05 * M, 0.04 * M, wB - mT - 0.05 * M);
+  // cilindro do hidráulico da porta, em cima da janela da esquerda (puxa a porta da direita para a esquerda)
+  const cg = c.createLinearGradient(0, mT - 0.2 * M, 0, mT - 0.08 * M);
+  cg.addColorStop(0, 'rgb(90,96,104)'); cg.addColorStop(0.5, 'rgb(150,156,164)'); cg.addColorStop(1, 'rgb(70,74,80)');
+  c.fillStyle = cg;
+  c.beginPath(); c.roundRect(mL + 0.15 * M, mT - 0.2 * M, wL - mL - 0.15 * M, 0.12 * M, 0.04 * M); c.fill();
 
   // base azul com a sapata escura e parafusos
   painel(mL, wB, mR - mL, piso - wB, SCH.AZUL, 0.08, 0.2);
@@ -615,11 +612,68 @@ function desenharFrenteSchlatter(c: CanvasRenderingContext2D, g: GeoMaquina) {
   }
 }
 
+/** Porta laranja da Schlatter (desliza da direita para a esquerda, com hidráulico), desenhada a partir de (0, 0). */
+function desenharPortaSchlatter(c: CanvasRenderingContext2D, M: number, w: number, h: number, mq: (c: RGB) => RGB) {
+  const gr = c.createLinearGradient(0, 0, w * 0.6, h);
+  gr.addColorStop(0, cor(misturar(mq(SCH.LARANJA), [255, 255, 255], 0.1)));
+  gr.addColorStop(1, cor(misturar(mq(SCH.LARANJA), [0, 0, 0], 0.16)));
+  c.fillStyle = gr;
+  c.fillRect(0, 0, w, h);
+  c.strokeStyle = 'rgba(0,0,0,.3)'; c.lineWidth = 1.2;
+  c.strokeRect(0.05 * M, 0.08 * M, w - 0.1 * M, h - 0.16 * M);
+  c.fillStyle = 'rgba(255,255,255,.2)';
+  c.fillRect(0.05 * M, 0.08 * M, w - 0.1 * M, 1);
+  for (let i = 0; i < 5; i++) {
+    for (const y of [0.14 * M, h - 0.13 * M]) {
+      c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.arc(0.12 * M + i * ((w - 0.24 * M) / 4), y, Math.max(1, M * 0.012), 0, 6.283); c.fill();
+    }
+  }
+  // roldanas em cima (corre no trilho) e o puxador
+  c.fillStyle = 'rgb(50,52,58)';
+  for (const x of [0.18 * M, w - 0.18 * M]) { c.beginPath(); c.arc(x, 0.03 * M, 0.04 * M, 0, 6.283); c.fill(); }
+  c.fillStyle = cor(mq(misturar(SCH.LARANJA, [0, 0, 0], 0.45)));
+  c.fillRect(0.12 * M, h * 0.42, 0.05 * M, 0.45 * M);
+  // etiqueta zebrada e aviso
+  c.fillStyle = cor(SCH.AMARELO);
+  c.fillRect(w * 0.35, h - 0.62 * M, 0.3 * M, 0.2 * M);
+  c.fillStyle = 'rgb(30,30,30)';
+  for (let i = 0; i < 4; i++) c.fillRect(w * 0.35 + i * 0.08 * M, h - 0.62 * M, 0.035 * M, 0.035 * M);
+  const tx = w * 0.55, ty = h * 0.3, ts = 0.11 * M;
+  c.fillStyle = cor(SCH.AMARELO);
+  c.beginPath(); c.moveTo(tx, ty - ts); c.lineTo(tx + ts, ty + ts * 0.75); c.lineTo(tx - ts, ty + ts * 0.75); c.closePath(); c.fill();
+  c.strokeStyle = 'rgb(30,30,30)'; c.lineWidth = Math.max(1, M * 0.012); c.stroke();
+}
+
+/** Grade de proteção da frente da janela (o soldador desce e sobe na mão), desenhada a partir de (0, 0). */
+function desenharGradeSchlatter(c: CanvasRenderingContext2D, M: number, w: number, h: number) {
+  // tela galvanizada (cinza claro), visível tanto sobre a janela escura quanto sobre a porta laranja
+  c.fillStyle = 'rgba(20,22,26,.18)';
+  c.fillRect(0, 0, w, h);
+  c.strokeStyle = 'rgba(178,184,192,.75)';
+  c.lineWidth = 1;
+  c.beginPath();
+  const passo = Math.max(3, 0.05 * M);
+  for (let x = passo; x < w; x += passo) { c.moveTo(x, 0); c.lineTo(x, h); }
+  for (let y = passo; y < h; y += passo) { c.moveTo(0, y); c.lineTo(w, y); }
+  c.stroke();
+  c.strokeStyle = 'rgb(120,126,134)';
+  c.lineWidth = Math.max(2, 0.04 * M);
+  c.strokeRect(0, 0, w, h);
+  c.strokeStyle = 'rgba(0,0,0,.4)';
+  c.lineWidth = 1;
+  c.strokeRect(-1, -1, w + 2, h + 2);
+  // puxador embaixo, amarelo
+  c.fillStyle = cor(SCH.AMARELO);
+  c.fillRect(w * 0.3, h - 0.05 * M, w * 0.4, 0.06 * M);
+}
+
 interface PoseSoldador {
-  sx: number; piso: number; Hs: number; t: number; mq: (c: RGB) => RGB;
-  aperta: number; protege: number; confere: number; parado: boolean;
-  /** onde fica a mão com a botoeira (para o cabo chegar nela) */
-  mao?: [number, number];
+  sx: number; piso: number; Hs: number; t: number; mq: (c: RGB) => RGB; parado: boolean;
+  /** andando (0 parado, 1 andando) e a fase do passo */
+  anda: number; passo: number;
+  /** onde a mão da frente vai (grade ou botão) e quanto (0 a 1) */
+  alvo: [number, number] | null; alcance: number;
+  protege: number; confere: number;
 }
 
 /** Dois segmentos (ombro, cotovelo, mão): devolve o cotovelo, dobrando para baixo. */
@@ -633,24 +687,29 @@ function cotovelo(ax: number, ay: number, bx: number, by: number, l1: number, l2
 
 /**
  * O soldador, de lado, olhando para a máquina (à esquerda): capacete branco com abafador e óculos, uniforme
- * azul-marinho com "rumo" nas costas e faixas refletivas. Segura a botoeira pendente da Schlatter.
- * aperta: aperta o botão (começo do ciclo); protege: recua o rosto e põe o braço na frente (centelhamento);
- * confere: inclina para olhar a emenda. Entre um e outro respira e troca o peso de perna.
+ * azul-marinho com "rumo" nas costas e faixas refletivas. Anda até a grade e até o painel, desce e sobe a grade
+ * na mão, aperta o botão, vira o rosto no centelhamento e se inclina para conferir a emenda.
+ * Parado, respira e troca o peso de perna.
  */
-function desenharSoldador(ctx: CanvasRenderingContext2D, p: PoseSoldador): [number, number] {
+function desenharSoldador(ctx: CanvasRenderingContext2D, p: PoseSoldador) {
   const { sx, piso, Hs, t, mq } = p;
   const azul = cor(mq([30, 40, 86])), azulSombra = cor(mq([20, 27, 60]));
   const faixa = cor(mq([196, 226, 72])), prata = 'rgba(214,220,226,.95)';
   const pele = cor(mq([176, 128, 98])), bota = 'rgb(26,26,28)';
   const vivo = p.parado ? 0 : 1;
-  const peso = Math.sin(t * 0.42) * vivo; // troca o peso de uma perna para a outra
+  const peso = Math.sin(t * 0.42) * vivo * (1 - p.anda);
   const respira = Math.sin(t * 1.7) * Hs * 0.004 * vivo;
-  // inclinação do tronco: para a frente ao conferir, um pouco para trás ao se proteger
-  const incl = -0.2 * p.confere + 0.08 * p.protege;
-  const quadril: [number, number] = [sx + peso * Hs * 0.014 - p.confere * Hs * 0.03, piso - Hs * 0.52 + Math.abs(peso) * Hs * 0.004 + p.confere * Hs * 0.03];
+  const passada = Math.sin(p.passo) * p.anda; // -1 a 1: uma perna à frente, depois a outra
+  const sobe = Math.abs(Math.cos(p.passo)) * p.anda * Hs * 0.012; // o corpo sobe um pouco a cada passo
+  // alvo baixo (grade embaixo) faz ele se curvar; conferir também
+  const abaixa = p.alvo && p.alcance > 0 ? Math.max(0, Math.min(1, (p.alvo[1] - (piso - Hs * 0.62)) / (Hs * 0.3))) * p.alcance : 0;
+  const curva = Math.max(p.confere, abaixa * 0.9);
+  const incl = -0.24 * curva + 0.07 * p.protege;
+  const quadril: [number, number] = [sx + peso * Hs * 0.014 - curva * Hs * 0.03, piso - Hs * 0.52 + Math.abs(peso) * Hs * 0.004 + curva * Hs * 0.035 - sobe];
   const ombro: [number, number] = [quadril[0] + Math.sin(incl) * Hs * 0.3, quadril[1] - Math.cos(incl) * Hs * 0.3 + respira];
   const cabeca: [number, number] = [ombro[0] + Math.sin(incl) * Hs * 0.11 + p.protege * Hs * 0.035, ombro[1] - Hs * 0.115];
-  const peFrente: [number, number] = [sx - Hs * 0.07, piso], peTras: [number, number] = [sx + Hs * 0.06, piso];
+  const peFrente: [number, number] = [sx - Hs * 0.07 - passada * Hs * 0.13, piso - Math.max(0, -Math.cos(p.passo)) * p.anda * Hs * 0.03];
+  const peTras: [number, number] = [sx + Hs * 0.06 + passada * Hs * 0.13, piso - Math.max(0, Math.cos(p.passo)) * p.anda * Hs * 0.03];
   const membro = (pts: [number, number][], largura: number, c: string) => {
     ctx.strokeStyle = c; ctx.lineWidth = largura; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
@@ -658,39 +717,40 @@ function desenharSoldador(ctx: CanvasRenderingContext2D, p: PoseSoldador): [numb
     ctx.stroke();
   };
   const faixaEm = (a: [number, number], b: [number, number], f: number, largura: number) => {
-    // faixa refletiva atravessando o membro na fração f do caminho a→b
     const x = mix(a[0], b[0], f), y = mix(a[1], b[1], f);
     const ang = Math.atan2(b[1] - a[1], b[0] - a[0]) + Math.PI / 2;
     const dx = Math.cos(ang) * largura / 2, dy = Math.sin(ang) * largura / 2;
     membro([[x - dx, y - dy], [x + dx, y + dy]], Hs * 0.022, faixa);
     membro([[x - dx * 0.92, y - dy * 0.92], [x + dx * 0.92, y + dy * 0.92]], Hs * 0.006, prata);
   };
-  const L1 = Hs * 0.17, L2 = Hs * 0.17; // braço e antebraço
-  const perna = Hs * 0.255;
+  const L1 = Hs * 0.17, L2 = Hs * 0.17, perna = Hs * 0.255;
+  const botaEm = (pe: [number, number], c: string) => {
+    ctx.fillStyle = c;
+    ctx.beginPath(); ctx.roundRect(pe[0] - Hs * 0.075, pe[1] - Hs * 0.048, Hs * 0.12, Hs * 0.048, Hs * 0.016); ctx.fill();
+  };
 
-  // braço de trás (mais escuro): solto ao lado ou subindo para proteger o rosto
+  // braço de trás: balança ao andar, sobe para proteger o rosto no centelhamento
   const ombroTras: [number, number] = [ombro[0] + Hs * 0.03, ombro[1] + Hs * 0.01];
-  const maoTrasLivre: [number, number] = [ombroTras[0] + Hs * 0.02, ombroTras[1] + Hs * 0.3];
+  const maoTrasLivre: [number, number] = [ombroTras[0] + Hs * 0.02 + passada * Hs * 0.1, ombroTras[1] + Hs * 0.3];
   const maoTrasRosto: [number, number] = [cabeca[0] - Hs * 0.09, cabeca[1] + Hs * 0.02];
   const maoTras: [number, number] = [mix(maoTrasLivre[0], maoTrasRosto[0], p.protege), mix(maoTrasLivre[1], maoTrasRosto[1], p.protege)];
   const cotTras = cotovelo(ombroTras[0], ombroTras[1], maoTras[0], maoTras[1], L1, L2, p.protege > 0.5 ? 1 : -1);
   membro([ombroTras, cotTras, maoTras], Hs * 0.07, azulSombra);
   // perna de trás
-  const joelhoTras = cotovelo(quadril[0] + Hs * 0.02, quadril[1], peTras[0], peTras[1] - Hs * 0.03, perna, perna, -1);
-  membro([[quadril[0] + Hs * 0.02, quadril[1]], joelhoTras, [peTras[0], peTras[1] - Hs * 0.03]], Hs * 0.085, azulSombra);
-  ctx.fillStyle = bota;
-  ctx.beginPath(); ctx.roundRect(peTras[0] - Hs * 0.07, piso - Hs * 0.045, Hs * 0.11, Hs * 0.045, Hs * 0.015); ctx.fill();
-  // perna da frente (com o peso mudando, o joelho dobra um pouco mais)
-  const quadrilFrente: [number, number] = [quadril[0] - Hs * 0.02, quadril[1]];
-  const joelho = cotovelo(quadrilFrente[0], quadrilFrente[1], peFrente[0], peFrente[1] - Hs * 0.03, perna * (1 + 0.01 * peso), perna, -1);
-  membro([quadrilFrente, joelho, [peFrente[0], peFrente[1] - Hs * 0.03]], Hs * 0.088, azul);
-  faixaEm(joelho, [peFrente[0], peFrente[1] - Hs * 0.03], 0.55, Hs * 0.088);
-  ctx.fillStyle = bota;
-  ctx.beginPath(); ctx.roundRect(peFrente[0] - Hs * 0.075, piso - Hs * 0.048, Hs * 0.12, Hs * 0.048, Hs * 0.016); ctx.fill();
+  const qT: [number, number] = [quadril[0] + Hs * 0.02, quadril[1]];
+  const tornT: [number, number] = [peTras[0], peTras[1] - Hs * 0.03];
+  membro([qT, cotovelo(qT[0], qT[1], tornT[0], tornT[1], perna, perna, -1), tornT], Hs * 0.085, azulSombra);
+  botaEm(peTras, bota);
+  // perna da frente
+  const qF: [number, number] = [quadril[0] - Hs * 0.02, quadril[1]];
+  const tornF: [number, number] = [peFrente[0], peFrente[1] - Hs * 0.03];
+  const joelho = cotovelo(qF[0], qF[1], tornF[0], tornF[1], perna * (1 + 0.01 * peso), perna, -1);
+  membro([qF, joelho, tornF], Hs * 0.088, azul);
+  faixaEm(joelho, tornF, 0.55, Hs * 0.088);
+  botaEm(peFrente, bota);
 
-  // tronco
+  // tronco, com as alças cinza e "rumo" nas costas
   membro([[quadril[0], quadril[1] - Hs * 0.02], [ombro[0], ombro[1] + Hs * 0.03]], Hs * 0.2, azul);
-  // costas: alças cinza em X e "rumo" em branco (como no uniforme da foto)
   const meioT: [number, number] = [(quadril[0] + ombro[0]) / 2, (quadril[1] + ombro[1]) / 2];
   ctx.save();
   ctx.translate(meioT[0], meioT[1]);
@@ -709,39 +769,27 @@ function desenharSoldador(ctx: CanvasRenderingContext2D, p: PoseSoldador): [numb
   ctx.textAlign = 'left';
   ctx.restore();
 
-  // cabeça: rosto, óculos, capacete branco com aba para a frente e abafador
+  // cabeça: rosto, óculos, capacete branco com aba e o abafador cinza
+  membro([[ombro[0], ombro[1] - Hs * 0.01], [cabeca[0], cabeca[1] + Hs * 0.04]], Hs * 0.05, pele);
   ctx.fillStyle = pele;
   ctx.beginPath(); ctx.arc(cabeca[0], cabeca[1], Hs * 0.058, 0, 6.283); ctx.fill();
-  membro([[ombro[0], ombro[1] - Hs * 0.01], [cabeca[0], cabeca[1] + Hs * 0.04]], Hs * 0.05, pele);
   ctx.fillStyle = 'rgba(30,40,50,.85)';
   ctx.fillRect(cabeca[0] - Hs * 0.062, cabeca[1] - Hs * 0.012, Hs * 0.04, Hs * 0.018);
   ctx.fillStyle = 'rgb(242,244,246)';
   ctx.beginPath(); ctx.ellipse(cabeca[0] + Hs * 0.005, cabeca[1] - Hs * 0.028, Hs * 0.07, Hs * 0.055, 0, Math.PI, 0); ctx.fill();
   ctx.fillRect(cabeca[0] - Hs * 0.09, cabeca[1] - Hs * 0.03, Hs * 0.15, Hs * 0.012);
-  ctx.fillStyle = 'rgba(0,0,0,.12)';
-  ctx.fillRect(cabeca[0] - Hs * 0.065, cabeca[1] - Hs * 0.03, Hs * 0.13, Hs * 0.004);
   ctx.fillStyle = cor(mq([92, 96, 104]));
   ctx.beginPath(); ctx.ellipse(cabeca[0] + Hs * 0.025, cabeca[1] + Hs * 0.004, Hs * 0.02, Hs * 0.03, 0, 0, 6.283); ctx.fill();
 
-  // braço da frente com a botoeira pendente: na altura do peito, sobe um pouco para apertar, desce ao conferir
-  const maoBase: [number, number] = [ombro[0] - Hs * 0.15, ombro[1] + Hs * 0.2];
-  const mao: [number, number] = [
-    maoBase[0] - p.aperta * Hs * 0.02 - p.confere * Hs * 0.04,
-    maoBase[1] - p.aperta * Hs * 0.05 + p.protege * Hs * 0.06 + p.confere * Hs * 0.08,
-  ];
+  // braço da frente: solto (balançando ao andar) ou indo até a grade / o botão
+  const maoLivre: [number, number] = [ombro[0] - Hs * 0.04 - passada * Hs * 0.1, ombro[1] + Hs * 0.31];
+  const alvo = p.alvo ?? maoLivre;
+  const mao: [number, number] = [mix(maoLivre[0], alvo[0], p.alcance), mix(maoLivre[1], alvo[1], p.alcance)];
   const cot = cotovelo(ombro[0], ombro[1] + Hs * 0.01, mao[0], mao[1], L1, L2, -1);
   membro([[ombro[0], ombro[1] + Hs * 0.01], cot, mao], Hs * 0.072, azul);
   faixaEm([ombro[0], ombro[1]], cot, 0.6, Hs * 0.072);
-  // botoeira amarela na mão, com o botão que acende ao apertar
-  ctx.fillStyle = cor(SCH.AMARELO);
-  ctx.beginPath(); ctx.roundRect(mao[0] - Hs * 0.035, mao[1] - Hs * 0.03, Hs * 0.05, Hs * 0.085, Hs * 0.01); ctx.fill();
-  ctx.fillStyle = p.aperta > 0.5 ? 'rgb(120,255,160)' : 'rgb(40,150,80)';
-  ctx.beginPath(); ctx.arc(mao[0] - Hs * 0.01, mao[1] - Hs * 0.005, Hs * 0.01, 0, 6.283); ctx.fill();
-  ctx.fillStyle = 'rgb(200,40,36)';
-  ctx.beginPath(); ctx.arc(mao[0] - Hs * 0.01, mao[1] + Hs * 0.025, Hs * 0.01, 0, 6.283); ctx.fill();
   ctx.fillStyle = 'rgb(36,36,40)'; // luva
-  ctx.beginPath(); ctx.arc(mao[0] + Hs * 0.012, mao[1] + Hs * 0.01, Hs * 0.026, 0, 6.283); ctx.fill();
-  return [mao[0] - Hs * 0.01, mao[1] - Hs * 0.03];
+  ctx.beginPath(); ctx.arc(mao[0], mao[1], Hs * 0.03, 0, 6.283); ctx.fill();
 }
 
 // ---------- início: o TLS saindo do estaleiro ----------
@@ -766,12 +814,21 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
   // A primeira emenda chega na Schlatter em CHEGA; o centelhamento passa por SOLDA, junto com a emenda do logo.
   const CHEGA = 0.55, SOLDA = 1.25;
   // Ciclo da Schlatter (s desde a chegada da emenda): garras descem, centelhamento, recalque, rebarbação, garras sobem.
-  const F = { garra: 0.35, centelha: 1.75, recalque: 1.95, rebarba: 2.4, sobe: 2.75 };
+  // Ciclo da Schlatter (s desde a chegada da emenda), como na máquina de verdade:
+  // o soldador desce a grade na mão, se afasta e aperta o botão; a porta fecha sozinha (hidráulico, da direita para a
+  // esquerda); as garras descem, centelha, recalca, rebarba; as garras sobem, a porta abre sozinha; ele volta, sobe a
+  // grade e confere a emenda.
+  const F = {
+    grade: 0.9, vai: 1.8, botao: 2.0, fecha: 2.8, garraIni: 2.8, garra: 3.1, centelha: 4.5, recalque: 4.7, rebarba: 5.1,
+    sobe: 5.4, abre: 6.2, volta: 7.0, sobeGrade: 7.6, solta: 7.8, confere: 8.6,
+  };
   let ciclo: { k: number; inicio: number } | null = null;
   let ultimoInicio = -99; // começo do último ciclo da Schlatter (para o soldador terminar os gestos)
   const fumaca: { x: number; y: number; r: number; v: number }[] = [];
   let frente: HTMLCanvasElement | null = null; // frente da máquina desenhada uma vez e reaproveitada
   let chaveFrente = '';
+  let portaCache: HTMLCanvasElement | null = null;
+  let chavePortaCache = '';
   const faiscas: Faisca[] = [];
   const brasas: { x: number; y: number; vy: number; vx: number; v: number }[] = [];
   let soldouLogo = false;
@@ -829,7 +886,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     const rr = 0.1 * M; // rolete de 20 cm
 
     // Schlatter à direita no computador (fora dos cartões); no celular, mais para a direita também.
-    const xm = W >= 900 ? W * 0.8 : W * 0.58;
+    const xm = W >= 900 ? W * 0.74 : W * 0.58;
 
     // ---------- movimento do trilho e ciclo da solda ----------
     if (parado) {
@@ -840,8 +897,8 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       const e = 1 - Math.pow(1 - t / CHEGA, 3);
       u = -D * (1 - e);
       vel = 0;
-      if (!ciclo) ciclo = { k: 0, inicio: CHEGA };
-    } else if (ciclo && t - ciclo.inicio < F.sobe) {
+      if (!ciclo) ciclo = { k: 0, inicio: SOLDA - (F.garra + 0.15) };
+    } else if (ciclo && t - ciclo.inicio < F.solta) {
       vel = 0;
       u = ciclo.k * L;
     } else {
@@ -857,22 +914,21 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     if (ciclo && fase >= F.centelha && !soldada.has(ciclo.k)) soldada.set(ciclo.k, ciclo.inicio + F.centelha);
     // centelhamento: chuva de faíscas saindo da fresta para os dois lados
     const centelhando = !parado && ciclo !== null && fase > F.garra && fase < F.centelha;
-    const forcaCentelha = centelhando ? suave(F.garra, F.garra + 0.4, fase) * (0.75 + 0.25 * Math.sin(t * 40)) : 0;
+    const forcaCentelha = centelhando ? suave(F.garra, F.garra + 0.3, fase) * (0.75 + 0.25 * Math.sin(t * 40)) : 0;
     if (centelhando) {
-      const n = Math.round(320 * dt * forcaCentelha + Math.random());
+      // a porta está fechada: as faíscas só escapam pelas frestas de baixo e da borda esquerda
+      const n = Math.round(70 * dt * forcaCentelha + Math.random() * 0.6);
+      const mWL = xm - 0.6 * M, mWB = topo + R + 0.2 * M, mWT = topo - 0.45 * M;
       for (let i = 0; i < n; i++) {
-        const lado = Math.random() < 0.5 ? -1 : 1;
-        faiscas.push({
-          x: xm + lado * 2,
-          y: topo + R * (Math.random() < 0.6 ? Math.random() * 0.3 : Math.random()),
-          vx: lado * (120 + Math.random() * 420),
-          vy: -(40 + Math.random() * 280),
-          v: 0.3 + Math.random() * 0.45,
-        });
+        if (Math.random() < 0.6) {
+          faiscas.push({ x: mWL + Math.random() * 1.2 * M, y: mWB, vx: (Math.random() - 0.5) * 160, vy: 30 + Math.random() * 80, v: 0.25 + Math.random() * 0.35 });
+        } else {
+          faiscas.push({ x: mWL - 1, y: mWT + Math.random() * (mWB - mWT), vx: -(80 + Math.random() * 260), vy: -(20 + Math.random() * 160), v: 0.25 + Math.random() * 0.4 });
+        }
       }
     }
     // garras: 0 em cima, 1 apertando o trilho
-    const garra = !ciclo ? 0 : fase < F.garra ? suave(0, F.garra, fase) : fase < F.rebarba ? 1 : 1 - suave(F.rebarba, F.sobe, fase);
+    const garra = !ciclo ? 0 : fase < F.garra ? suave(F.garraIni, F.garra, fase) : fase < F.rebarba ? 1 : 1 - suave(F.rebarba, F.sobe, fase);
     ultimoT = t;
 
     // ---------- galpão ao fundo ----------
@@ -1215,19 +1271,80 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       }
       ctx.drawImage(frente, ox, oy, ow, oh);
 
-      // luzes da caixa de comando: verde pronta, âmbar piscando soldando, vermelha de falha (apagada)
-      const soldando = ciclo !== null && fase < F.sobe;
+      // posições do ciclo: grade (0 em cima, 1 embaixo), porta (0 aberta, 1 fechada) e o soldador
+      const fu = parado ? 99 : t - ultimoInicio;
+      const gradeDesce = suave(0.1, F.grade, fu) - suave(F.volta + 0.05, F.sobeGrade, fu);
+      const portaFecha = suave(F.botao, F.fecha, fu) - suave(F.sobe, F.abre, fu);
+      const soldando = fu >= F.botao && fu < F.sobe;
+
+      // porta laranja: anda da direita (aberta) para a esquerda (fechada, sobre a janela), puxada pelo hidráulico
+      const portaW = wR - wL, portaH = wB - mT;
+      const chavePorta = `${chave}|porta`;
+      if (!portaCache || chavePorta !== chavePortaCache) {
+        portaCache = portaCache ?? document.createElement('canvas');
+        portaCache.width = Math.ceil(portaW * dpr);
+        portaCache.height = Math.ceil(portaH * dpr);
+        const pc = portaCache.getContext('2d');
+        if (pc) { pc.setTransform(dpr, 0, 0, dpr, 0, 0); pc.clearRect(0, 0, portaW, portaH); desenharPortaSchlatter(pc, M, portaW, portaH, mq); }
+        chavePortaCache = chavePorta;
+      }
+      const portaX = mix(wR, wL, portaFecha);
+      // haste cromada do hidráulico, do cilindro até a borda esquerda da porta
+      ctx.fillStyle = 'rgb(210,214,220)';
+      ctx.fillRect(wL - 0.02 * M, mT - 0.16 * M, portaX - wL + 0.04 * M, 0.04 * M);
+      ctx.fillStyle = 'rgba(255,255,255,.6)';
+      ctx.fillRect(wL - 0.02 * M, mT - 0.16 * M, portaX - wL + 0.04 * M, 1);
+      ctx.fillStyle = 'rgb(70,74,80)';
+      ctx.fillRect(portaX - 0.02 * M, mT - 0.18 * M, 0.06 * M, 0.2 * M);
+      ctx.drawImage(portaCache, portaX, mT, portaW, portaH);
+      // com a porta fechada, a luz do centelhamento vaza pelas frestas
+      if (forcaCentelha > 0 && portaFecha > 0.9) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = `rgba(255,190,100,${0.85 * forcaCentelha})`;
+        ctx.fillRect(portaX - 1.5, mT + 0.1 * M, 2, portaH - 0.15 * M);
+        ctx.fillRect(portaX, wB - 1.5, portaW, 2.5);
+        ctx.fillRect(portaX + portaW - 1, mT + 0.1 * M, 1.5, portaH - 0.15 * M);
+        ctx.restore();
+      }
+
+      // grade da frente: em cima (aberta) sobre a faixa de cima, embaixo (fechada) na frente da janela
+      const gradeW = wR - wL + 0.08 * M, gradeH = wB - wT + 0.04 * M;
+      const gradeY = mix(wT - gradeH - 0.06 * M, wT - 0.02 * M, gradeDesce);
+      ctx.save();
+      ctx.translate(wL - 0.04 * M, gradeY);
+      desenharGradeSchlatter(ctx, M, gradeW, gradeH);
+      ctx.restore();
+      const puxador: [number, number] = [wL - 0.04 * M + gradeW * 0.5, gradeY + gradeH];
+
+      // painel de comando no pedestal, ao lado da máquina: verde pronta, âmbar piscando soldando, vermelha apagada
+      const pedX = mR + (W < 600 ? 0.5 : 0.75) * M;
+      const pedTopo = piso - 1.15 * M;
+      ctx.fillStyle = cor(mq([60, 64, 72]));
+      ctx.fillRect(pedX - 0.03 * M, pedTopo, 0.06 * M, piso - pedTopo);
+      ctx.fillRect(pedX - 0.12 * M, piso - 0.04 * M, 0.24 * M, 0.04 * M);
+      const cx0 = pedX - 0.16 * M, cy0 = pedTopo - 0.4 * M;
+      const caixaG = ctx.createLinearGradient(cx0, cy0, cx0 + 0.32 * M, cy0 + 0.4 * M);
+      caixaG.addColorStop(0, cor(mq([96, 102, 110]))); caixaG.addColorStop(1, cor(mq([58, 62, 70])));
+      ctx.fillStyle = caixaG;
+      ctx.beginPath(); ctx.roundRect(cx0, cy0, 0.32 * M, 0.4 * M, 0.03 * M); ctx.fill();
       const lampadas: [RGB, boolean][] = [[[90, 230, 140], !soldando], [[255, 190, 60], soldando && Math.sin(t * 12) > 0], [[230, 60, 50], false]];
       lampadas.forEach(([c, acesa], i) => {
-        const lx = mR - 0.49 * M, ly = mT + 0.52 * M + i * 0.15 * M;
+        const lx = cx0 + 0.07 * M + i * 0.09 * M, ly = cy0 + 0.09 * M;
         if (acesa) {
-          const g = ctx.createRadialGradient(lx, ly, 0, lx, ly, 0.16 * M);
+          const g = ctx.createRadialGradient(lx, ly, 0, lx, ly, 0.12 * M);
           g.addColorStop(0, cor(c, 0.6)); g.addColorStop(1, cor(c, 0));
-          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(lx, ly, 0.16 * M, 0, 6.283); ctx.fill();
+          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(lx, ly, 0.12 * M, 0, 6.283); ctx.fill();
         }
         ctx.fillStyle = cor(acesa ? c : misturar(c, [0, 0, 0], 0.65));
-        ctx.beginPath(); ctx.arc(lx, ly, 0.045 * M, 0, 6.283); ctx.fill();
+        ctx.beginPath(); ctx.arc(lx, ly, 0.03 * M, 0, 6.283); ctx.fill();
       });
+      const botao: [number, number] = [cx0 + 0.16 * M, cy0 + 0.25 * M];
+      const apertando = suave(F.vai, F.vai + 0.12, fu) * (1 - suave(F.botao + 0.05, F.botao + 0.3, fu));
+      ctx.fillStyle = apertando > 0.6 ? 'rgb(140,255,170)' : 'rgb(40,170,90)';
+      ctx.beginPath(); ctx.arc(botao[0], botao[1], 0.06 * M, 0, 6.283); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,.35)';
+      ctx.beginPath(); ctx.arc(botao[0] - 0.015 * M, botao[1] - 0.015 * M, 0.02 * M, 0, 6.283); ctx.fill();
 
       // tubo de exaustão azul saindo da saia de lona
       ctx.lineCap = 'round';
@@ -1271,28 +1388,24 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.fillStyle = g; ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, 6.283); ctx.fill();
       }
 
-      // o soldador ao lado da máquina, segurando a botoeira pendente
+      // o soldador: perto da grade quando a máquina está parada, no painel enquanto ela solda
       const Hs = 1.75 * M;
-      const sx = mR + (W < 600 ? 0.5 : 0.62) * M;
-      if (sx + Hs * 0.12 < W) {
-        const fu = t - ultimoInicio;
-        const aperta = parado ? 0 : suave(-0.05, 0.12, fu) * (1 - suave(0.28, 0.5, fu));
-        const protege = parado ? 0 : suave(0.4, 0.62, fu) * (1 - suave(1.7, 2.05, fu));
-        const confere = parado ? 0 : suave(2.45, 2.9, fu) * (1 - suave(4.2, 4.9, fu));
-        // cabo da botoeira saindo da porta e chegando na mão, balançando de leve
-        const maoPrev: [number, number] = [sx - Hs * 0.15, piso - Hs * 0.6];
-        const balanço = Math.sin(t * 1.3) * 0.04 * M * (parado ? 0 : 1);
-        const cabo = (ate: [number, number]) => {
-          ctx.strokeStyle = cor(mq([60, 62, 66]));
-          ctx.lineWidth = Math.max(1.5, 0.025 * M);
-          ctx.beginPath();
-          ctx.moveTo(mR - 0.3 * M, mT + 1.05 * M);
-          ctx.quadraticCurveTo(mR + 0.05 * M + balanço, piso - 0.25 * M, ate[0], ate[1] + 0.05 * M);
-          ctx.stroke();
-        };
-        // desenha o soldador e, por cima, o cabo até a mão (calculada no desenho)
-        const mao = desenharSoldador(ctx, { sx, piso, Hs, t, mq, aperta, protege, confere, parado });
-        cabo(mao ?? maoPrev);
+      const perto = wR + 0.38 * M;
+      const longe = pedX + 0.36 * M;
+      if (longe + Hs * 0.12 < W) {
+        const ida = suave(F.grade, F.vai, fu), volta = suave(F.abre, F.volta, fu);
+        const sxS = perto + (longe - perto) * (ida - volta);
+        const anda = (fu > F.grade && fu < F.vai) || (fu > F.abre && fu < F.volta) ? 1 : 0;
+        const naGrade = suave(0, 0.12, fu) * (1 - suave(F.grade - 0.1, F.grade + 0.1, fu)) + suave(F.volta - 0.1, F.volta + 0.1, fu) * (1 - suave(F.sobeGrade, F.sobeGrade + 0.2, fu));
+        const noBotao = suave(F.vai - 0.15, F.vai + 0.1, fu) * (1 - suave(F.botao + 0.05, F.botao + 0.35, fu));
+        const alvo: [number, number] | null = naGrade > 0.01 ? [puxador[0] + 0.25 * M, puxador[1]] : noBotao > 0.01 ? botao : null;
+        desenharSoldador(ctx, {
+          sx: sxS, piso, Hs, t, mq, parado,
+          anda: parado ? 0 : anda, passo: (sxS - perto) / (Hs * 0.13),
+          alvo, alcance: Math.max(naGrade, noBotao),
+          protege: parado ? 0 : 0.6 * suave(F.garra, F.garra + 0.25, fu) * (1 - suave(F.centelha - 0.2, F.centelha + 0.2, fu)),
+          confere: parado ? 0 : suave(F.sobeGrade, F.sobeGrade + 0.35, fu) * (1 - suave(F.confere - 0.4, F.confere + 0.2, fu)),
+        });
       }
 
       // a luz da solda vaza pela janela e ilumina o chão, a porta e o soldador
@@ -1300,8 +1413,8 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.save();
         ctx.globalCompositeOperation = 'lighter';
         const g = ctx.createRadialGradient(xm, topo + R, 0, xm, topo + R, 2.4 * M);
-        g.addColorStop(0, `rgba(255,170,80,${0.32 * forcaCentelha})`);
-        g.addColorStop(0.5, `rgba(255,140,60,${0.12 * forcaCentelha})`);
+        g.addColorStop(0, `rgba(255,170,80,${0.14 * forcaCentelha})`);
+        g.addColorStop(0.5, `rgba(255,140,60,${0.05 * forcaCentelha})`);
         g.addColorStop(1, 'rgba(255,120,40,0)');
         ctx.fillStyle = g;
         ctx.fillRect(xm - 2.4 * M, topo - 1.6 * M, 4.8 * M, piso - topo + 2.4 * M);
