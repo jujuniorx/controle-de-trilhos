@@ -200,11 +200,14 @@ function desenharFaiscas(ctx: CanvasRenderingContext2D, faiscas: Faisca[], dt: n
     const a = Math.min(1, s.v * 1.4) * pisca;
     // Esfria do branco-amarelado para o laranja e o vermelho.
     const g = Math.round(110 + 140 * s.v), b = Math.round(40 + 120 * Math.max(0, s.v - 0.6));
-    ctx.strokeStyle = `rgba(255,${g},${b},${a})`;
-    ctx.lineWidth = 1.2;
     ctx.beginPath();
     ctx.moveTo(s.x, s.y);
-    ctx.lineTo(s.x - s.vx * 0.016, s.y - s.vy * 0.016);
+    ctx.lineTo(s.x - s.vx * 0.018, s.y - s.vy * 0.018);
+    ctx.strokeStyle = `rgba(255,${Math.round(g * 0.7)},40,${a * 0.25})`; // brilho em volta
+    ctx.lineWidth = 3.4;
+    ctx.stroke();
+    ctx.strokeStyle = `rgba(255,${g},${b},${a})`;
+    ctx.lineWidth = 1.5;
     ctx.stroke();
   }
   ctx.restore();
@@ -692,7 +695,7 @@ function cotovelo(ax: number, ay: number, bx: number, by: number, l1: number, l2
 
 /**
  * O soldador, de lado, olhando para a máquina (à esquerda), como na foto do estaleiro: capacete cinza com abafador de
- * concha preso nas laterais, óculos de proteção, uniforme azul-marinho da Rumo com faixas refletivas (costas, braços e
+ * concha preso nas laterais, óculos de proteção, uniforme azul-marinho da Rumo com faixas refletivas (tronco, braços e
  * canelas), alças cinza cruzadas nas costas, luvas e botinas pretas.
  * Anda até a grade e até o painel, vira as barras da grade, aperta o botão, protege o rosto no centelhamento e se
  * inclina para conferir a emenda. Parado, respira e troca o peso de perna.
@@ -714,7 +717,7 @@ function desenharSoldador(ctx: CanvasRenderingContext2D, p: PoseSoldador) {
   // alvo baixo faz ele se curvar; conferir também
   const abaixa = p.alvo && p.alcance > 0 ? Math.max(0, Math.min(1, (p.alvo[1] - (piso - Hs * 0.62)) / (Hs * 0.3))) * p.alcance : 0;
   const curva = Math.max(p.confere, abaixa * 0.9);
-  const incl = -0.24 * curva + 0.07 * p.protege;
+  const incl = -0.14 * curva + 0.05 * p.protege;
   const quadril: [number, number] = [sx + peso * Hs * 0.014 - curva * Hs * 0.03, piso - Hs * 0.52 + Math.abs(peso) * Hs * 0.004 + curva * Hs * 0.035 - sobe];
   const ombro: [number, number] = [quadril[0] + Math.sin(incl) * Hs * 0.3, quadril[1] - Math.cos(incl) * Hs * 0.3 + respira];
   const cabeca: [number, number] = [ombro[0] + Math.sin(incl) * Hs * 0.11 + p.protege * Hs * 0.035, ombro[1] - Hs * 0.115];
@@ -748,7 +751,7 @@ function desenharSoldador(ctx: CanvasRenderingContext2D, p: PoseSoldador) {
     ctx.beginPath(); ctx.moveTo(x - dx, y - dy); ctx.lineTo(x + dx, y + dy); ctx.stroke();
     ctx.lineCap = 'round';
   };
-  const L1 = Hs * 0.17, L2 = Hs * 0.17, perna = Hs * 0.255;
+  const L1 = Hs * 0.17, L2 = Hs * 0.17, perna = Hs * 0.236;
   // botina preta de bico redondo, com solado e salto
   const botaEm = (pe: [number, number], c: string) => {
     const x = pe[0], y = pe[1];
@@ -788,22 +791,22 @@ function desenharSoldador(ctx: CanvasRenderingContext2D, p: PoseSoldador) {
   luvaEm(cotTras, maoTras);
   // perna de trás
   const qT: [number, number] = [quadril[0] + Hs * 0.02, quadril[1]];
-  const tornT: [number, number] = [peTras[0], peTras[1] - Hs * 0.06];
-  const joelhoT = cotovelo(qT[0], qT[1], tornT[0], tornT[1], perna, perna, -1);
+  const tornT: [number, number] = [peTras[0], peTras[1] - Hs * 0.05];
+  const joelhoT = cotovelo(qT[0], qT[1], tornT[0], tornT[1], perna, perna, 1); // joelho dobra para a frente
   membro([qT, joelhoT, tornT], Hs * 0.086, azulSombra);
   faixaEm(joelhoT, tornT, 0.3, Hs * 0.086);
   faixaEm(joelhoT, tornT, 0.62, Hs * 0.086);
   botaEm(peTras, preto);
   // perna da frente
   const qF: [number, number] = [quadril[0] - Hs * 0.02, quadril[1]];
-  const tornF: [number, number] = [peFrente[0], peFrente[1] - Hs * 0.06];
-  const joelho = cotovelo(qF[0], qF[1], tornF[0], tornF[1], perna * (1 + 0.01 * peso), perna, -1);
+  const tornF: [number, number] = [peFrente[0], peFrente[1] - Hs * 0.05];
+  const joelho = cotovelo(qF[0], qF[1], tornF[0], tornF[1], perna * (1 + 0.01 * peso), perna, 1);
   membro([qF, joelho, tornF], Hs * 0.09, azul, azulLuz);
   faixaEm(joelho, tornF, 0.3, Hs * 0.09);
   faixaEm(joelho, tornF, 0.62, Hs * 0.09);
   botaEm(peFrente, preto);
 
-  // tronco: jaqueta com ombros, frente (peito) à esquerda e costas à direita, faixa refletiva, alças cinza e "rumo"
+  // tronco: jaqueta com ombros, frente (peito) à esquerda e costas à direita, faixa refletiva e alça cinza (de lado, o "rumo" das costas não aparece)
   ctx.save();
   ctx.translate(quadril[0], quadril[1] + respira * 0.5);
   ctx.rotate(incl);
@@ -832,12 +835,6 @@ function desenharSoldador(ctx: CanvasRenderingContext2D, p: PoseSoldador) {
   ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = Math.max(1, Hs * 0.003);
   ctx.beginPath(); ctx.moveTo(Hs * 0.1, -Hs * 0.24); ctx.lineTo(-Hs * 0.024, Hs * 0.035); ctx.stroke();
   ctx.lineCap = 'round';
-  // "rumo" nas costas
-  ctx.fillStyle = 'rgba(255,255,255,.94)';
-  ctx.font = `700 ${Math.max(6, Math.round(Hs * 0.046))}px ${fonte('--font-barlow', '"Barlow", Arial, sans-serif')}`;
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('rumo', Hs * 0.03, -Hs * 0.245);
-  ctx.textAlign = 'left';
   ctx.restore();
   // gola
   ctx.fillStyle = azulSombra;
@@ -889,7 +886,7 @@ function desenharSoldador(ctx: CanvasRenderingContext2D, p: PoseSoldador) {
   const maoLivre: [number, number] = [ombro[0] - Hs * 0.04 - passada * Hs * 0.1, ombro[1] + Hs * 0.31];
   const alvo = p.alvo ?? maoLivre;
   const mao: [number, number] = [mix(maoLivre[0], alvo[0], p.alcance), mix(maoLivre[1], alvo[1], p.alcance)];
-  const ombroF: [number, number] = [ombro[0], ombro[1] + Hs * 0.01];
+  const ombroF: [number, number] = [ombro[0] - Hs * 0.02, ombro[1] + Hs * 0.01];
   const cot = cotovelo(ombroF[0], ombroF[1], mao[0], mao[1], L1, L2, -1);
   membro([ombroF, cot, mao], Hs * 0.07, azul, azulLuz);
   faixaEm(ombroF, cot, 0.62, Hs * 0.07);
@@ -1020,8 +1017,8 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     const centelhando = !parado && ciclo !== null && fase > F.garra && fase < F.centelha;
     const forcaCentelha = centelhando ? suave(F.garra, F.garra + 0.3, fase) * (0.75 + 0.25 * Math.sin(t * 40)) : 0;
     if (centelhando) {
-      // a porta está fechada: as faíscas só escapam pelas frestas de baixo e da borda esquerda
-      const n = Math.round(70 * dt * forcaCentelha + Math.random() * 0.6);
+      // a porta está fechada: as faíscas escapam pelas frestas de baixo e da borda esquerda
+      const n = Math.round(170 * dt * forcaCentelha + Math.random() * 0.6);
       const mWL = xm - 0.6 * M, mWB = topo + R + 0.2 * M, mWT = topo - 0.45 * M;
       for (let i = 0; i < n; i++) {
         if (Math.random() < 0.6) {
@@ -1029,6 +1026,22 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         } else {
           faiscas.push({ x: mWL - 1, y: mWT + Math.random() * (mWB - mWT), vx: -(80 + Math.random() * 260), vy: -(20 + Math.random() * 160), v: 0.25 + Math.random() * 0.4 });
         }
+      }
+      // a Schlatter é aberta dos lados, onde o trilho entra e sai: ali vaza bastante faísca, em leque, para fora
+      const nLado = Math.round(420 * dt * forcaCentelha + Math.random() * 0.6);
+      for (let i = 0; i < nLado; i++) {
+        const esq = Math.random() < 0.5;
+        const x0 = esq ? xm - 1.8 * M + 2 : xm + 1.8 * M - 2;
+        const y0 = topo - 0.25 * M + Math.random() * (R + 0.45 * M);
+        const vx = (esq ? -1 : 1) * (140 + Math.random() * 420);
+        faiscas.push({ x: x0, y: y0, vx, vy: -(Math.random() * 300) + 40, v: 0.35 + Math.random() * 0.5 });
+      }
+      // e um pouco pela grade da janelinha, entre as barras
+      const jg = JANELINHA(M);
+      const gx = xm - 0.6 * M + jg.abX, gy = piso - 2.6 * M + jg.y;
+      const nGrade = Math.round(45 * dt * forcaCentelha + Math.random() * 0.3);
+      for (let i = 0; i < nGrade; i++) {
+        faiscas.push({ x: gx + Math.random() * jg.abW, y: gy + Math.random() * jg.h, vx: (Math.random() - 0.3) * 160, vy: -(Math.random() * 120), v: 0.2 + Math.random() * 0.3 });
       }
     }
     // garras: 0 em cima, 1 apertando o trilho
@@ -1409,6 +1422,21 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.fillRect(portaX - 1.5, mT + 0.1 * M, 2, portaH - 0.15 * M);
         ctx.fillRect(portaX, wB - 1.5, portaW, 2.5);
         ctx.fillRect(portaX + portaW - 1, mT + 0.1 * M, 1.5, portaH - 0.15 * M);
+        ctx.restore();
+      }
+      // a máquina é aberta dos lados (por onde o trilho passa): o clarão da solda sai por ali
+      if (forcaCentelha > 0) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        for (const lx of [mL, mR]) {
+          const ly = topo + R * 0.5;
+          const gl = ctx.createRadialGradient(lx, ly, 0, lx, ly, 0.9 * M);
+          gl.addColorStop(0, `rgba(255,200,120,${0.55 * forcaCentelha})`);
+          gl.addColorStop(0.4, `rgba(255,140,50,${0.22 * forcaCentelha})`);
+          gl.addColorStop(1, 'rgba(255,110,30,0)');
+          ctx.fillStyle = gl;
+          ctx.fillRect(lx - 0.9 * M, ly - 0.9 * M, 1.8 * M, 1.8 * M);
+        }
         ctx.restore();
       }
 
