@@ -675,6 +675,110 @@ function JANELINHA(M: number) {
   return { caixaX: 0.2 * M, caixaW: 0.24 * M, abX: 0.48 * M, abW: 0.32 * M, y: 0.55 * M, h: 0.5 * M };
 }
 
+// ---------- marcação de caneta de tinta nos trilhos ("S-01", "S-02"...) ----------
+// Cada letra é um traço único, como a mão faz, em uma caixa de altura 1 (x de 0 a ~0,6, y para baixo).
+// Na hora de desenhar, os pontos tremem um pouco (cada barra com seu sorteio fixo), o traço afina e engrossa,
+// falha onde a superfície é áspera e a tinta junta numa bolinha onde a caneta para.
+type Traco = [number, number][];
+const GLIFOS: Record<string, Traco[]> = {
+  S: [[[0.56, 0.1], [0.32, 0], [0.06, 0.12], [0.1, 0.38], [0.34, 0.5], [0.56, 0.64], [0.54, 0.88], [0.3, 1], [0.04, 0.92]]],
+  '-': [[[0.02, 0.56], [0.24, 0.55]]],
+  '0': [[[0.32, 0.02], [0.08, 0.2], [0.04, 0.6], [0.2, 0.96], [0.44, 0.94], [0.58, 0.55], [0.5, 0.12], [0.3, 0.02]]],
+  '1': [[[0.14, 0.22], [0.34, 0.02], [0.34, 1]]],
+  '2': [[[0.06, 0.2], [0.3, 0.01], [0.54, 0.16], [0.46, 0.48], [0.02, 0.98], [0.6, 0.98]]],
+  '3': [[[0.06, 0.1], [0.32, 0.01], [0.55, 0.16], [0.44, 0.4], [0.24, 0.48], [0.5, 0.58], [0.58, 0.82], [0.34, 1], [0.02, 0.9]]],
+  '4': [[[0.46, 1], [0.46, 0.02], [0.02, 0.68], [0.6, 0.68]]],
+  '5': [[[0.56, 0.02], [0.12, 0.02], [0.06, 0.44], [0.34, 0.38], [0.58, 0.6], [0.52, 0.9], [0.26, 1], [0.02, 0.9]]],
+  '6': [[[0.5, 0.02], [0.2, 0.24], [0.03, 0.64], [0.16, 0.97], [0.46, 0.94], [0.56, 0.68], [0.34, 0.5], [0.08, 0.64]]],
+  '7': [[[0.02, 0.03], [0.58, 0.02], [0.24, 1]], [[0.12, 0.54], [0.48, 0.5]]],
+  '8': [[[0.52, 0.14], [0.3, 0.01], [0.08, 0.16], [0.16, 0.4], [0.44, 0.58], [0.56, 0.82], [0.3, 1], [0.04, 0.84], [0.16, 0.58], [0.44, 0.38], [0.52, 0.14]]],
+  '9': [[[0.56, 0.3], [0.3, 0.46], [0.06, 0.3], [0.16, 0.03], [0.46, 0.04], [0.56, 0.3], [0.46, 1]]],
+};
+function sorteio(semente: number) {
+  let a = (semente * 2654435761) >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+/** Curva suave passando pelos pontos (Catmull-Rom). */
+function suavizarTraco(pts: Traco, n = 7): Traco {
+  if (pts.length < 3) return pts;
+  const out: Traco = [];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
+    for (let j = 0; j < n; j++) {
+      const t = j / n, t2 = t * t, t3 = t2 * t;
+      const f = (a: number, b: number, c: number, d: number) => 0.5 * (2 * b + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t2 + (-a + 3 * b - 3 * c + d) * t3);
+      out.push([f(p0[0], p1[0], p2[0], p3[0]), f(p0[1], p1[1], p2[1], p3[1])]);
+    }
+  }
+  out.push(pts[pts.length - 1]);
+  return out;
+}
+interface MarcaCaneta { tracos: Traco[]; falhas: number[]; largura: number }
+const marcasCaneta = new Map<string, MarcaCaneta>();
+/** Monta a marcação (em unidades da altura da letra), tremida de um jeito fixo para cada texto. */
+function marcaCaneta(texto: string, semente: number): MarcaCaneta {
+  const chave = `${texto}|${semente}`;
+  const pronta = marcasCaneta.get(chave);
+  if (pronta) return pronta;
+  const r = sorteio(semente);
+  const tracos: Traco[] = [];
+  let x = 0;
+  for (const ch of texto) {
+    const g = GLIFOS[ch];
+    if (!g) { x += 0.4; continue; }
+    const escala = 0.92 + r() * 0.16, base = (r() - 0.5) * 0.1, inclina = -0.12 + (r() - 0.5) * 0.08;
+    let larg = 0;
+    for (const tr of g) {
+      const pts: Traco = tr.map(([px, py]) => {
+        larg = Math.max(larg, px);
+        const jx = (r() - 0.5) * 0.06, jy = (r() - 0.5) * 0.06;
+        const yy = py * escala + base + jy;
+        return [x + (px + jx) * escala + inclina * (yy - 0.5), yy];
+      });
+      tracos.push(suavizarTraco(pts));
+    }
+    x += larg * escala + (ch === '-' ? 0.16 : 0.2) + r() * 0.06;
+  }
+  const falhas = Array.from({ length: 6 }, () => 0.6 + r() * 3);
+  const marca = { tracos, falhas, largura: x };
+  marcasCaneta.set(chave, marca);
+  return marca;
+}
+/** Desenha a marcação com o canto de cima à esquerda em (x, y) e altura h. */
+function desenharMarcaCaneta(ctx: CanvasRenderingContext2D, m: MarcaCaneta, x: number, y: number, h: number, alfa: number) {
+  const w = Math.max(1, h * 0.1);
+  ctx.save();
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  // falhas pequenas no traço, onde a ferrugem não pega tinta
+  ctx.setLineDash(m.falhas.flatMap((f, i) => [h * f, i % 2 ? w * 0.9 : w * 0.5]));
+  for (const tr of m.tracos) {
+    ctx.beginPath();
+    ctx.moveTo(x + tr[0][0] * h, y + tr[0][1] * h);
+    for (let i = 1; i < tr.length; i++) ctx.lineTo(x + tr[i][0] * h, y + tr[i][1] * h);
+    ctx.strokeStyle = `rgba(30,40,46,${0.25 * alfa})`; // leve sombra da tinta em relevo
+    ctx.lineWidth = w * 1.5;
+    ctx.stroke();
+    ctx.strokeStyle = `rgba(232,242,246,${alfa})`;
+    ctx.lineWidth = w;
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  // bolinha de tinta onde a caneta parou (começo e fim de cada traço)
+  ctx.fillStyle = `rgba(240,248,250,${alfa})`;
+  for (const tr of m.tracos) {
+    for (const [px, py] of [tr[0], tr[tr.length - 1]]) {
+      ctx.beginPath(); ctx.arc(x + px * h, y + py * h, w * 0.85, 0, 6.283); ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
 interface PoseSoldador {
   sx: number; piso: number; Hs: number; t: number; mq: (c: RGB) => RGB; parado: boolean;
   /** andando (0 parado, 1 andando) e a fase do passo */
@@ -1259,17 +1363,17 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     ctx.fillRect(0, topo + R * 0.04, W, R * 0.05);
     ctx.fillRect(0, topo + R * 0.79, W, R * 0.03);
 
-    // emendas e marcas de giz
+    // emendas e a marcação de caneta de tinta na alma de cada barra: S-01, S-02... (a S-01 é a que já está
+    // passando pela máquina na abertura; as barras de antes ficam sem número)
     const kMin = Math.floor((u - xm) / L) - 1, kMax = Math.ceil((u + W - xm) / L) + 1;
-    ctx.font = `600 ${Math.round(Math.max(9, R * 0.42))}px ${fonte('--font-barlow-cond', '"Barlow Condensed", "Arial Narrow", sans-serif')}`;
-    ctx.textBaseline = 'middle';
+    const hMarca = Math.max(7, R * 0.52);
     for (let k = kMin; k <= kMax; k++) {
       const x = xm + k * L - u;
-      // giz no meio da barra
-      const xg = x + L / 2;
-      if (xg > -100 && xg < W + 100) {
-        ctx.fillStyle = `rgba(255,255,255,${escuro ? 0.32 : 0.6})`;
-        ctx.fillText(`TLS ${212 + Math.floor(k / 13)} · B${(((k % 13) + 13) % 13) + 1}`, xg - R * 1.2, topo + R * 0.55);
+      const nBarra = k + 2;
+      const xg = x + L * 0.42;
+      if (nBarra >= 1 && xg > -100 && xg < W + 100) {
+        const marca = marcaCaneta(`S-${String(nBarra).padStart(2, '0')}`, nBarra);
+        desenharMarcaCaneta(ctx, marca, xg - (marca.largura * hMarca) / 2, topo + R * 0.55 - hMarca / 2, hMarca, escuro ? 0.62 : 0.9);
       }
       if (x < -R || x > W + R) continue;
       const quando = soldada.get(k);
