@@ -691,22 +691,27 @@ function cotovelo(ax: number, ay: number, bx: number, by: number, l1: number, l2
 }
 
 /**
- * O soldador, de lado, olhando para a máquina (à esquerda): capacete branco com abafador e óculos, uniforme
- * azul-marinho com "rumo" nas costas e faixas refletivas. Anda até a grade e até o painel, desce e sobe a grade
- * na mão, aperta o botão, vira o rosto no centelhamento e se inclina para conferir a emenda.
- * Parado, respira e troca o peso de perna.
+ * O soldador, de lado, olhando para a máquina (à esquerda), como na foto do estaleiro: capacete cinza com abafador de
+ * concha preso nas laterais, óculos de proteção, uniforme azul-marinho da Rumo com faixas refletivas (costas, braços e
+ * canelas), alças cinza cruzadas nas costas, luvas e botinas pretas.
+ * Anda até a grade e até o painel, vira as barras da grade, aperta o botão, protege o rosto no centelhamento e se
+ * inclina para conferir a emenda. Parado, respira e troca o peso de perna.
  */
 function desenharSoldador(ctx: CanvasRenderingContext2D, p: PoseSoldador) {
   const { sx, piso, Hs, t, mq } = p;
-  const azul = cor(mq([30, 40, 86])), azulSombra = cor(mq([20, 27, 60]));
-  const faixa = cor(mq([196, 226, 72])), prata = 'rgba(214,220,226,.95)';
-  const pele = cor(mq([176, 128, 98])), bota = 'rgb(26,26,28)';
+  const azul = cor(mq([34, 46, 96])), azulLuz = cor(mq([52, 68, 128])), azulSombra = cor(mq([22, 30, 66]));
+  const contorno = cor(mq([12, 16, 34]));
+  const faixa = cor(mq([200, 230, 70])), prata = cor(mq([214, 220, 226]));
+  const pele = cor(mq([178, 128, 96])), peleSombra = cor(mq([140, 96, 70]));
+  const cinzaCap = cor(mq([150, 156, 162])), cinzaCapLuz = cor(mq([196, 200, 206])), cinzaCapSombra = cor(mq([104, 110, 118]));
+  const concha = cor(mq([46, 48, 54])), conchaLuz = cor(mq([84, 88, 96]));
+  const preto = cor(mq([22, 22, 26])), pretoLuz = cor(mq([58, 58, 64]));
   const vivo = p.parado ? 0 : 1;
   const peso = Math.sin(t * 0.42) * vivo * (1 - p.anda);
   const respira = Math.sin(t * 1.7) * Hs * 0.004 * vivo;
   const passada = Math.sin(p.passo) * p.anda; // -1 a 1: uma perna à frente, depois a outra
   const sobe = Math.abs(Math.cos(p.passo)) * p.anda * Hs * 0.012; // o corpo sobe um pouco a cada passo
-  // alvo baixo (grade embaixo) faz ele se curvar; conferir também
+  // alvo baixo faz ele se curvar; conferir também
   const abaixa = p.alvo && p.alcance > 0 ? Math.max(0, Math.min(1, (p.alvo[1] - (piso - Hs * 0.62)) / (Hs * 0.3))) * p.alcance : 0;
   const curva = Math.max(p.confere, abaixa * 0.9);
   const incl = -0.24 * curva + 0.07 * p.protege;
@@ -715,23 +720,61 @@ function desenharSoldador(ctx: CanvasRenderingContext2D, p: PoseSoldador) {
   const cabeca: [number, number] = [ombro[0] + Math.sin(incl) * Hs * 0.11 + p.protege * Hs * 0.035, ombro[1] - Hs * 0.115];
   const peFrente: [number, number] = [sx - Hs * 0.07 - passada * Hs * 0.13, piso - Math.max(0, -Math.cos(p.passo)) * p.anda * Hs * 0.03];
   const peTras: [number, number] = [sx + Hs * 0.06 + passada * Hs * 0.13, piso - Math.max(0, Math.cos(p.passo)) * p.anda * Hs * 0.03];
-  const membro = (pts: [number, number][], largura: number, c: string) => {
+  const linha = (pts: [number, number][], largura: number, c: string) => {
     ctx.strokeStyle = c; ctx.lineWidth = largura; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
     for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
     ctx.stroke();
   };
-  const faixaEm = (a: [number, number], b: [number, number], f: number, largura: number) => {
+  // membro com contorno escuro e um brilho fino na frente, para ter volume
+  const membro = (pts: [number, number][], largura: number, c: string, luz?: string) => {
+    linha(pts, largura + Math.max(1, Hs * 0.008), contorno);
+    linha(pts, largura, c);
+    if (luz) {
+      ctx.save(); ctx.translate(-largura * 0.22, -largura * 0.05);
+      linha(pts, largura * 0.22, luz);
+      ctx.restore();
+    }
+  };
+  // faixa refletiva atravessando um segmento (amarela com o filete prata no meio)
+  const faixaEm = (a: [number, number], b: [number, number], f: number, largura: number, alt = Hs * 0.024) => {
     const x = mix(a[0], b[0], f), y = mix(a[1], b[1], f);
     const ang = Math.atan2(b[1] - a[1], b[0] - a[0]) + Math.PI / 2;
-    const dx = Math.cos(ang) * largura / 2, dy = Math.sin(ang) * largura / 2;
-    membro([[x - dx, y - dy], [x + dx, y + dy]], Hs * 0.022, faixa);
-    membro([[x - dx * 0.92, y - dy * 0.92], [x + dx * 0.92, y + dy * 0.92]], Hs * 0.006, prata);
+    const dx = Math.cos(ang) * largura * 0.47, dy = Math.sin(ang) * largura * 0.47;
+    ctx.lineCap = 'butt';
+    ctx.strokeStyle = faixa; ctx.lineWidth = alt;
+    ctx.beginPath(); ctx.moveTo(x - dx, y - dy); ctx.lineTo(x + dx, y + dy); ctx.stroke();
+    ctx.strokeStyle = prata; ctx.lineWidth = Math.max(1, alt * 0.3);
+    ctx.beginPath(); ctx.moveTo(x - dx, y - dy); ctx.lineTo(x + dx, y + dy); ctx.stroke();
+    ctx.lineCap = 'round';
   };
   const L1 = Hs * 0.17, L2 = Hs * 0.17, perna = Hs * 0.255;
+  // botina preta de bico redondo, com solado e salto
   const botaEm = (pe: [number, number], c: string) => {
+    const x = pe[0], y = pe[1];
     ctx.fillStyle = c;
-    ctx.beginPath(); ctx.roundRect(pe[0] - Hs * 0.075, pe[1] - Hs * 0.048, Hs * 0.12, Hs * 0.048, Hs * 0.016); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x + Hs * 0.045, y - Hs * 0.012);
+    ctx.lineTo(x + Hs * 0.04, y - Hs * 0.075);
+    ctx.lineTo(x - Hs * 0.01, y - Hs * 0.075);
+    ctx.quadraticCurveTo(x - Hs * 0.03, y - Hs * 0.045, x - Hs * 0.065, y - Hs * 0.04);
+    ctx.quadraticCurveTo(x - Hs * 0.088, y - Hs * 0.035, x - Hs * 0.085, y - Hs * 0.012);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = pretoLuz; // solado
+    ctx.fillRect(x - Hs * 0.086, y - Hs * 0.014, Hs * 0.135, Hs * 0.014);
+    ctx.fillStyle = 'rgba(255,255,255,.18)'; // brilho do couro no bico
+    ctx.beginPath(); ctx.ellipse(x - Hs * 0.055, y - Hs * 0.04, Hs * 0.016, Hs * 0.006, -0.3, 0, 6.283); ctx.fill();
+  };
+  // luva preta com punho
+  const luvaEm = (de: [number, number], mao: [number, number]) => {
+    const ang = Math.atan2(mao[1] - de[1], mao[0] - de[0]);
+    ctx.save(); ctx.translate(mao[0], mao[1]); ctx.rotate(ang);
+    ctx.fillStyle = preto;
+    ctx.beginPath(); ctx.roundRect(-Hs * 0.035, -Hs * 0.026, Hs * 0.03, Hs * 0.052, Hs * 0.006); ctx.fill(); // punho
+    ctx.beginPath(); ctx.ellipse(Hs * 0.01, 0, Hs * 0.03, Hs * 0.024, 0, 0, 6.283); ctx.fill();
+    ctx.fillStyle = pretoLuz;
+    ctx.beginPath(); ctx.ellipse(Hs * 0.012, -Hs * 0.01, Hs * 0.016, Hs * 0.006, 0, 0, 6.283); ctx.fill();
+    ctx.restore();
   };
 
   // braço de trás: balança ao andar, sobe para proteger o rosto no centelhamento
@@ -740,61 +783,117 @@ function desenharSoldador(ctx: CanvasRenderingContext2D, p: PoseSoldador) {
   const maoTrasRosto: [number, number] = [cabeca[0] - Hs * 0.09, cabeca[1] + Hs * 0.02];
   const maoTras: [number, number] = [mix(maoTrasLivre[0], maoTrasRosto[0], p.protege), mix(maoTrasLivre[1], maoTrasRosto[1], p.protege)];
   const cotTras = cotovelo(ombroTras[0], ombroTras[1], maoTras[0], maoTras[1], L1, L2, p.protege > 0.5 ? 1 : -1);
-  membro([ombroTras, cotTras, maoTras], Hs * 0.07, azulSombra);
+  membro([ombroTras, cotTras, maoTras], Hs * 0.068, azulSombra);
+  faixaEm(ombroTras, cotTras, 0.62, Hs * 0.068);
+  luvaEm(cotTras, maoTras);
   // perna de trás
   const qT: [number, number] = [quadril[0] + Hs * 0.02, quadril[1]];
-  const tornT: [number, number] = [peTras[0], peTras[1] - Hs * 0.03];
-  membro([qT, cotovelo(qT[0], qT[1], tornT[0], tornT[1], perna, perna, -1), tornT], Hs * 0.085, azulSombra);
-  botaEm(peTras, bota);
+  const tornT: [number, number] = [peTras[0], peTras[1] - Hs * 0.06];
+  const joelhoT = cotovelo(qT[0], qT[1], tornT[0], tornT[1], perna, perna, -1);
+  membro([qT, joelhoT, tornT], Hs * 0.086, azulSombra);
+  faixaEm(joelhoT, tornT, 0.3, Hs * 0.086);
+  faixaEm(joelhoT, tornT, 0.62, Hs * 0.086);
+  botaEm(peTras, preto);
   // perna da frente
   const qF: [number, number] = [quadril[0] - Hs * 0.02, quadril[1]];
-  const tornF: [number, number] = [peFrente[0], peFrente[1] - Hs * 0.03];
+  const tornF: [number, number] = [peFrente[0], peFrente[1] - Hs * 0.06];
   const joelho = cotovelo(qF[0], qF[1], tornF[0], tornF[1], perna * (1 + 0.01 * peso), perna, -1);
-  membro([qF, joelho, tornF], Hs * 0.088, azul);
-  faixaEm(joelho, tornF, 0.55, Hs * 0.088);
-  botaEm(peFrente, bota);
+  membro([qF, joelho, tornF], Hs * 0.09, azul, azulLuz);
+  faixaEm(joelho, tornF, 0.3, Hs * 0.09);
+  faixaEm(joelho, tornF, 0.62, Hs * 0.09);
+  botaEm(peFrente, preto);
 
-  // tronco, com as alças cinza e "rumo" nas costas
-  membro([[quadril[0], quadril[1] - Hs * 0.02], [ombro[0], ombro[1] + Hs * 0.03]], Hs * 0.2, azul);
-  const meioT: [number, number] = [(quadril[0] + ombro[0]) / 2, (quadril[1] + ombro[1]) / 2];
+  // tronco: jaqueta com ombros, frente (peito) à esquerda e costas à direita, faixa refletiva, alças cinza e "rumo"
   ctx.save();
-  ctx.translate(meioT[0], meioT[1]);
+  ctx.translate(quadril[0], quadril[1] + respira * 0.5);
   ctx.rotate(incl);
-  ctx.strokeStyle = prata; ctx.lineWidth = Hs * 0.012;
-  ctx.beginPath(); ctx.moveTo(-Hs * 0.06, -Hs * 0.12); ctx.lineTo(Hs * 0.08, Hs * 0.02); ctx.stroke();
-  ctx.fillStyle = faixa;
-  ctx.fillRect(-Hs * 0.1, Hs * 0.05, Hs * 0.2, Hs * 0.024);
-  ctx.fillStyle = prata;
-  ctx.fillRect(-Hs * 0.1, Hs * 0.059, Hs * 0.2, Hs * 0.006);
-  ctx.fillStyle = 'rgba(255,255,255,.92)';
-  ctx.font = `700 ${Math.max(6, Math.round(Hs * 0.05))}px ${fonte('--font-barlow', '"Barlow", Arial, sans-serif')}`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('rumo', Hs * 0.02, -Hs * 0.04);
+  const corpo = new Path2D();
+  corpo.moveTo(-Hs * 0.078, Hs * 0.03);
+  corpo.quadraticCurveTo(-Hs * 0.095, -Hs * 0.16, -Hs * 0.07, -Hs * 0.29);
+  corpo.quadraticCurveTo(-Hs * 0.05, -Hs * 0.33, Hs * 0.01, -Hs * 0.33);
+  corpo.quadraticCurveTo(Hs * 0.08, -Hs * 0.33, Hs * 0.088, -Hs * 0.27);
+  corpo.quadraticCurveTo(Hs * 0.1, -Hs * 0.12, Hs * 0.084, Hs * 0.03);
+  corpo.closePath();
+  ctx.lineWidth = Math.max(1, Hs * 0.008); ctx.strokeStyle = contorno; ctx.stroke(corpo);
+  const sombraCorpo = ctx.createLinearGradient(-Hs * 0.09, 0, Hs * 0.1, 0);
+  sombraCorpo.addColorStop(0, azulLuz); sombraCorpo.addColorStop(0.45, azul); sombraCorpo.addColorStop(1, azulSombra);
+  ctx.fillStyle = sombraCorpo; ctx.fill(corpo);
+  ctx.save(); ctx.clip(corpo);
+  // barra da jaqueta e costura do lado
+  ctx.fillStyle = azulSombra; ctx.fillRect(-Hs * 0.1, Hs * 0.012, Hs * 0.2, Hs * 0.02);
+  ctx.strokeStyle = azulSombra; ctx.lineWidth = Math.max(1, Hs * 0.004);
+  ctx.beginPath(); ctx.moveTo(-Hs * 0.012, -Hs * 0.3); ctx.lineTo(-Hs * 0.004, Hs * 0.02); ctx.stroke();
+  // faixa refletiva em volta do tronco
+  ctx.fillStyle = faixa; ctx.fillRect(-Hs * 0.1, -Hs * 0.125, Hs * 0.2, Hs * 0.03);
+  ctx.fillStyle = prata; ctx.fillRect(-Hs * 0.1, -Hs * 0.114, Hs * 0.2, Hs * 0.008);
+  // alças cinza cruzadas nas costas (de lado aparece uma, descendo das costas até a cintura)
+  ctx.strokeStyle = prata; ctx.lineWidth = Hs * 0.014; ctx.lineCap = 'butt';
+  ctx.beginPath(); ctx.moveTo(Hs * 0.095, -Hs * 0.25); ctx.lineTo(-Hs * 0.03, Hs * 0.03); ctx.stroke();
+  ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = Math.max(1, Hs * 0.003);
+  ctx.beginPath(); ctx.moveTo(Hs * 0.1, -Hs * 0.24); ctx.lineTo(-Hs * 0.024, Hs * 0.035); ctx.stroke();
+  ctx.lineCap = 'round';
+  // "rumo" nas costas
+  ctx.fillStyle = 'rgba(255,255,255,.94)';
+  ctx.font = `700 ${Math.max(6, Math.round(Hs * 0.046))}px ${fonte('--font-barlow', '"Barlow", Arial, sans-serif')}`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('rumo', Hs * 0.03, -Hs * 0.245);
   ctx.textAlign = 'left';
   ctx.restore();
+  // gola
+  ctx.fillStyle = azulSombra;
+  ctx.beginPath(); ctx.ellipse(-Hs * 0.005, -Hs * 0.325, Hs * 0.045, Hs * 0.016, 0, 0, 6.283); ctx.fill();
+  ctx.restore();
 
-  // cabeça: rosto, óculos, capacete branco com aba e o abafador cinza
-  membro([[ombro[0], ombro[1] - Hs * 0.01], [cabeca[0], cabeca[1] + Hs * 0.04]], Hs * 0.05, pele);
+  // cabeça: pescoço, rosto de perfil, óculos de proteção, capacete cinza e abafador de concha
+  const cx = cabeca[0], cy = cabeca[1];
+  linha([[ombro[0] - Hs * 0.004, ombro[1] - Hs * 0.012], [cx + Hs * 0.004, cy + Hs * 0.045]], Hs * 0.046, peleSombra);
   ctx.fillStyle = pele;
-  ctx.beginPath(); ctx.arc(cabeca[0], cabeca[1], Hs * 0.058, 0, 6.283); ctx.fill();
-  ctx.fillStyle = 'rgba(30,40,50,.85)';
-  ctx.fillRect(cabeca[0] - Hs * 0.062, cabeca[1] - Hs * 0.012, Hs * 0.04, Hs * 0.018);
-  ctx.fillStyle = 'rgb(242,244,246)';
-  ctx.beginPath(); ctx.ellipse(cabeca[0] + Hs * 0.005, cabeca[1] - Hs * 0.028, Hs * 0.07, Hs * 0.055, 0, Math.PI, 0); ctx.fill();
-  ctx.fillRect(cabeca[0] - Hs * 0.09, cabeca[1] - Hs * 0.03, Hs * 0.15, Hs * 0.012);
-  ctx.fillStyle = cor(mq([92, 96, 104]));
-  ctx.beginPath(); ctx.ellipse(cabeca[0] + Hs * 0.025, cabeca[1] + Hs * 0.004, Hs * 0.02, Hs * 0.03, 0, 0, 6.283); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(cx, cy + Hs * 0.004, Hs * 0.052, Hs * 0.06, 0, 0, 6.283); ctx.fill();
+  // nariz e queixo de perfil, olhando para a esquerda
+  ctx.beginPath(); ctx.moveTo(cx - Hs * 0.048, cy - Hs * 0.004); ctx.lineTo(cx - Hs * 0.066, cy + Hs * 0.016); ctx.lineTo(cx - Hs * 0.046, cy + Hs * 0.022); ctx.fill();
+  ctx.fillStyle = peleSombra;
+  ctx.beginPath(); ctx.ellipse(cx - Hs * 0.03, cy + Hs * 0.052, Hs * 0.024, Hs * 0.008, 0, 0, 6.283); ctx.fill(); // sombra do queixo
+  ctx.fillRect(cx - Hs * 0.044, cy + Hs * 0.033, Hs * 0.014, Hs * 0.003); // boca
+  // óculos de proteção: lente clara envolvente com armação escura e a haste indo até a concha
+  ctx.fillStyle = 'rgba(190,225,240,.55)';
+  ctx.beginPath(); ctx.roundRect(cx - Hs * 0.06, cy - Hs * 0.018, Hs * 0.04, Hs * 0.024, Hs * 0.006); ctx.fill();
+  ctx.strokeStyle = preto; ctx.lineWidth = Math.max(1, Hs * 0.006);
+  ctx.beginPath(); ctx.roundRect(cx - Hs * 0.06, cy - Hs * 0.018, Hs * 0.04, Hs * 0.024, Hs * 0.006); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx - Hs * 0.02, cy - Hs * 0.012); ctx.lineTo(cx + Hs * 0.012, cy - Hs * 0.008); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.7)';
+  ctx.fillRect(cx - Hs * 0.054, cy - Hs * 0.013, Hs * 0.012, Math.max(1, Hs * 0.004));
+  // capacete cinza: casco com nervura, aba na frente e a borda
+  ctx.fillStyle = cinzaCapSombra;
+  ctx.beginPath(); ctx.ellipse(cx + Hs * 0.004, cy - Hs * 0.026, Hs * 0.074, Hs * 0.062, 0, Math.PI, 0); ctx.fill();
+  const casco = ctx.createLinearGradient(cx - Hs * 0.07, cy - Hs * 0.09, cx + Hs * 0.07, cy - Hs * 0.02);
+  casco.addColorStop(0, cinzaCapLuz); casco.addColorStop(0.6, cinzaCap); casco.addColorStop(1, cinzaCapSombra);
+  ctx.fillStyle = casco;
+  ctx.beginPath(); ctx.ellipse(cx + Hs * 0.002, cy - Hs * 0.028, Hs * 0.07, Hs * 0.058, 0, Math.PI, 0); ctx.fill();
+  ctx.strokeStyle = cinzaCapLuz; ctx.lineWidth = Math.max(1, Hs * 0.008); // nervura do casco
+  ctx.beginPath(); ctx.ellipse(cx + Hs * 0.002, cy - Hs * 0.028, Hs * 0.04, Hs * 0.056, 0, Math.PI * 1.05, Math.PI * 1.85); ctx.stroke();
+  ctx.fillStyle = cinzaCap; // aba da frente e borda
+  ctx.beginPath(); ctx.moveTo(cx - Hs * 0.068, cy - Hs * 0.03); ctx.lineTo(cx - Hs * 0.1, cy - Hs * 0.02); ctx.lineTo(cx - Hs * 0.098, cy - Hs * 0.014); ctx.lineTo(cx - Hs * 0.06, cy - Hs * 0.02); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = cinzaCapSombra;
+  ctx.fillRect(cx - Hs * 0.068, cy - Hs * 0.031, Hs * 0.142, Hs * 0.01);
+  // abafador de concha: braço preso na lateral do capacete e a concha sobre a orelha
+  ctx.strokeStyle = concha; ctx.lineWidth = Math.max(1.5, Hs * 0.01);
+  ctx.beginPath(); ctx.moveTo(cx + Hs * 0.022, cy - Hs * 0.026); ctx.lineTo(cx + Hs * 0.02, cy - Hs * 0.005); ctx.stroke();
+  ctx.fillStyle = concha;
+  ctx.beginPath(); ctx.ellipse(cx + Hs * 0.02, cy + Hs * 0.012, Hs * 0.024, Hs * 0.032, 0, 0, 6.283); ctx.fill();
+  ctx.fillStyle = conchaLuz;
+  ctx.beginPath(); ctx.ellipse(cx + Hs * 0.014, cy + Hs * 0.006, Hs * 0.012, Hs * 0.018, 0, 0, 6.283); ctx.fill();
+  ctx.fillStyle = faixa; // detalhe amarelo da concha
+  ctx.fillRect(cx + Hs * 0.012, cy + Hs * 0.03, Hs * 0.016, Math.max(1, Hs * 0.005));
 
   // braço da frente: solto (balançando ao andar) ou indo até a grade / o botão
   const maoLivre: [number, number] = [ombro[0] - Hs * 0.04 - passada * Hs * 0.1, ombro[1] + Hs * 0.31];
   const alvo = p.alvo ?? maoLivre;
   const mao: [number, number] = [mix(maoLivre[0], alvo[0], p.alcance), mix(maoLivre[1], alvo[1], p.alcance)];
-  const cot = cotovelo(ombro[0], ombro[1] + Hs * 0.01, mao[0], mao[1], L1, L2, -1);
-  membro([[ombro[0], ombro[1] + Hs * 0.01], cot, mao], Hs * 0.072, azul);
-  faixaEm([ombro[0], ombro[1]], cot, 0.6, Hs * 0.072);
-  ctx.fillStyle = 'rgb(36,36,40)'; // luva
-  ctx.beginPath(); ctx.arc(mao[0], mao[1], Hs * 0.03, 0, 6.283); ctx.fill();
+  const ombroF: [number, number] = [ombro[0], ombro[1] + Hs * 0.01];
+  const cot = cotovelo(ombroF[0], ombroF[1], mao[0], mao[1], L1, L2, -1);
+  membro([ombroF, cot, mao], Hs * 0.07, azul, azulLuz);
+  faixaEm(ombroF, cot, 0.62, Hs * 0.07);
+  luvaEm(cot, mao);
 }
 
 // ---------- início: o TLS saindo do estaleiro ----------
@@ -1325,58 +1424,52 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.fillRect(abX, abY, jn.abW, jn.h);
         ctx.restore();
       }
-      // A grade gira num eixo atravessado no meio da altura, com um pino em cada lateral (como virar uma faca de lado).
-      // Fechada fica de pé, de frente, tampando a janelinha; aberta fica deitada e, vista de frente, vira uma faixa fina
-      // atravessando a janelinha. Peça rígida: barras e moldura mantêm a espessura, só o ângulo muda.
-      const giro = (1 - gradeDesce) * Math.PI / 2; // 0 de pé (fechada), 90° deitada (aberta)
+      // Grade da janelinha como persiana: a moldura fica parada e as barras ("facas") giram juntas, cada uma no próprio
+      // eixo. Fechada, a parte larga fica de frente e as barras se encostam, tampando a janelinha; aberta, ficam de lado
+      // (vistas pelo fio) e dá para olhar a solda entre elas. O soldador vira as barras pela alavanca da lateral direita.
+      const giro = (1 - gradeDesce) * Math.PI / 2; // 0 de frente (fechada), 90° de lado (aberta)
       const cg = Math.cos(giro), sg = Math.sin(giro);
-      const eixoY = abY + jn.h / 2;
-      // v = 0 em cima, 1 embaixo; a metade de baixo vem para fora (na direção do soldador), a de cima vai para dentro
-      const pt = (u: number, v: number): [number, number] => {
-        const d = (v - 0.5) * jn.h; // distância até o eixo
-        const fora = d * sg; // quanto vem para fora
-        const larg = jn.abW * (1 + 0.1 * fora / jn.h);
-        return [abX + jn.abW / 2 + (u - 0.5) * larg, eixoY + d * cg + 0.12 * fora];
-      };
-      const faixa = (v0: number, v1: number, u0 = 0, u1 = 1) => {
-        const a1 = pt(u0, v0), a2 = pt(u1, v0), a3 = pt(u1, v1), a4 = pt(u0, v1);
-        ctx.beginPath(); ctx.moveTo(a1[0], a1[1]); ctx.lineTo(a2[0], a2[1]); ctx.lineTo(a3[0], a3[1]); ctx.lineTo(a4[0], a4[1]); ctx.closePath(); ctx.fill();
-      };
-      const escalaV = Math.max(0.0001, jn.h * Math.abs(cg + 0.12 * sg));
-      const espV = (e: number) => Math.min(0.5, e / escalaV); // espessura fixa em pixels, convertida para v
-      const creme = (rgb: RGB) => cor(mq(misturar(rgb, [60, 56, 48], 0.2 * sg)));
-      const ladoU = Math.max(2, 0.025 * M) / jn.abW;
-      // barras horizontais
-      if (cg > 0.08) {
-        for (let i = 1; i <= 5; i++) {
-          const v = i / 6, e = espV(0.032 * M);
-          ctx.fillStyle = creme([206, 196, 170]);
-          faixa(v - e / 2, v + e / 2, ladoU, 1 - ladoU);
-          ctx.fillStyle = creme([150, 142, 120]);
-          faixa(v + e / 2, Math.min(1, v + e / 2 + espV(Math.max(1, 0.006 * M))), ladoU, 1 - ladoU);
+      const nBarras = 6, passoB = jn.h / nBarras;
+      const fio = Math.max(1.5, 0.014 * M); // espessura da barra, vista quando ela está de lado
+      for (let i = 0; i < nBarras; i++) {
+        const yc = abY + (i + 0.5) * passoB;
+        const meia = (passoB / 2) * 1.04 * cg; // face larga encurtando conforme gira
+        const tom = misturar([222, 212, 186], [120, 112, 92], 0.55 * sg);
+        if (meia > 0.4) {
+          const face = ctx.createLinearGradient(0, yc - meia, 0, yc + meia);
+          face.addColorStop(0, cor(mq(misturar(tom, [255, 250, 236], 0.25))));
+          face.addColorStop(1, cor(mq(misturar(tom, [90, 84, 70], 0.25))));
+          ctx.fillStyle = face;
+          ctx.fillRect(abX, yc - meia, jn.abW, meia * 2);
         }
+        // o fio da barra (a borda) aparece embaixo quando ela vira
+        const borda = Math.max(sg * fio, 0.6);
+        ctx.fillStyle = cor(mq([176, 166, 140]));
+        ctx.fillRect(abX, yc + meia - borda * 0.5, jn.abW, borda);
       }
-      // moldura: laterais, travessa de cima e beirada de baixo com o puxador
-      ctx.fillStyle = creme([222, 212, 186]);
-      faixa(0, 1, 0, ladoU);
-      faixa(0, 1, 1 - ladoU, 1);
-      faixa(0, espV(Math.max(2, 0.03 * M)));
-      faixa(1 - espV(Math.max(2, 0.03 * M)), 1);
-      // deitada, aparece a espessura da moldura (o "fio" da grade)
-      const fio = Math.max(2, 0.045 * M) * sg;
-      if (fio > 0.5) {
-        const b1 = pt(0, 1), b2 = pt(1, 1);
-        ctx.fillStyle = creme([176, 166, 140]);
-        ctx.fillRect(b1[0], b1[1] - fio / 2, b2[0] - b1[0], fio);
+      // laterais da moldura com os pinos das barras
+      const lateral = Math.max(2, 0.03 * M);
+      ctx.fillStyle = cor(mq([214, 204, 176]));
+      ctx.fillRect(abX - lateral * 0.6, abY - 0.01 * M, lateral, jn.h + 0.02 * M);
+      ctx.fillRect(abX + jn.abW - lateral * 0.4, abY - 0.01 * M, lateral, jn.h + 0.02 * M);
+      ctx.fillStyle = 'rgb(60,62,66)';
+      for (let i = 0; i < nBarras; i++) {
+        const yc = abY + (i + 0.5) * passoB;
+        ctx.beginPath(); ctx.arc(abX - lateral * 0.1, yc, Math.max(1, 0.008 * M), 0, 6.283); ctx.fill();
+        ctx.beginPath(); ctx.arc(abX + jn.abW + lateral * 0.1, yc, Math.max(1, 0.008 * M), 0, 6.283); ctx.fill();
       }
-      const pux0 = pt(0.32, 1), pux1 = pt(0.68, 1);
-      ctx.fillStyle = creme([206, 196, 170]);
-      ctx.fillRect(pux0[0], pux0[1] + fio / 2 - 0.005 * M, pux1[0] - pux0[0], 0.035 * M);
-      // pinos do eixo, um em cada lateral
+      // alavanca na lateral direita: para baixo com a grade fechada, deitada para a direita com ela aberta
+      const piv: [number, number] = [abX + jn.abW + lateral * 0.6, abY + jn.h * 0.5];
+      const angAl = (Math.PI / 2) * gradeDesce;
+      const compAl = 0.17 * M;
+      const ponta: [number, number] = [piv[0] + Math.cos(angAl) * compAl, piv[1] + Math.sin(angAl) * compAl];
+      ctx.strokeStyle = 'rgb(28,30,34)'; ctx.lineWidth = Math.max(2, 0.022 * M); ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(piv[0], piv[1]); ctx.lineTo(ponta[0], ponta[1]); ctx.stroke();
+      ctx.fillStyle = 'rgb(200,50,40)';
+      ctx.beginPath(); ctx.arc(ponta[0], ponta[1], Math.max(2, 0.022 * M), 0, 6.283); ctx.fill();
       ctx.fillStyle = 'rgb(40,42,46)';
-      ctx.beginPath(); ctx.arc(abX - 0.012 * M, eixoY, 0.025 * M, 0, 6.283); ctx.fill();
-      ctx.beginPath(); ctx.arc(abX + jn.abW + 0.012 * M, eixoY, 0.025 * M, 0, 6.283); ctx.fill();
-      const puxador: [number, number] = [(pux0[0] + pux1[0]) / 2, pux0[1] + fio / 2 + 0.015 * M];
+      ctx.beginPath(); ctx.arc(piv[0], piv[1], Math.max(1.5, 0.016 * M), 0, 6.283); ctx.fill();
+      const puxador: [number, number] = ponta;
 
       // painel de comando no pedestal, ao lado da máquina: verde pronta, âmbar piscando soldando, vermelha apagada
       const pedX = mR + (W < 600 ? 0.5 : 0.75) * M;
