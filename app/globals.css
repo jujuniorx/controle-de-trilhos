@@ -1056,6 +1056,11 @@ a.card:hover { transform: translateY(-2px); }
 .saudacao-hero .fundo-trilhos { --altura-via: 70%; --horizonte: 30%; }
 .saudacao-hero .fundo-trilhos-via { opacity: .6; }
 .saudacao-hero-texto { position: relative; z-index: 1; }
+/* Cartão da saudação segue o horário (dia ou noite), e não o tema: de dia, céu claro com texto escuro. */
+.saudacao-hero[data-periodo="dia"] { background: linear-gradient(155deg, #dcecfb, #a9d2f5 70%, #7fb9ee) !important; color: #0c2440 !important; }
+.saudacao-hero[data-periodo="dia"] .saudacao-hero-texto::before { background: radial-gradient(closest-side, rgba(255, 255, 255, .55) 40%, transparent) !important; }
+.saudacao-hero[data-periodo="dia"] .saudacao-hero-saudacao { color: #0c2440 !important; }
+.saudacao-hero[data-periodo="dia"] .saudacao-hero-sub { color: #29476b !important; }
 .saudacao-hero-texto::before { content: ''; position: absolute; inset: -30px -50px -30px -30px; z-index: -1; background: radial-gradient(closest-side, rgba(8, 15, 26, .78) 40%, transparent); }
 .saudacao-hero-saudacao { font-family: var(--font-barlow-cond), sans-serif; font-size: 2rem; font-weight: 700; letter-spacing: .01em; line-height: 1.1; }
 .saudacao-hero-sub { margin-top: 8px; color: #c4d6ee; font-size: .95rem; max-width: 46ch; }

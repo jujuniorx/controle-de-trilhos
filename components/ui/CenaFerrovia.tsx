@@ -241,6 +241,15 @@ function paletaAbertura(el: Element): PaletaAbertura {
 
 // ---------- saudação: a via vista de lado, com o céu da hora ----------
 
+/** Hora decimal de Brasília (o mesmo fuso da saudação), para a cena bater com o cartão. */
+function horaDeBrasilia(): number {
+  const partes = new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date());
+  const h = Number(partes.find((x) => x.type === 'hour')?.value ?? 12), m = Number(partes.find((x) => x.type === 'minute')?.value ?? 0);
+  return (h % 24) + m / 60;
+}
+/** Lido pelo desenho da locomotiva: de dia o farol e as janelas ficam apagados. */
+let modoDiaSaudacao = true;
+
 function iniciarSaudacao(cv: HTMLCanvasElement) {
   const caixa = cv.parentElement ?? cv;
   let tinta = rgbDeCor(getComputedStyle(caixa).color, [255, 255, 255]);
@@ -258,9 +267,9 @@ function iniciarSaudacao(cv: HTMLCanvasElement) {
     ctx.clearRect(0, 0, W, H);
     x0 += parado ? 0 : dt;
     const entra = parado ? 1 : suave(0, 1.4, t);
-    const agora = new Date();
-    const hora = agora.getHours() + agora.getMinutes() / 60;
-    const dia = hora >= 6 && hora < 18.3;
+    const hora = horaDeBrasilia();
+    const dia = hora >= 6 && hora < 18;
+    modoDiaSaudacao = dia;
     const quente = Math.max(0, 1 - Math.abs(hora - 6.6) / 1.4, 1 - Math.abs(hora - 17.6) / 1.4);
     const chao = H * 0.86;
     const fino = W < 560;
@@ -404,8 +413,8 @@ function iniciarSaudacao(cv: HTMLCanvasElement) {
         ctx.fillRect(X(0.45), Y(0.88), LL * 0.13, alto * 0.04);
         ctx.fillStyle = cor(ESCURO, a);
         ctx.fillRect(X(0.63), Y(0.89), LL * 0.02, alto * 0.05);
-        // janelas da cabine com luz
-        ctx.fillStyle = `rgba(255,214,150,${0.85 * a})`;
+        // janelas da cabine com luz (apagadas de dia)
+        ctx.fillStyle = `rgba(255,214,150,${(modoDiaSaudacao ? 0.12 : 0.85) * a})`;
         ctx.fillRect(X(0.075), Y(0.9), LL * 0.022, alto * 0.15);
         ctx.fillRect(X(0.12), Y(0.9), LL * 0.07, alto * 0.16);
         // estrado azul com a faixa amarela, tanque e truques de três eixos
@@ -418,10 +427,12 @@ function iniciarSaudacao(cv: HTMLCanvasElement) {
         ctx.fillStyle = cor(ESCURO, a);
         ctx.fillRect(X(0.06), Y(0.22), LL * 0.26, alto * 0.08);
         ctx.fillRect(X(0.68), Y(0.22), LL * 0.26, alto * 0.08);
-        // farol aceso na frente
-        const g = ctx.createRadialGradient(X(0), Y(0.48), 0, X(0), Y(0.48), alto * 1.6);
-        g.addColorStop(0, `rgba(255,226,170,${0.75 * entra})`); g.addColorStop(1, 'rgba(255,226,170,0)');
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X(0), Y(0.48), alto * 1.6, 0, 6.283); ctx.fill();
+        // farol aceso na frente (só de noite)
+        if (!modoDiaSaudacao) {
+          const g = ctx.createRadialGradient(X(0), Y(0.48), 0, X(0), Y(0.48), alto * 1.6);
+          g.addColorStop(0, `rgba(255,226,170,${0.75 * entra})`); g.addColorStop(1, 'rgba(255,226,170,0)');
+          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X(0), Y(0.48), alto * 1.6, 0, 6.283); ctx.fill();
+        }
         // vagões plataforma (cinza escuro) com o TLS por cima, em duas camadas
         const v0 = lx + LL + 4;
         for (let v = 0; v < 8; v++) {

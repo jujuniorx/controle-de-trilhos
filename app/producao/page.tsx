@@ -12,6 +12,7 @@ import { salvarProducaoAction } from './actions';
 import { AlternarTema } from '@/components/ui/AlternarTema';
 import { BotaoEnviar } from '@/components/ui/BotaoEnviar';
 import { CelulasParada } from '@/components/producao/CelulasParada';
+import { SaudacaoProducao } from '@/components/producao/SaudacaoProducao';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,6 +54,7 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
       <div className="flex justify-end">
         <AlternarTema />
       </div>
+      <SaudacaoProducao soldador={dia?.soldadores} />
       <h1 className="font-condensed text-2xl font-bold uppercase tracking-wide">Produção do dia</h1>
       {params.ok === '1' && <p role="status" className="rounded-lg border border-ok/40 bg-ok/10 p-3 text-sm">Dia salvo. Soldas: {dia?.totalSoldas ?? 0}, TLS formados: {dia?.tlsFormados ?? 0}, {terminouEmReemprego ? `TLS de reemprego em aberto: ${dia?.sobraSaida ?? 0} soldas.` : `sobra para amanhã: ${dia?.sobraSaida ?? 0} de ${SOLDAS_POR_TLS}.`}</p>}
 

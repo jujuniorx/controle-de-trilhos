@@ -54,3 +54,9 @@ export function saudacaoRotativa(agora: Date = new Date(), escolher: () => numbe
   const indice = Math.min(frases.length - 1, Math.floor(escolher() * frases.length));
   return frases[indice];
 }
+
+/** 'dia' das 6h às 17h59 e 'noite' no resto, pelo horário de Brasília. Vale para a saudação e para a cena, em qualquer tema. */
+export function periodoDoDia(agora: Date = new Date()): 'dia' | 'noite' {
+  const { hora } = momentoBrasilia(agora);
+  return hora >= 6 && hora < 18 ? 'dia' : 'noite';
+}

@@ -1,11 +1,11 @@
-import { saudacaoCompleta } from '@/lib/saudacao';
+import { periodoDoDia, saudacaoCompleta } from '@/lib/saudacao';
 import { FundoTrilhos } from '@/components/ui/FundoTrilhos';
 
 /** Cabeçalho das telas da Portaria: a mesma faixa em Carga e em Descarga. */
 export function SaudacaoPortaria({ nome, linha }: { nome: string; linha: string }) {
   const primeiroNome = nome.trim().split(' ')[0] ?? nome;
   return (
-    <section className="saudacao-hero">
+    <section className="saudacao-hero" data-periodo={periodoDoDia()}>
       <FundoTrilhos />
       <div className="saudacao-hero-texto">
         <p className="saudacao-hero-saudacao">

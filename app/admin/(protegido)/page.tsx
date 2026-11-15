@@ -4,7 +4,7 @@ import { listarPendentesConferencia } from '@/lib/services/movimentacao';
 import { listarAguardandoChegada } from '@/lib/services/remetido';
 import { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, buscarDia, horasDoDia, paradasDaLinha, paradasEmAndamento } from '@/lib/services/producao';
 import { requireAdmin } from '@/lib/services/requireAdmin';
-import { saudacaoRotativa } from '@/lib/saudacao';
+import { periodoDoDia, saudacaoRotativa } from '@/lib/saudacao';
 import { FundoTrilhos } from '@/components/ui/FundoTrilhos';
 import { ICONES_NAV } from '@/components/admin/navItens';
 
@@ -88,7 +88,7 @@ export default async function AdminInicioPage() {
 
   return (
     <main className="mx-auto w-full max-w-7xl space-y-6">
-      <section className="saudacao-hero">
+      <section className="saudacao-hero" data-periodo={periodoDoDia()}>
         <FundoTrilhos />
         <div className="saudacao-hero-texto">
           <p className="saudacao-hero-saudacao">
