@@ -206,7 +206,7 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
                     <span className="turno-quebra">{sobra} de {SOLDAS_POR_TLS} soldas no próximo TLS</span>
                     {fechouOAnterior && quandoAntes && (
                       <span className="turno-quebra turno-origem">
-                        <span className="turno-origem-antes">O TLS que veio de {quandoAntes} fechou hoje</span>
+                        <span className="turno-origem-antes">1 TLS que veio de {quandoAntes} fechou hoje</span>
                         <span aria-hidden="true">·</span>
                         <span>conta para {quandoAntes}</span>
                       </span>
