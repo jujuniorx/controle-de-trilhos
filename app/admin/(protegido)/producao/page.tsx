@@ -1,7 +1,8 @@
-import { TrilhoTls } from '@/components/producao/TrilhoTls';
 import { conjuntoFeriados, quandoProximoDiaUtil } from '@/lib/usina/diasUteis';
 import { SobraProximoDia } from '@/components/producao/SobraProximoDia';
-import { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, buscarDia, horasDoDia, paradasDaLinha, paradasEmAndamento, respostaTlsDaLinha } from '@/lib/services/producao';
+import { PainelTls } from '@/components/producao/TrilhoAoVivo';
+import { resumoTls } from '@/lib/producaoTls';
+import { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, buscarDia, sobraAntesDe, horasDoDia, paradasDaLinha, paradasEmAndamento, respostaTlsDaLinha } from '@/lib/services/producao';
 import { AoVivo } from '@/components/producao/AoVivo';
 import { BotaoImprimirPagina } from '@/components/producao/BotaoImprimirPagina';
 import { BotaoBaixarImagem, type DadosImagemProducao } from '@/components/producao/BotaoBaixarImagem';
@@ -45,7 +46,7 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
   const params = await searchParams;
   const dataTexto = /^\d{4}-\d{2}-\d{2}$/.test(params.data ?? '') ? (params.data as string) : hojeSP();
   const data = new Date(`${dataTexto}T00:00:00Z`);
-  const dia = await buscarDia(data);
+  const [dia, sobraEntrada] = await Promise.all([buscarDia(data), sobraAntesDe(data)]);
   const porHora = new Map((dia?.linhas ?? []).map((l) => [l.hora, l]));
   const horas = horasDoDia(data);
 
@@ -80,6 +81,8 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
   const paradaAberta = (dia?.linhas ?? []).flatMap((l) => paradasEmAndamento(l.paradas)).at(-1);
   const atualizado = dia ? new Date(dia.atualizadoEm.getTime() - 3 * 60 * 60 * 1000).toISOString().slice(11, 16) : null;
   const sobra = dia?.sobraSaida ?? 0;
+  // O mesmo TLS em montagem que a Produção vê (conta as soldas que sobraram de ontem).
+  const tlsAgora = resumoTls(sobraEntrada, (dia?.linhas ?? []).map((l) => ({ soldas: l.soldas, fabricante: l.fabricante, perfil: l.perfil, resposta: respostaTlsDaLinha(l.paradas) })));
   // Próximo dia de trabalho (pula fim de semana e feriado de Bauru): é quando o TLS aberto continua.
   const quando = quandoProximoDiaUtil(dataTexto, conjuntoFeriados());
   const noDia = quando === 'amanhã' ? 'amanhã' : `na ${quando}`;
@@ -175,18 +178,8 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
             </div>
             <div className="turno-linha">
               <dt>TLS</dt>
-              <dd>
-                <b>{dia?.tlsFormados ?? 0}</b>
-                <span>{(dia?.tlsFormados ?? 0) === 1 ? 'formado' : 'formados'}</span>
-                {terminouEmReemprego ? (
-                  <span className="turno-quebra">TLS de reemprego em aberto com {sobra} soldas</span>
-                ) : (
-                  <>
-                    {/* O trilho do TLS em montagem: cada solda emenda mais uma barra (12 fecham um TLS). */}
-                    <TrilhoTls feitas={sobra} total={SOLDAS_POR_TLS} completo={sobra === 0 && (dia?.tlsFormados ?? 0) > 0} />
-                    <span className="turno-quebra">{sobra} de {SOLDAS_POR_TLS} soldas no próximo TLS</span>
-                  </>
-                )}
+              <dd className="turno-tls">
+                <PainelTls r={tlsAgora} fixo />
               </dd>
             </div>
             {paradaAberta ? (
