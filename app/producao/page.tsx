@@ -10,6 +10,7 @@ import { FABRICANTES_PRODUCAO, MAX_PARADAS_HORA, PERFIS_PRODUCAO, FABRICANTE_REE
 import { TrocaTopo } from '@/components/producao/TrocaTopo';
 import { salvarProducaoAction } from './actions';
 import { AlternarTema } from '@/components/ui/AlternarTema';
+import { NavegacaoTopo } from '@/components/ui/NavegacaoTopo';
 import { BotaoEnviar } from '@/components/ui/BotaoEnviar';
 import { CelulasParada } from '@/components/producao/CelulasParada';
 import { SaudacaoProducao } from '@/components/producao/SaudacaoProducao';
@@ -51,7 +52,8 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
 
   return (
     <main className="mx-auto w-full max-w-3xl space-y-6 px-4 py-6">
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between gap-2">
+        <NavegacaoTopo inicioArea="/admin" />
         <AlternarTema />
       </div>
       <SaudacaoProducao soldador={dia?.soldadores} />
