@@ -1,3 +1,4 @@
+import { codigoDaBarra, numeroDaProximaSolda } from '@/lib/producaoCodigo';
 /**
  * Contagem de TLS da Produção. Sem banco aqui: serve para o servidor e para a tela.
  *
@@ -64,6 +65,8 @@ export function contarTls(sobraEntrada: number, horas: HoraTls[]): { porHora: Si
 }
 
 export interface ConfigTlsForm {
+  /** Dia da Produção (yyyy-mm-dd), para montar o código da barra. */
+  data?: string;
   horas: string[];
   sobraEntrada: number;
   /** Perfil e fabricante salvos no dia e em cada hora já salva (igual ao que o servidor usa ao gravar). */
@@ -103,6 +106,8 @@ export function tlsDoForm(form: HTMLFormElement, cfg: ConfigTlsForm): Record<str
 }
 
 export interface ResumoTls {
+  /** Código da próxima barra a ser soldada (ZTP 26/10/2026 S03 TR60R), quando há dia e perfil. */
+  proximaSolda?: string;
   /** Soldas lançadas hoje. */
   soldasHoje: number;
   /** TLS formados que contam para hoje (o que fecha o TLS que veio de ontem conta para ontem). */
@@ -134,7 +139,13 @@ export function resumoTlsDoForm(form: HTMLFormElement, cfg: ConfigTlsForm): Resu
   }
   const fechouOntem = cfg.sobraEntrada > 0 && tls > 0 && !recomecou;
   const ultima = [...linhas].reverse().find((h) => h.soldas > 0) ?? linhas.at(-1);
+  const ultimaLinha = linhas.at(-1);
+  const reempregoAgora = ultimaLinha?.fabricante === FABRICANTE_REEMPREGO;
+  const proximaSolda = cfg.data && ultimaLinha?.perfil
+    ? codigoDaBarra({ data: cfg.data, perfil: ultimaLinha.perfil, fabricante: ultimaLinha.fabricante, numero: numeroDaProximaSolda(sobra, reempregoAgora) })
+    : undefined;
   return {
+    proximaSolda,
     soldasHoje: linhas.reduce((t, h) => t + h.soldas, 0),
     tlsHoje: fechouOntem ? tls - 1 : tls,
     fechouOntem,

@@ -67,6 +67,7 @@ export function TrilhoAoVivo(cfg: ConfigTlsForm & { formId: string }) {
             <span>faltam {faltam}</span>
           </>
         )}
+        {r.proximaSolda && <span className="trilho-ao-vivo-dia tabular-nums">Próxima barra: <b>{r.proximaSolda}</b></span>}
         <span className="trilho-ao-vivo-dia">
           {r.soldasHoje} {r.soldasHoje === 1 ? 'solda' : 'soldas'} no dia{r.fechouOntem ? ' · 1 TLS de ontem fechou hoje' : ''}
         </span>

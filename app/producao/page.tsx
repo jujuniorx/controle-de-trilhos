@@ -63,7 +63,7 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
       <form id="form-producao" action={salvarProducaoAction} className="space-y-6">
         <RascunhoAutomatico data={dataTexto} {...tlsForm} />
         {/* TLS em montagem ao vivo, preso no topo enquanto o soldador rola as horas. */}
-        <TrilhoAoVivo formId="form-producao" {...tlsForm} />
+        <TrilhoAoVivo formId="form-producao" data={dataTexto} {...tlsForm} />
         <section className="card space-y-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="field"><label htmlFor="data">Data</label><input id="data" name="data" type="date" defaultValue={dataTexto} required className="h-11" /></div>
