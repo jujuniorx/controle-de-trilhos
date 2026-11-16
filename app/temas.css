@@ -936,11 +936,6 @@ html[data-tema]:root .trilho-ao-vivo[data-aberto="sim"] .trilho-ao-vivo-detalhe 
 html[data-tema]:root .trilho-ao-vivo-hoje { color: var(--ink); font-weight: 700; }
 html[data-tema]:root .trilho-ao-vivo-ontem { font-weight: 600; }
 html[data-tema]:root .trilho-ao-vivo-dia { flex-basis: 100%; font-size: 12px; }
-/* Administrativo: o mesmo painel dentro da ficha de turno, parado no lugar e sempre aberto. */
-html[data-tema]:root .trilho-ao-vivo-fixo { position: static; box-shadow: none; }
-html[data-tema]:root .trilho-ao-vivo-fixo .trilho-ao-vivo-topo { cursor: default; }
-html[data-tema]:root .trilho-ao-vivo-fixo .trilho-ao-vivo-topo:disabled { opacity: 1; }
-html[data-tema]:root .turno-linha dd.turno-tls { display: block; }
 @media (min-width: 640px) {
   html[data-tema]:root .trilho-ao-vivo-detalhe { display: flex; }
   html[data-tema]:root .trilho-ao-vivo-topo { cursor: default; }

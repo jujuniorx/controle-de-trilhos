@@ -39,21 +39,13 @@ export function TrilhoAoVivo(cfg: ConfigTlsForm & { formId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cfg.formId]);
 
-  return <PainelTls r={r} aberto={aberto} alternar={() => setAberto((a) => !a)} />;
-}
-
-/**
- * O desenho do painel. Na Produção acompanha o formulário; no Administrativo (fixo) vem pronto do servidor,
- * fica no lugar (sem grudar no topo) e mostra o detalhe sempre.
- */
-export function PainelTls({ r, aberto = true, alternar, fixo = false }: { r: ResumoTls; aberto?: boolean; alternar?: () => void; fixo?: boolean }) {
   const hoje = r.aberto - r.deOntem;
   const faltam = SOLDAS_POR_TLS - r.aberto;
   const numero = r.reemprego ? `${r.aberto}` : `${r.aberto}/${SOLDAS_POR_TLS}`;
 
   return (
-    <div className={fixo ? 'trilho-ao-vivo trilho-ao-vivo-fixo' : 'trilho-ao-vivo'} data-aberto={aberto || fixo ? 'sim' : 'nao'}>
-      <button type="button" className="trilho-ao-vivo-topo" aria-expanded={aberto || fixo} aria-controls={fixo ? undefined : 'trilho-ao-vivo-detalhe'} onClick={alternar} disabled={fixo}>
+    <div className="trilho-ao-vivo" data-aberto={aberto ? 'sim' : 'nao'}>
+      <button type="button" className="trilho-ao-vivo-topo" aria-expanded={aberto} aria-controls="trilho-ao-vivo-detalhe" onClick={() => setAberto((a) => !a)}>
         <span className="trilho-ao-vivo-rotulo">{r.reemprego ? 'TLS de reemprego' : 'TLS em montagem'}</span>
         <span className="trilho-ao-vivo-numero tabular-nums">{numero}</span>
         <span className="trilho-ao-vivo-tls tabular-nums">
@@ -61,7 +53,7 @@ export function PainelTls({ r, aberto = true, alternar, fixo = false }: { r: Res
         </span>
       </button>
       <TrilhoTls feitas={r.aberto} total={SOLDAS_POR_TLS} deOntem={r.deOntem} semSoltas={r.reemprego} />
-      <div id={fixo ? undefined : 'trilho-ao-vivo-detalhe'} className="trilho-ao-vivo-detalhe" aria-live="polite">
+      <div id="trilho-ao-vivo-detalhe" className="trilho-ao-vivo-detalhe" aria-live="polite">
         {r.aberto === 0 ? (
           <span>TLS novo: ainda sem soldas</span>
         ) : r.reemprego ? (

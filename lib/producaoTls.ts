@@ -119,12 +119,7 @@ export interface ResumoTls {
 
 /** Resumo do TLS em montagem a partir do formulário, para o painel ao vivo. */
 export function resumoTlsDoForm(form: HTMLFormElement, cfg: ConfigTlsForm): ResumoTls {
-  return resumoTls(cfg.sobraEntrada, linhasDoForm(form, cfg));
-}
-
-/** Mesmo resumo a partir das horas já salvas (o Administrativo usa este, no servidor). */
-export function resumoTls(sobraEntrada: number, linhas: HoraTls[]): ResumoTls {
-  const cfg = { sobraEntrada };
+  const linhas = linhasDoForm(form, cfg);
   const { tls, sobra } = contarTls(cfg.sobraEntrada, linhas);
   // Trocou de perfil antes de fechar o TLS de ontem: a contagem recomeçou, e o de ontem ficou para trás.
   let recomecou = false;
