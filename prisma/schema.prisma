@@ -589,6 +589,12 @@ model Feriado {
   nome      String
 }
 
+// Nome de quem está em cada equipe de geração de trilho (a equipe continua a mesma quando a pessoa sai).
+model EquipeGeracao {
+  codigo String @id
+  nome   String @default("")
+}
+
 // ─── Serra (origem do trilho: Evangelista e Paratinga) ───────────────────────
 // Recolhimento de trilho nas cidades da serra, lançado em unidades (1 unidade ≈ 10 m).
 // O que já chegou à usina vem sozinho dos recebimentos com origem na cidade.

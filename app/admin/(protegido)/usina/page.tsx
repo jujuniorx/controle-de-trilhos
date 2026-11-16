@@ -5,6 +5,7 @@ import {
   trilheirosDoPeriodo,
   ROTULO_TLS,
   LIDERES,
+  nomesDasEquipes,
   COMPOSICOES,
   CAMINHOES_ATIVOS,
   TRILHEIROS,
@@ -41,6 +42,7 @@ import {
   salvarSerraSemanaAction,
   salvarCaminhoesSemanaAction,
   salvarGeracaoSemanaAction,
+  salvarNomesEquipesAction,
   apagarGiroAction,
   apagarManutencaoTrilheiroAction,
 } from './actions';
@@ -101,6 +103,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
   const serraSemana = await composicoesDaSemana(est.semana);
   const caminhoesSemana = await caminhoesDaSemana(est.semana);
   const geracaoSemana = await geracaoDaSemana(est.semana);
+  const nomesEquipes = await nomesDasEquipes();
   const trilheirosSemana = await trilheirosDaSemana(est.semana);
   const observacoesSemana = await observacoesDoPeriodo(est.semana, somarDiasPagina(est.semana, 6));
   // Padrão das observações: uma por item em cada dia (W61/W62, cada caminhão, cada líder, cada trilheiro).
@@ -286,12 +289,26 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
           ))}
         </div>
         <div className="card space-y-3">
+          <p className="text-sm font-semibold">Quem está em cada equipe</p>
+          <p className="text-xs text-ink-muted">A equipe fica a mesma. Se alguém sair, troque só o nome aqui.</p>
+          <FormularioUsina acao={salvarNomesEquipesAction} rotuloBotao="Salvar nomes">
+            <div className="grid gap-3 sm:grid-cols-3">
+              {LIDERES.map((l) => (
+                <label key={l.valor} className="space-y-1 text-sm">
+                  <span className="text-ink-muted">{l.rotulo}</span>
+                  <input name={`nome_${l.valor}`} defaultValue={nomesEquipes[l.valor]} maxLength={60} placeholder="Nome" className="h-11 w-full" />
+                </label>
+              ))}
+            </div>
+          </FormularioUsina>
+        </div>
+        <div className="card space-y-3">
           <CabecalhoSemana semana={est.semana} ajuda="Lance as carretas de cada dia com os perfis, e salve a semana de uma vez." />
           <FormularioUsina acao={salvarGeracaoSemanaAction} rotuloBotao="Salvar a semana">
             <input type="hidden" name="semana" value={est.semana} />
             <GeracaoSemana
               dias={geracaoSemana.map((d, i) => ({ data: d.data, rotulo: `${NOME_DIA[i]} ${br(d.data)}`, lideres: d.lideres }))}
-              lideres={LIDERES}
+              lideres={LIDERES.map((l) => ({ ...l, rotulo: nomesEquipes[l.valor] ? `${l.rotulo} · ${nomesEquipes[l.valor]}` : l.rotulo }))}
               opcoesPerfis={PERFIS}
             />
           </FormularioUsina>

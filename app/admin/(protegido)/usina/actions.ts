@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { salvarEstaleiroDia, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, geracaoDaSemana, salvarGeracaoDia, salvarEstoqueTlsMalhas, salvarBarrasCurtasMalhas, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, MALHAS_TLS, type TipoTlsValor, type MalhaTlsValor } from '@/lib/services/usina';
 import { ITENS_ESCALA, escalaVazia, gravarEscala, statusValido, cfgDeObjeto } from '@/lib/usina/escala';
-import { salvarComposicao, salvarComposicoesDias, salvarCaminhao, salvarGiro, trilheirosDaSemana, salvarTrilheirosDias, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
+import { salvarComposicao, salvarComposicoesDias, salvarCaminhao, salvarGiro, trilheirosDaSemana, salvarTrilheirosDias, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, salvarNomeEquipe, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
 import { ehIsoValido } from '@/lib/usina/periodo';
 import { salvarObservacaoSetor } from '@/lib/services/observacaoSetor';
@@ -412,5 +412,16 @@ export async function salvarGeracaoSemanaAction(_: ResultadoUsina | undefined, f
     await salvarGeracaoDia(g.data, g.lider, { local: g.local, corteM: g.corteM, observacao: g.observacao, carretas: g.carretas });
   }
   atualizar();
+  return { ok: true };
+}
+
+/** Nomes de quem está em cada equipe de geração (a equipe continua a mesma quando a pessoa sai). */
+export async function salvarNomesEquipesAction(_: ResultadoUsina | undefined, formData: FormData): Promise<ResultadoUsina> {
+  await requireAdmin();
+  for (const l of LIDERES) {
+    const nome = String(formData.get(`nome_${l.valor}`) ?? '');
+    await salvarNomeEquipe(l.valor, nome);
+  }
+  revalidatePath('/admin/usina');
   return { ok: true };
 }

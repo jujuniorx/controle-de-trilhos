@@ -88,7 +88,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
     where: { data: new Date(`${data}T00:00:00Z`) },
     select: { lider: true, observacao: true, local: true },
   });
-  const rotuloEquipe: Record<string, string> = { ALECIO: 'Alécio', BRUNO: 'Bruno', REGINALDO: 'Reginaldo' };
+  const rotuloEquipe: Record<string, string> = { ALECIO: 'Equipe 1', BRUNO: 'Equipe 2', REGINALDO: 'Equipe 3' };
   // Ordem fixa do cadastro (Alécio, Bruno, Reginaldo). Cada equipe com lançamento no dia aparece com o local,
   // mesmo sem observação. Formato: "Nome (LOCAL): observação".
   const observacoesGeracao = LIDERES.map((l) => equipesDia.find((e) => e.lider === l.valor))

@@ -182,12 +182,30 @@ export async function salvarEscalaSemana(semana: string, conteudo: string) {
 }
 
 // ─── Geração de trilho ────────────────────────────────────────────────────────
+// As equipes têm nome fixo (Equipe 1, 2 e 3); quem está em cada uma fica em EquipeGeracao e pode mudar.
 export const LIDERES = [
-  { valor: 'ALECIO', rotulo: 'Alécio' },
-  { valor: 'BRUNO', rotulo: 'Bruno' },
-  { valor: 'REGINALDO', rotulo: 'Reginaldo' },
+  { valor: 'ALECIO', rotulo: 'Equipe 1' },
+  { valor: 'BRUNO', rotulo: 'Equipe 2' },
+  { valor: 'REGINALDO', rotulo: 'Equipe 3' },
 ] as const;
 export type LiderValor = (typeof LIDERES)[number]['valor'];
+
+/** Nome de quem está em cada equipe (código da equipe -> nome). Equipe sem nome vem vazia. */
+export async function nomesDasEquipes(): Promise<Record<string, string>> {
+  const linhas = await prisma.equipeGeracao.findMany();
+  const nomes: Record<string, string> = Object.fromEntries(LIDERES.map((l) => [l.valor, '']));
+  for (const l of linhas) nomes[l.codigo] = l.nome;
+  return nomes;
+}
+
+export async function salvarNomeEquipe(codigo: LiderValor, nome: string) {
+  const limpo = nome.trim().slice(0, 60);
+  await prisma.equipeGeracao.upsert({
+    where: { codigo },
+    update: { nome: limpo },
+    create: { codigo, nome: limpo },
+  });
+}
 
 export const META_GERACAO_MENSAL_M = 5000;
 
