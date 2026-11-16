@@ -177,6 +177,12 @@ export async function sobraAntesDe(data: Date): Promise<number> {
   return anterior?.sobraSaida ?? 0;
 }
 
+/** Sobra do último dia lançado antes desta data, com a data desse dia (para dizer "de sexta", "de ontem"). */
+export async function sobraAnteriorCom(data: Date): Promise<{ sobra: number; data: Date | null }> {
+  const anterior = await prisma.producaoDia.findFirst({ where: { data: { lt: data } }, orderBy: { data: 'desc' } });
+  return { sobra: anterior?.sobraSaida ?? 0, data: anterior?.data ?? null };
+}
+
 export async function buscarDia(data: Date) {
   return prisma.producaoDia.findUnique({ where: { data }, include: { linhas: { orderBy: { hora: 'asc' } } } });
 }

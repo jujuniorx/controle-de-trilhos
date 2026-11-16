@@ -1,7 +1,7 @@
 import { TrilhoTls } from '@/components/producao/TrilhoTls';
 import { conjuntoFeriados, quandoProximoDiaUtil } from '@/lib/usina/diasUteis';
 import { SobraProximoDia } from '@/components/producao/SobraProximoDia';
-import { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, buscarDia, horasDoDia, paradasDaLinha, paradasEmAndamento, respostaTlsDaLinha } from '@/lib/services/producao';
+import { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, buscarDia, sobraAnteriorCom, horasDoDia, paradasDaLinha, paradasEmAndamento, respostaTlsDaLinha } from '@/lib/services/producao';
 import { AoVivo } from '@/components/producao/AoVivo';
 import { BotaoImprimirPagina } from '@/components/producao/BotaoImprimirPagina';
 import { BotaoBaixarImagem, type DadosImagemProducao } from '@/components/producao/BotaoBaixarImagem';
@@ -24,6 +24,15 @@ const fimDaHora = (hora: string) => `${String(Number(hora.slice(0, 2)) + 1).padS
 const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 
+/** "ontem", "sexta", "sábado"... para o último dia trabalhado antes de hoje. */
+function diaAnteriorEmTexto(anterior: Date, hojeIso: string): string {
+  const iso = anterior.toISOString().slice(0, 10);
+  const [a, m, d] = hojeIso.split('-').map(Number);
+  const ontem = new Date(Date.UTC(a, m - 1, d - 1)).toISOString().slice(0, 10);
+  if (iso === ontem) return 'ontem';
+  return ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'][anterior.getUTCDay()];
+}
+
 function dataExtensa(iso: string): string {
   const [a, m, d] = iso.split('-').map(Number);
   const dia = DIAS[new Date(Date.UTC(a, m - 1, d)).getUTCDay()];
@@ -45,7 +54,7 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
   const params = await searchParams;
   const dataTexto = /^\d{4}-\d{2}-\d{2}$/.test(params.data ?? '') ? (params.data as string) : hojeSP();
   const data = new Date(`${dataTexto}T00:00:00Z`);
-  const dia = await buscarDia(data);
+  const [dia, anterior] = await Promise.all([buscarDia(data), sobraAnteriorCom(data)]);
   const porHora = new Map((dia?.linhas ?? []).map((l) => [l.hora, l]));
   const horas = horasDoDia(data);
 
@@ -79,7 +88,12 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
   const media = horasComSolda ? (totalSoldas / horasComSolda).toFixed(1).replace('.', ',') : null;
   const paradaAberta = (dia?.linhas ?? []).flatMap((l) => paradasEmAndamento(l.paradas)).at(-1);
   const atualizado = dia ? new Date(dia.atualizadoEm.getTime() - 3 * 60 * 60 * 1000).toISOString().slice(11, 16) : null;
-  const sobra = dia?.sobraSaida ?? 0;
+  // Antes do primeiro lançamento do dia, o TLS em aberto é o que sobrou do último dia trabalhado.
+  const sobra = dia ? dia.sobraSaida : anterior.sobra;
+  // Soldas do TLS em aberto que vieram do último dia (só enquanto nenhum TLS fechou hoje).
+  const deAntes = (dia?.tlsFormados ?? 0) === 0 ? Math.min(anterior.sobra, sobra) : 0;
+  const deHoje = sobra - deAntes;
+  const quandoAntes = anterior.data ? diaAnteriorEmTexto(anterior.data, dataTexto) : '';
   // Próximo dia de trabalho (pula fim de semana e feriado de Bauru): é quando o TLS aberto continua.
   const quando = quandoProximoDiaUtil(dataTexto, conjuntoFeriados());
   const noDia = quando === 'amanhã' ? 'amanhã' : `na ${quando}`;
@@ -183,8 +197,17 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
                 ) : (
                   <>
                     {/* O trilho do TLS em montagem: cada solda emenda mais uma barra (12 fecham um TLS). */}
-                    <TrilhoTls feitas={sobra} total={SOLDAS_POR_TLS} completo={sobra === 0 && (dia?.tlsFormados ?? 0) > 0} />
+                    <TrilhoTls feitas={sobra} total={SOLDAS_POR_TLS} deOntem={deAntes} completo={sobra === 0 && (dia?.tlsFormados ?? 0) > 0} />
                     <span className="turno-quebra">{sobra} de {SOLDAS_POR_TLS} soldas no próximo TLS</span>
+                    {deAntes > 0 && (
+                      <span className="turno-quebra turno-origem">
+                        <span className="turno-origem-antes">{deAntes} {deAntes === 1 ? 'veio' : 'vieram'} de {quandoAntes}</span>
+                        <span aria-hidden="true">·</span>
+                        <span>{deHoje} de hoje</span>
+                        <span aria-hidden="true">·</span>
+                        <span>faltam {SOLDAS_POR_TLS - sobra}</span>
+                      </span>
+                    )}
                   </>
                 )}
               </dd>
