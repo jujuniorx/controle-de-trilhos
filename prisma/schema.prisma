@@ -661,6 +661,9 @@ model ProducaoDia {
   sobraSaida   Int      @default(0)
   // Dia em que começou o TLS que fica em aberto ao fim deste dia (vazio quando não sobrou nada).
   inicioSobra  DateTime? @db.Date
+  // Barras soldadas a mais e cortadas depois: saem da conta do TLS (as soldas do dia continuam iguais).
+  ajusteTls       Int     @default(0)
+  ajusteTlsMotivo String?
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
   linhas       ProducaoLinha[]

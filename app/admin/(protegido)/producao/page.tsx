@@ -1,6 +1,8 @@
 import { TrilhoTls } from '@/components/producao/TrilhoTls';
 import { conjuntoFeriados, quandoProximoDiaUtil } from '@/lib/usina/diasUteis';
 import { contarTls } from '@/lib/producaoTls';
+import { FormularioUsina } from '@/components/usina/FormularioUsina';
+import { ajustarBarrasAction } from './actions';
 import { SobraProximoDia } from '@/components/producao/SobraProximoDia';
 import { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, buscarDia, sobraAnteriorCom, horasDoDia, paradasDaLinha, paradasEmAndamento, respostaTlsDaLinha } from '@/lib/services/producao';
 import { AoVivo } from '@/components/producao/AoVivo';
@@ -255,6 +257,26 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
           Trilho do dia <strong className="text-ink">{dia?.perfil ?? '—'}</strong> · Fabricante <strong className="text-ink">{dia?.fabricante ?? '—'}</strong>
         </p>
       </header>
+
+      {dia && (
+        <section className="card so-tela space-y-2">
+          <p className="text-sm font-semibold">Barra soldada a mais</p>
+          <p className="text-xs text-ink-muted">Quando soldam uma barra a mais e ela é cortada depois, informe aqui. Ela sai da conta do TLS; as soldas do dia continuam as mesmas.</p>
+          <FormularioUsina acao={ajustarBarrasAction} rotuloBotao="Salvar ajuste">
+            <input type="hidden" name="data" value={dataTexto} />
+            <div className="grid gap-3 sm:grid-cols-[8rem_1fr]">
+              <label className="space-y-1 text-sm">
+                <span className="text-ink-muted">Barras a mais</span>
+                <input name="barras" inputMode="numeric" defaultValue={dia.ajusteTls || ''} placeholder="0" className="h-11 w-full" />
+              </label>
+              <label className="space-y-1 text-sm">
+                <span className="text-ink-muted">Motivo</span>
+                <input name="motivo" defaultValue={dia.ajusteTlsMotivo ?? ''} maxLength={200} placeholder="Ex.: soldaram 1 barra a mais, cortada depois" className="h-11 w-full" />
+              </label>
+            </div>
+          </FormularioUsina>
+        </section>
+      )}
 
       <section className="doc-indicadores grid grid-cols-2 gap-3 md:grid-cols-4">
         <Indicador rotulo="Soldas no dia" valor={totalSoldas} />

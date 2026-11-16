@@ -30,6 +30,7 @@ export default async function ProducaoPage({ searchParams }: { searchParams: Pro
   const horas = horasDoDia(data);
   const porHora = new Map((dia?.linhas ?? []).map((l) => [l.hora, l]));
   const tlsForm = {
+    ajusteTls: dia?.ajusteTls ?? 0,
     horas,
     sobraEntrada,
     perfilSalvo: dia?.perfil ?? PERFIS_PRODUCAO[0],

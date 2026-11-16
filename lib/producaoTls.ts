@@ -38,6 +38,21 @@ export interface SituacaoTls {
   encerradoCom: number;
 }
 
+/**
+ * Tira da conta do TLS as barras soldadas a mais (cortadas depois), a partir da última hora com solda.
+ * As soldas do dia não mudam; só a contagem do TLS.
+ */
+export function descontarBarras(horas: HoraTls[], barras: number): HoraTls[] {
+  let falta = Math.max(0, Math.floor(barras));
+  const copia = horas.map((h) => ({ ...h }));
+  for (let i = copia.length - 1; i >= 0 && falta > 0; i--) {
+    const tira = Math.min(copia[i].soldas, falta);
+    copia[i].soldas -= tira;
+    falta -= tira;
+  }
+  return copia;
+}
+
 export function contarTls(sobraEntrada: number, horas: HoraTls[]): { porHora: SituacaoTls[]; tls: number; sobra: number } {
   let aberto = sobraEntrada;
   let tls = 0;
@@ -69,6 +84,8 @@ export interface ConfigTlsForm {
   data?: string;
   horas: string[];
   sobraEntrada: number;
+  /** Barras soldadas a mais neste dia (ajuste do Administrativo), fora da conta do TLS. */
+  ajusteTls?: number;
   /** Perfil e fabricante salvos no dia e em cada hora já salva (igual ao que o servidor usa ao gravar). */
   perfilSalvo?: string;
   perfisSalvos?: Record<string, string>;
@@ -124,7 +141,8 @@ export interface ResumoTls {
 
 /** Resumo do TLS em montagem a partir do formulário, para o painel ao vivo. */
 export function resumoTlsDoForm(form: HTMLFormElement, cfg: ConfigTlsForm): ResumoTls {
-  const linhas = linhasDoForm(form, cfg);
+  const lancadas = linhasDoForm(form, cfg);
+  const linhas = descontarBarras(lancadas, cfg.ajusteTls ?? 0);
   const { tls, sobra } = contarTls(cfg.sobraEntrada, linhas);
   // Trocou de perfil antes de fechar o TLS de ontem: a contagem recomeçou, e o de ontem ficou para trás.
   let recomecou = false;
@@ -145,7 +163,7 @@ export function resumoTlsDoForm(form: HTMLFormElement, cfg: ConfigTlsForm): Resu
     : undefined;
   return {
     proximaSolda,
-    soldasHoje: linhas.reduce((t, h) => t + h.soldas, 0),
+    soldasHoje: lancadas.reduce((t, h) => t + h.soldas, 0),
     tlsHoje: fechouOntem ? tls - 1 : tls,
     fechouOntem,
     aberto: sobra,

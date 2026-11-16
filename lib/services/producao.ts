@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db';
-import { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, contarTls } from '@/lib/producaoTls';
+import { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, contarTls, descontarBarras } from '@/lib/producaoTls';
 
 /** Soldas que formam 1 TLS de trilho novo (312 m). No reemprego o número varia: ver lib/producaoTls. */
 export { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS };
@@ -104,7 +104,8 @@ export async function recalcularAPartir(_desde: Date): Promise<void> {
   let inicioSobraData: Date | null = null; // mesmo dia, como data para gravar
   for (const d of dias) {
     const total = d.linhas.reduce((t, l) => t + l.soldas, 0);
-    const { tls, sobra: novaSobra } = contarTls(sobra, d.linhas.map((l) => ({ soldas: l.soldas, fabricante: l.fabricante, perfil: l.perfil, resposta: respostaTlsDaLinha(l.paradas) })));
+    const horasTls = d.linhas.map((l) => ({ soldas: l.soldas, fabricante: l.fabricante, perfil: l.perfil, resposta: respostaTlsDaLinha(l.paradas) }));
+    const { tls, sobra: novaSobra } = contarTls(sobra, descontarBarras(horasTls, d.ajusteTls));
     if (tls > 0) {
       if (sobra > 0 && inicioSobra) {
         // O primeiro TLS fechado hoje é o que já estava aberto de antes: conta no dia em que começou.
@@ -188,6 +189,14 @@ export async function sobraAnteriorCom(data: Date): Promise<{ sobra: number; dat
   const anterior = await prisma.producaoDia.findFirst({ where: { data: { lt: data } }, orderBy: { data: 'desc' } });
   // A origem é o dia em que começou o TLS que ficou aberto (gravado no recálculo de cada dia).
   return { sobra: anterior?.sobraSaida ?? 0, data: anterior?.inicioSobra ?? null };
+}
+
+/** Administrativo: barras soldadas a mais e cortadas depois, descontadas da conta do TLS deste dia. */
+export async function ajustarBarrasDoDia(data: Date, barras: number, motivo: string) {
+  const dia = await prisma.producaoDia.findUnique({ where: { data } });
+  if (!dia) throw new Error('Esse dia ainda não tem lançamento da Produção.');
+  await prisma.producaoDia.update({ where: { id: dia.id }, data: { ajusteTls: barras, ajusteTlsMotivo: motivo || null } });
+  await recalcularAPartir(data);
 }
 
 export async function buscarDia(data: Date) {
