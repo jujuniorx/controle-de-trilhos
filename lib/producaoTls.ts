@@ -142,7 +142,7 @@ export function resumoTlsDoForm(form: HTMLFormElement, cfg: ConfigTlsForm): Resu
   const ultimaLinha = linhas.at(-1);
   const reempregoAgora = ultimaLinha?.fabricante === FABRICANTE_REEMPREGO;
   const proximaSolda = cfg.data && ultimaLinha?.perfil
-    ? codigoDaBarra({ data: cfg.data, perfil: ultimaLinha.perfil, fabricante: ultimaLinha.fabricante, numero: numeroDaProximaSolda(sobra, reempregoAgora) })
+    ? codigoDaBarra({ data: cfg.data, perfil: ultimaLinha.perfil, fabricante: ultimaLinha.fabricante, numero: numeroDaProximaSolda(sobra - (tls === 0 && !recomecou ? Math.min(cfg.sobraEntrada, sobra) : 0), reempregoAgora) })
     : undefined;
   return {
     proximaSolda,
