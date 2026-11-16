@@ -1,5 +1,6 @@
 import { TrilhoTls } from '@/components/producao/TrilhoTls';
 import { conjuntoFeriados, quandoProximoDiaUtil } from '@/lib/usina/diasUteis';
+import { contarTls } from '@/lib/producaoTls';
 import { SobraProximoDia } from '@/components/producao/SobraProximoDia';
 import { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, buscarDia, sobraAnteriorCom, horasDoDia, paradasDaLinha, paradasEmAndamento, respostaTlsDaLinha } from '@/lib/services/producao';
 import { AoVivo } from '@/components/producao/AoVivo';
@@ -91,7 +92,11 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
   // Antes do primeiro lançamento do dia, o TLS em aberto é o que sobrou do último dia trabalhado.
   const sobra = dia ? dia.sobraSaida : anterior.sobra;
   // Soldas do TLS em aberto que vieram do último dia (só enquanto nenhum TLS fechou hoje).
-  const deAntes = (dia?.tlsFormados ?? 0) === 0 ? Math.min(anterior.sobra, sobra) : 0;
+  // O TLS que veio do último dia fecha hoje mas conta para aquele dia (tlsFormados de hoje fica 0).
+  // Por isso a conta é refeita aqui: se algum TLS fechou hoje, as soldas de antes já foram nele.
+  const fechouHoje = dia ? contarTls(dia.sobraEntrada, dia.linhas.map((l) => ({ soldas: l.soldas, fabricante: l.fabricante, perfil: l.perfil, resposta: respostaTlsDaLinha(l.paradas) }))).tls > 0 : false;
+  const fechouOAnterior = fechouHoje && (dia?.sobraEntrada ?? 0) > 0;
+  const deAntes = fechouHoje ? 0 : Math.min(anterior.sobra, sobra);
   const deHoje = sobra - deAntes;
   const quandoAntes = anterior.data ? diaAnteriorEmTexto(anterior.data, dataTexto) : '';
   // Próximo dia de trabalho (pula fim de semana e feriado de Bauru): é quando o TLS aberto continua.
@@ -199,6 +204,13 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
                     {/* O trilho do TLS em montagem: cada solda emenda mais uma barra (12 fecham um TLS). */}
                     <TrilhoTls feitas={sobra} total={SOLDAS_POR_TLS} deOntem={deAntes} completo={sobra === 0 && (dia?.tlsFormados ?? 0) > 0} />
                     <span className="turno-quebra">{sobra} de {SOLDAS_POR_TLS} soldas no próximo TLS</span>
+                    {fechouOAnterior && quandoAntes && (
+                      <span className="turno-quebra turno-origem">
+                        <span className="turno-origem-antes">O TLS que veio de {quandoAntes} fechou hoje</span>
+                        <span aria-hidden="true">·</span>
+                        <span>conta para {quandoAntes}</span>
+                      </span>
+                    )}
                     {deAntes > 0 && (
                       <span className="turno-quebra turno-origem">
                         <span className="turno-origem-antes">{deAntes} {deAntes === 1 ? 'veio' : 'vieram'} de {quandoAntes}</span>
