@@ -180,7 +180,9 @@ export async function sobraAntesDe(data: Date): Promise<number> {
 /** Sobra do último dia lançado antes desta data, com a data desse dia (para dizer "de sexta", "de ontem"). */
 export async function sobraAnteriorCom(data: Date): Promise<{ sobra: number; data: Date | null }> {
   const anterior = await prisma.producaoDia.findFirst({ where: { data: { lt: data } }, orderBy: { data: 'desc' } });
-  return { sobra: anterior?.sobraSaida ?? 0, data: anterior?.data ?? null };
+  // A data de origem é o último dia com solda lançada: um dia sem produção (ex.: domingo sem lançamento) não conta como origem.
+  const origem = await prisma.producaoDia.findFirst({ where: { data: { lt: data }, totalSoldas: { gt: 0 } }, orderBy: { data: 'desc' } });
+  return { sobra: anterior?.sobraSaida ?? 0, data: origem?.data ?? null };
 }
 
 export async function buscarDia(data: Date) {
