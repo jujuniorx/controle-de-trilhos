@@ -98,7 +98,8 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
   const fechouOAnterior = fechouHoje && (dia?.sobraEntrada ?? 0) > 0;
   const deAntes = fechouHoje ? 0 : Math.min(anterior.sobra, sobra);
   const deHoje = sobra - deAntes;
-  const quandoAntes = anterior.data ? diaAnteriorEmTexto(anterior.data, dataTexto) : '';
+  // Sem a data de início gravada (dias antigos, antes do recálculo), a frase fica genérica.
+  const quandoAntes = anterior.data ? diaAnteriorEmTexto(anterior.data, dataTexto) : 'dia anterior';
   // Próximo dia de trabalho (pula fim de semana e feriado de Bauru): é quando o TLS aberto continua.
   const quando = quandoProximoDiaUtil(dataTexto, conjuntoFeriados());
   const noDia = quando === 'amanhã' ? 'amanhã' : `na ${quando}`;

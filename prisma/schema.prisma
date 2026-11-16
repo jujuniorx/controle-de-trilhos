@@ -659,6 +659,8 @@ model ProducaoDia {
   totalSoldas  Int      @default(0)
   tlsFormados  Int      @default(0)
   sobraSaida   Int      @default(0)
+  // Dia em que começou o TLS que fica em aberto ao fim deste dia (vazio quando não sobrou nada).
+  inicioSobra  DateTime? @db.Date
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
   linhas       ProducaoLinha[]
