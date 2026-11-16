@@ -162,7 +162,7 @@ export async function salvarCaminhaoAction(_: ResultadoUsina | undefined, formDa
   const data = dataDoForm(formData.get('data'));
   const caminhao = String(formData.get('caminhao') ?? '') as (typeof CAMINHOES_ATIVOS)[number];
   if (!data) return { ok: false, erro: 'Data inválida.' };
-  if (!CAMINHOES_ATIVOS.includes(caminhao)) return { ok: false, erro: 'Caminhão inválido (CW03 ainda não está ativo).' };
+  if (!CAMINHOES_ATIVOS.includes(caminhao)) return { ok: false, erro: 'Caminhão inválido.' };
   const producaoDiaria = inteiro(formData.get('producaoDiaria'));
   const perdaDiaria = inteiro(formData.get('perdaDiaria'));
   if (producaoDiaria === 'invalido' || perdaDiaria === 'invalido') return { ok: false, erro: 'Use só números inteiros.' };

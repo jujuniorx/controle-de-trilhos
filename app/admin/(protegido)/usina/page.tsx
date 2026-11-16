@@ -423,10 +423,6 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                       {temObservacaoAntiga('caminhao') && <ObservacoesDoSetor setor="caminhao" dias={diasObservacao} obs={observacoesSemana} antigas />}
           </FormularioUsina>
         </div>
-        <div className="card space-y-2 opacity-70">
-          <p className="font-semibold">CW03</p>
-          <p className="text-sm text-ink-muted">Em breve.</p>
-        </div>
       </section>
 
       )}
