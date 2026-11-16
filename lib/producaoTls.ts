@@ -1,4 +1,4 @@
-import { codigoDaBarra, numeroDaProximaSolda } from '@/lib/producaoCodigo';
+import { codigoDaBarra, numeroDoProximoTls } from '@/lib/producaoCodigo';
 /**
  * Contagem de TLS da Produção. Sem banco aqui: serve para o servidor e para a tela.
  *
@@ -140,9 +140,8 @@ export function resumoTlsDoForm(form: HTMLFormElement, cfg: ConfigTlsForm): Resu
   const fechouOntem = cfg.sobraEntrada > 0 && tls > 0 && !recomecou;
   const ultima = [...linhas].reverse().find((h) => h.soldas > 0) ?? linhas.at(-1);
   const ultimaLinha = linhas.at(-1);
-  const reempregoAgora = ultimaLinha?.fabricante === FABRICANTE_REEMPREGO;
   const proximaSolda = cfg.data && ultimaLinha?.perfil
-    ? codigoDaBarra({ data: cfg.data, perfil: ultimaLinha.perfil, fabricante: ultimaLinha.fabricante, numero: numeroDaProximaSolda(sobra - (tls === 0 && !recomecou ? Math.min(cfg.sobraEntrada, sobra) : 0), reempregoAgora) })
+    ? codigoDaBarra({ data: cfg.data, perfil: ultimaLinha.perfil, fabricante: ultimaLinha.fabricante, numero: numeroDoProximoTls(linhas.reduce((t, h) => t + h.soldas, 0)) })
     : undefined;
   return {
     proximaSolda,
