@@ -36,15 +36,9 @@ export function NovoEnvioPortaria({ origens = [], motoristas = [] }: { origens?:
   const [valores, setValores] = useState<Campos>(VAZIO);
   const lista = 'origens-novo-envio';
   const listaMotoristas = 'motoristas-novo-envio';
-  const [atualizarCadastro, setAtualizarCadastro] = useState(false);
 
   // Motorista já cadastrado, pelo nome exato (sem diferença de maiúsculas).
   const cadastrado = motoristas.find((m) => m.nome.toLocaleUpperCase('pt-BR') === valores.motoristaNome.trim().toLocaleUpperCase('pt-BR')) ?? null;
-  // O cadastro difere do que está na tela: aí a Portaria escolhe se atualiza o cadastro ou só este envio.
-  const difereDoCadastro = Boolean(
-    cadastrado &&
-      ((cadastrado.cpf ?? '') !== valores.motoristaCpf || (cadastrado.telefone ?? '') !== valores.motoristaTelefone || (cadastrado.transportadora ?? '') !== valores.transportadora),
-  );
 
   function preencherComVeiculo(v: MotoristaCadastrado['veiculos'][number]) {
     setValores((atual) => ({
@@ -110,13 +104,12 @@ export function NovoEnvioPortaria({ origens = [], motoristas = [] }: { origens?:
     setErro('');
     iniciar(async () => {
       try {
-        const r = await novoEnvioPortariaAction({ ...valores, atualizarCadastro: difereDoCadastro && atualizarCadastro });
+        const r = await novoEnvioPortariaAction(valores);
         if (!r.ok) {
           setErro(r.erro ?? 'Não foi possível criar o envio.');
           return;
         }
         setValores(VAZIO);
-        setAtualizarCadastro(false);
         setAberto(false);
         router.refresh();
       } catch {
@@ -172,12 +165,6 @@ export function NovoEnvioPortaria({ origens = [], motoristas = [] }: { origens?:
             ))}
           </div>
         </div>
-      )}
-      {cadastrado && difereDoCadastro && (
-        <label className="flex items-start gap-2 text-sm">
-          <input type="checkbox" className="mt-1 h-4 w-4" checked={atualizarCadastro} onChange={(e) => setAtualizarCadastro(e.target.checked)} />
-          <span>Atualizar o cadastro de {cadastrado.nome} com CPF, telefone e empresa desta chegada. Se não marcar, só este envio muda.</span>
-        </label>
       )}
       <div className="grid grid-cols-2 gap-2">
         {campo('placaCavalo', 'Placa do cavalo', { placeholder: 'ABC1D23 ou CMG1234', maxLength: 7 })}

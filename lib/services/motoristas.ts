@@ -55,19 +55,18 @@ export interface DadosDoEnvioParaCadastro {
 
 /**
  * Guarda o envio no cadastro do motorista. Motorista novo entra com os dados do envio.
- * Motorista que já existe: o veículo entra no histórico, e CPF, telefone e empresa só mudam
- * se a Portaria tiver marcado "atualizar o cadastro".
+ * Motorista que já existe: CPF, telefone e empresa passam a ser os do último envio salvo
+ * (campo vazio não apaga o que já estava), e o veículo entra no histórico com a data do uso.
  */
-export async function guardarNoCadastroDoMotorista(dados: DadosDoEnvioParaCadastro, atualizarCadastro: boolean): Promise<void> {
+export async function guardarNoCadastroDoMotorista(dados: DadosDoEnvioParaCadastro): Promise<void> {
   const nome = dados.motoristaNome?.trim();
   if (!nome) return;
-  const existente = await prisma.motoristaCadastro.findUnique({ where: { nome } });
-  const dadosPessoais = { cpf: dados.motoristaCpf || null, telefone: dados.motoristaTelefone || null, transportadora: dados.transportadora || null };
-  const motorista = existente
-    ? atualizarCadastro
-      ? await prisma.motoristaCadastro.update({ where: { id: existente.id }, data: dadosPessoais })
-      : existente
-    : await prisma.motoristaCadastro.create({ data: { nome, ...dadosPessoais } });
+  const pessoais = { cpf: dados.motoristaCpf || undefined, telefone: dados.motoristaTelefone || undefined, transportadora: dados.transportadora || undefined };
+  const motorista = await prisma.motoristaCadastro.upsert({
+    where: { nome },
+    create: { nome, cpf: pessoais.cpf ?? null, telefone: pessoais.telefone ?? null, transportadora: pessoais.transportadora ?? null },
+    update: pessoais,
+  });
 
   const placas = { placaCavalo: dados.placaCavalo || null, placaCarreta: dados.placaCarreta || null, placaCarreta2: dados.placaCarreta2 || null };
   if (!placas.placaCavalo && !placas.placaCarreta && !placas.placaCarreta2) return;

@@ -93,11 +93,9 @@ export async function novoEnvioPortariaAction(entrada: unknown): Promise<Resulta
   const ator = await requirePortaria();
   const parsed = novoEnvioPortariaSchema.safeParse(entrada);
   if (!parsed.success) return { ok: false, erro: parsed.error.issues[0]?.message ?? 'Dados inválidos.' };
-  // Quando a Portaria marca "atualizar o cadastro", CPF, telefone e empresa do motorista mudam; senão só o veículo entra no histórico.
-  const atualizarCadastro = Boolean((entrada as { atualizarCadastro?: unknown } | null)?.atualizarCadastro);
   try {
     await criarEnvioPelaPortaria(parsed.data, ator.nome, ator.userId);
-    await guardarNoCadastroDoMotorista(parsed.data, atualizarCadastro);
+    await guardarNoCadastroDoMotorista(parsed.data);
     revalidatePath('/portaria');
     revalidatePath('/patio/remetidos');
     revalidatePath('/patio');
