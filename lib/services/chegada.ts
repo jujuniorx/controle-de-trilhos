@@ -180,7 +180,7 @@ export async function cancelarChegada(id: string): Promise<void> {
 export async function listarChegadasLiberadas() {
   return prisma.chegadaCaminhao.findMany({
     where: { liberadaEm: { not: null }, canceladaEm: null, excluidaEm: null, movimentacaoId: null },
-    select: { id: true, origem: true, transportadora: true, placaCarreta: true, placaCavalo: true, liberadaEm: true, materialPrevisto: true, observacao: true, descarregadaEm: true, saidaEm: true, ordemDia: true, ordemData: true, cargaDescarga: true, destinoCarga: true, cargaCarregadaEm: true },
+    select: { id: true, origem: true, transportadora: true, motoristaNome: true, motoristaTelefone: true, placaCarreta: true, placaCarreta2: true, placaCavalo: true, capacidadeCarga: true, comprimentoCarreta: true, liberadaEm: true, materialPrevisto: true, observacao: true, descarregadaEm: true, saidaEm: true, ordemDia: true, ordemData: true, cargaDescarga: true, destinoCarga: true, cargaCarregadaEm: true },
     orderBy: [{ ordemData: 'asc' }, { ordemDia: 'asc' }, { liberadaEm: 'asc' }],
   });
 }

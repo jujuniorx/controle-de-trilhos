@@ -997,3 +997,8 @@ html[data-tema="pastel"]:root {
   .tabela-periodo td::before { content: attr(data-label); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-muted); }
   .tabela-periodo td:first-child { grid-column: 1 / -1; }
 }
+
+/* Pátio: rótulo da operação (descarregar, carregar, descarregar e carregar), visível de longe */
+.op-descarregar { background: var(--ok-bg, rgba(34,197,94,.18)); color: var(--ok, #16a34a); border: 1px solid currentColor; }
+.op-carregar { background: var(--warn-bg, rgba(234,179,8,.18)); color: var(--warn, #ca8a04); border: 1px solid currentColor; }
+.op-descarga-carga { background: var(--info-bg, rgba(59,130,246,.18)); color: var(--info, #2563eb); border: 1px solid currentColor; }

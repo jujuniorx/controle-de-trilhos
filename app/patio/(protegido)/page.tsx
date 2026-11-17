@@ -59,6 +59,28 @@ function situacaoPatio(c: LinhaPatio): { texto: string; badge: string } {
   return c.saidaEm ? { texto: 'Já saiu — toque para medir', badge: 'badge-warn' } : { texto: 'Descarregado — toque para medir', badge: 'badge-warn' };
 }
 
+/** Rótulo grande da operação, para o Pátio ver de longe: descarregar, carregar, ou os dois. */
+function rotuloOperacao(c: { cargaDescarga: boolean; destinoCarga: string | null; cargaCarregadaEm?: Date | null; descarregadaEm?: Date | null }): { titulo: string; detalhe: string; classe: string } {
+  if (c.cargaDescarga) {
+    const destino = c.destinoCarga ? normalizarLocal(c.destinoCarga) : null;
+    if (!c.descarregadaEm) return { titulo: 'Descarregar e depois carregar', detalhe: destino ? `Depois vai para ${destino}` : 'Destino não informado', classe: 'op-descarga-carga' };
+    return { titulo: 'Carregar', detalhe: destino ? `Vai para ${destino}` : 'Destino não informado', classe: 'op-carregar' };
+  }
+  return { titulo: 'Descarregar', detalhe: 'Caminhão de descarga', classe: 'op-descarregar' };
+}
+
+/** Dados que o Pátio precisa para atender o caminhão, sem abrir o registro. */
+function dadosCaminhao(c: { motoristaNome: string | null; motoristaTelefone: string | null; placaCavalo: string | null; placaCarreta: string | null; placaCarreta2: string | null; capacidadeCarga: unknown; comprimentoCarreta: unknown; transportadora: string | null }): { rotulo: string; valor: string }[] {
+  const linhas: { rotulo: string; valor: string }[] = [];
+  if (c.transportadora) linhas.push({ rotulo: 'Empresa', valor: c.transportadora });
+  if (c.motoristaNome) linhas.push({ rotulo: 'Motorista', valor: c.motoristaNome + (c.motoristaTelefone ? ` · ${c.motoristaTelefone}` : '') });
+  const placas = [c.placaCavalo, c.placaCarreta, c.placaCarreta2].filter(Boolean).join(' / ');
+  if (placas) linhas.push({ rotulo: 'Placas', valor: placas });
+  if (c.capacidadeCarga) linhas.push({ rotulo: 'Limite de carga', valor: `${Number(c.capacidadeCarga)} t` });
+  if (c.comprimentoCarreta) linhas.push({ rotulo: 'Comprimento', valor: `${Number(c.comprimentoCarreta)} m` });
+  return linhas;
+}
+
 function hora(d: Date | null): string {
   return d ? d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }) : '';
 }
@@ -149,10 +171,16 @@ export default async function PatioHomePage() {
               <Link href={`/patio/recebimentos/novo?chegada=${c.id}`} className="patio-card-link transition hover:brightness-110">
                 <span className="min-w-0">
                   <span className="block font-medium text-ink">{c.ordemDia ? `Caminhão nº ${c.ordemDia} — ` : ''}{c.placaCarreta || c.placaCavalo || 'Caminhão'}</span>
+                  <span className="mt-1 block rounded-md px-2 py-1 text-base font-bold uppercase tracking-wide op-carregar">Carregar</span>
                   <span className="mt-1 block text-lg font-bold uppercase tracking-wide text-ink">
                     {c.destinoCarga ? <>Vai para {normalizarLocal(c.destinoCarga)}</> : <span className="text-warn">Destino não informado</span>}
                   </span>
                   <span className="block text-sm text-ink-muted">Descarregado. Esta carreta vai carregar.</span>
+                  <span className="mt-1 grid gap-0.5 text-sm">
+                    {dadosCaminhao(c).map((d) => (
+                      <span key={d.rotulo} className="block text-ink-muted"><b className="text-ink">{d.rotulo}:</b> {d.valor}</span>
+                    ))}
+                  </span>
                 </span>
                 <span className="patio-card-seta">{SETA_CARD}</span>
               </Link>
@@ -173,11 +201,20 @@ export default async function PatioHomePage() {
               <Link href={`/patio/recebimentos/novo?chegada=${c.id}`} className="patio-card-link transition hover:brightness-110">
                 <span className="min-w-0">
                   <span className="block font-medium text-ink">{c.ordemDia ? `Caminhão nº ${c.ordemDia} — ` : ''}{c.placaCarreta || c.placaCavalo || 'Caminhão'}</span>
+                  <span className={`mt-1 block rounded-md px-2 py-1 text-base font-bold uppercase tracking-wide ${rotuloOperacao(c).classe}`}>
+                    {rotuloOperacao(c).titulo}
+                  </span>
+                  <span className="mt-1 block text-base font-semibold text-ink">{rotuloOperacao(c).detalhe}</span>
                   <span className="mt-1 block text-lg font-bold uppercase tracking-wide text-ink">
                     {c.origem ? <>Vem de {normalizarLocal(c.origem)}</> : <span className="text-warn">Origem não informada</span>}
                   </span>
                   <span className="block text-sm text-ink-muted">
-                    {[c.transportadora, c.materialPrevisto].filter(Boolean).join(' · ') || 'Toque para registrar a descarga'}
+                    {[c.materialPrevisto].filter(Boolean).join(' · ') || 'Toque para registrar a descarga'}
+                  </span>
+                  <span className="mt-1 grid gap-0.5 text-sm">
+                    {dadosCaminhao(c).map((d) => (
+                      <span key={d.rotulo} className="block text-ink-muted"><b className="text-ink">{d.rotulo}:</b> {d.valor}</span>
+                    ))}
                   </span>
                   {c.observacao && <span className="mt-1 block text-sm text-warn">Portaria: {c.observacao}</span>}
                   <span className="mt-1 flex flex-wrap gap-2">
