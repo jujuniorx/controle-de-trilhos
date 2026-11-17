@@ -40,7 +40,7 @@ export async function marcarCarregadoAction(id: string): Promise<ResultadoRecebi
   }
 }
 
-/** Pátio: exclui uma chegada da portaria (vai para a lixeira do dono, com motivo). */
+/** Pátio: exclui uma chegada da portaria (vai para a lixeira, com motivo). */
 export async function excluirChegadaPatioAction(id: string, motivo: string): Promise<ResultadoRecebimentoPatio> {
   await requirePatioAcesso();
   try {
@@ -55,7 +55,7 @@ export async function excluirChegadaPatioAction(id: string, motivo: string): Pro
   }
 }
 
-/** Pátio: exclui uma carreta de remetido que a Portaria registrou (vai para a lixeira do dono, com motivo). */
+/** Pátio: exclui uma carreta de remetido que a Portaria registrou (vai para a lixeira, com motivo). */
 export async function excluirRemetidoPatioAction(movimentacaoId: string, motivo: string): Promise<ResultadoRecebimentoPatio> {
   await requirePatioAcesso();
   try {

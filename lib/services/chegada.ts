@@ -240,7 +240,7 @@ export async function buscarFichaChegada(id: string) {
 
 /**
  * Pátio: exclui uma chegada (cadastrada por engano, caminhão não veio, etc.). Não apaga:
- * ela vai para a lixeira com o motivo, e o dono pode restaurar. Só chegada ainda sem recebimento.
+ * ela vai para a lixeira com o motivo, e qualquer admin pode restaurar. Só chegada ainda sem recebimento.
  */
 export async function excluirChegadaPatio(id: string, motivo: string, atorNome: string): Promise<void> {
   const texto = motivo.trim();

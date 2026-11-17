@@ -143,7 +143,7 @@ export async function registrarChegadaCarreta(id: string, dados: DadosPortaria, 
 
 /**
  * Portaria: a carreta já chegou na portaria mas ainda não foi liberada pelo Pátio. Apaga o
- * remetido (vai para a Lixeira, restaurável pelo dono). Depois de liberada, não pode mais.
+ * remetido (vai para a Lixeira, restaurável por qualquer admin). Depois de liberada, não pode mais.
  */
 export async function apagarCarretaPelaPortaria(id: string, ator: { userId: string; nome: string }): Promise<void> {
   const mov = await prisma.movimentacao.findFirst({ where: { id, tipo: 'REMETIDO' }, select: { chegadaPortariaEm: true, carretaLiberadaEm: true, saidaPortariaEm: true } });

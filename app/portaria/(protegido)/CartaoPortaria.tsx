@@ -224,7 +224,7 @@ export function CartaoPortaria({ item, origens = [] }: { item: ItemPortaria; ori
                 </button>
               ) : (
                 <div className="flex flex-wrap items-center gap-2 rounded-lg bg-bad/10 px-3 py-2 text-sm">
-                  <span>Apagar esta carreta? Ela some das telas da Portaria e do Pátio. O dono consegue restaurar pela lixeira.</span>
+                  <span>Apagar esta carreta? Ela some das telas da Portaria e do Pátio. Qualquer admin consegue restaurar pela lixeira.</span>
                   <button type="button" className="btn btn-primary btn-sm" disabled={pendente} onClick={() => executar(() => apagarCarretaAction(item.id))}>
                     {pendente ? 'Aguarde...' : 'Sim, apagar'}
                   </button>

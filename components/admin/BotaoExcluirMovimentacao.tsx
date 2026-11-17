@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { excluirMovimentacaoAction } from '@/app/admin/(protegido)/actions-excluir';
 
 /**
- * Excluir uma movimentação (vai para a Lixeira, restaurável pelo dono), com motivo obrigatório.
+ * Excluir uma movimentação (vai para a Lixeira, restaurável por qualquer admin), com motivo obrigatório.
  * Disponível para qualquer admin.
  */
 export function BotaoExcluirMovimentacao({ id, rotulo }: { id: string; rotulo: string }) {
@@ -25,7 +25,7 @@ export function BotaoExcluirMovimentacao({ id, rotulo }: { id: string; rotulo: s
   return (
     <div className="flex w-full flex-col gap-2 rounded-lg border border-bad/40 bg-bad/10 p-3 text-sm">
       <p className="text-ink">
-        <b>{rotulo}</b> sai da lista e vai para a Lixeira. Só o dono pode restaurar.
+        <b>{rotulo}</b> sai da lista e vai para a Lixeira. Qualquer admin pode restaurar pela Lixeira.
       </p>
       <label className="block">
         <span className="mb-1 block font-semibold text-ink">Motivo *</span>

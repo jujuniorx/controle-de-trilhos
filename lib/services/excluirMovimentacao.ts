@@ -6,7 +6,7 @@ import { rotuloDaMovimentacao, tirarSnapshot } from '@/lib/services/lixeira';
  * Exclui uma movimentação (recebimento ou remetido) e tudo que pertence a ela: medições,
  * grupos, anexos, histórico e detalhe de remetido. Antes de apagar, guarda uma cópia
  * completa na lixeira — assim dá para restaurar em /admin/lixeira. Se a cópia não puder
- * ser guardada, NADA é apagado (é tudo na mesma transação). Só o dono chama.
+ * ser guardada, NADA é apagado (é tudo na mesma transação). Qualquer admin pode chamar.
  */
 export async function excluirMovimentacao(
   movimentacaoId: string,
@@ -48,7 +48,7 @@ export async function excluirMovimentacao(
 
 /**
  * Pátio: exclui uma carreta de remetido que a Portaria registrou e ainda não foi liberada/saiu.
- * Motivo obrigatório; vai para a lixeira do dono (restaurável).
+ * Motivo obrigatório; vai para a lixeira (restaurável por qualquer admin).
  */
 export async function excluirRemetidoPatio(movimentacaoId: string, motivo: string, atorNome: string): Promise<void> {
   const texto = motivo.trim();
