@@ -42,15 +42,15 @@ export async function listarMotoristas(): Promise<MotoristaCadastrado[]> {
 }
 
 export interface DadosDoEnvioParaCadastro {
-  motoristaNome: string | null;
-  motoristaCpf: string | null;
-  motoristaTelefone: string | null;
-  transportadora: string | null;
-  placaCavalo: string | null;
-  placaCarreta: string | null;
-  placaCarreta2: string | null;
-  capacidadeCarga: number | null;
-  comprimentoCarreta: number | null;
+  motoristaNome?: string | null;
+  motoristaCpf?: string | null;
+  motoristaTelefone?: string | null;
+  transportadora?: string | null;
+  placaCavalo?: string | null;
+  placaCarreta?: string | null;
+  placaCarreta2?: string | null;
+  capacidadeCarga?: number | null;
+  comprimentoCarreta?: number | null;
 }
 
 /**
