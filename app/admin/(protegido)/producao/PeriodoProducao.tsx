@@ -61,7 +61,7 @@ export function PeriodoProducao({ de, ate, resumo }: { de: string; ate: string; 
           <p className="text-sm text-ink-muted">Nenhum lançamento de produção nesse período.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="tabela-paradas w-full text-sm tabular-nums">
+            <table className="tabela-periodo text-sm tabular-nums">
               <thead className="text-xs uppercase text-ink-muted">
                 <tr className="border-b border-line">
                   <th className="py-2 pr-2 text-left">Dia</th>
@@ -75,14 +75,14 @@ export function PeriodoProducao({ de, ate, resumo }: { de: string; ate: string; 
               <tbody>
                 {comLancamento.map((d) => (
                   <tr key={d.data} className="border-b border-line">
-                    <td className="py-2 pr-2">
+                    <td className="py-2 pr-2" data-label="Dia">
                       <Link href={`/admin/producao?data=${d.data}`} className="font-semibold text-accent">{dataBr(d.data)}</Link>
                     </td>
-                    <td className="py-2 pr-2">{d.soldadores || naoRegistrado}</td>
-                    <td className="py-2 pr-2 text-right">{d.soldas}</td>
-                    <td className="py-2 pr-2 text-right">{d.tlsFormados ?? naoRegistrado}</td>
-                    <td className="py-2 pr-2 text-right">{d.cortes}</td>
-                    <td className="py-2 text-right">{d.paradaMin === null ? naoRegistrado : tempoDeParada(d.paradaMin)}</td>
+                    <td className="py-2 pr-2" data-label="Soldador">{d.soldadores || naoRegistrado}</td>
+                    <td className="py-2 pr-2 text-right" data-label="Soldas">{d.soldas}</td>
+                    <td className="py-2 pr-2 text-right" data-label="TLS">{d.tlsFormados ?? naoRegistrado}</td>
+                    <td className="py-2 pr-2 text-right" data-label="Cortes">{d.cortes}</td>
+                    <td className="py-2 text-right" data-label="Parado">{d.paradaMin === null ? naoRegistrado : tempoDeParada(d.paradaMin)}</td>
                   </tr>
                 ))}
               </tbody>

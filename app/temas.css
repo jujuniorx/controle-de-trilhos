@@ -985,3 +985,15 @@ html[data-tema="pastel"]:root {
 /* Celular: a tela inicial reserva o espaço do estaleiro (trilho, Schlatter e soldador) embaixo dos cartões. */
 @media (max-width: 599px) { html[data-tema]:root .home-entrada { padding-bottom: 230px !important; } }
 @media (min-width: 600px) and (max-width: 899px) { html[data-tema]:root .home-entrada { padding-bottom: 260px !important; } }
+
+/* Producao por periodo (Administrativo): tabela que vira cartoes no celular, com rotulo em cada campo */
+.tabela-periodo { width: 100%; border-collapse: collapse; }
+@media (max-width: 640px) {
+  .tabela-periodo thead { display: none; }
+  .tabela-periodo, .tabela-periodo tbody { display: block; width: 100%; }
+  .tabela-periodo tbody { display: grid; gap: 12px; }
+  .tabela-periodo tbody tr { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; }
+  .tabela-periodo td { display: flex; flex-direction: column; gap: 2px; padding: 0 !important; border: 0; text-align: left !important; min-width: 0; }
+  .tabela-periodo td::before { content: attr(data-label); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-muted); }
+  .tabela-periodo td:first-child { grid-column: 1 / -1; }
+}
