@@ -28,7 +28,6 @@ const VAZIO: Campos = { destino: '', origem: '', materialPrevisto: '', transport
 const PLACAS = new Set<keyof Campos>(['placaCavalo', 'placaCarreta', 'placaCarreta2']);
 const MAIUSCULAS = new Set<keyof Campos>(['destino', 'origem', ...PLACAS]);
 
-const soDigitos = (v: string | null | undefined) => (v ?? '').replace(/\D/g, '');
 const chaveNome = (v: string) => v.trim().toLocaleUpperCase('pt-BR');
 
 const CAMPO_BASE = 'h-12 w-full rounded-xl';
