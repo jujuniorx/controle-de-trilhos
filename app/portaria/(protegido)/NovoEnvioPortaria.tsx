@@ -27,6 +27,11 @@ const VAZIO: Campos = { destino: '', origem: '', materialPrevisto: '', transport
 const PLACAS = new Set<keyof Campos>(['placaCavalo', 'placaCarreta', 'placaCarreta2']);
 const MAIUSCULAS = new Set<keyof Campos>(['destino', 'origem', ...PLACAS]);
 
+const soDigitos = (v: string | null | undefined) => (v ?? '').replace(/\D/g, '');
+const chaveNome = (v: string) => v.trim().toLocaleUpperCase('pt-BR');
+
+const CAMPO_BASE = 'h-12 w-full rounded-xl';
+
 /** Carreta que chegou sem o Pátio ter cadastrado o envio: a Portaria cria aqui e o Pátio é avisado. */
 export function NovoEnvioPortaria({ origens = [], motoristas = [] }: { origens?: string[]; motoristas?: MotoristaCadastrado[] }) {
   const router = useRouter();
@@ -35,10 +40,9 @@ export function NovoEnvioPortaria({ origens = [], motoristas = [] }: { origens?:
   const [erro, setErro] = useState('');
   const [valores, setValores] = useState<Campos>(VAZIO);
   const lista = 'origens-novo-envio';
-  const listaMotoristas = 'motoristas-novo-envio';
 
-  // Motorista já cadastrado, pelo nome exato (sem diferença de maiúsculas).
-  const cadastrado = motoristas.find((m) => m.nome.toLocaleUpperCase('pt-BR') === valores.motoristaNome.trim().toLocaleUpperCase('pt-BR')) ?? null;
+  // O motorista é achado pelo CPF (o mais preciso) ou pelo nome exato.
+  const cadastrado = motoristas.find((m) => (soDigitos(m.cpf) !== '' && soDigitos(m.cpf) === soDigitos(valores.motoristaCpf)) || chaveNome(m.nome) === chaveNome(valores.motoristaNome)) ?? null;
 
   function preencherComVeiculo(v: MotoristaCadastrado['veiculos'][number]) {
     setValores((atual) => ({
@@ -62,9 +66,21 @@ export function NovoEnvioPortaria({ origens = [], motoristas = [] }: { origens?:
     if (m.veiculos[0]) preencherComVeiculo(m.veiculos[0]);
   }
 
+  function trocarMotorista() {
+    setValores((atual) => ({ ...atual, motoristaNome: '', motoristaCpf: '', motoristaTelefone: '', transportadora: '', placaCavalo: '', placaCarreta: '', placaCarreta2: '', capacidadeCarga: '', comprimentoCarreta: '' }));
+  }
+
   function mudar(nome: keyof Campos, bruto: string) {
+    if (nome === 'motoristaCpf') {
+      const digitos = soDigitos(bruto);
+      const m = digitos.length === 11 ? motoristas.find((x) => soDigitos(x.cpf) === digitos) : undefined;
+      if (m) {
+        escolherMotorista(m);
+        return;
+      }
+    }
     if (nome === 'motoristaNome') {
-      const m = motoristas.find((x) => x.nome.toLocaleUpperCase('pt-BR') === bruto.trim().toLocaleUpperCase('pt-BR'));
+      const m = motoristas.find((x) => chaveNome(x.nome) === chaveNome(bruto));
       if (m) {
         escolherMotorista(m);
         return;
@@ -78,7 +94,7 @@ export function NovoEnvioPortaria({ origens = [], motoristas = [] }: { origens?:
     setValores((atual) => ({ ...atual, [nome]: valor }));
   }
 
-  function campo(nome: keyof Campos, rotulo: string, opcoes: { obrigatorio?: boolean; numerico?: boolean; placeholder?: string; maxLength?: number; lista?: boolean; listaId?: string } = {}) {
+  function campo(nome: keyof Campos, rotulo: string, opcoes: { obrigatorio?: boolean; numerico?: boolean; placeholder?: string; maxLength?: number; lista?: boolean } = {}) {
     return (
       <label className="block text-sm">
         <span className="mb-1 block font-semibold">
@@ -86,14 +102,14 @@ export function NovoEnvioPortaria({ origens = [], motoristas = [] }: { origens?:
           {opcoes.obrigatorio ? ' *' : ''}
         </span>
         <input
-          className="h-11 w-full"
+          className={CAMPO_BASE}
           inputMode={opcoes.numerico ? 'decimal' : nome === 'motoristaCpf' ? 'numeric' : nome === 'motoristaTelefone' ? 'tel' : undefined}
           value={valores[nome]}
           placeholder={opcoes.placeholder}
           maxLength={opcoes.maxLength ?? 120}
           autoCapitalize={PLACAS.has(nome) ? 'characters' : undefined}
           autoComplete="off"
-          list={opcoes.listaId ?? (opcoes.lista ? lista : undefined)}
+          list={opcoes.lista ? lista : undefined}
           onChange={(e) => mudar(nome, e.target.value)}
         />
       </label>
@@ -128,7 +144,7 @@ export function NovoEnvioPortaria({ origens = [], motoristas = [] }: { origens?:
   }
 
   return (
-    <div className="card space-y-3">
+    <div className="card space-y-5">
       {origens.length > 0 && (
         <datalist id={lista}>
           {origens.map((o) => (
@@ -136,52 +152,90 @@ export function NovoEnvioPortaria({ origens = [], motoristas = [] }: { origens?:
           ))}
         </datalist>
       )}
-      <p className="font-semibold">Carreta que chegou sem aviso</p>
-      <p className="text-sm text-ink-muted">Destino e uma placa são obrigatórios. O Pátio recebe o aviso na hora.</p>
-      {campo('destino', 'Carregar para (destino)', { obrigatorio: true })}
-      {campo('origem', 'Local (de onde sai)', { lista: true })}
-      {campo('materialPrevisto', 'Material')}
-      {campo('transportadora', 'Empresa')}
-      <div className="grid grid-cols-2 gap-2">
-        {campo('motoristaNome', 'Motorista', { listaId: listaMotoristas })}
-        {campo('motoristaCpf', 'CPF', { placeholder: '000.000.000-00', maxLength: 14 })}
+      <div>
+        <p className="font-semibold">Carreta que chegou sem aviso</p>
+        <p className="text-sm text-ink-muted">Digite o CPF do motorista. Se ele já passou antes, os dados preenchem sozinhos.</p>
       </div>
-      {campo('motoristaTelefone', 'Telefone', { placeholder: '(00) 00000-0000', maxLength: 16 })}
-      {motoristas.length > 0 && (
-        <datalist id={listaMotoristas}>
-          {motoristas.map((m) => (
-            <option key={m.id} value={m.nome} />
-          ))}
-        </datalist>
-      )}
-      {cadastrado && cadastrado.veiculos.length > 0 && (
-        <div className="space-y-1">
-          <p className="text-sm font-semibold">Veículos que este motorista já usou</p>
+
+      {/* 1. Motorista: o CPF é a chave; o cartão mostra quem foi reconhecido. */}
+      <section className="space-y-3">
+        <p className="text-sm font-bold uppercase tracking-wide text-ink-muted">1. Motorista</p>
+        {cadastrado ? (
+          <div className="flex items-start justify-between gap-3 rounded-xl border border-ok/40 bg-ok/10 p-3">
+            <div className="min-w-0 text-sm">
+              <p className="font-bold text-ink">{cadastrado.nome}</p>
+              <p className="text-ink-muted">{[cadastrado.cpf, cadastrado.telefone].filter(Boolean).join(' · ') || 'Sem CPF cadastrado'}</p>
+              {cadastrado.transportadora && <p className="text-ink-muted">{cadastrado.transportadora}</p>}
+              <p className="mt-1 text-xs font-semibold text-ok">Preenchido do cadastro</p>
+            </div>
+            <button type="button" className="btn btn-ghost h-9 shrink-0 text-sm" onClick={trocarMotorista}>Trocar</button>
+          </div>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {campo('motoristaCpf', 'CPF', { placeholder: '000.000.000-00', maxLength: 14 })}
+            {campo('motoristaNome', 'Nome do motorista')}
+          </div>
+        )}
+        {!cadastrado && (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {campo('motoristaTelefone', 'Telefone', { placeholder: '(00) 00000-0000', maxLength: 16 })}
+            {campo('transportadora', 'Empresa')}
+          </div>
+        )}
+        {motoristas.length > 0 && (
+          <datalist id="motoristas-novo-envio">
+            {motoristas.map((m) => (
+              <option key={m.id} value={m.nome} />
+            ))}
+          </datalist>
+        )}
+      </section>
+
+      {/* 2. Veículo: os que este motorista já usou, em um toque. */}
+      <section className="space-y-3">
+        <p className="text-sm font-bold uppercase tracking-wide text-ink-muted">2. Veículo</p>
+        {cadastrado && cadastrado.veiculos.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {cadastrado.veiculos.map((v) => (
-              <button key={v.id} type="button" className="btn btn-ghost h-9 text-sm" onClick={() => preencherComVeiculo(v)}>
+              <button key={v.id} type="button" className="btn btn-ghost h-11 text-sm" onClick={() => preencherComVeiculo(v)}>
                 {[v.placaCavalo, v.placaCarreta, v.placaCarreta2].filter(Boolean).join(' / ') || 'Sem placa'}
               </button>
             ))}
           </div>
+        )}
+        <div className="grid gap-3 sm:grid-cols-2">
+          {campo('placaCavalo', 'Placa do cavalo', { placeholder: 'ABC1D23 ou CMG1234', maxLength: 7 })}
+          {campo('placaCarreta', 'Placa da carreta', { placeholder: 'ABC1D23 ou CMG1234', maxLength: 7 })}
         </div>
-      )}
-      <div className="grid grid-cols-2 gap-2">
-        {campo('placaCavalo', 'Placa do cavalo', { placeholder: 'ABC1D23 ou CMG1234', maxLength: 7 })}
-        {campo('placaCarreta', 'Placa da carreta', { placeholder: 'ABC1D23 ou CMG1234', maxLength: 7 })}
-      </div>
-      {campo('placaCarreta2', '2ª placa da carreta (opcional)', { placeholder: 'ABC1D23 ou CMG1234', maxLength: 7 })}
-      <div className="grid grid-cols-2 gap-2">
-        {campo('capacidadeCarga', 'Limite de carga (t)', { numerico: true, placeholder: 'ex.: 48 (máx. 200)', maxLength: 6 })}
-        {campo('comprimentoCarreta', 'Comprimento da carreta (m)', { numerico: true, placeholder: 'ex.: 15,5 (máx. 60)', maxLength: 6 })}
-      </div>
-      {campo('observacao', 'Observação', { maxLength: 500 })}
+        {campo('placaCarreta2', '2ª placa da carreta (opcional)', { placeholder: 'ABC1D23 ou CMG1234', maxLength: 7 })}
+      </section>
+
+      {/* 3. Carga: para onde vai o carregamento. */}
+      <section className="space-y-3">
+        <p className="text-sm font-bold uppercase tracking-wide text-ink-muted">3. Carga</p>
+        {campo('destino', 'Carregar para (destino)', { obrigatorio: true })}
+      </section>
+
+      {/* Detalhes: fechados por padrão, para a tela não ficar longa. */}
+      <details className="rounded-xl border border-line p-3">
+        <summary className="cursor-pointer text-sm font-bold text-ink">Mais detalhes</summary>
+        <div className="mt-3 space-y-3">
+          {campo('origem', 'Local (de onde sai)', { lista: true })}
+          {campo('materialPrevisto', 'Material')}
+          <div className="grid gap-3 sm:grid-cols-2">
+            {campo('capacidadeCarga', 'Limite de carga (t)', { numerico: true, placeholder: 'ex.: 48 (máx. 200)', maxLength: 6 })}
+            {campo('comprimentoCarreta', 'Comprimento da carreta (m)', { numerico: true, placeholder: 'ex.: 15,5 (máx. 60)', maxLength: 6 })}
+          </div>
+          {campo('observacao', 'Observação', { maxLength: 500 })}
+        </div>
+      </details>
+
       {erro && <p role="alert" className="text-sm text-bad">{erro}</p>}
-      <div className="flex gap-2">
-        <button type="button" className="btn btn-ghost h-11 flex-1" onClick={() => setAberto(false)} disabled={pendente}>
+      <div className="sticky bottom-24 flex gap-2 rounded-xl bg-card/95 py-2 backdrop-blur">
+        <button type="button" className="btn btn-ghost h-12 flex-1" onClick={() => setAberto(false)} disabled={pendente}>
           Cancelar
         </button>
-        <button type="button" className="btn btn-primary h-11 flex-1" onClick={enviar} disabled={pendente}>
+        <button type="button" className="btn btn-primary h-12 flex-1" onClick={enviar} disabled={pendente}>
           {pendente ? 'Criando...' : 'Criar e avisar o Pátio'}
         </button>
       </div>
