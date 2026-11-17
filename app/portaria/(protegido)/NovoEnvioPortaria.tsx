@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { novoEnvioPortariaAction } from './actions';
 import { ICONE_MAIS } from '@/components/portaria/icones';
 import { formatarCpfDigitado, formatarTelefoneDigitado } from '@/lib/validation/portaria';
+import type { MotoristaCadastrado } from '@/lib/services/motoristas';
 
 type Campos = {
   destino: string;
@@ -27,15 +28,54 @@ const PLACAS = new Set<keyof Campos>(['placaCavalo', 'placaCarreta', 'placaCarre
 const MAIUSCULAS = new Set<keyof Campos>(['destino', 'origem', ...PLACAS]);
 
 /** Carreta que chegou sem o Pátio ter cadastrado o envio: a Portaria cria aqui e o Pátio é avisado. */
-export function NovoEnvioPortaria({ origens = [] }: { origens?: string[] }) {
+export function NovoEnvioPortaria({ origens = [], motoristas = [] }: { origens?: string[]; motoristas?: MotoristaCadastrado[] }) {
   const router = useRouter();
   const [aberto, setAberto] = useState(false);
   const [pendente, iniciar] = useTransition();
   const [erro, setErro] = useState('');
   const [valores, setValores] = useState<Campos>(VAZIO);
   const lista = 'origens-novo-envio';
+  const listaMotoristas = 'motoristas-novo-envio';
+  const [atualizarCadastro, setAtualizarCadastro] = useState(false);
+
+  // Motorista já cadastrado, pelo nome exato (sem diferença de maiúsculas).
+  const cadastrado = motoristas.find((m) => m.nome.toLocaleUpperCase('pt-BR') === valores.motoristaNome.trim().toLocaleUpperCase('pt-BR')) ?? null;
+  // O cadastro difere do que está na tela: aí a Portaria escolhe se atualiza o cadastro ou só este envio.
+  const difereDoCadastro = Boolean(
+    cadastrado &&
+      ((cadastrado.cpf ?? '') !== valores.motoristaCpf || (cadastrado.telefone ?? '') !== valores.motoristaTelefone || (cadastrado.transportadora ?? '') !== valores.transportadora),
+  );
+
+  function preencherComVeiculo(v: MotoristaCadastrado['veiculos'][number]) {
+    setValores((atual) => ({
+      ...atual,
+      placaCavalo: v.placaCavalo ?? '',
+      placaCarreta: v.placaCarreta ?? '',
+      placaCarreta2: v.placaCarreta2 ?? '',
+      capacidadeCarga: v.capacidadeCarga === null ? '' : String(v.capacidadeCarga).replace('.', ','),
+      comprimentoCarreta: v.comprimentoCarreta === null ? '' : String(v.comprimentoCarreta).replace('.', ','),
+    }));
+  }
+
+  function escolherMotorista(m: MotoristaCadastrado) {
+    setValores((atual) => ({
+      ...atual,
+      motoristaNome: m.nome,
+      motoristaCpf: m.cpf ?? '',
+      motoristaTelefone: m.telefone ?? '',
+      transportadora: m.transportadora ?? '',
+    }));
+    if (m.veiculos[0]) preencherComVeiculo(m.veiculos[0]);
+  }
 
   function mudar(nome: keyof Campos, bruto: string) {
+    if (nome === 'motoristaNome') {
+      const m = motoristas.find((x) => x.nome.toLocaleUpperCase('pt-BR') === bruto.trim().toLocaleUpperCase('pt-BR'));
+      if (m) {
+        escolherMotorista(m);
+        return;
+      }
+    }
     let valor = bruto;
     if (nome === 'motoristaCpf') valor = formatarCpfDigitado(bruto);
     else if (nome === 'motoristaTelefone') valor = formatarTelefoneDigitado(bruto);
@@ -44,7 +84,7 @@ export function NovoEnvioPortaria({ origens = [] }: { origens?: string[] }) {
     setValores((atual) => ({ ...atual, [nome]: valor }));
   }
 
-  function campo(nome: keyof Campos, rotulo: string, opcoes: { obrigatorio?: boolean; numerico?: boolean; placeholder?: string; maxLength?: number; lista?: boolean } = {}) {
+  function campo(nome: keyof Campos, rotulo: string, opcoes: { obrigatorio?: boolean; numerico?: boolean; placeholder?: string; maxLength?: number; lista?: boolean; listaId?: string } = {}) {
     return (
       <label className="block text-sm">
         <span className="mb-1 block font-semibold">
@@ -59,7 +99,7 @@ export function NovoEnvioPortaria({ origens = [] }: { origens?: string[] }) {
           maxLength={opcoes.maxLength ?? 120}
           autoCapitalize={PLACAS.has(nome) ? 'characters' : undefined}
           autoComplete="off"
-          list={opcoes.lista ? lista : undefined}
+          list={opcoes.listaId ?? (opcoes.lista ? lista : undefined)}
           onChange={(e) => mudar(nome, e.target.value)}
         />
       </label>
@@ -70,12 +110,13 @@ export function NovoEnvioPortaria({ origens = [] }: { origens?: string[] }) {
     setErro('');
     iniciar(async () => {
       try {
-        const r = await novoEnvioPortariaAction(valores);
+        const r = await novoEnvioPortariaAction({ ...valores, atualizarCadastro: difereDoCadastro && atualizarCadastro });
         if (!r.ok) {
           setErro(r.erro ?? 'Não foi possível criar o envio.');
           return;
         }
         setValores(VAZIO);
+        setAtualizarCadastro(false);
         setAberto(false);
         router.refresh();
       } catch {
@@ -109,10 +150,35 @@ export function NovoEnvioPortaria({ origens = [] }: { origens?: string[] }) {
       {campo('materialPrevisto', 'Material')}
       {campo('transportadora', 'Empresa')}
       <div className="grid grid-cols-2 gap-2">
-        {campo('motoristaNome', 'Motorista')}
+        {campo('motoristaNome', 'Motorista', { listaId: listaMotoristas })}
         {campo('motoristaCpf', 'CPF', { placeholder: '000.000.000-00', maxLength: 14 })}
       </div>
       {campo('motoristaTelefone', 'Telefone', { placeholder: '(00) 00000-0000', maxLength: 16 })}
+      {motoristas.length > 0 && (
+        <datalist id={listaMotoristas}>
+          {motoristas.map((m) => (
+            <option key={m.id} value={m.nome} />
+          ))}
+        </datalist>
+      )}
+      {cadastrado && cadastrado.veiculos.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-sm font-semibold">Veículos que este motorista já usou</p>
+          <div className="flex flex-wrap gap-2">
+            {cadastrado.veiculos.map((v) => (
+              <button key={v.id} type="button" className="btn btn-ghost h-9 text-sm" onClick={() => preencherComVeiculo(v)}>
+                {[v.placaCavalo, v.placaCarreta, v.placaCarreta2].filter(Boolean).join(' / ') || 'Sem placa'}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {cadastrado && difereDoCadastro && (
+        <label className="flex items-start gap-2 text-sm">
+          <input type="checkbox" className="mt-1 h-4 w-4" checked={atualizarCadastro} onChange={(e) => setAtualizarCadastro(e.target.checked)} />
+          <span>Atualizar o cadastro de {cadastrado.nome} com CPF, telefone e empresa desta chegada. Se não marcar, só este envio muda.</span>
+        </label>
+      )}
       <div className="grid grid-cols-2 gap-2">
         {campo('placaCavalo', 'Placa do cavalo', { placeholder: 'ABC1D23 ou CMG1234', maxLength: 7 })}
         {campo('placaCarreta', 'Placa da carreta', { placeholder: 'ABC1D23 ou CMG1234', maxLength: 7 })}

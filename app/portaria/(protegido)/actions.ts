@@ -9,6 +9,7 @@ import { apagarCarretaPelaPortaria, confirmarSaidaCarreta, criarEnvioPelaPortari
 import { ErroRegraNegocio } from '@/lib/services/errors';
 import { enviarLembretesSaidaPendente } from '@/lib/services/lembretesSaida';
 import { dadosPortariaSchema, novoEnvioPortariaSchema } from '@/lib/validation/portaria';
+import { guardarNoCadastroDoMotorista } from '@/lib/services/motoristas';
 
 export interface ResultadoPortaria {
   ok: boolean;
@@ -92,8 +93,11 @@ export async function novoEnvioPortariaAction(entrada: unknown): Promise<Resulta
   const ator = await requirePortaria();
   const parsed = novoEnvioPortariaSchema.safeParse(entrada);
   if (!parsed.success) return { ok: false, erro: parsed.error.issues[0]?.message ?? 'Dados inválidos.' };
+  // Quando a Portaria marca "atualizar o cadastro", CPF, telefone e empresa do motorista mudam; senão só o veículo entra no histórico.
+  const atualizarCadastro = Boolean((entrada as { atualizarCadastro?: unknown } | null)?.atualizarCadastro);
   try {
     await criarEnvioPelaPortaria(parsed.data, ator.nome, ator.userId);
+    await guardarNoCadastroDoMotorista(parsed.data, atualizarCadastro);
     revalidatePath('/portaria');
     revalidatePath('/patio/remetidos');
     revalidatePath('/patio');
