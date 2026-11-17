@@ -1,24 +1,20 @@
 import Link from 'next/link';
 import type { ResumoPeriodo } from '@/lib/services/producao';
 
-const MESES_CURTOS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-
-function dataCurta(iso: string): string {
-  const [, m, d] = iso.split('-').map(Number);
-  return `${String(d).padStart(2, '0')} ${MESES_CURTOS[m - 1]}`;
-}
-
 function dataBr(iso: string): string {
   return iso.split('-').reverse().join('/');
 }
 
-function tempoDeParada(min: number): string {
-  return min ? `${Math.floor(min / 60)}h${String(min % 60).padStart(2, '0')}` : '—';
+function tempoDeParada(min: number | null): string {
+  if (min === null) return '—';
+  return min ? `${Math.floor(min / 60)}h${String(min % 60).padStart(2, '0')}` : '0h00';
 }
+
+const naoRegistrado = '—';
 
 /** Soldas, TLS, cortes e paradas somados entre duas datas, com uma linha por dia com lançamento. */
 export function PeriodoProducao({ de, ate, resumo }: { de: string; ate: string; resumo: ResumoPeriodo }) {
-  const comLancamento = resumo.dias.filter((d) => d.soldas > 0 || d.tlsFormados > 0 || d.cortes > 0 || d.paradaMin > 0);
+  const comLancamento = resumo.dias.filter((d) => d.soldas > 0 || (d.tlsFormados ?? 0) > 0 || d.cortes > 0 || (d.paradaMin ?? 0) > 0);
   return (
     <main className="mx-auto w-full max-w-5xl space-y-6 px-4 py-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -39,18 +35,22 @@ export function PeriodoProducao({ de, ate, resumo }: { de: string; ate: string; 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="card space-y-1 p-4">
           <p className="kv-label">Soldas</p>
+          <p className="text-xs text-ink-muted">Todo o período</p>
           <p className="text-2xl font-semibold tabular-nums">{resumo.soldas}</p>
         </div>
         <div className="card space-y-1 p-4">
           <p className="kv-label">TLS formados</p>
+          <p className="text-xs text-ink-muted">{resumo.inicioRegistro ? `Desde ${dataBr(resumo.inicioRegistro)}` : 'Sem registro no período'}</p>
           <p className="text-2xl font-semibold tabular-nums">{resumo.tlsFormados}</p>
         </div>
         <div className="card space-y-1 p-4">
           <p className="kv-label">Cortes</p>
+          <p className="text-xs text-ink-muted">Todo o período</p>
           <p className="text-2xl font-semibold tabular-nums">{resumo.cortes}</p>
         </div>
         <div className="card space-y-1 p-4">
           <p className="kv-label">Parado</p>
+          <p className="text-xs text-ink-muted">{resumo.inicioRegistro ? `Desde ${dataBr(resumo.inicioRegistro)}` : 'Sem registro no período'}</p>
           <p className="text-2xl font-semibold tabular-nums">{tempoDeParada(resumo.paradaMin)}</p>
         </div>
       </section>
@@ -78,11 +78,11 @@ export function PeriodoProducao({ de, ate, resumo }: { de: string; ate: string; 
                     <td className="py-2 pr-2">
                       <Link href={`/admin/producao?data=${d.data}`} className="font-semibold text-accent">{dataBr(d.data)}</Link>
                     </td>
-                    <td className="py-2 pr-2">{d.soldadores || '—'}</td>
+                    <td className="py-2 pr-2">{d.soldadores || naoRegistrado}</td>
                     <td className="py-2 pr-2 text-right">{d.soldas}</td>
-                    <td className="py-2 pr-2 text-right">{d.tlsFormados}</td>
+                    <td className="py-2 pr-2 text-right">{d.tlsFormados ?? naoRegistrado}</td>
                     <td className="py-2 pr-2 text-right">{d.cortes}</td>
-                    <td className="py-2 text-right">{tempoDeParada(d.paradaMin)}</td>
+                    <td className="py-2 text-right">{d.paradaMin === null ? naoRegistrado : tempoDeParada(d.paradaMin)}</td>
                   </tr>
                 ))}
               </tbody>

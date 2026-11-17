@@ -223,43 +223,59 @@ export async function totaisDoAno(ano: number): Promise<{ soldas: number; cortes
 export interface DiaDoPeriodo {
   data: string;
   soldas: number;
-  tlsFormados: number;
   cortes: number;
-  paradaMin: number;
-  soldadores: string;
+  /** Só existe nos dias lançados pela Produção (desde o início do registro). */
+  tlsFormados: number | null;
+  paradaMin: number | null;
+  soldadores: string | null;
 }
 
 export interface ResumoPeriodo {
   dias: DiaDoPeriodo[];
+  /** Soldas e cortes: todo o período, vindos do estaleiro. */
   soldas: number;
-  tlsFormados: number;
   cortes: number;
+  /** TLS e paradas: só desde o início do registro pela Produção. */
+  tlsFormados: number;
   paradaMin: number;
+  /** Primeiro dia com registro de TLS e paradas (null se nenhum no período). */
+  inicioRegistro: string | null;
   diasComLancamento: number;
 }
 
-/** Soma de soldas, TLS formados, cortes e paradas entre duas datas (inclusive), dia a dia. */
+/**
+ * Soldas e cortes do período inteiro (estaleiro, que já guarda os anos anteriores);
+ * TLS formados e paradas só dos dias lançados pela Produção, porque o estaleiro antigo não guarda isso.
+ */
 export async function resumoPeriodo(de: Date, ate: Date): Promise<ResumoPeriodo> {
-  const linhas = await prisma.producaoDia.findMany({
-    where: { data: { gte: de, lte: ate } },
-    orderBy: { data: 'asc' },
-    include: { linhas: true },
-  });
-  const dias: DiaDoPeriodo[] = linhas.map((d) => ({
-    data: d.data.toISOString().slice(0, 10),
-    soldas: d.totalSoldas,
-    tlsFormados: d.tlsFormados,
-    cortes: d.linhas.reduce((t, l) => t + l.cortes, 0),
-    paradaMin: d.linhas.reduce((t, l) => t + paradasDaLinha(l.paradas).reduce((s, p) => s + p.minutos, 0), 0),
-    soldadores: d.soldadores,
-  }));
+  const [estaleiro, producao] = await Promise.all([
+    prisma.estaleiroDia.findMany({ where: { data: { gte: de, lte: ate } }, orderBy: { data: 'asc' } }),
+    prisma.producaoDia.findMany({ where: { data: { gte: de, lte: ate } }, orderBy: { data: 'asc' }, include: { linhas: true } }),
+  ]);
+  const porDia = new Map<string, DiaDoPeriodo>();
+  for (const e of estaleiro) {
+    const iso = e.data.toISOString().slice(0, 10);
+    porDia.set(iso, { data: iso, soldas: e.soldas ?? 0, cortes: e.cortes ?? 0, tlsFormados: null, paradaMin: null, soldadores: null });
+  }
+  for (const d of producao) {
+    const iso = d.data.toISOString().slice(0, 10);
+    const atual = porDia.get(iso) ?? { data: iso, soldas: d.totalSoldas, cortes: 0, tlsFormados: null, paradaMin: null, soldadores: null };
+    porDia.set(iso, {
+      ...atual,
+      tlsFormados: d.tlsFormados,
+      paradaMin: d.linhas.reduce((t, l) => t + paradasDaLinha(l.paradas).reduce((s, p) => s + p.minutos, 0), 0),
+      soldadores: d.soldadores,
+    });
+  }
+  const dias = [...porDia.values()].sort((a, b) => (a.data < b.data ? -1 : 1));
   const soma = (f: (d: DiaDoPeriodo) => number) => dias.reduce((t, d) => t + f(d), 0);
   return {
     dias,
     soldas: soma((d) => d.soldas),
-    tlsFormados: soma((d) => d.tlsFormados),
     cortes: soma((d) => d.cortes),
-    paradaMin: soma((d) => d.paradaMin),
+    tlsFormados: soma((d) => d.tlsFormados ?? 0),
+    paradaMin: soma((d) => d.paradaMin ?? 0),
+    inicioRegistro: producao[0] ? producao[0].data.toISOString().slice(0, 10) : null,
     diasComLancamento: dias.filter((d) => d.soldas > 0).length,
   };
 }
