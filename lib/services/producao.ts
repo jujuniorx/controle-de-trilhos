@@ -219,3 +219,47 @@ export async function totaisDoAno(ano: number): Promise<{ soldas: number; cortes
     dias: comSoldas,
   };
 }
+
+export interface DiaDoPeriodo {
+  data: string;
+  soldas: number;
+  tlsFormados: number;
+  cortes: number;
+  paradaMin: number;
+  soldadores: string;
+}
+
+export interface ResumoPeriodo {
+  dias: DiaDoPeriodo[];
+  soldas: number;
+  tlsFormados: number;
+  cortes: number;
+  paradaMin: number;
+  diasComLancamento: number;
+}
+
+/** Soma de soldas, TLS formados, cortes e paradas entre duas datas (inclusive), dia a dia. */
+export async function resumoPeriodo(de: Date, ate: Date): Promise<ResumoPeriodo> {
+  const linhas = await prisma.producaoDia.findMany({
+    where: { data: { gte: de, lte: ate } },
+    orderBy: { data: 'asc' },
+    include: { linhas: true },
+  });
+  const dias: DiaDoPeriodo[] = linhas.map((d) => ({
+    data: d.data.toISOString().slice(0, 10),
+    soldas: d.totalSoldas,
+    tlsFormados: d.tlsFormados,
+    cortes: d.linhas.reduce((t, l) => t + l.cortes, 0),
+    paradaMin: d.linhas.reduce((t, l) => t + paradasDaLinha(l.paradas).reduce((s, p) => s + p.minutos, 0), 0),
+    soldadores: d.soldadores,
+  }));
+  const soma = (f: (d: DiaDoPeriodo) => number) => dias.reduce((t, d) => t + f(d), 0);
+  return {
+    dias,
+    soldas: soma((d) => d.soldas),
+    tlsFormados: soma((d) => d.tlsFormados),
+    cortes: soma((d) => d.cortes),
+    paradaMin: soma((d) => d.paradaMin),
+    diasComLancamento: dias.filter((d) => d.soldas > 0).length,
+  };
+}

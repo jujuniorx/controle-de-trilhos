@@ -4,7 +4,8 @@ import { contarTls } from '@/lib/producaoTls';
 import { FormularioUsina } from '@/components/usina/FormularioUsina';
 import { ajustarBarrasAction } from './actions';
 import { SobraProximoDia } from '@/components/producao/SobraProximoDia';
-import { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, buscarDia, sobraAnteriorCom, horasDoDia, paradasDaLinha, paradasEmAndamento, respostaTlsDaLinha } from '@/lib/services/producao';
+import { FABRICANTE_REEMPREGO, SOLDAS_POR_TLS, buscarDia, resumoPeriodo, sobraAnteriorCom, horasDoDia, paradasDaLinha, paradasEmAndamento, respostaTlsDaLinha } from '@/lib/services/producao';
+import { PeriodoProducao } from './PeriodoProducao';
 import { AoVivo } from '@/components/producao/AoVivo';
 import { BotaoImprimirPagina } from '@/components/producao/BotaoImprimirPagina';
 import { BotaoBaixarImagem, type DadosImagemProducao } from '@/components/producao/BotaoBaixarImagem';
@@ -53,8 +54,17 @@ function Indicador({ rotulo, valor, detalhe }: { rotulo: string; valor: string |
 }
 
 /** Producao do dia no Administrativo: resumo, ritmo por hora, a tabela completa e impressao. */
-export default async function ProducaoAdminPage({ searchParams }: { searchParams: Promise<{ data?: string }> }) {
+export default async function ProducaoAdminPage({ searchParams }: { searchParams: Promise<{ data?: string; de?: string; ate?: string }> }) {
   const params = await searchParams;
+  // Período: com "de" (e "até", ou hoje), mostra a soma dia a dia da faixa, na ordem certa mesmo se vier invertida.
+  const isoValido = (v?: string) => (/^\d{4}-\d{2}-\d{2}$/.test(v ?? '') ? (v as string) : null);
+  const deIso = isoValido(params.de);
+  if (deIso) {
+    const ateIso = isoValido(params.ate) ?? hojeSP();
+    const [inicio, fim] = deIso <= ateIso ? [deIso, ateIso] : [ateIso, deIso];
+    const resumo = await resumoPeriodo(new Date(`${inicio}T00:00:00Z`), new Date(`${fim}T00:00:00Z`));
+    return <PeriodoProducao de={inicio} ate={fim} resumo={resumo} />;
+  }
   const dataTexto = /^\d{4}-\d{2}-\d{2}$/.test(params.data ?? '') ? (params.data as string) : hojeSP();
   const data = new Date(`${dataTexto}T00:00:00Z`);
   const [dia, anterior] = await Promise.all([buscarDia(data), sobraAnteriorCom(data)]);
@@ -154,6 +164,11 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
         <form action="/admin/producao" className="flex flex-wrap items-end gap-2">
           <div className="field"><label htmlFor="data-producao">Dia</label><input id="data-producao" name="data" type="date" defaultValue={dataTexto} className="h-11" /></div>
           <button type="submit" className="btn btn-ghost h-11">Ver dia</button>
+        </form>
+        <form action="/admin/producao" className="flex flex-wrap items-end gap-2">
+          <div className="field"><label htmlFor="periodo-de-dia">Desde</label><input id="periodo-de-dia" name="de" type="date" defaultValue={dataTexto} className="h-11" /></div>
+          <div className="field"><label htmlFor="periodo-ate-dia">Até</label><input id="periodo-ate-dia" name="ate" type="date" defaultValue={hojeSP()} className="h-11" /></div>
+          <button type="submit" className="btn btn-ghost h-11">Ver período</button>
         </form>
         <div className="flex flex-wrap items-center gap-2">
           <BotaoBaixarImagem dados={dadosImagem} />
