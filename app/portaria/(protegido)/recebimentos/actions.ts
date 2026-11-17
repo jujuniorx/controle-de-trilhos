@@ -5,7 +5,6 @@ import { requirePortaria } from '@/lib/services/requirePortaria';
 import { cancelarChegada, confirmarSaidaChegada, criarChegada, definirOrdemChegada, desfazerSaidaChegada, liberarChegada, salvarDadosChegada } from '@/lib/services/chegada';
 import { criarEnvioPelaPortaria } from '@/lib/services/portaria';
 import { ErroRegraNegocio } from '@/lib/services/errors';
-import { guardarNoCadastroDoMotorista } from '@/lib/services/motoristas';
 import { dadosChegadaSchema } from '@/lib/validation/chegada';
 import type { ResultadoPortaria } from '../actions';
 
@@ -48,7 +47,6 @@ async function comDados(entrada: unknown, fn: (dados: ReturnType<typeof dadosChe
 export async function salvarChegadaAction(id: string, entrada: unknown): Promise<ResultadoPortaria> {
   return comDados(entrada, async (d) => {
     await salvarDadosChegada(id, d);
-    await guardarNoCadastroDoMotorista(d);
     return 'Dados salvos.';
   });
 }
@@ -64,7 +62,6 @@ export async function registrarChegadaAction(id: string, entrada: unknown): Prom
   if (tambemCarrega && !destinoCarga) return { ok: false, erro: 'Informe o destino da carga.' };
   return comDados(entrada, async (d, nome) => {
     await liberarChegada(id, d, nome);
-    await guardarNoCadastroDoMotorista(d);
     if (!tambemCarrega) return 'Chegada registrada! O Pátio foi avisado.';
     await criarEnvioPelaPortaria({ ...d, destino: destinoCarga }, nome);
     revalidatePath('/portaria');

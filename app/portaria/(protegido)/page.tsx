@@ -10,23 +10,12 @@ import { LembretesSaidaPortaria } from './LembretesSaidaPortaria';
 import { chavePublicaPush } from '@/lib/services/push';
 import { CartaoPortaria } from './CartaoPortaria';
 import { NovoEnvioPortaria } from './NovoEnvioPortaria';
-import { listarMotoristas } from '@/lib/services/motoristas';
-
-/** Sugestões de motorista são um extra: se o cadastro não estiver disponível, a Portaria abre mesmo assim. */
-async function listarMotoristasSeguro() {
-  try {
-    return await listarMotoristas();
-  } catch (e) {
-    console.error('[portaria] cadastro de motoristas indisponível', e);
-    return [];
-  }
-}
 
 export const dynamic = 'force-dynamic';
 
 export default async function PortariaPage() {
   const { nome } = await requirePortaria();
-  const [itens, origens, motoristas] = await Promise.all([listarPortaria(), listarOrigensUsadas(), listarMotoristasSeguro()]);
+  const [itens, origens] = await Promise.all([listarPortaria(), listarOrigensUsadas()]);
   // O que pede ação da Portaria primeiro: liberadas (confirmar saída), depois esperando a carreta chegar, depois o resto.
   const ordem = { LIBERADA: 0, AGUARDANDO_CARRETA: 1, CHEGOU: 2, SAIU: 3 } as const;
   itens.sort((a, b) => ordem[a.estado] - ordem[b.estado]);
@@ -78,7 +67,7 @@ export default async function PortariaPage() {
       </div>
 
 
-      <NovoEnvioPortaria origens={origens} motoristas={motoristas} />
+      <NovoEnvioPortaria origens={origens} />
 
       <AtivarAvisos chavePublica={chavePublicaPush()} titulo="Avisos do Pátio" descricao="Receba um aviso neste aparelho quando o Pátio liberar uma carreta ou terminar de descarregar um caminhão." ocultarQuandoLigado />
 

@@ -683,32 +683,3 @@ model ProducaoLinha {
 
   @@unique([diaId, hora])
 }
-
-// Cadastro de motoristas da Portaria: o nome preenche CPF, telefone e empresa sozinhos.
-model MotoristaCadastro {
-  id            String   @id @default(cuid())
-  nome          String
-  cpf           String?
-  telefone      String?
-  transportadora String?
-  atualizadoEm  DateTime @updatedAt
-  criadoEm      DateTime @default(now())
-  veiculos      VeiculoMotorista[]
-
-  @@unique([nome])
-}
-
-// Veículos (cavalo e carretas) que cada motorista já usou. Um motorista pode ter vários.
-model VeiculoMotorista {
-  id              String   @id @default(cuid())
-  motoristaId     String
-  motorista       MotoristaCadastro @relation(fields: [motoristaId], references: [id], onDelete: Cascade)
-  placaCavalo     String?
-  placaCarreta    String?
-  placaCarreta2   String?
-  capacidadeCarga Decimal?
-  comprimentoCarreta Decimal?
-  ultimoUsoEm     DateTime @default(now())
-
-  @@unique([motoristaId, placaCavalo, placaCarreta, placaCarreta2])
-}
