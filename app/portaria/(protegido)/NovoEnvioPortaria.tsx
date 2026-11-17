@@ -6,6 +6,7 @@ import { novoEnvioPortariaAction } from './actions';
 import { ICONE_MAIS } from '@/components/portaria/icones';
 import { formatarCpfDigitado, formatarTelefoneDigitado } from '@/lib/validation/portaria';
 import type { MotoristaCadastrado } from '@/lib/services/motoristas';
+import { acharMotoristaPorCpf, soDigitos } from '@/lib/domain/motorista';
 
 type Campos = {
   destino: string;
@@ -41,8 +42,9 @@ export function NovoEnvioPortaria({ origens = [], motoristas = [] }: { origens?:
   const [valores, setValores] = useState<Campos>(VAZIO);
   const lista = 'origens-novo-envio';
 
-  // O motorista é achado pelo CPF (o mais preciso) ou pelo nome exato.
-  const cadastrado = motoristas.find((m) => (soDigitos(m.cpf) !== '' && soDigitos(m.cpf) === soDigitos(valores.motoristaCpf)) || chaveNome(m.nome) === chaveNome(valores.motoristaNome)) ?? null;
+  // O CPF é a chave: com os 11 números, o motorista cadastrado preenche tudo.
+  const cadastrado = acharMotoristaPorCpf(motoristas, valores.motoristaCpf);
+  const cpfCompleto = soDigitos(valores.motoristaCpf).length === 11;
 
   function preencherComVeiculo(v: MotoristaCadastrado['veiculos'][number]) {
     setValores((atual) => ({
@@ -71,23 +73,15 @@ export function NovoEnvioPortaria({ origens = [], motoristas = [] }: { origens?:
   }
 
   function mudar(nome: keyof Campos, bruto: string) {
-    if (nome === 'motoristaCpf') {
-      const digitos = soDigitos(bruto);
-      const m = digitos.length === 11 ? motoristas.find((x) => soDigitos(x.cpf) === digitos) : undefined;
-      if (m) {
-        escolherMotorista(m);
-        return;
-      }
-    }
-    if (nome === 'motoristaNome') {
-      const m = motoristas.find((x) => chaveNome(x.nome) === chaveNome(bruto));
-      if (m) {
-        escolherMotorista(m);
-        return;
-      }
-    }
     let valor = bruto;
-    if (nome === 'motoristaCpf') valor = formatarCpfDigitado(bruto);
+    if (nome === 'motoristaCpf') {
+      valor = formatarCpfDigitado(bruto);
+      const m = acharMotoristaPorCpf(motoristas, valor);
+      if (m) {
+        escolherMotorista(m);
+        return;
+      }
+    }
     else if (nome === 'motoristaTelefone') valor = formatarTelefoneDigitado(bruto);
     else if (PLACAS.has(nome)) valor = bruto.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
     else if (MAIUSCULAS.has(nome)) valor = bruto.toLocaleUpperCase('pt-BR');
@@ -154,12 +148,27 @@ export function NovoEnvioPortaria({ origens = [], motoristas = [] }: { origens?:
       )}
       <div>
         <p className="font-semibold">Carreta que chegou sem aviso</p>
-        <p className="text-sm text-ink-muted">Digite o CPF do motorista. Se ele já passou antes, os dados preenchem sozinhos.</p>
+        <p className="text-sm text-ink-muted">Digite só o CPF do motorista. Se ele já passou antes, todos os dados preenchem sozinhos.</p>
       </div>
 
       {/* 1. Motorista: o CPF é a chave; o cartão mostra quem foi reconhecido. */}
       <section className="space-y-3">
         <p className="text-sm font-bold uppercase tracking-wide text-ink-muted">1. Motorista</p>
+        {!cadastrado && (
+          <div className="space-y-3">
+            {campo('motoristaCpf', 'CPF do motorista', { placeholder: '000.000.000-00', maxLength: 14 })}
+            {cpfCompleto && (
+              <p className="text-sm font-semibold text-warn">CPF não cadastrado. Preencha nome e telefone: ao criar o envio, o motorista fica no cadastro e na próxima vez o CPF preenche tudo.</p>
+            )}
+            {cpfCompleto && (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {campo('motoristaNome', 'Nome do motorista')}
+                {campo('motoristaTelefone', 'Telefone', { placeholder: '(00) 00000-0000', maxLength: 16 })}
+                {campo('transportadora', 'Empresa')}
+              </div>
+            )}
+          </div>
+        )}
         {cadastrado ? (
           <div className="flex items-start justify-between gap-3 rounded-xl border border-ok/40 bg-ok/10 p-3">
             <div className="min-w-0 text-sm">
@@ -170,18 +179,7 @@ export function NovoEnvioPortaria({ origens = [], motoristas = [] }: { origens?:
             </div>
             <button type="button" className="btn btn-ghost h-9 shrink-0 text-sm" onClick={trocarMotorista}>Trocar</button>
           </div>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {campo('motoristaCpf', 'CPF', { placeholder: '000.000.000-00', maxLength: 14 })}
-            {campo('motoristaNome', 'Nome do motorista')}
-          </div>
-        )}
-        {!cadastrado && (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {campo('motoristaTelefone', 'Telefone', { placeholder: '(00) 00000-0000', maxLength: 16 })}
-            {campo('transportadora', 'Empresa')}
-          </div>
-        )}
+        ) : null}
         {motoristas.length > 0 && (
           <datalist id="motoristas-novo-envio">
             {motoristas.map((m) => (
