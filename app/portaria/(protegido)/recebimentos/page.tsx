@@ -10,11 +10,23 @@ import { chavePublicaPush } from '@/lib/services/push';
 import { BotaoNovaChegada } from './BotaoNovaChegada';
 import { CartaoChegada } from './CartaoChegada';
 
+import { listarMotoristas } from '@/lib/services/motoristas';
+
+/** Sugestões de motorista são um extra: se o cadastro não estiver disponível, a tela abre mesmo assim. */
+async function listarMotoristasSeguro() {
+  try {
+    return await listarMotoristas();
+  } catch (e) {
+    console.error('[portaria] cadastro de motoristas indisponível', e);
+    return [];
+  }
+}
+
 export const dynamic = 'force-dynamic';
 
 export default async function PortariaRecebimentosPage() {
   const { nome } = await requirePortaria();
-  const [itens, origens] = await Promise.all([listarChegadasPortaria(), listarOrigensUsadas()]);
+  const [itens, origens, motoristas] = await Promise.all([listarChegadasPortaria(), listarOrigensUsadas(), listarMotoristasSeguro()]);
   // Grupos por situação; dentro de cada grupo, a chegada mais recente primeiro (pela hora de chegada, não de cadastro).
   const ordem = { RECEBIDA: 0, AGUARDANDO_LIBERACAO: 1, LIBERADA: 2, SAIU: 3, CANCELADA: 4 } as const;
   const momento = (c: (typeof itens)[number]) => (c.liberadaEm ?? c.criadoEm).getTime();
@@ -76,7 +88,7 @@ export default async function PortariaRecebimentosPage() {
       ) : (
         <div className="space-y-3">
           {itens.map((item) => (
-            <CartaoChegada key={item.id} item={item} origens={origens} />
+            <CartaoChegada key={item.id} item={item} origens={origens} motoristas={motoristas} />
           ))}
         </div>
       )}

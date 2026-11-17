@@ -11,6 +11,8 @@ import { quandoLegivel } from '@/lib/domain/quando';
 import { formatarCpfDigitado, formatarTelefoneDigitado } from '@/lib/validation/portaria';
 import { formatarCpf, formatarTelefone } from '@/lib/domain/portaria';
 import type { ItemChegada } from '@/lib/services/chegada';
+import type { MotoristaCadastrado } from '@/lib/services/motoristas';
+import { acharMotoristaPorCpf, soDigitos } from '@/lib/domain/motorista';
 
 const BADGE_CHEGADA = { AGUARDANDO_LIBERACAO: 'badge-muted', LIBERADA: 'badge-warn', RECEBIDA: 'badge-ok', SAIU: 'badge-info', CANCELADA: 'badge-muted' } as const;
 
@@ -18,7 +20,7 @@ function limparPlaca(v: string) {
   return v.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
 }
 
-export function CartaoChegada({ item, origens = [] }: { item: ItemChegada; origens?: string[] }) {
+export function CartaoChegada({ item, origens = [], motoristas = [] }: { item: ItemChegada; origens?: string[]; motoristas?: MotoristaCadastrado[] }) {
   const router = useRouter();
   const [pendente, iniciar] = useTransition();
   const [aberto, setAberto] = useState(item.estado === 'AGUARDANDO_LIBERACAO' || item.estado === 'RECEBIDA');
@@ -41,8 +43,20 @@ export function CartaoChegada({ item, origens = [] }: { item: ItemChegada; orige
   });
   const [cargaDescarga, setCargaDescarga] = useState(item.cargaDescarga ?? false);
   const [destinoCarga, setDestinoCarga] = useState(item.destinoCarga ?? '');
-  const set = (campo: keyof typeof v) => (e: { target: { value: string } }) =>
-    setV((atual) => ({ ...atual, [campo]: campo === 'motoristaCpf' ? formatarCpfDigitado(e.target.value) : campo === 'motoristaTelefone' ? formatarTelefoneDigitado(e.target.value) : String(campo).startsWith('placa') ? limparPlaca(e.target.value) : e.target.value }));
+  // CPF é a chave: com os 11 números, o motorista cadastrado preenche nome, telefone e empresa.
+  const cpfDigitado = soDigitos(v.motoristaCpf).length === 11;
+  const motoristaAchado = acharMotoristaPorCpf(motoristas, v.motoristaCpf);
+  const set = (campo: keyof typeof v) => (e: { target: { value: string } }) => {
+    const valor = campo === 'motoristaCpf' ? formatarCpfDigitado(e.target.value) : campo === 'motoristaTelefone' ? formatarTelefoneDigitado(e.target.value) : String(campo).startsWith('placa') ? limparPlaca(e.target.value) : e.target.value;
+    if (campo === 'motoristaCpf') {
+      const m = acharMotoristaPorCpf(motoristas, valor);
+      if (m) {
+        setV((atual) => ({ ...atual, motoristaCpf: valor, motoristaNome: m.nome, motoristaTelefone: formatarTelefone(m.telefone), transportadora: m.transportadora ?? atual.transportadora }));
+        return;
+      }
+    }
+    setV((atual) => ({ ...atual, [campo]: valor }));
+  };
 
   const rascunho = item.estado === 'AGUARDANDO_LIBERACAO';
   const chegou = item.estado === 'LIBERADA';
@@ -183,8 +197,12 @@ export function CartaoChegada({ item, origens = [] }: { item: ItemChegada; orige
           )}
           <Secao titulo="Motorista">
             {campo('transportadora', 'Empresa (transportadora)')}
-            {campo('motoristaNome', 'Motorista')}
             {campo('motoristaCpf', 'CPF do motorista', { inputMode: 'numeric', maxLength: 14, placeholder: '000.000.000-00' })}
+            {motoristaAchado && <p className="text-sm font-semibold text-ok">Motorista cadastrado: {motoristaAchado.nome}. Preenchido sozinho.</p>}
+            {cpfDigitado && !motoristaAchado && (
+              <p className="text-sm font-semibold text-warn">CPF não cadastrado. Preencha nome e telefone: ao salvar, o motorista fica no cadastro e na próxima vez o CPF preenche tudo.</p>
+            )}
+            {campo('motoristaNome', 'Motorista')}
             {campo('motoristaTelefone', 'Telefone do motorista', { inputMode: 'tel', maxLength: 16, placeholder: '(00) 00000-0000' })}
           </Secao>
           <Secao titulo="Veículo">
