@@ -9,6 +9,7 @@ import { EstadoVazio } from '@/components/ui/EstadoVazio';
 import { AreaEstoque } from '@/components/estoque/AreaEstoque';
 import { AbasEstoque } from '@/components/estoque/AbasEstoque';
 import { listarAreasEstoque } from '@/lib/services/estoqueAreas';
+import { ResumoEstoque } from '@/components/estoque/ResumoEstoque';
 
 export const dynamic = 'force-dynamic';
 
@@ -170,19 +171,25 @@ const CURTO_AREA: Record<string, string> = {
 export default async function EstoquePage({ searchParams }: { searchParams: Promise<{ area?: string }> }) {
   const { area } = await searchParams;
   const areas = await listarAreasEstoque();
-  const areaAtual = area && area !== 'trilhos' ? areas.find((a) => a.id === area) : undefined;
+  const emResumo = area === 'resumo';
+  const areaAtual = area && area !== 'trilhos' && !emResumo ? areas.find((a) => a.id === area) : undefined;
 
   return (
     <>
       <AbasEstoque
-        ativa={areaAtual?.id ?? 'trilhos'}
+        ativa={emResumo ? 'resumo' : areaAtual?.id ?? 'trilhos'}
         abas={[
+          { id: 'resumo', rotulo: 'Resumo', curto: 'Resumo' },
           { id: 'trilhos', rotulo: 'Trilhos', curto: 'Trilhos' },
           ...areas.map((a) => ({ id: a.id, rotulo: a.nome, curto: CURTO_AREA[a.id] ?? a.nome })),
         ]}
       />
 
-      {areaAtual ? (
+      {emResumo ? (
+        <div className="mx-auto mt-6 w-full max-w-7xl">
+          <ResumoEstoque />
+        </div>
+      ) : areaAtual ? (
         <div className="mx-auto mt-6 w-full max-w-7xl">
           <AreaEstoque areaId={areaAtual.id} nomeArea={areaAtual.nome} />
         </div>

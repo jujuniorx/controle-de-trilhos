@@ -172,3 +172,45 @@ export async function apagarMaterialEstoque(materialId: string): Promise<void> {
 export async function restaurarMaterialEstoque(materialId: string): Promise<void> {
   await prisma.estoqueMaterial.update({ where: { id: materialId }, data: { excluidoEm: null } });
 }
+
+export interface ResumoArea {
+  id: string;
+  nome: string;
+  materiais: number;
+  semSaldo: number;
+  entradas7d: number;
+  baixas7d: number;
+  ultimoMovimento: { quando: string; tipo: string; material: string; responsavel: string } | null;
+}
+
+/** Visão geral de cada área: quantos materiais, quantos zerados e a atividade da última semana. */
+export async function resumoAreasEstoque(): Promise<ResumoArea[]> {
+  const areas = await prisma.estoqueArea.findMany({ orderBy: { ordem: 'asc' } });
+  const desde = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  return Promise.all(
+    areas.map(async (a) => {
+      const [materiais, semSaldo, entradas7d, baixas7d, ultimo] = await Promise.all([
+        prisma.estoqueMaterial.count({ where: { areaId: a.id, excluidoEm: null } }),
+        prisma.estoqueMaterial.count({ where: { areaId: a.id, excluidoEm: null, quantidade: 0 } }),
+        prisma.estoqueMovimento.count({ where: { tipo: 'ENTRADA', criadoEm: { gte: desde }, material: { areaId: a.id } } }),
+        prisma.estoqueMovimento.count({ where: { tipo: 'BAIXA', criadoEm: { gte: desde }, material: { areaId: a.id } } }),
+        prisma.estoqueMovimento.findFirst({
+          where: { material: { areaId: a.id } },
+          orderBy: { criadoEm: 'desc' },
+          include: { material: { select: { nome: true } } },
+        }),
+      ]);
+      return {
+        id: a.id,
+        nome: a.nome,
+        materiais,
+        semSaldo,
+        entradas7d,
+        baixas7d,
+        ultimoMovimento: ultimo
+          ? { quando: ultimo.criadoEm.toISOString(), tipo: ultimo.tipo, material: ultimo.material.nome, responsavel: ultimo.responsavel }
+          : null,
+      };
+    }),
+  );
+}
