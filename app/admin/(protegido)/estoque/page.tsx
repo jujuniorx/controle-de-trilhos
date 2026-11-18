@@ -6,8 +6,8 @@ import { BotaoApagarRegistro } from '@/components/usina/BotaoApagarRegistro';
 import { listarEstoque, ROTULO_TIPO_ESTOQUE, TIPOS_ESTOQUE, type ItemEstoque, type TipoEstoque } from '@/lib/services/estoque';
 import { salvarItemEstoqueAction, excluirItemEstoqueAction } from './actions';
 import { EstadoVazio } from '@/components/ui/EstadoVazio';
-import Link from 'next/link';
 import { AreaEstoque } from '@/components/estoque/AreaEstoque';
+import { AbasEstoque } from '@/components/estoque/AbasEstoque';
 import { listarAreasEstoque } from '@/lib/services/estoqueAreas';
 
 export const dynamic = 'force-dynamic';
@@ -159,6 +159,13 @@ async function EstoqueTrilhos() {
   );
 }
 
+/** Nome curto de cada área, para caber no celular. */
+const CURTO_AREA: Record<string, string> = {
+  'area-almoxarifado': 'Almoxarifado',
+  'area-metrologia': 'Metrologia',
+  'area-oleo': 'Óleo',
+};
+
 /** Estoque com abas: Trilhos (Pátio) e as áreas de materiais (Almoxarifado, Sala de Metrologia e Materiais, Sala de Óleo). */
 export default async function EstoquePage({ searchParams }: { searchParams: Promise<{ area?: string }> }) {
   const { area } = await searchParams;
@@ -167,30 +174,16 @@ export default async function EstoquePage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <nav aria-label="Áreas do estoque" className="mx-auto mb-6 w-full max-w-7xl">
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href="/admin/estoque?area=trilhos"
-            aria-current={!areaAtual ? 'page' : undefined}
-            className={`btn h-11 ${!areaAtual ? 'btn-primary' : 'btn-ghost'}`}
-          >
-            Trilhos
-          </Link>
-          {areas.map((a) => (
-            <Link
-              key={a.id}
-              href={`/admin/estoque?area=${a.id}`}
-              aria-current={areaAtual?.id === a.id ? 'page' : undefined}
-              className={`btn h-11 ${areaAtual?.id === a.id ? 'btn-primary' : 'btn-ghost'}`}
-            >
-              {a.nome}
-            </Link>
-          ))}
-        </div>
-      </nav>
+      <AbasEstoque
+        ativa={areaAtual?.id ?? 'trilhos'}
+        abas={[
+          { id: 'trilhos', rotulo: 'Trilhos', curto: 'Trilhos' },
+          ...areas.map((a) => ({ id: a.id, rotulo: a.nome, curto: CURTO_AREA[a.id] ?? a.nome })),
+        ]}
+      />
 
       {areaAtual ? (
-        <div className="mx-auto w-full max-w-7xl">
+        <div className="mx-auto mt-6 w-full max-w-7xl">
           <AreaEstoque areaId={areaAtual.id} nomeArea={areaAtual.nome} />
         </div>
       ) : (

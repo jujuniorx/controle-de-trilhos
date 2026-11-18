@@ -92,10 +92,10 @@ export async function AreaEstoque({ areaId, nomeArea }: { areaId: string; nomeAr
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid gap-2">
                 {(['ENTRADA', 'BAIXA', 'AJUSTE'] as const).map((tipo) => (
                   <details key={tipo} className="group">
-                    <summary className="btn btn-ghost h-11 w-full cursor-pointer justify-center">{ROTULO_TIPO[tipo]}</summary>
+                    <summary className="btn btn-ghost h-11 w-full cursor-pointer justify-center">{`Registrar ${ROTULO_TIPO[tipo].toLowerCase()}`}</summary>
                     <div className="mt-3 space-y-3">
                       <FormularioUsina acao={registrarMovimentoEstoqueAction} rotuloBotao={`Registrar ${ROTULO_TIPO[tipo].toLowerCase()}`}>
                         <input type="hidden" name="materialId" value={m.id} />
