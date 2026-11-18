@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import {
+  apagarMaterialEstoque,
+  restaurarMaterialEstoque,
   criarMaterialEstoque,
   registrarMovimentoEstoque,
   UNIDADES_MATERIAL,
@@ -71,4 +73,20 @@ export async function registrarMovimentoEstoqueAction(_: ResultadoFormUsina | un
   }
   revalidatePath('/admin/estoque');
   return { ok: true };
+}
+
+/** Manda o material para a lixeira (só com saldo zero). */
+export async function apagarMaterialEstoqueAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const materialId = texto(formData.get('materialId'), 60);
+  if (materialId) await apagarMaterialEstoque(materialId);
+  revalidatePath('/admin/estoque');
+}
+
+/** Tira um material da lixeira da área. */
+export async function restaurarMaterialEstoqueAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const materialId = texto(formData.get('materialId'), 60);
+  if (materialId) await restaurarMaterialEstoque(materialId);
+  revalidatePath('/admin/estoque');
 }

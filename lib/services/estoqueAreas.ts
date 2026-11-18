@@ -34,7 +34,7 @@ export async function listarAreasEstoque(): Promise<AreaEstoque[]> {
 }
 
 export async function listarMateriaisDaArea(areaId: string): Promise<MaterialEstoque[]> {
-  const linhas = await prisma.estoqueMaterial.findMany({ where: { areaId }, orderBy: { nome: 'asc' } });
+  const linhas = await prisma.estoqueMaterial.findMany({ where: { areaId, excluidoEm: null }, orderBy: { nome: 'asc' } });
   return linhas.map((m) => ({
     id: m.id,
     nome: m.nome,
@@ -142,4 +142,33 @@ export async function registrarMovimentoEstoque(v: {
       },
     });
   });
+}
+
+/** Materiais apagados da área (lixeira), para restaurar. */
+export async function listarMateriaisApagadosDaArea(areaId: string): Promise<MaterialEstoque[]> {
+  const linhas = await prisma.estoqueMaterial.findMany({
+    where: { areaId, excluidoEm: { not: null } },
+    orderBy: { excluidoEm: 'desc' },
+  });
+  return linhas.map((m) => ({
+    id: m.id,
+    nome: m.nome,
+    unidade: m.unidade,
+    fabricante: m.fabricante,
+    quantidade: Number(m.quantidade),
+    atualizadoEm: m.atualizadoEm.toISOString(),
+  }));
+}
+
+/** Manda o material para a lixeira. Só aceita com saldo zero, para não sumir com estoque. */
+export async function apagarMaterialEstoque(materialId: string): Promise<void> {
+  const material = await prisma.estoqueMaterial.findUnique({ where: { id: materialId } });
+  if (!material) throw new Error('Material não encontrado.');
+  if (Number(material.quantidade) !== 0) throw new Error('Zere o saldo antes de apagar o material.');
+  await prisma.estoqueMaterial.update({ where: { id: materialId }, data: { excluidoEm: new Date() } });
+}
+
+/** Tira o material da lixeira e devolve para a lista da área. */
+export async function restaurarMaterialEstoque(materialId: string): Promise<void> {
+  await prisma.estoqueMaterial.update({ where: { id: materialId }, data: { excluidoEm: null } });
 }

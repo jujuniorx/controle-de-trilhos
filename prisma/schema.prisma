@@ -703,6 +703,8 @@ model EstoqueMaterial {
   quantidade   Decimal            @default(0) @db.Decimal(12, 3)
   criadoEm     DateTime           @default(now())
   atualizadoEm DateTime           @updatedAt
+  // Apagado vai para a lixeira da área (fica guardado e pode ser restaurado). Só apaga com saldo zero.
+  excluidoEm   DateTime?
   movimentos   EstoqueMovimento[]
 
   @@index([areaId])

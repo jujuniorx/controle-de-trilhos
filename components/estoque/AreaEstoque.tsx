@@ -1,12 +1,19 @@
 import { FormularioUsina } from '@/components/usina/FormularioUsina';
 import { EstadoVazio } from '@/components/ui/EstadoVazio';
+import { BotaoApagarRegistro } from '@/components/usina/BotaoApagarRegistro';
 import {
+  listarMateriaisApagadosDaArea,
   listarMateriaisDaArea,
   listarMovimentos,
   UNIDADES_MATERIAL,
   type MovimentoEstoque,
 } from '@/lib/services/estoqueAreas';
-import { criarMaterialEstoqueAction, registrarMovimentoEstoqueAction } from '@/app/admin/(protegido)/estoque/areas-actions';
+import {
+  apagarMaterialEstoqueAction,
+  criarMaterialEstoqueAction,
+  registrarMovimentoEstoqueAction,
+  restaurarMaterialEstoqueAction,
+} from '@/app/admin/(protegido)/estoque/areas-actions';
 
 const ROTULO_TIPO: Record<string, string> = { ENTRADA: 'Entrada', BAIXA: 'Baixa', AJUSTE: 'Ajuste' };
 
@@ -28,6 +35,7 @@ function sinal(m: MovimentoEstoque): string {
 export async function AreaEstoque({ areaId, nomeArea }: { areaId: string; nomeArea: string }) {
   const materiais = await listarMateriaisDaArea(areaId);
   const historicos = await Promise.all(materiais.map((m) => listarMovimentos(m.id, 8)));
+  const apagados = await listarMateriaisApagadosDaArea(areaId);
 
   return (
     <section className="space-y-6" aria-labelledby={`area-${areaId}`}>
@@ -151,9 +159,37 @@ export async function AreaEstoque({ areaId, nomeArea }: { areaId: string; nomeAr
                   </ul>
                 )}
               </details>
+
+              <div className="border-t border-line pt-3 text-right">
+                {m.quantidade === 0 ? (
+                  <BotaoApagarRegistro acao={apagarMaterialEstoqueAction} campos={{ materialId: m.id }} rotulo="Apagar material" rotuloConfirmar="Toque de novo para mandar para a lixeira" />
+                ) : (
+                  <p className="text-xs text-ink-muted">Zere o saldo para poder apagar este material.</p>
+                )}
+              </div>
             </article>
           ))}
         </div>
+      )}
+
+      {apagados.length > 0 && (
+        <details className="card">
+          <summary className="cursor-pointer font-semibold">Lixeira desta área ({apagados.length})</summary>
+          <ul className="mt-4 divide-y divide-line">
+            {apagados.map((m) => (
+              <li key={m.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                <div className="min-w-0">
+                  <p className="font-semibold">{m.nome}</p>
+                  <p className="text-xs text-ink-muted">{m.unidade} · {m.fabricante ?? 'Fabricante não informado'}</p>
+                </div>
+                <form action={restaurarMaterialEstoqueAction}>
+                  <input type="hidden" name="materialId" value={m.id} />
+                  <button type="submit" className="btn btn-ghost h-11">Restaurar</button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        </details>
       )}
     </section>
   );
