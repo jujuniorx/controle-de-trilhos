@@ -12,6 +12,7 @@ import { ConferenciaPainel } from './ConferenciaPainel';
 import { NfsPainel } from '@/app/admin/(protegido)/NfsPainel';
 import { rotuloNfs } from '@/lib/nf';
 import { EditarMedicoesPainel } from './EditarMedicoesPainel';
+import { LinhaMedicao } from './LinhaMedicao';
 import { HistoricoMovimentacao } from '@/components/admin/HistoricoMovimentacao';
 import { informarNumeroDocumentoRecebimentoAction } from './actions';
 import { EditarDadosRecebimentoPainel } from './EditarDadosRecebimentoPainel';
@@ -196,17 +197,16 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
               <div className="grupo-card">
                 <div className="grupo-body !border-t-0 !pt-2">
                   {g.medicoes.map((m, k) => (
-                    <div key={m.id} className="medicao-row">
-                      <span>
-                        <span className="medicao-num">{k + 1}.</span>{' '}
-                        {m.quantidade > 1 ? `${m.quantidade} × ${fmtMetros(m.comprimento)} m` : `${fmtMetros(m.comprimento)} m`}
-                      </span>
-                      {(m.quantidade > 1 || m.classificacaoSC) && (
-                        <span className="medicao-val">
-                          {m.quantidade > 1 ? `${fmtMetros(m.metros)} m` : ''}{m.classificacaoSC ? ` ${m.classificacaoSC}` : ''}
-                        </span>
-                      )}
-                    </div>
+                    <LinhaMedicao
+                      key={m.id}
+                      movimentacaoId={mov.id}
+                      medicaoId={m.id}
+                      numero={k + 1}
+                      quantidade={m.quantidade}
+                      comprimento={Number(m.comprimento)}
+                      metros={Number(m.metros)}
+                      classificacaoSC={m.classificacaoSC}
+                    />
                   ))}
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-3 border-t border-line pt-3">
