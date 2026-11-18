@@ -683,3 +683,43 @@ model ProducaoLinha {
 
   @@unique([diaId, hora])
 }
+
+// Áreas de estoque além dos trilhos (Almoxarifado, Sala de Metrologia e Materiais, Sala de Óleo).
+model EstoqueArea {
+  id        String            @id
+  nome      String
+  ordem     Int               @default(0)
+  materiais EstoqueMaterial[]
+}
+
+// Material de uma área. A quantidade só muda por movimento (entrada, baixa ou ajuste).
+model EstoqueMaterial {
+  id           String             @id @default(cuid())
+  areaId       String
+  area         EstoqueArea        @relation(fields: [areaId], references: [id])
+  nome         String
+  unidade      String
+  fabricante   String?
+  quantidade   Decimal            @default(0) @db.Decimal(12, 3)
+  criadoEm     DateTime           @default(now())
+  atualizadoEm DateTime           @updatedAt
+  movimentos   EstoqueMovimento[]
+
+  @@index([areaId])
+}
+
+// Histórico: cada entrada, baixa ou ajuste fica registrado com quem fez e o saldo depois.
+model EstoqueMovimento {
+  id          String          @id @default(cuid())
+  materialId  String
+  material    EstoqueMaterial @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  tipo        String          // ENTRADA | BAIXA | AJUSTE
+  quantidade  Decimal         @db.Decimal(12, 3)
+  saldoApos   Decimal         @db.Decimal(12, 3)
+  motivo      String?
+  documento   String?
+  responsavel String
+  criadoEm    DateTime        @default(now())
+
+  @@index([materialId, criadoEm])
+}
