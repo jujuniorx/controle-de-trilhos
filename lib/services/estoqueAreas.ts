@@ -33,8 +33,23 @@ export async function listarAreasEstoque(): Promise<AreaEstoque[]> {
   return linhas.map((a) => ({ id: a.id, nome: a.nome }));
 }
 
-export async function listarMateriaisDaArea(areaId: string): Promise<MaterialEstoque[]> {
-  const linhas = await prisma.estoqueMaterial.findMany({ where: { areaId, excluidoEm: null }, orderBy: { nome: 'asc' } });
+export async function listarMateriaisDaArea(areaId: string, busca?: string): Promise<MaterialEstoque[]> {
+  const termo = busca?.trim();
+  const linhas = await prisma.estoqueMaterial.findMany({
+    where: {
+      areaId,
+      excluidoEm: null,
+      ...(termo
+        ? {
+            OR: [
+              { nome: { contains: termo, mode: 'insensitive' } },
+              { fabricante: { contains: termo, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    },
+    orderBy: { nome: 'asc' },
+  });
   return linhas.map((m) => ({
     id: m.id,
     nome: m.nome,

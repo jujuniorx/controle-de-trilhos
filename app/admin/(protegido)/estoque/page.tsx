@@ -168,8 +168,8 @@ const CURTO_AREA: Record<string, string> = {
 };
 
 /** Estoque com abas: Trilhos (Pátio) e as áreas de materiais (Almoxarifado, Sala de Metrologia e Materiais, Sala de Óleo). */
-export default async function EstoquePage({ searchParams }: { searchParams: Promise<{ area?: string }> }) {
-  const { area } = await searchParams;
+export default async function EstoquePage({ searchParams }: { searchParams: Promise<{ area?: string; q?: string }> }) {
+  const { area, q } = await searchParams;
   const areas = await listarAreasEstoque();
   const emResumo = area === 'resumo';
   const areaAtual = area && area !== 'trilhos' && !emResumo ? areas.find((a) => a.id === area) : undefined;
@@ -191,7 +191,7 @@ export default async function EstoquePage({ searchParams }: { searchParams: Prom
         </div>
       ) : areaAtual ? (
         <div className="mx-auto mt-6 w-full max-w-7xl">
-          <AreaEstoque areaId={areaAtual.id} nomeArea={areaAtual.nome} />
+          <AreaEstoque areaId={areaAtual.id} nomeArea={areaAtual.nome} busca={q ?? ''} />
         </div>
       ) : (
         <EstoqueTrilhos />

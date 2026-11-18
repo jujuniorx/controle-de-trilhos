@@ -32,10 +32,11 @@ function sinal(m: MovimentoEstoque): string {
 }
 
 /** Uma área do estoque (Almoxarifado, Sala de Metrologia e Materiais, Sala de Óleo): materiais, saldos e movimentos. */
-export async function AreaEstoque({ areaId, nomeArea }: { areaId: string; nomeArea: string }) {
-  const materiais = await listarMateriaisDaArea(areaId);
+export async function AreaEstoque({ areaId, nomeArea, busca = '' }: { areaId: string; nomeArea: string; busca?: string }) {
+  const materiais = await listarMateriaisDaArea(areaId, busca);
   const historicos = await Promise.all(materiais.map((m) => listarMovimentos(m.id, 8)));
   const apagados = await listarMateriaisApagadosDaArea(areaId);
+  const buscando = busca.trim() !== '';
 
   return (
     <section className="space-y-6" aria-labelledby={`area-${areaId}`}>
@@ -49,6 +50,16 @@ export async function AreaEstoque({ areaId, nomeArea }: { areaId: string; nomeAr
           </p>
         </div>
       </div>
+
+      <form method="get" role="search" aria-label={`Buscar em ${nomeArea}`} className="flex flex-wrap items-end gap-2">
+        <input type="hidden" name="area" value={areaId} />
+        <div className="field min-w-0 flex-1">
+          <label htmlFor={`busca-${areaId}`}>Buscar material</label>
+          <input id={`busca-${areaId}`} name="q" type="search" defaultValue={busca} placeholder="Nome ou fabricante, ex.: lixa" className="h-11" autoComplete="off" />
+        </div>
+        <button type="submit" className="btn btn-primary h-11">Buscar</button>
+        {buscando && <a href={`/admin/estoque?area=${areaId}`} className="btn btn-ghost h-11">Limpar</a>}
+      </form>
 
       <details className="card">
         <summary className="cursor-pointer font-semibold">Cadastrar material nesta área</summary>
@@ -84,7 +95,11 @@ export async function AreaEstoque({ areaId, nomeArea }: { areaId: string; nomeAr
       </details>
 
       {materiais.length === 0 ? (
-        <EstadoVazio titulo="Nenhum material nesta área" texto="Use Cadastrar material nesta área para começar." />
+        buscando ? (
+          <EstadoVazio titulo="Nenhum material encontrado" texto={`Nada nesta área combina com "${busca.trim()}".`} />
+        ) : (
+          <EstadoVazio titulo="Nenhum material nesta área" texto="Use Cadastrar material nesta área para começar." />
+        )
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {materiais.map((m, i) => (
