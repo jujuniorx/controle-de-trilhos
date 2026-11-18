@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { fmtMetros } from '@/lib/format';
+import { IconeEditar, IconeLixeira, IconeFechar } from '@/components/icones/Icones';
 
 interface LinhaMedicaoProps {
   movimentacaoId: string;
@@ -54,34 +55,59 @@ export function LinhaMedicao({ movimentacaoId, medicaoId, numero, quantidade, co
 
   return (
     <div className="space-y-2">
-      <div className="medicao-row">
-        <span>
-          <span className="medicao-num">{numero}.</span>{' '}
-          {quantidade > 1 ? `${quantidade} × ${fmtMetros(comprimento)} m` : `${fmtMetros(comprimento)} m`}
-        </span>
-        <span className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-3 rounded-lg px-1 py-1.5">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="grid h-6 min-w-6 place-items-center rounded-full bg-line px-1.5 text-xs font-semibold tabular-nums text-ink-muted">{numero}</span>
+          <span className="truncate font-medium tabular-nums text-ink">
+            {quantidade > 1 ? `${quantidade} × ${fmtMetros(comprimento)} m` : `${fmtMetros(comprimento)} m`}
+          </span>
           {(quantidade > 1 || classificacaoSC) && (
-            <span className="medicao-val">
-              {quantidade > 1 ? `${fmtMetros(metros)} m` : ''}{classificacaoSC ? ` ${classificacaoSC}` : ''}
+            <span className="text-sm tabular-nums text-ink-muted">
+              {quantidade > 1 ? `= ${fmtMetros(metros)} m` : ''}
+              {classificacaoSC ? <span className="ml-2 rounded-md border border-line px-1.5 py-0.5 text-xs font-semibold text-ink">{classificacaoSC}</span> : null}
             </span>
           )}
-          <button type="button" className="text-sm font-semibold text-accent underline" onClick={() => setEditando((v) => !v)} disabled={ocupado}>
-            {editando ? 'Fechar' : 'Corrigir'}
+        </div>
+
+        <div className="flex shrink-0 items-center gap-1.5">
+          <button
+            type="button"
+            className="btn btn-ghost grid h-9 w-9 place-items-center p-0"
+            onClick={() => setEditando((v) => !v)}
+            disabled={ocupado}
+            aria-label={editando ? 'Fechar correção' : 'Corrigir medição'}
+            title={editando ? 'Fechar' : 'Corrigir'}
+            aria-expanded={editando}
+          >
+            {editando ? <IconeFechar size={16} /> : <IconeEditar size={16} />}
           </button>
+
           {confirmarApagar ? (
-            <button type="button" className="text-sm font-semibold text-bad underline" onClick={apagar} disabled={ocupado}>
-              Toque de novo para apagar
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button type="button" className="btn btn-danger h-9 px-3 text-xs" onClick={apagar} disabled={ocupado}>
+                {ocupado ? 'Apagando…' : 'Confirmar'}
+              </button>
+              <button type="button" className="btn btn-ghost h-9 px-3 text-xs" onClick={() => setConfirmarApagar(false)} disabled={ocupado}>
+                Cancelar
+              </button>
+            </div>
           ) : (
-            <button type="button" className="text-sm text-bad underline" onClick={() => setConfirmarApagar(true)} disabled={ocupado}>
-              Apagar
+            <button
+              type="button"
+              className="btn btn-ghost grid h-9 w-9 place-items-center p-0 text-bad"
+              onClick={() => setConfirmarApagar(true)}
+              disabled={ocupado}
+              aria-label="Apagar medição"
+              title="Apagar"
+            >
+              <IconeLixeira size={16} />
             </button>
           )}
-        </span>
+        </div>
       </div>
 
       {editando && (
-        <div className="grid gap-3 rounded-lg border border-line p-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <div className="grid gap-3 rounded-xl border border-line bg-surface p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
           <div className="field">
             <label htmlFor={`q-${medicaoId}`}>Quantidade de barras</label>
             <input id={`q-${medicaoId}`} inputMode="numeric" value={qtd} onChange={(e) => setQtd(e.target.value)} className="h-11" />
@@ -93,10 +119,11 @@ export function LinhaMedicao({ movimentacaoId, medicaoId, numero, quantidade, co
           <button type="button" className="btn btn-primary h-11" onClick={salvar} disabled={ocupado}>
             {ocupado ? 'Salvando…' : 'Salvar correção'}
           </button>
-          {erro && <p role="alert" className="text-sm text-bad sm:col-span-3">{erro}</p>}
+          <p className="text-xs text-ink-muted sm:col-span-3">A alteração fica registrada no histórico do recebimento, com o valor antigo e o novo.</p>
+          {erro && <p role="alert" className="text-sm font-medium text-bad sm:col-span-3">{erro}</p>}
         </div>
       )}
-      {!editando && erro && <p role="alert" className="text-sm text-bad">{erro}</p>}
+      {!editando && erro && <p role="alert" className="text-sm font-medium text-bad">{erro}</p>}
     </div>
   );
 }

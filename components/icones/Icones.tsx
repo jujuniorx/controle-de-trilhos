@@ -113,3 +113,14 @@ export function IconeSeta(props: Props) {
     </Base>
   );
 }
+
+export function IconeLixeira(props: Props) {
+  return (
+    <Base {...props}>
+      <path d="M3 6h18" />
+      <path d="M8 6V4h8v2" />
+      <path d="M6 6l1 14h10l1-14" />
+      <path d="M10 11v6M14 11v6" />
+    </Base>
+  );
+}
