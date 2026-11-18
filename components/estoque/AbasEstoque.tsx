@@ -17,7 +17,7 @@ export function AbasEstoque({ abas, ativa }: { abas: AbaEstoque[]; ativa: string
       {abas.map((a) => (
         <Link key={a.id} href={`/admin/estoque?area=${a.id}`} className="setores-item" aria-current={a.id === ativa ? 'page' : undefined}>
           <span className="setores-longo">{a.rotulo}</span>
-          <span className="setores-curto" aria-hidden="true">{a.curto}</span>
+          <span className="setores-curto" aria-hidden="true" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%', display: 'block' }}>{a.curto}</span>
         </Link>
       ))}
     </nav>

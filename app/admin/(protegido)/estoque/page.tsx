@@ -162,8 +162,8 @@ async function EstoqueTrilhos() {
 
 /** Nome curto de cada área, para caber no celular. */
 const CURTO_AREA: Record<string, string> = {
-  'area-almoxarifado': 'Almoxarifado',
-  'area-metrologia': 'Metrologia',
+  'area-almoxarifado': 'Almox.',
+  'area-metrologia': 'Metrol.',
   'area-oleo': 'Óleo',
 };
 
