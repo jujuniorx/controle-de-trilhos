@@ -154,8 +154,9 @@ export default async function PatioHomePage() {
               placaCavalo={c.placaCavalo}
               origem={c.origem ? normalizarLocal(c.origem) : null}
               destino={c.destino ? normalizarLocal(c.destino) : null}
-              detalhe={[c.transportadora, c.reservaPedido && `Reserva ${c.reservaPedido}`].filter(Boolean).join(' · ')}
+              detalhe={c.reservaPedido ? `Reserva ${c.reservaPedido}` : ''}
               observacao={c.observacaoPortaria}
+              dados={dadosCaminhao(c)}
               chegouAs={hora(c.chegadaPortariaEm)}
               faltaConfirmar={c.status === 'AGUARDANDO_CHEGADA'}
             />

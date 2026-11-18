@@ -16,13 +16,15 @@ export interface CarretaNaPortariaProps {
   destino: string | null;
   detalhe: string;
   observacao: string | null;
+  /** Dados que a Portaria registrou (motorista, placas, limite, comprimento), já prontos para mostrar. */
+  dados: { rotulo: string; valor: string }[];
   chegouAs: string;
   /** Ainda falta o Pátio confirmar o carregamento (o remetido segue "aguardando chegada"). */
   faltaConfirmar: boolean;
 }
 
 /** Carreta que a Portaria registrou: o Pátio confirma o carregamento e libera para sair. */
-export function CarretaNaPortaria({ id, ordemDia, placaCarreta, placaCavalo, origem, destino, detalhe, observacao, chegouAs, faltaConfirmar }: CarretaNaPortariaProps) {
+export function CarretaNaPortaria({ id, ordemDia, placaCarreta, placaCavalo, origem, destino, detalhe, observacao, dados, chegouAs, faltaConfirmar }: CarretaNaPortariaProps) {
   const router = useRouter();
   const [pendente, iniciar] = useTransition();
   const [erro, setErro] = useState('');
@@ -47,6 +49,16 @@ export function CarretaNaPortaria({ id, ordemDia, placaCarreta, placaCavalo, ori
         </div>
         <span className="badge badge-warn shrink-0">Chegou às {chegouAs}</span>
       </div>
+      {dados.length > 0 && (
+        <dl className="grid gap-1 rounded-lg bg-surface-2 px-3 py-2 text-sm">
+          {dados.map((d) => (
+            <div key={d.rotulo} className="flex flex-wrap gap-x-2">
+              <dt className="font-semibold text-ink">{d.rotulo}:</dt>
+              <dd className="text-ink-muted">{d.valor}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
       {observacao && <p className="text-sm text-warn">Portaria: {observacao}</p>}
       <div className="flex flex-wrap gap-2">
         {faltaConfirmar && (
