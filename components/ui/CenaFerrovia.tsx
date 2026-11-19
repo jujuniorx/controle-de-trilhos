@@ -1490,9 +1490,10 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     const AM: RGB = [236, 186, 36], AM_S: RGB = [176, 132, 18], AM_L: RGB = [252, 214, 90];
     const portais = [xR - 0.85 * M, xR + 0.78 * M];
     const x01 = xR - 2.15 * M, w01 = 0.8 * M; // rolo opressor "01", antes da régua: é ele que dá tração ao trilho
-    // Rolo opressor: só tem o rolo de baixo (motriz). Quando o soldador empurra o joystick, os cilindros descem a
-    // sapata contra o boleto (sopro de ar na válvula), o motor gira o rolo de baixo e o trilho anda; soltou, o motor
-    // para e os cilindros sobem com outro sopro.
+    // Rolo opressor: só tem o rolo de baixo (motriz). Os cilindros ficam em cima e seguram, por duas chapas amarelas
+    // que descem pelos lados do trilho, o eixo do rolo. Quando o soldador empurra o joystick, os cilindros recolhem
+    // (sopro de ar na válvula), as chapas sobem e o rolo encosta firme embaixo do patim; o motor gira e o trilho anda.
+    // Soltou, o motor para, os cilindros estendem com outro sopro e o rolo desce, deixando o trilho só apoiado.
     const apertoEm = (a: number, b: number) => suave(a - 0.4, a - 0.1, fase) * (1 - suave(b + 0.05, b + 0.35, fase));
     const aperto = parado ? 0 : Math.max(1 - suave(CHEGA + 0.05, CHEGA + 0.35, t), apertoEm(F.moveA0, F.moveA1), apertoEm(F.moveB0, F.moveB1));
     if (!parado && (aperto > 0.5) !== roloApertado) {
@@ -1500,6 +1501,8 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       for (let i = 0; i < 7; i++) sopros.push({ x: x01 + w01 * (0.25 + Math.random() * 0.5), y: topo - 0.72 * M, vx: (Math.random() - 0.5) * 0.6 * M, vy: -(0.1 + Math.random() * 0.3) * M, r: 0.03 * M, v: 1 });
     }
     const xRolo = x01 + w01 / 2, rRolo = 0.12 * M, girou = u / rRolo;
+    const subida = 0.05 * M * aperto;
+    const yRb = topo + R + rRolo + 0.05 * M - subida; // centro do rolo: 5 cm abaixo do patim solto, encostado apertando
     {
       // tela de arame de proteção ao fundo
       const tL = xR - 1.5 * M, tR = xR + 1.45 * M, tT = piso - 1.7 * M;
@@ -1531,7 +1534,6 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.fillText('01', x01 + w01 * 0.5, (topo + R + piso) / 2);
         ctx.textAlign = 'left';
         // rolo de baixo (motriz), logo embaixo do patim, girando com o trilho
-        const yRb = topo + R + rRolo * 0.92;
         ctx.fillStyle = 'rgb(56,58,64)';
         ctx.beginPath(); ctx.arc(xRolo, yRb, rRolo, 0, 6.283); ctx.fill();
         ctx.strokeStyle = 'rgb(150,154,162)'; ctx.lineWidth = Math.max(1, 0.018 * M);
@@ -1763,21 +1765,27 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.fillRect(x01 - 0.02 * M, yb, 0.08 * M, topo - yb);
         ctx.fillStyle = amarelo(AM);
         ctx.fillRect(x01 - 0.05 * M, yb - 0.1 * M, w01 + 0.1 * M, 0.12 * M);
-        // sapata de pressão (sem rolo em cima): encosta no boleto quando aperta, 8 cm acima quando solta. Ela segura
-        // o trilho contra o rolo de baixo, que é o que dá a tração.
-        const ySap = topo - R * 0.06 - 0.05 * M - 0.08 * M * (1 - aperto);
+        // cilindros recolhendo puxam a travessa e as chapas laterais, que levantam o eixo do rolo de baixo
+        const yTrav = topo - 0.28 * M - subida;
         for (const cx of [x01 + w01 * 0.18, x01 + w01 * 0.82]) {
           const gc = ctx.createLinearGradient(cx - 0.06 * M, 0, cx + 0.06 * M, 0);
           gc.addColorStop(0, 'rgb(150,154,160)'); gc.addColorStop(0.45, 'rgb(232,234,238)'); gc.addColorStop(1, 'rgb(120,124,130)');
           ctx.fillStyle = gc;
-          ctx.fillRect(cx - 0.06 * M, yb + 0.02 * M, 0.12 * M, 0.26 * M);
-          ctx.fillStyle = 'rgb(196,200,206)'; // haste, que estica quando o cilindro desce
-          ctx.fillRect(cx - 0.018 * M, yb + 0.28 * M, 0.036 * M, Math.max(0, ySap - yb - 0.28 * M));
+          ctx.fillRect(cx - 0.06 * M, yb + 0.02 * M, 0.12 * M, 0.2 * M);
+          ctx.fillStyle = 'rgb(196,200,206)'; // haste: encurta quando o cilindro recolhe
+          ctx.fillRect(cx - 0.018 * M, yb + 0.22 * M, 0.036 * M, Math.max(0, yTrav - yb - 0.22 * M));
         }
         ctx.fillStyle = amarelo(AM);
-        ctx.fillRect(x01 + w01 * 0.1, ySap - 0.02 * M, w01 * 0.8, 0.05 * M);
-        ctx.fillStyle = 'rgb(44,46,52)'; // face de borracha que encosta no boleto
-        ctx.fillRect(x01 + w01 * 0.14, ySap + 0.03 * M, w01 * 0.72, 0.02 * M);
+        ctx.fillRect(x01 + w01 * 0.1, yTrav - 0.03 * M, w01 * 0.8, 0.06 * M);
+        // chapa lateral (a do lado de cá do trilho), da travessa até o eixo do rolo, com o parafuso do eixo
+        const gch = ctx.createLinearGradient(xRolo - 0.06 * M, 0, xRolo + 0.06 * M, 0);
+        gch.addColorStop(0, amarelo(AM_L)); gch.addColorStop(1, amarelo(AM_S));
+        ctx.fillStyle = gch;
+        ctx.beginPath(); ctx.roundRect(xRolo - 0.06 * M, yTrav, 0.12 * M, yRb - yTrav + 0.06 * M, 0.03 * M); ctx.fill();
+        ctx.fillStyle = 'rgb(60,62,68)';
+        ctx.beginPath(); ctx.arc(xRolo, yRb, 0.028 * M, 0, 6.283); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,.45)';
+        ctx.beginPath(); ctx.arc(xRolo - 0.008 * M, yRb - 0.008 * M, 0.009 * M, 0, 6.283); ctx.fill();
         // válvula com o sopro de ar quando os cilindros mexem
         ctx.fillStyle = 'rgb(60,64,72)';
         ctx.fillRect(x01 + w01 * 0.45, yb - 0.16 * M, 0.1 * M, 0.07 * M);
