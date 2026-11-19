@@ -1021,8 +1021,8 @@ html[data-tema="pastel"]:root {
 .linha-tour-topo.linha-tour-on { opacity: 1; transform: none; }
 .linha-tour-on .linha-tour-mapa { pointer-events: auto; }
 .linha-tour-mapa { position: relative; display: flex; justify-content: space-between; gap: 8px; padding: 10px 14px; border-radius: 14px; background: var(--v-card, rgba(10, 20, 34, .72)); border: 1px solid var(--v-card-line, rgba(255, 255, 255, .14)); box-shadow: var(--v-shadow, 0 6px 20px rgba(0, 0, 0, .2)); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
-.linha-tour-mapa-trilho { position: absolute; left: 30px; right: 30px; top: 19px; height: 2px; background: var(--line, rgba(255, 255, 255, .2)); }
-.linha-tour-ponto { position: relative; flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0; border: 0; background: none; color: var(--ink-muted, #9fb2c8); font: inherit; cursor: pointer; min-height: 44px; }
+.linha-tour-mapa-trilho { position: absolute; left: 24px; right: 24px; top: 50%; height: 2px; margin-top: -1px; background: var(--line, rgba(255, 255, 255, .2)); }
+.linha-tour-ponto { position: relative; flex: 1 1 0; min-width: 0; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; background: none; font: inherit; cursor: pointer; min-height: 32px; }
 .linha-tour-bolinha { width: 12px; height: 12px; border-radius: 50%; background: var(--surface, #0b1118); border: 2px solid var(--line-2, rgba(255, 255, 255, .35)); transition: background .25s ease, border-color .25s ease, transform .25s ease; }
 .linha-tour-ponto-feito .linha-tour-bolinha { background: var(--line-2, rgba(255, 255, 255, .35)); }
 .linha-tour-ponto-atual .linha-tour-bolinha { background: #f0b429; border-color: #f0b429; transform: scale(1.25); }

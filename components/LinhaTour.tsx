@@ -24,7 +24,7 @@ export function LinhaTour() {
       const p = Math.min(1, Math.max(0, -r.top / total));
       setAtivo(r.top < window.innerHeight * 0.35 && r.bottom > window.innerHeight * 0.65);
       let i = 0;
-      ESTACOES_LINHA.forEach((e, k) => { if (p >= e.p - 0.16) i = k; });
+      ESTACOES_LINHA.forEach((e, k) => { if (p >= e.p - 0.05) i = k; });
       setAtual(i);
     };
     const agendar = () => { if (!pedido) pedido = requestAnimationFrame(medir); };
@@ -61,9 +61,10 @@ export function LinhaTour() {
                 className={`linha-tour-ponto ${k === atual ? 'linha-tour-ponto-atual' : ''} ${k < atual ? 'linha-tour-ponto-feito' : ''}`}
                 onClick={() => irPara(est.p)}
                 aria-current={k === atual ? 'step' : undefined}
+                aria-label={est.nome}
+                title={est.nome}
               >
                 <span className="linha-tour-bolinha" aria-hidden="true" />
-                <span className="linha-tour-ponto-nome">{est.nome}</span>
               </button>
             ))}
           </nav>
