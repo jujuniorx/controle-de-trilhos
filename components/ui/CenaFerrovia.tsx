@@ -2148,14 +2148,15 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       for (let k = 1; k < 9; k++) { const f = k / 9; const sx = mix(e0, e1, f), sy = mix(yDeck, piso - 0.5 * M, f); ctx.moveTo(sx - 0.1 * M, sy); ctx.lineTo(sx + 0.1 * M, sy); }
       ctx.stroke();
     }
-    // boleteira 2: o operador fica do outro lado da linha, de frente para quem vê a tela, segurando a alça da máquina
+    // boleteira 2: o operador fica do outro lado da linha, atrás da máquina e de frente para quem vê a tela, com as
+    // duas mãos na barra de cima
     if (vis(xBol2 - M, xBol2 + 2 * M)) {
       const quente2 = trabalha(2.0, 9.0);
-      const yBarra2 = topo - 0.52 * M;
+      const yBarra2 = topo - 0.36 * M;
       operarioAtras({
-        sx: xBol2 + 0.75 * M, piso, Hs: 1.72 * M, t, mq, parado, anda: quente2 ? 0.5 : 0, passo: t * 3.2,
-        maoE: [xBol2 + 0.25 * M, yBarra2], alcE: 1, maoD: [xBol2 + 0.5 * M, yBarra2], alcD: 1, dPeito: 0,
-        curva: 0.1, agacha: 0.05, inclina: -0.2, capacete: [196, 44, 38], fase: 2.4, quente: true,
+        sx: xBol2 + 0.02 * M, piso, Hs: 1.72 * M, t, mq, parado, anda: quente2 ? 0.6 : 0, passo: (xBol2 - xB2) / (0.12 * M),
+        maoE: [xBol2 - 0.32 * M, yBarra2], alcE: 1, maoD: [xBol2 + 0.32 * M, yBarra2], alcD: 1, dPeito: 0,
+        curva: 0.1, agacha: 0.05, inclina: 0, capacete: [196, 44, 38], fase: 2.4, quente: true,
       });
     }
     // três rolos opressores no fim da linha (bloco e rolo atrás do trilho)
@@ -2629,7 +2630,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       // tubo azul, pendurado pela mola balanceadora no carrinho do balancim (que anda junto). Não tem motor de avanço:
       // o operador empurra e puxa pela barra cromada de cima enquanto o rebolo, embaixo da capa azul, lixa o boleto. O
       // volante preto regula o rebolo; a caixinha cinza tem os botões e a parada de emergência.
-      const yBarraBol = topo - 0.52 * M; // a barra de cima do quadro azul, por onde o operador empurra
+      const yBarraBol = topo - 0.36 * M; // a barra de cima do quadro azul, por onde o operador empurra
       const boleteira = (mx: number, lixa: boolean, lado: 1 | -1) => {
         if (!vis(mx - 1.5 * M, mx + 1.5 * M)) return;
         // carrinho no balancim e a mola balanceadora azul (o tambor com o cabo), pendurada
@@ -2651,7 +2652,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.strokeStyle = amarelo(AM); ctx.lineWidth = Math.max(1, 0.02 * M); ctx.beginPath(); ctx.arc(mx, yArg + 0.03 * M, 0.03 * M, 0, 6.283); ctx.stroke();
         // cabo de força preto fazendo laço
         ctx.strokeStyle = 'rgb(22,22,26)'; ctx.lineWidth = Math.max(1.5, 0.025 * M);
-        ctx.beginPath(); ctx.moveTo(mx + 0.15 * M, yBal + 0.1 * M); ctx.bezierCurveTo(mx + 0.9 * M, yBal + 1.2 * M, mx - lado * 1.4 * M, topo - 0.9 * M, mx - lado * 0.74 * M + (lado === 1 ? 0 : 0.0), topo - 0.44 * M); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(mx + 0.15 * M, yBal + 0.1 * M); ctx.bezierCurveTo(mx + 0.9 * M, yBal + 1.2 * M, mx + (lado === 1 ? 1 : -1) * 1.4 * M, topo - 0.9 * M, mx + (lado === 1 ? 1 : -1) * 0.74 * M, topo - 0.44 * M); ctx.stroke();
         // corpo fundido amarelo (MP12): comprido sobre o trilho, com as nervuras em X, as alças curvas nas pontas e as
         // duas rodas grandes embaixo
         const yC0 = topo - 0.3 * M, yC1 = topo - 0.1 * M;
@@ -2712,8 +2713,10 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.beginPath(); ctx.moveTo(mx - 0.62 * M, yBarraBol); ctx.lineTo(mx + 0.62 * M, yBarraBol); ctx.stroke();
         ctx.lineCap = 'butt';
         // caixinha de comando cinza na ponta do quadro: botões e a parada de emergência vermelha
-        // fica para fora do quadro, mais baixa, na ponta do lado do operador; a tomada em cima, de onde desce o cabo
-        const cbx = lado === 1 ? mx - 0.85 * M : mx + 0.63 * M, cby = topo - 0.34 * M;
+        // fica para fora do quadro, mais baixa, numa das pontas (a que o operador não tampa); a tomada em cima, de onde
+        // desce o cabo
+        const ladoCx = lado === 1 ? 1 : -1;
+        const cbx = ladoCx === 1 ? mx + 0.63 * M : mx - 0.85 * M, cby = topo - 0.34 * M;
         ctx.fillStyle = cor(mq([150, 154, 160])); ctx.fillRect(cbx + 0.03 * M, cby - 0.1 * M, 0.08 * M, 0.1 * M);
         ctx.fillStyle = cor(mq([184, 188, 194])); ctx.fillRect(cbx, cby, 0.22 * M, 0.38 * M);
         ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.fillRect(cbx + 0.2 * M, cby, 0.02 * M, 0.38 * M);
@@ -2721,17 +2724,18 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.fillStyle = 'rgb(236,196,40)'; ctx.beginPath(); ctx.arc(cbx + 0.11 * M, cby + 0.31 * M, 0.05 * M, 0, 6.283); ctx.fill();
         ctx.fillStyle = 'rgb(220,40,36)'; ctx.beginPath(); ctx.arc(cbx + 0.11 * M, cby + 0.31 * M, 0.035 * M, 0, 6.283); ctx.fill();
         ctx.strokeStyle = cor(mq([40, 80, 160])); ctx.lineWidth = Math.max(1.5, 0.03 * M);
-        ctx.beginPath(); ctx.moveTo(lado === 1 ? cbx + 0.22 * M : cbx, cby + 0.15 * M); ctx.lineTo(mx - lado * 0.6 * M, cby + 0.15 * M); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(ladoCx === 1 ? cbx : cbx + 0.22 * M, cby + 0.15 * M); ctx.lineTo(mx + ladoCx * 0.6 * M, cby + 0.15 * M); ctx.stroke();
       };
-      // boleteira 1: operador do lado de cá, empurrando e puxando pela alça
+      // boleteira 1: o operador fica na frente da máquina (de costas para quem vê), com as duas mãos na barra de cima,
+      // e anda de lado junto com ela enquanto empurra e puxa
       {
         const lixa1 = trabalha(0.8, 7.8);
         boleteira(xBol1, lixa1, 1);
-        if (vis(xBol1 - 2.4 * M, xBol1 + M)) {
+        if (vis(xBol1 - M, xBol1 + M)) {
           desenharOperario(ctx, {
-            sx: xBol1 - 1.35 * M, piso, Hs: Hp, t, mq, parado, anda: lixa1 ? 0.5 : 0, passo: t * 3.2,
-            maoE: [xBol1 - 0.62 * M, yBarraBol], alcE: 1, maoD: [xBol1 - 0.45 * M, yBarraBol], alcD: 1, dPeito: 0,
-            curva: 0.15, agacha: 0.05, inclina: 0.2, capacete: [150, 156, 162], fase: 2.1, quente: true,
+            sx: xBol1 - 0.02 * M, piso, Hs: Hp, t, mq, parado, anda: lixa1 ? 0.6 : 0, passo: (xBol1 - xB1) / (0.12 * M),
+            maoE: [xBol1 - 0.3 * M, yBarraBol], alcE: 1, maoD: [xBol1 + 0.3 * M, yBarraBol], alcD: 1, dPeito: 0,
+            curva: 0.06, agacha: 0, inclina: 0, capacete: [150, 156, 162], fase: 2.1, quente: true,
           });
         }
       }
