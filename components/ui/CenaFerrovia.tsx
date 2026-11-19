@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { ESTACOES_LINHA } from '@/lib/linhaProducao';
 
 /**
  * Cena da ferrovia em canvas, usada no fundo das telas.
@@ -1189,6 +1190,15 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
   const cascas: { x: number; y: number; vx: number; vy: number; r: number; v: number; giro: number; quente: number; chao?: number }[] = [];
   let soldouLogo = false;
   let camera: { Z: number; ax: number; ay: number; fx: number; fy: number } | null = null;
+  // seção do passeio: progresso da rolagem (0 a 1) e a altura da parte de cima da tela inicial
+  const passeio = (): { p: number; alturaTopo: number } | null => {
+    const el = document.querySelector<HTMLElement>('.linha-tour');
+    const topo = cv.closest('main');
+    if (!el || !topo || el.offsetParent === null) return null;
+    const r = el.getBoundingClientRect();
+    const total = Math.max(1, r.height - window.innerHeight);
+    return { p: Math.min(1, Math.max(0, -r.top / total)), alturaTopo: topo.offsetHeight };
+  };
   let roloApertado = false;
   const sopros: { x: number; y: number; vx: number; vy: number; r: number; v: number }[] = [];
 
@@ -1233,6 +1243,13 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
 
   const controle = laco(cv, 2, () => { pal = paletaAbertura(caixa); padrao = null; }, (ctx, W, H, tReal, dt) => {
     const t = tReal + pulo;
+    // Passeio pela linha (tela inicial): o canvas fica fixo atrás da página. Enquanto a parte de cima rola, a cena
+    // rola junto (offY), com a altura do "mundo" igual à da parte de cima; quando a seção .linha-tour entra, a câmera
+    // anda de lado de estação em estação (camX), conforme a rolagem dela.
+    const Htela = H;
+    const tour = passeio();
+    if (tour) H = Math.max(Htela, tour.alturaTopo);
+    const offY = tour ? Math.min(Math.max(0, window.scrollY), Math.max(0, H - Htela)) : 0;
     ultimoTCena = tReal;
     if (cinema) {
       const novo = t >= CENA.fim ? 'fim' : t >= CENA.recua0 ? 'recua' : t >= CENA.solda ? 'solda' : '';
@@ -1339,7 +1356,22 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       ctx.save();
       ctx.translate(ax, ay); ctx.scale(Z, Z); ctx.translate(-fx, -fy);
       camera = { Z, ax, ay, fx, fy };
-    } else camera = null;
+    } else {
+      camera = null;
+      ctx.save();
+      ctx.translate(0, -offY);
+    }
+    // câmera do passeio: centraliza a estação da vez (entre uma e outra, desliza suave)
+    let camX = 0;
+    if (tour && !parado) {
+      const foco = (id: string) => (id === 'schlatter' ? xm : id === 'regua' ? xR : xR - 1.75 * M) - W * 0.5;
+      const marcos: [number, number][] = [[0, 0], ...ESTACOES_LINHA.map((e): [number, number] => [e.p, foco(e.id)]), [1, foco(ESTACOES_LINHA[ESTACOES_LINHA.length - 1].id)]];
+      for (let i = 0; i < marcos.length - 1; i++) {
+        const [p0, c0] = marcos[i], [p1, c1] = marcos[i + 1];
+        if (tour.p >= p0 && tour.p <= p1) { camX = mix(c0, c1, suave(p0, p1, tour.p)); break; }
+      }
+    }
+    const vx0 = camX, vx1 = camX + W;
 
     // ---------- galpão ao fundo ----------
     const fundo = ctx.createLinearGradient(0, 0, 0, H);
@@ -1350,7 +1382,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     ctx.fillRect(0, 0, W, H);
 
     // colunas e tesouras do telhado (andam devagar, parallax)
-    const par = (u * 0.12) % (W / 5);
+    const par = (((u * 0.12 + camX * 0.35) % (W / 5)) + W / 5) % (W / 5);
     const corColuna = escuro ? misturar(pal.neblina, pal.ceuTopo, 0.3) : misturar(pal.poste, pal.ceuHorizonte, 0.55);
     for (let x = -par - W / 5; x < W + W / 5; x += W / 5) {
       const perto = Math.min(1, Math.abs(x - xc) / (W * 0.36)); // mais apagado atrás dos cartões
@@ -1368,7 +1400,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     // luminárias do galpão: acendem uma a uma na abertura, com fachos de luz
     const nLamp = W < 640 ? 4 : 6;
     for (let i = 0; i < nLamp; i++) {
-      const lx = (W / nLamp) * (i + 0.5);
+      const lx = ((((W / nLamp) * (i + 0.5) - camX * 0.35) % W) + W) % W;
       const ly = H * 0.085;
       const liga = parado ? 1 : suave(0.15 + i * 0.12, 0.35 + i * 0.12, t * (completa ? 1 : 3));
       const tremula = 0.94 + 0.06 * Math.sin(t * 7 + i * 2.1);
@@ -1419,17 +1451,20 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(fx, fy, R * 1.6, 0, 6.283); ctx.fill();
     }
 
+    // daqui em diante, tudo é do mundo: anda de lado com a câmera do passeio
+    ctx.save();
+    ctx.translate(-camX, 0);
     // piso do estaleiro
     const chao = ctx.createLinearGradient(0, piso, 0, H);
     chao.addColorStop(0, cor(misturar(pal.brita, pal.ceuTopo, 0.25)));
     chao.addColorStop(1, cor(pal.ceuTopo));
     ctx.fillStyle = chao;
-    ctx.fillRect(0, piso, W, H - piso);
+    ctx.fillRect(vx0, piso, W, H - piso);
     ctx.fillStyle = cor(pal.aco, escuro ? 0.06 : 0.25);
-    ctx.fillRect(0, piso, W, 1);
+    ctx.fillRect(vx0, piso, W, 1);
     {
       const escMaq = (c: RGB): RGB => (escuro ? misturar(c, pal.ceuTopo, 0.35) : c);
-      const cL = Math.max(0, xm - 2.2 * M), cR = Math.min(W, xm + 3.0 * M), hc = H - piso;
+      const cL = Math.max(vx0, xm - 2.2 * M), cR = Math.min(vx1, xm + 3.0 * M), hc = H - piso;
       ctx.fillStyle = cor(escMaq([150, 48, 40]));
       ctx.fillRect(cL, piso, cR - cL, hc);
       ctx.strokeStyle = 'rgba(0,0,0,.25)';
@@ -1547,7 +1582,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     const esp = 2.5 * M;
     const yRol = topo + R + rr;
     const fx = rr * 2.4, fy = -rr * 1.2; // o comprimento do rolo indo para trás (vista um pouco de cima)
-    for (let x = (xc % esp) - esp; x < W + esp; x += esp) {
+    for (let x = xc + Math.floor((vx0 - xc) / esp - 1) * esp; x < vx1 + esp; x += esp) {
       if (x > x01 - 0.3 * M && x < x01 + w01 + 0.3 * M) continue;
       const num = 24 - Math.round((x - xc) / esp);
       const amPe = amarelo(AM), amPeS = amarelo(AM_S), amPeL = amarelo(AM_L);
@@ -1610,57 +1645,57 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     // sombra no piso
     const sombra = ctx.createLinearGradient(0, piso, 0, piso + R * 0.5);
     sombra.addColorStop(0, 'rgba(0,0,0,.35)'); sombra.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = sombra; ctx.fillRect(0, piso, W, R * 0.5);
+    ctx.fillStyle = sombra; ctx.fillRect(vx0, piso, W, R * 0.5);
     for (const f of faixas) {
       const y0 = topo + f.y0 * R, y1 = topo + f.y1 * R;
       const g = ctx.createLinearGradient(0, y0, 0, y1);
       g.addColorStop(0, cor(f.topo)); g.addColorStop(1, cor(f.base));
       ctx.fillStyle = g;
-      ctx.fillRect(0, y0, W, y1 - y0 + 0.5);
+      ctx.fillRect(vx0, y0, W, y1 - y0 + 0.5);
     }
     // fios de luz nas arestas (boleto e patim) e a sombra do boleto caindo na alma
     ctx.fillStyle = `rgba(255,255,255,${escuro ? 0.55 : 0.8})`;
-    ctx.fillRect(0, topo - R * 0.06, W, 1.2);
+    ctx.fillRect(vx0, topo - R * 0.06, W, 1.2);
     ctx.fillStyle = `rgba(255,255,255,${escuro ? 0.22 : 0.4})`;
-    ctx.fillRect(0, topo + R * 0.765, W, 1);
+    ctx.fillRect(vx0, topo + R * 0.765, W, 1);
     const somb = ctx.createLinearGradient(0, topo + R * 0.29, 0, topo + R * 0.42);
     somb.addColorStop(0, 'rgba(0,0,0,.35)'); somb.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = somb; ctx.fillRect(0, topo + R * 0.29, W, R * 0.13);
+    ctx.fillStyle = somb; ctx.fillRect(vx0, topo + R * 0.29, W, R * 0.13);
     // textura do aço andando com o trilho
     if (!padrao) padrao = ctx.createPattern(tex, 'repeat');
     if (padrao) {
       ctx.save();
-      ctx.translate(-(u % 256), topo - R * 0.07);
+      ctx.translate(Math.floor(vx0 / 256) * 256 - (u % 256), topo - R * 0.07);
       ctx.fillStyle = padrao;
       ctx.globalAlpha = escuro ? 0.9 : 0.55;
-      ctx.fillRect(0, 0, W + 256, R * 1.07);
+      ctx.fillRect(0, 0, W + 512, R * 1.07);
       ctx.restore();
     }
     // brilho que corre na lateral do boleto
     const pos = ((t * 0.05) % 1.6) - 0.3;
-    const brilho = ctx.createLinearGradient(0, 0, W, 0);
+    const brilho = ctx.createLinearGradient(vx0, 0, vx1, 0);
     brilho.addColorStop(0, 'rgba(255,255,255,0)');
     brilho.addColorStop(Math.min(1, Math.max(0, pos)), 'rgba(255,255,255,0)');
     brilho.addColorStop(Math.min(1, Math.max(0, pos + 0.12)), `rgba(255,255,255,${escuro ? 0.22 : 0.35})`);
     brilho.addColorStop(Math.min(1, Math.max(0, pos + 0.24)), 'rgba(255,255,255,0)');
     brilho.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = brilho;
-    ctx.fillRect(0, topo + R * 0.04, W, R * 0.05);
-    ctx.fillRect(0, topo + R * 0.79, W, R * 0.03);
+    ctx.fillRect(vx0, topo + R * 0.04, W, R * 0.05);
+    ctx.fillRect(vx0, topo + R * 0.79, W, R * 0.03);
 
     // emendas e a marcação de caneta de tinta na alma de cada barra: S-01, S-02... (a S-01 é a que já está
     // passando pela máquina na abertura; as barras de antes ficam sem número)
-    const kMin = Math.floor((u - xm) / L) - 1, kMax = Math.ceil((u + W - xm) / L) + 1;
+    const kMin = Math.floor((u + vx0 - xm) / L) - 1, kMax = Math.ceil((u + vx1 - xm) / L) + 1;
     const hMarca = Math.max(7, R * 0.52);
     for (let k = kMin; k <= kMax; k++) {
       const x = xm + k * L - u;
       const nBarra = k + 2;
       const xg = x + L * 0.42;
-      if (nBarra >= 1 && xg > -100 && xg < W + 100) {
+      if (nBarra >= 1 && xg > vx0 - 100 && xg < vx1 + 100) {
         const marca = marcaCaneta(`S-${String(nBarra).padStart(2, '0')}`, nBarra);
         desenharMarcaCaneta(ctx, marca, xg - (marca.largura * hMarca) / 2, topo + R * 0.55 - hMarca / 2, hMarca, escuro ? 0.62 : 0.9);
       }
-      if (x < -R || x > W + R) continue;
+      if (x < vx0 - R || x > vx1 + R) continue;
       const quando = soldada.get(k);
       const naMaquina = ciclo !== null && ciclo.k === k;
       if (quando === undefined) {
@@ -2157,7 +2192,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       if (portaFecha > 0.98) {
         const vista = new Path2D();
         vista.rect(abX, abY, jn.abW, jn.h);
-        vista.rect(abX + jn.abW, 0, W, H);
+        vista.rect(abX + jn.abW, -H, W * 20, H * 3);
         ctx.clip(vista);
       }
       ctx.lineCap = 'round';
@@ -2336,15 +2371,19 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       const n0 = faiscas.length;
       soldarLogo(cv, faiscas);
       // as faíscas do logo vêm em coordenadas da tela: com a câmera aproximada, leva para as da cena
-      if (camera) for (let i = n0; i < faiscas.length; i++) {
+      for (let i = n0; i < faiscas.length; i++) {
         const f = faiscas[i];
-        f.x = camera.fx + (f.x - camera.ax) / camera.Z; f.y = camera.fy + (f.y - camera.ay) / camera.Z;
-        f.vx /= camera.Z; f.vy /= camera.Z;
+        if (camera) {
+          f.x = camera.fx + (f.x - camera.ax) / camera.Z; f.y = camera.fy + (f.y - camera.ay) / camera.Z;
+          f.vx /= camera.Z; f.vy /= camera.Z;
+        } else { f.x += camX; f.y += offY; }
       }
     }
     if (faiscas.length) desenharFaiscas(ctx, faiscas, dt, H);
 
-    if (camera) ctx.restore();
+    ctx.restore(); // mundo (câmera do passeio)
+    ctx.restore(); // câmera da abertura ou rolagem
+    H = Htela;
     // galpão escuro no começo da abertura: clareia conforme as luzes acendem
     if (cinema) {
       const breu = 0.78 * (1 - suave(0.15, 1.4, t));

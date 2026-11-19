@@ -5,6 +5,8 @@ import { BotaoInstalar } from '@/components/InstalarApp';
 import { FundoTrilhos } from '@/components/ui/FundoTrilhos';
 import { LogoAnimada } from '@/components/ui/LogoAnimada';
 import { AlternarTema } from '@/components/ui/AlternarTema';
+import { LinhaTour } from '@/components/LinhaTour';
+import { IconeSeta } from '@/components/icones/Icones';
 
 const atraso = (n: number) => ({ '--i': n }) as CSSProperties;
 
@@ -48,39 +50,46 @@ function IconeProducao() {
 
 export default function Home() {
   return (
-    <main className="home-entrada">
-      <FundoTrilhos modo="inicio" />
-      <AlternarTema className="home-tema" />
-      <div className="home-conteudo">
-        <LogoAnimada size={84} />
-        <h1 className="home-titulo">Controle de Trilhos</h1>
-        <CordaoTls />
-        <p className="home-frase">Recebimento, remessa e conferência de trilhos.</p>
+    <>
+      <main className="home-entrada">
+        <FundoTrilhos modo="inicio" />
+        <AlternarTema className="home-tema" />
+        <div className="home-conteudo">
+          <LogoAnimada size={84} />
+          <h1 className="home-titulo">Controle de Trilhos</h1>
+          <CordaoTls />
+          <p className="home-frase">Recebimento, remessa e conferência de trilhos.</p>
 
-        <nav className="home-grade" aria-label="Setores">
-          <Link href="/patio/acesso" className="setor-tile" style={atraso(0)} aria-label="Pátio: registrar recebimentos e remetidos">
-            <span className="setor-tile-icone"><IconeCaminhao /></span>
-            <span className="setor-tile-nome">Pátio</span>
-          </Link>
-          <Link href="/portaria/login" className="setor-tile" style={atraso(1)} aria-label="Portaria: dados do motorista e liberar carretas">
-            <span className="setor-tile-icone"><IconePortaria /></span>
-            <span className="setor-tile-nome">Portaria</span>
-          </Link>
-          <Link href="/producao/login" className="setor-tile" style={atraso(3)} aria-label="Produção: registrar as soldas do turno">
-            <span className="setor-tile-icone"><IconeProducao /></span>
-            <span className="setor-tile-nome">Produção</span>
-          </Link>
-          <Link href="/admin/login" className="setor-tile" style={atraso(2)} aria-label="Administrativo: conferir, relatórios e gráficos">
-            <span className="setor-tile-icone"><IconeGrafico /></span>
-            <span className="setor-tile-nome">Administrativo</span>
-          </Link>
-        </nav>
+          <nav className="home-grade" aria-label="Setores">
+            <Link href="/patio/acesso" className="setor-tile" style={atraso(0)} aria-label="Pátio: registrar recebimentos e remetidos">
+              <span className="setor-tile-icone"><IconeCaminhao /></span>
+              <span className="setor-tile-nome">Pátio</span>
+            </Link>
+            <Link href="/portaria/login" className="setor-tile" style={atraso(1)} aria-label="Portaria: dados do motorista e liberar carretas">
+              <span className="setor-tile-icone"><IconePortaria /></span>
+              <span className="setor-tile-nome">Portaria</span>
+            </Link>
+            <Link href="/producao/login" className="setor-tile" style={atraso(3)} aria-label="Produção: registrar as soldas do turno">
+              <span className="setor-tile-icone"><IconeProducao /></span>
+              <span className="setor-tile-nome">Produção</span>
+            </Link>
+            <Link href="/admin/login" className="setor-tile" style={atraso(2)} aria-label="Administrativo: conferir, relatórios e gráficos">
+              <span className="setor-tile-icone"><IconeGrafico /></span>
+              <span className="setor-tile-nome">Administrativo</span>
+            </Link>
+          </nav>
 
-        <BotaoInstalar className="home-instalar" />
-        <Link href="/privacidade" className="home-privacidade">
-          Privacidade e cookies
-        </Link>
-      </div>
-    </main>
+          <BotaoInstalar className="home-instalar" />
+          <Link href="/privacidade" className="home-privacidade">
+            Privacidade e cookies
+          </Link>
+          <a href="#linha" className="home-linha-dica">
+            Conheça a linha de produção
+            <IconeSeta size={18} />
+          </a>
+        </div>
+      </main>
+      <LinhaTour />
+    </>
   );
 }
