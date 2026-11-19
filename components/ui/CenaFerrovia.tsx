@@ -1118,8 +1118,32 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     /* sem armazenamento: abertura curta */
   }
   const parado = reduzirMovimento();
+  // Abertura em plano contínuo: na primeira visita da sessão à tela inicial, o script do <head> marca o <html> com
+  // data-intro. A "câmera" começa perto da Schlatter com o galpão escuro, as luzes acendem, o trilho chega com o
+  // soldador no joystick e a solda acende o logo (data-cena="solda"); depois a câmera se afasta enquanto o logo sobe
+  // para o lugar e o resto da tela entra (data-cena="recua"). Um toque pula para o fim.
+  const raizHtml = document.documentElement;
+  const cinema = completa && !reduzirMovimento() && raizHtml.hasAttribute('data-intro');
   // A primeira emenda chega na Schlatter em CHEGA; o centelhamento passa por SOLDA, junto com a emenda do logo.
-  const CHEGA = 0.55, SOLDA = 1.25;
+  const CHEGA = cinema ? 1.6 : 0.55, SOLDA = CHEGA + 0.7;
+  const CENA = { solda: SOLDA - 1.15, recua0: SOLDA + 1.1, recua1: SOLDA + 2.5, fim: SOLDA + 3.3 };
+  let estagio = '';
+  let pulo = 0;
+  const encerrarIntro = () => { raizHtml.removeAttribute('data-intro'); raizHtml.removeAttribute('data-cena'); };
+  const pular = () => { if (estagio !== 'fim') pulo = Math.max(pulo, CENA.recua1 - ultimoTCena); };
+  let ultimoTCena = 0;
+  if (cinema) {
+    // posição do logo na tela inicial: o logo começa no meio da tela, maior, e sobe até ali
+    const logo = (cv.closest('main') ?? document).querySelector('.logo-animada');
+    if (logo) {
+      const r = logo.getBoundingClientRect();
+      const ty = new DOMMatrix(getComputedStyle(logo).transform === 'none' ? undefined : getComputedStyle(logo).transform).m42;
+      const centro = r.top + r.height / 2 - ty;
+      raizHtml.style.setProperty('--intro-dy', `${Math.round(window.innerHeight * 0.3 - centro)}px`);
+    }
+    window.addEventListener('pointerdown', pular, { once: true });
+    window.addEventListener('keydown', pular, { once: true });
+  }
   // Ciclo de cada emenda (s desde que ela parou dentro da Schlatter), como no estaleiro:
   // o soldador solta o joystick, vai até a portinhola e fecha a grade com a mão direita, volta ao painel e aperta a
   // solda; as garras descem, centelha, recalca, sobem; ele volta, abre a grade, pega a espátula no gancho e raspa a
@@ -1150,6 +1174,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
   // pedaços da borra que a espátula solta e caem pela janelinha
   const cascas: { x: number; y: number; vx: number; vy: number; r: number; v: number; giro: number; quente: number }[] = [];
   let soldouLogo = false;
+  let camera: { Z: number; ax: number; ay: number; fx: number; fy: number } | null = null;
 
   // Emendas: k = 0 é a que chega no meio na abertura. Guarda quando cada uma foi soldada (s).
   const soldada = new Map<number, number>();
@@ -1190,7 +1215,17 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
   };
 
 
-  const controle = laco(cv, 2, () => { pal = paletaAbertura(caixa); padrao = null; }, (ctx, W, H, t, dt) => {
+  const controle = laco(cv, 2, () => { pal = paletaAbertura(caixa); padrao = null; }, (ctx, W, H, tReal, dt) => {
+    const t = tReal + pulo;
+    ultimoTCena = tReal;
+    if (cinema) {
+      const novo = t >= CENA.fim ? 'fim' : t >= CENA.recua0 ? 'recua' : t >= CENA.solda ? 'solda' : '';
+      if (novo !== estagio) {
+        estagio = novo;
+        if (novo === 'fim') encerrarIntro();
+        else if (novo) raizHtml.setAttribute('data-cena', novo);
+      }
+    }
     const escuro = pal.estrelas > 0;
     const xc = W / 2;
     // Escala de verdade: a máquina (2,6 m de altura) ocupa cerca de 30% da altura da tela; o soldador tem 1,75 m.
@@ -1204,9 +1239,10 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     const rr = 0.1 * M; // rolete de 20 cm
 
     // Schlatter à direita no computador (fora dos cartões); no celular, mais para a direita também.
-    const xm = W >= 900 ? W * 0.76 : W * 0.58;
-    // a régua fica um pouco depois da máquina (o trilho anda para a esquerda)
-    const d1 = (W < 600 ? 2.5 : 2.7) * M;
+    const xm = W >= 900 ? W * 0.79 : W * 0.58;
+    // a régua fica logo depois da máquina (o trilho anda para a esquerda); no computador, colada na saída da
+    // Schlatter, para o operário não ficar atrás dos cartões do meio da tela
+    const d1 = (W < 600 ? 2.5 : W >= 900 ? 2.0 : 2.7) * M;
 
     // ---------- movimento do trilho e ciclo da solda ----------
     // O trilho só anda enquanto o soldador segura o joystick do painel: um empurrão leva a emenda soldada até a
@@ -1260,6 +1296,23 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     // garras: 0 em cima, 1 apertando o trilho
     const garra = !ciclo ? 0 : fase < F.garra ? suave(F.garraIni, F.garra, fase) : fase < F.rebarba ? 1 : 1 - suave(F.rebarba, F.sobe, fase);
     ultimoT = t;
+
+    // ---------- câmera da abertura: começa perto da máquina e se afasta até o quadro normal ----------
+    const kCam = cinema ? suave(CENA.recua0, CENA.recua1, t) : 1;
+    if (kCam < 1) {
+      const Z = mix(W < 600 ? 1.75 : 1.9, 1, kCam);
+      const fx = xm, fy = piso - 1.2 * M;
+      // no celular a página é mais alta que a tela: mira a parte do canvas que está visível
+      const Hv = Math.max(H * 0.3, Math.min(H, window.innerHeight - cv.getBoundingClientRect().top));
+      const axZ = Math.min(Math.max(W * 0.5, W - Z * (W - fx)), Z * fx);
+      const ayZ = Math.max(Hv * 0.74, Hv - Z * (H - fy));
+      const ax = mix(axZ, fx, kCam), ay = mix(ayZ, fy, kCam);
+      ctx.fillStyle = cor(pal.ceuTopo);
+      ctx.fillRect(0, 0, W, H);
+      ctx.save();
+      ctx.translate(ax, ay); ctx.scale(Z, Z); ctx.translate(-fx, -fy);
+      camera = { Z, ax, ay, fx, fy };
+    } else camera = null;
 
     // ---------- galpão ao fundo ----------
     const fundo = ctx.createLinearGradient(0, 0, 0, H);
@@ -1603,7 +1656,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
 
       // posições do ciclo: grade da portinhola (0 aberta, 1 fechada). A porta grande fica fechada: o soldador
       // trabalha pela portinhola.
-      const gradeDesce = parado ? 0 : suave(F.gradeFecha0, F.gradeFecha1, fase) - suave(F.gradeAbre0, F.gradeAbre1, fase);
+      const gradeDesce = parado ? 0 : t < CHEGA ? 1 : suave(F.gradeFecha0, F.gradeFecha1, fase) - suave(F.gradeAbre0, F.gradeAbre1, fase);
       const portaFecha = 1;
       const soldando = !parado && fase >= F.botao1 && fase < F.sobe;
 
@@ -1920,8 +1973,25 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     }
 
     // solda do logo (junto com a primeira emenda do trilho)
-    if (!parado && !soldouLogo && t >= SOLDA) { soldouLogo = true; soldarLogo(cv, faiscas); }
+    if (!parado && !soldouLogo && t >= SOLDA) {
+      soldouLogo = true;
+      const n0 = faiscas.length;
+      soldarLogo(cv, faiscas);
+      // as faíscas do logo vêm em coordenadas da tela: com a câmera aproximada, leva para as da cena
+      if (camera) for (let i = n0; i < faiscas.length; i++) {
+        const f = faiscas[i];
+        f.x = camera.fx + (f.x - camera.ax) / camera.Z; f.y = camera.fy + (f.y - camera.ay) / camera.Z;
+        f.vx /= camera.Z; f.vy /= camera.Z;
+      }
+    }
     if (faiscas.length) desenharFaiscas(ctx, faiscas, dt, H);
+
+    if (camera) ctx.restore();
+    // galpão escuro no começo da abertura: clareia conforme as luzes acendem
+    if (cinema) {
+      const breu = 0.78 * (1 - suave(0.15, 1.4, t));
+      if (breu > 0) { ctx.fillStyle = `rgba(0,0,0,${breu})`; ctx.fillRect(0, 0, W, H); }
+    }
 
     // vinheta suave e saída do escuro
     const v = ctx.createRadialGradient(xc, H * 0.45, Math.min(W, H) * 0.3, xc, H * 0.5, Math.max(W, H) * 0.8);
@@ -1930,5 +2000,13 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     const cortina = parado ? 0 : 1 - suave(0, completa ? 0.7 : 0.3, t);
     if (cortina > 0) { ctx.fillStyle = cor(pal.ceuTopo, cortina); ctx.fillRect(0, 0, W, H); }
   });
-  return typeof controle === 'function' ? controle : controle.parar;
+  const parar = typeof controle === 'function' ? controle : controle.parar;
+  return () => {
+    parar();
+    if (cinema) {
+      window.removeEventListener('pointerdown', pular);
+      window.removeEventListener('keydown', pular);
+      encerrarIntro();
+    }
+  };
 }

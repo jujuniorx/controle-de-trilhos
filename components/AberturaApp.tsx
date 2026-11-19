@@ -2,19 +2,25 @@
 
 import { CordaoTls } from '@/components/ui/CordaoTls';
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { LogoAnimada } from '@/components/ui/LogoAnimada';
 import { FundoTrilhos } from '@/components/ui/FundoTrilhos';
 import { jaInstalado } from '@/lib/pwa/instalacao';
 
 const CHAVE = 'ct_abertura';
 
-/** Tela de abertura do app instalado, uma vez por sessão: a abertura completa da cena da ferrovia (cerca de 3 s). */
+/**
+ * Tela de abertura do app instalado, uma vez por sessão: a abertura completa da cena da ferrovia (cerca de 3 s).
+ * Na tela inicial ("/") não aparece: lá a própria cena faz a abertura em plano contínuo (CenaFerrovia.tsx), sem
+ * uma segunda máquina por cima.
+ */
 export function AberturaApp() {
   const [visivel, setVisivel] = useState(false);
   const [saindo, setSaindo] = useState(false);
+  const caminho = usePathname();
 
   useEffect(() => {
-    if (!jaInstalado()) return;
+    if (!jaInstalado() || caminho === '/') return;
     try {
       if (sessionStorage.getItem(CHAVE)) return;
       sessionStorage.setItem(CHAVE, '1');
@@ -28,6 +34,8 @@ export function AberturaApp() {
       clearTimeout(sair);
       clearTimeout(fim);
     };
+    // só na primeira tela que o app abre
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!visivel) return null;

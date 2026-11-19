@@ -2310,3 +2310,23 @@ select option:checked, select option:hover { background: var(--primary, #3b82f6)
 @media print { .cena-ferrovia, .cordao-tls { display: none !important; } }
 /* Login no celular: espaço para o estaleiro (trilho e Schlatter) embaixo do nome. */
 @media (max-width: 859px) { .entrada-marca { min-height: 400px; } }
+
+/* Abertura em plano contínuo da tela inicial (primeira visita da sessão). O script do <head> marca o <html> com
+   data-intro; a cena (components/ui/CenaFerrovia.tsx) troca data-cena: sem valor, galpão escuro e câmera perto da
+   Schlatter; "solda", o logo aparece no meio da tela e é soldado junto com a emenda; "recua", a câmera se afasta, o
+   logo sobe até o lugar e o resto da tela entra. No fim os dois atributos saem e a tela fica como sempre. */
+html[data-intro]:not([data-cena="recua"]) :is(.home-titulo, .home-frase, .home-instalar, .home-privacidade, .setor-tile, .cordao-tls *) { animation: none !important; opacity: 0; }
+html[data-intro]:not([data-cena="recua"]) .home-entrada .home-tema { opacity: 0; pointer-events: none; }
+html[data-intro] .home-entrada .home-tema { transition: opacity .6s ease .9s; }
+html[data-intro]:not([data-cena="recua"]) .home-conteudo::before { opacity: 0; }
+html[data-intro] .home-conteudo::before { transition: opacity .9s ease; }
+html[data-intro]:not([data-cena]) .home-conteudo > .logo-animada { opacity: 0; }
+html[data-intro]:not([data-cena]) .home-conteudo > .logo-animada * { animation: none !important; }
+html[data-intro] .home-conteudo > .logo-animada {
+  position: relative; z-index: 2;
+  transform: translateY(var(--intro-dy, 0px)) scale(1.6);
+  transition: transform 1.3s cubic-bezier(.65, 0, .25, 1);
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, .45));
+}
+html[data-intro][data-cena="recua"] .home-conteudo > .logo-animada { transform: none; }
+html[data-intro][data-cena="recua"] .setor-tile { animation: sobe-fade .6s ease-out backwards; animation-delay: calc(.85s + var(--i, 0) * .1s); }

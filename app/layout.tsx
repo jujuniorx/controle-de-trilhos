@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Barlow, Barlow_Condensed, Geist_Mono } from "next/font/google";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { RegistrarServiceWorker } from "@/components/RegistrarServiceWorker";
 import { AberturaApp } from "@/components/AberturaApp";
 import { COR_APP, TEMA_COOKIE, TEMA_PADRAO, iconesDoTema, temaValido } from "@/lib/tema/tema";
@@ -71,16 +71,25 @@ export async function generateViewport(): Promise<Viewport> {
 // continuariam quebradas mesmo com o middleware corrigido.
 export const dynamic = "force-dynamic";
 
+const SCRIPT_INTRO = `(function(){try{if(location.pathname!=='/'||sessionStorage.getItem('ct_cena_intro')||matchMedia('(prefers-reduced-motion: reduce)').matches)return;var h=document.documentElement;h.setAttribute('data-intro','');setTimeout(function(){h.removeAttribute('data-intro');h.removeAttribute('data-cena')},9000)}catch(e){}})();`;
+
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   // Tema escolhido pelo usuário; sem escolha, o padrão para todos é o Azul-marinho.
   const tema = temaValido((await cookies()).get(TEMA_COOKIE)?.value) ?? TEMA_PADRAO;
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
     <html
       lang="pt-BR"
       data-tema={tema}
       className={`${barlow.variable} ${barlowCondensed.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        {/* Abertura da tela inicial: marca o <html> antes da primeira pintura para a tela não piscar antes da cena
+            (ver CenaFerrovia.tsx). Só na primeira visita da sessão e sem "reduzir movimento"; some sozinho em 9 s. */}
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: SCRIPT_INTRO }} />
+      </head>
       <body className="min-h-full flex flex-col">
         {children}
         <RegistrarServiceWorker />
