@@ -30,7 +30,7 @@ const BASE: Omit<EstacaoLinha, 'p'>[] = [
   { id: 'boleteira1', nome: 'Boleteira 1', metros: -48, texto: 'A esmerilhadeira roda em cima do trilho, pendurada pela mola no balancim azul. O operador empurra e puxa pela barra do quadro enquanto o rebolo lixa o boleto. Os discos ficam nos cavaletes ao lado.' },
   { id: 'boleteira2', nome: 'Boleteira 2', metros: -60, texto: 'A segunda boleteira faz o mesmo acabamento. Aqui o operador fica do outro lado da linha.' },
   { id: 'rolos', nome: 'Rolos opressores', metros: -75, texto: 'Depois do rolete 49, os rolos opressores 02, 03 e 04 puxam o trilho para fora do galpão.' },
-  { id: 'patio', nome: 'Pátio do TLS', metros: -95, texto: 'A céu aberto: dois operadores vão de talha em talha engatando o trilho longo soldado (TLS), erguem tudo de uma vez pelo controle e põem na pilha, sobre os cavaletes vermelhos. Depois soltam uma a uma.' },
+  { id: 'patio', nome: 'Pátio do TLS', metros: -95, texto: 'A céu aberto: dois operadores vão de talha em talha engatando o trilho longo soldado (TLS), erguem tudo de uma vez pelo controle e põem na pilha, sobre os calços. Depois soltam uma a uma.' },
 ];
 
 export const ESTACOES_LINHA: EstacaoLinha[] = BASE.map((e, i) => ({ ...e, p: 0.06 + (i * 0.9) / (BASE.length - 1) }));

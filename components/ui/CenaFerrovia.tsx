@@ -1814,6 +1814,53 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
           }
           // coisas em cima do barranco
           const yTopo2 = (x: number) => crista(x) + 0.08 * M;
+          // composição de vagões velhos (gôndolas avermelhadas, como no vídeo) parada num desvio lá em cima do barranco,
+          // engatados, com o lastro e o trilho embaixo
+          {
+            const e = 0.55 * M, wv = 9.5 * e, gap = 0.5 * e;
+            const x0c = pr(-80);
+            const yRv = yCrista - 0.28 * M; // trilho do desvio
+            const n = 4, xFim = x0c - n * (wv + gap);
+            if (visL(xFim - M, x0c + M)) {
+              ctx.fillStyle = cor(tomF([140, 132, 120]));
+              ctx.beginPath(); ctx.moveTo(xFim - 2 * M, yRv + 0.6 * M); ctx.lineTo(xFim - 1.4 * M, yRv + 0.05 * M); ctx.lineTo(x0c + 1.4 * M, yRv + 0.05 * M); ctx.lineTo(x0c + 2 * M, yRv + 0.6 * M); ctx.closePath(); ctx.fill();
+              ctx.fillStyle = cor(tomF([88, 66, 50])); for (let x = xFim - 1.3 * M; x < x0c + 1.3 * M; x += 0.5 * M) ctx.fillRect(x, yRv, 0.26 * M, 0.06 * M);
+              ctx.fillStyle = cor(tomF([150, 146, 142])); ctx.fillRect(xFim - 1.4 * M, yRv - 0.04 * M, x0c - xFim + 2.8 * M, 0.05 * M);
+              const corpos: RGB[] = [[132, 62, 46], [120, 70, 52], [140, 58, 44], [112, 66, 54]];
+              for (let i = 0; i < n; i++) {
+                const vR = x0c - i * (wv + gap), vL = vR - wv;
+                if (!visL(vL, vR)) continue;
+                const yChassi = yRv - 0.95 * e, vT = yChassi - 2.1 * e;
+                truqueVagao(ctx, vL + 1.6 * e, yRv, e); truqueVagao(ctx, vR - 1.6 * e, yRv, e);
+                ctx.fillStyle = cor(tomF([46, 48, 52])); ctx.fillRect(vL - 0.1 * e, yChassi, wv + 0.2 * e, 0.22 * e);
+                ctx.fillRect(vR, yChassi + 0.05 * e, gap / 2, 0.1 * e); ctx.fillRect(vL - gap / 2, yChassi + 0.05 * e, gap / 2, 0.1 * e); // engates
+                const c0 = corpos[i % corpos.length];
+                const gC = ctx.createLinearGradient(0, vT, 0, yChassi);
+                gC.addColorStop(0, cor(tomF(misturar(c0, [255, 255, 255], 0.08)))); gC.addColorStop(1, cor(tomF(misturar(c0, [0, 0, 0], 0.18))));
+                ctx.fillStyle = gC; ctx.fillRect(vL, vT, wv, yChassi - vT);
+                // ferrugem e manchas
+                for (let k2 = 0; k2 < 6; k2++) {
+                  const rx = vL + hash(i * 13 + k2) * (wv - 0.8 * e);
+                  ctx.fillStyle = cor(tomF([168, 98, 58]), 0.45);
+                  ctx.fillRect(rx, vT + hash(i * 7 + k2) * 1.2 * e, (0.4 + hash(k2 + i) * 0.8) * e, (0.3 + hash(k2 * 3 + i) * 0.6) * e);
+                }
+                // montantes e as faixas de cima e de baixo
+                ctx.fillStyle = cor(tomF(misturar(c0, [0, 0, 0], 0.32)));
+                const nm = 8;
+                for (let k2 = 0; k2 <= nm; k2++) ctx.fillRect(vL + (k2 * (wv - 0.12 * e)) / nm, vT, 0.12 * e, yChassi - vT);
+                ctx.fillRect(vL, vT, wv, 0.14 * e); ctx.fillRect(vL, yChassi - 0.18 * e, wv, 0.18 * e);
+                ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fillRect(vL, vT, wv, Math.max(1, 0.04 * e));
+                // número pintado e o volante do freio numa das pontas
+                ctx.fillStyle = cor(tomF([232, 228, 220]), 0.85);
+                ctx.font = `600 ${0.32 * e}px ${fonte('--font-barlow', 'Arial, Helvetica, sans-serif')}`;
+                ctx.textBaseline = 'middle'; ctx.fillText(`GDT ${(612000 + i * 1373) % 999999}`, vL + 0.5 * e, yChassi - 0.42 * e);
+                if (i % 2 === 0) {
+                  ctx.strokeStyle = cor(tomF([220, 220, 216])); ctx.lineWidth = Math.max(1, 0.05 * e);
+                  ctx.beginPath(); ctx.arc(vR - 0.5 * e, vT + 0.7 * e, 0.3 * e, 0, 6.283); ctx.stroke();
+                }
+              }
+            }
+          }
           const bx = pr(-93);
           if (visL(bx - 2 * M, bx + 2 * M)) {
             const yb = yTopo2(bx);
@@ -1836,16 +1883,6 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
               ctx.fillStyle = cor(tomF(hash(r * 7 + q) > 0.5 ? [96, 70, 50] : [114, 86, 62]));
               ctx.fillRect(dx + q * 0.58 * M + (r % 2) * 0.2 * M, yb - (r + 1) * 0.18 * M, 0.5 * M, 0.15 * M);
             }
-          }
-          for (const wm of [-108, -116]) {
-            const wx = pr(wm);
-            if (!visL(wx, wx + 5 * M)) continue;
-            const yb = yTopo2(wx + 2.5 * M);
-            ctx.fillStyle = cor(tomF([134, 62, 48])); ctx.fillRect(wx, yb - 1.35 * M, 5 * M, 1.05 * M);
-            ctx.fillStyle = cor(tomF([104, 46, 36]));
-            for (let x = wx + 0.5 * M; x < wx + 4.9 * M; x += 0.8 * M) ctx.fillRect(x, yb - 1.35 * M, 0.07 * M, 1.05 * M);
-            ctx.fillStyle = cor(tomF([46, 48, 52]));
-            for (const w of [wx + 0.8 * M, wx + 4.2 * M]) { ctx.beginPath(); ctx.arc(w, yb - 0.18 * M, 0.17 * M, 0, 6.283); ctx.fill(); }
           }
           // o barranco de capim, cobrindo do alto até a rua
           const yRua = piso - 0.7 * M;
@@ -1991,16 +2028,6 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
             ctx.fillStyle = cor(tomF([60, 62, 66])); ctx.fillRect(gx - 0.1 * M * eT, gy, 0.2 * M * eT, 0.25 * M * eT);
             ctx.strokeStyle = cor(tomF([200, 160, 60])); ctx.lineWidth = Math.max(1, 0.04 * M * eT);
             ctx.beginPath(); ctx.arc(gx, gy + 0.36 * M * eT, 0.09 * M * eT, -Math.PI / 2, Math.PI); ctx.stroke();
-          }
-        }
-        {
-          const ex = pr(-63);
-          if (visL(ex - 2 * M, ex + 3 * M)) {
-            ctx.fillStyle = cor(tomF([222, 176, 40]));
-            ctx.fillRect(ex, piso - 1.7 * M * sz, 1.5 * M * sz, 0.9 * M * sz);
-            ctx.strokeStyle = cor(tomF([222, 176, 40])); ctx.lineWidth = Math.max(2, 0.12 * M);
-            ctx.beginPath(); ctx.moveTo(ex + 1.3 * M, piso - 1.5 * M); ctx.lineTo(ex + 2.6 * M, piso - 2.6 * M); ctx.lineTo(ex + 3.2 * M, piso - 1.2 * M); ctx.stroke();
-            ctx.fillStyle = cor(tomF([50, 52, 56])); ctx.fillRect(ex - 0.2 * M, piso - 0.9 * M * sz, 1.9 * M * sz, 0.35 * M);
           }
         }
       }
