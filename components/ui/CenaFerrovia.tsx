@@ -1191,14 +1191,6 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
   let camera: { Z: number; ax: number; ay: number; fx: number; fy: number } | null = null;
   let roloApertado = false;
   const sopros: { x: number; y: number; vx: number; vy: number; r: number; v: number }[] = [];
-  // borda esquerda dos cartões da tela inicial (em px do canvas), medida de vez em quando
-  let cartoesX: number | null = null, cartoesEm = -9, cartoesW = 0;
-  const medirCartoes = (): number | null => {
-    const el = cv.closest('main')?.querySelector('.home-grade, .home-conteudo');
-    if (!el) return null;
-    const r = el.getBoundingClientRect(), c = cv.getBoundingClientRect();
-    return r.width ? r.left - c.left - 12 : null;
-  };
 
   // Emendas: k = 0 é a que chega no meio na abertura. Guarda quando cada uma foi soldada (s).
   const soldada = new Map<number, number>();
@@ -1265,12 +1257,16 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     // Schlatter à direita no computador (fora dos cartões); no celular, mais para a direita também.
     // máquina à direita, com espaço para a caçamba amarela do lado direito dela
     const xm = Math.min(W >= 900 ? W * 0.79 : W * 0.58, W - 3.35 * M);
-    // estação da régua depois da máquina (o trilho anda para a esquerda). Na tela inicial do computador ela vai para o
-    // espaço livre à esquerda dos cartões; no resto, a 2,8 m da máquina.
-    if (t - cartoesEm > 0.5 || cartoesW !== W) { cartoesEm = t; cartoesW = W; cartoesX = medirCartoes(); }
-    let xR = xm - 2.8 * M;
-    if (W >= 900 && cartoesX !== null) xR = Math.max(1.6 * M, Math.min(xm - 2.8 * M, cartoesX / 2));
-    const d1 = xm - xR;
+    // estação da régua depois da máquina (o trilho anda para a esquerda): a cerca de 2 m da saída da Schlatter; no
+    // celular, um pouco mais perto, para o rolo opressor caber na tela
+    const d1 = (W < 900 ? 2.8 : 3.8) * M;
+    const xR = xm - d1;
+    // O trilho anda a cerca de 1,2 m/s, com arrancada e freada: cada empurrão no joystick dura o que a distância pede
+    {
+      const durA = d1 / M / 1.2 + 0.7, durB = (L - d1) / M / 1.2 + 0.7;
+      FB.moveA1 = FB.moveA0 + durA; FB.regua0 = FB.moveA1 + 0.15; FB.regua1 = FB.regua0 + 3.35;
+      FB.moveB0 = FB.regua1 + 0.2; FB.moveB1 = FB.moveB0 + durB; FB.fim = FB.moveB1 + 0.2;
+    }
 
     // ---------- movimento do trilho e ciclo da solda ----------
     // O trilho só anda enquanto o soldador segura o joystick do painel: um empurrão leva a emenda soldada até a
@@ -1417,8 +1413,8 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     // pilha de barras novas esperando no fundo, à esquerda, separadas por calços de madeira
     {
       const camadas = W < 600 ? 3 : 4;
-      // começa depois da estação da régua e para antes da máquina (no celular, onde não cabe, não aparece)
-      const pL = xR + 1.55 * M, pR = Math.min(pL + 3.6 * M, xm - 2.1 * M);
+      // fica à esquerda do rolo opressor (no celular, onde não cabe, não aparece)
+      const pR = xR - 2.75 * M, pL = Math.max(W * 0.02, pR - 4 * M);
       const hb = Math.max(4, 0.16 * M), calco = Math.max(2, 0.06 * M);
       const corBarra = misturar(pal.acoLado, pal.ceuHorizonte, 0.45), corCalco = misturar([120, 80, 50], pal.ceuHorizonte, 0.5);
       if (pR - pL > 1.5 * M)

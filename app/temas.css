@@ -1002,3 +1002,12 @@ html[data-tema="pastel"]:root {
 .op-descarregar { background: var(--ok-bg, rgba(34,197,94,.18)); color: var(--ok, #16a34a); border: 1px solid currentColor; }
 .op-carregar { background: var(--warn-bg, rgba(234,179,8,.18)); color: var(--warn, #ca8a04); border: 1px solid currentColor; }
 .op-descarga-carga { background: var(--info-bg, rgba(59,130,246,.18)); color: var(--info, #2563eb); border: 1px solid currentColor; }
+
+/* Tela inicial no computador: os quatro setores numa fileira e o conteudo mais em cima, para o estaleiro
+   (rolo opressor, regua, Schlatter e cacamba) ficar inteiro na faixa de baixo da tela, sem nada por cima. */
+@media (min-width: 900px) {
+  html[data-tema]:root .home-entrada { align-items: flex-start !important; padding-top: max(28px, 4vh) !important; }
+  html[data-tema]:root .home-entrada .home-conteudo { max-width: 860px; }
+  html[data-tema]:root .home-entrada .home-grade { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; max-width: 760px; margin-top: 22px; }
+  html[data-tema]:root .home-entrada .setor-tile { aspect-ratio: auto; padding: 18px 10px; gap: 10px; }
+}
