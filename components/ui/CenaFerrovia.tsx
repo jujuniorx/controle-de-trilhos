@@ -1930,6 +1930,38 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     const tDesce0 = F.regua0 + 0.3, tDesce1 = F.regua0 + 1.6;
     const fimTrilho = X(24) - (u - kAtual * L) + (!parado && fase >= tDesce1 ? L : 0);
     const camadaPilha = 0.19 * M;
+    // uma barra de trilho solta (na pilha ou pendurada nas talhas), vista de lado como o trilho da linha: boleto
+    // brilhando em cima, a alma recuada na sombra e o patim embaixo; nas pontas, o corte com o perfil em "I".
+    // ferrugem puxa para o marrom (barras paradas no pátio).
+    const perfilTrilho = (x0: number, x1: number, y: number, h: number, ferrugem = 0) => {
+      if (x1 < vx0 - M || x0 > vx1 + M) return;
+      const tinge = (c: RGB): RGB => misturar(c, [128, 74, 44], ferrugem);
+      const escAco = misturar(pal.acoLado, pal.ceuTopo, 0.62);
+      const bandas: [number, number, RGB, RGB][] = [
+        [-0.06, 0.0, misturar(pal.aco, pal.acoLado, 0.15), pal.aco],
+        [0.0, 0.27, misturar(pal.aco, pal.acoLado, 0.45), misturar(pal.acoLado, pal.ceuTopo, 0.2)],
+        [0.27, 0.33, misturar(pal.acoLado, pal.ceuTopo, 0.3), escAco],
+        [0.33, 0.76, escAco, misturar(pal.acoLado, pal.ceuTopo, 0.42)],
+        [0.76, 0.85, misturar(pal.acoLado, pal.ceuTopo, 0.3), misturar(pal.aco, pal.acoLado, 0.45)],
+        [0.85, 1.0, misturar(pal.acoLado, pal.ceuTopo, 0.15), misturar(pal.acoLado, pal.ceuTopo, 0.55)],
+      ];
+      for (const [a, b, c0, c1] of bandas) {
+        const ya = y + a * h, yb = y + b * h;
+        const g = ctx.createLinearGradient(0, ya, 0, yb);
+        g.addColorStop(0, cor(tinge(c0))); g.addColorStop(1, cor(tinge(c1)));
+        ctx.fillStyle = g; ctx.fillRect(x0, ya, x1 - x0, yb - ya + 0.5);
+      }
+      ctx.fillStyle = `rgba(255,255,255,${escuro ? 0.45 : 0.7})`; ctx.fillRect(x0, y - h * 0.06, x1 - x0, 1);
+      // as pontas cortadas: o "I" do perfil, em aço claro
+      for (const xe of [x0, x1]) {
+        const d = xe === x0 ? 1 : -1;
+        ctx.fillStyle = cor(tinge(misturar(pal.aco, pal.acoLado, 0.25)));
+        ctx.fillRect(xe, y - h * 0.06, d * Math.max(1.5, 0.025 * M), h * 0.33);
+        ctx.fillRect(xe, y + h * 0.76, d * Math.max(1.5, 0.025 * M), h * 0.24);
+        ctx.fillStyle = cor(tinge(misturar(pal.acoLado, pal.ceuTopo, 0.3)));
+        ctx.fillRect(xe, y + h * 0.27, d * Math.max(1, 0.015 * M), h * 0.49);
+      }
+    };
     const faiscasEm = (x: number, y: number, taxa: number, vx: number, vy: number, abre: number) => {
       const n = Math.round(taxa * dt + Math.random() * 0.6);
       for (let i = 0; i < n; i++) faiscas.push({ x, y, vx: vx + (Math.random() - 0.5) * abre, vy: vy + (Math.random() - 0.5) * abre * 0.6, v: 0.25 + Math.random() * 0.4 });
@@ -2006,10 +2038,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         const yb = piso - (i + 1) * camadaPilha;
         ctx.fillStyle = cor(misturar([140, 96, 60], pal.ceuTopo, escuro ? 0.4 : 0.1));
         for (let x = xb0 + 0.6 * M; x < xb0 + L; x += 2.6 * M) ctx.fillRect(x, yb + camadaPilha * 0.72, 0.16 * M, camadaPilha * 0.28);
-        const gb = ctx.createLinearGradient(0, yb, 0, yb + camadaPilha * 0.72);
-        gb.addColorStop(0, cor(misturar(pal.aco, pal.acoLado, 0.35))); gb.addColorStop(1, cor(misturar(pal.acoLado, pal.ceuTopo, 0.4)));
-        ctx.fillStyle = gb;
-        ctx.fillRect(xb0 + i * 0.12 * M, yb, L - i * 0.24 * M, camadaPilha * 0.72);
+        perfilTrilho(xb0 + i * 0.12 * M, xb0 + L - i * 0.12 * M, yb + camadaPilha * 0.04, camadaPilha * 0.7, 0.12);
       }
     }
     // talha elétrica de cabo de aço (como a da foto): carrinho na viga, corpo amarelo com o tambor preto, a tampa com o
@@ -2038,11 +2067,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     };
     if (vis(xb0 - 2.5 * M, xb0 + L + 2.5 * M)) {
       for (const gx of ganchosPrep) talha(gx, yVigaPrep, prepT.yG);
-      if (prepT.comBarra) {
-        const gb = ctx.createLinearGradient(0, prepT.yG, 0, prepT.yG + R);
-        gb.addColorStop(0, cor(pal.aco)); gb.addColorStop(1, cor(misturar(pal.acoLado, pal.ceuTopo, 0.35)));
-        ctx.fillStyle = gb; ctx.fillRect(xb0, prepT.yG, L, R);
-      }
+      if (prepT.comBarra) perfilTrilho(xb0, xb0 + L, prepT.yG + R * 0.06, R);
     }
     if (vis(xPR3 - 2.5 * M, xPR3 + 2.5 * M)) talha(xPR3, yVigaPrep, topo - 2.0 * M);
     // área de corte: plataforma amarela com escadinhas dos dois lados e as cortinas pretas de solda em cima, atrás da
@@ -2194,8 +2219,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         const yb = piso - 0.2 * M - (i + 1) * 0.15 * M;
         ctx.fillStyle = cor(misturar([140, 96, 60], pal.ceuTopo, escuro ? 0.4 : 0.05));
         for (let x = tlsX0 + 0.5 * M; x < tlsX1; x += 3 * M) ctx.fillRect(x, yb + 0.1 * M, 0.14 * M, 0.05 * M);
-        ctx.fillStyle = cor(misturar(misturar(pal.aco, pal.acoLado, 0.45), [120, 70, 40], 0.12 + (i % 3) * 0.04));
-        ctx.fillRect(tlsX0 + (i % 2) * 0.2 * M, yb, tlsX1 - tlsX0 - (i % 2) * 0.4 * M, 0.1 * M);
+        perfilTrilho(tlsX0 + (i % 2) * 0.2 * M, tlsX1 - (i % 2) * 0.2 * M, yb + 0.005 * M, 0.11 * M, 0.15 + (i % 3) * 0.05);
       }
     }
 
@@ -2919,10 +2943,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         gxs.forEach((gx, i) => talha(gx, yViga, yTalha(i), 0.9));
         const carga = ct > 10 && ct < 15;
         if (carga) {
-          const yC = yTalha(0);
-          const gb = ctx.createLinearGradient(0, yC, 0, yC + R);
-          gb.addColorStop(0, cor(pal.aco)); gb.addColorStop(1, cor(misturar(pal.acoLado, pal.ceuTopo, 0.35)));
-          ctx.fillStyle = gb; ctx.fillRect(X(-109), yC, X(-82) - X(-109), R);
+          perfilTrilho(X(-109), X(-82), yTalha(0) + R * 0.06, R);
         }
         // onde está cada operador (índice da talha, com fração enquanto anda) e se está com a mão no gancho
         const ondeOp = (): { j: number; mexe: number; anda: boolean } => {
