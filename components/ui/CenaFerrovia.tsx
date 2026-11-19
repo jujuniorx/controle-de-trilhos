@@ -1485,6 +1485,8 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     // em telas à parte e só carimbado a cada quadro.
     const desenharFundoGalpao = () => {
       const tom = (c: RGB, k = 0.6): RGB => (escuro ? misturar(c, pal.ceuTopo, k) : c);
+      // lá fora é dia de sol, em qualquer tema: nos temas escuros só um pouco mais apagado
+      const tomF = (c: RGB, _k = 0): RGB => (escuro ? misturar(c, pal.ceuTopo, 0.14) : c);
       const Xm = (m: number) => xm + m * M;
       const fimG = Xm(-80);
       const yAbre = piso - 3.9 * M; // embaixo disso a parede é aberta
@@ -1513,7 +1515,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         if (longe.x) {
           const c = longe.x, y0 = piso - 4.6 * M, S = 4 * M, n = 6;
           const hm = (i: number) => hash(((i % n) + n) % n);
-          c.fillStyle = cor(tom([82, 128, 74]));
+          c.fillStyle = cor(tomF([82, 128, 74]));
           for (let i = -2; i <= n + 1; i++) for (let j = 0; j < 4; j++) {
             const r = (0.7 + hash((((i % n) + n) % n) * 4 + j) * 0.8) * M;
             c.beginPath(); c.ellipse(i * S + j * 1.3 * M, piso - (2.9 + hash((((i % n) + n) % n) + j * 9) * 1.1) * M - y0, r * 1.3, r, 0, 0, 6.283); c.fill();
@@ -1521,12 +1523,12 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
           for (let i = -2; i <= n + 1; i++) {
             if (hm(i + 40) < 0.45) continue;
             const x = i * S, w = (3 + hm(i + 41) * 3) * M, yR = piso - (2.5 + hm(i + 42) * 0.4) * M - y0;
-            c.fillStyle = cor(tom([150, 146, 140])); c.fillRect(x, yR + 0.35 * M, w, 1.2 * M);
+            c.fillStyle = cor(tomF([150, 146, 140])); c.fillRect(x, yR + 0.35 * M, w, 1.2 * M);
             const gR = c.createLinearGradient(0, yR, 0, yR + 0.45 * M);
-            gR.addColorStop(0, cor(tom([168, 92, 56]))); gR.addColorStop(1, cor(tom([118, 62, 40])));
+            gR.addColorStop(0, cor(tomF([168, 92, 56]))); gR.addColorStop(1, cor(tomF([118, 62, 40])));
             c.fillStyle = gR;
             c.beginPath(); c.moveTo(x - 0.2 * M, yR + 0.45 * M); c.lineTo(x + 0.3 * M, yR); c.lineTo(x + w - 0.3 * M, yR); c.lineTo(x + w + 0.2 * M, yR + 0.45 * M); c.closePath(); c.fill();
-            c.fillStyle = cor(tom([90, 50, 34]), 0.5);
+            c.fillStyle = cor(tomF([90, 50, 34]), 0.5);
             for (let rx = 0.4 * M; rx < w - 0.3 * M; rx += 0.9 * M) if (hash(i * 31 + rx / M) > 0.5) c.fillRect(x + rx, yR + 0.05 * M, 0.35 * M, 0.38 * M);
           }
         }
@@ -1534,20 +1536,20 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         const meio = nova(P, 2.0 * M, dprF);
         if (meio.x) {
           const c = meio.x, y0 = piso - 2.0 * M, yB = piso - 0.5 * M - y0;
-          c.fillStyle = cor(tom([104, 152, 72]));
+          c.fillStyle = cor(tomF([104, 152, 72]));
           c.beginPath(); c.moveTo(0, yB);
           for (let x = 0; x <= P + 1; x += 0.4 * M) {
             const q = x / P;
             c.lineTo(x, piso - (1.35 + 0.35 * Math.sin(q * 2 * Math.PI * 2) + 0.15 * Math.sin(q * 2 * Math.PI * 9)) * M - y0);
           }
           c.lineTo(P, yB); c.closePath(); c.fill();
-          c.strokeStyle = cor(tom([132, 176, 88])); c.lineWidth = Math.max(1, 0.03 * M);
+          c.strokeStyle = cor(tomF([132, 176, 88])); c.lineWidth = Math.max(1, 0.03 * M);
           c.beginPath();
           const nT = Math.round(P / (0.22 * M));
           for (let k = 0; k < nT; k++) { const x = (k * P) / nT, h = (0.25 + hash(k) * 0.45) * M; c.moveTo(x, yB); c.lineTo(x + 0.06 * M, yB - h); }
           c.stroke();
-          c.fillStyle = cor(tom([170, 164, 154])); c.fillRect(0, yB, P, 2.0 * M - yB);
-          c.fillStyle = cor(tom([120, 114, 106]), 0.6);
+          c.fillStyle = cor(tomF([170, 164, 154])); c.fillRect(0, yB, P, 2.0 * M - yB);
+          c.fillStyle = cor(tomF([120, 114, 106]), 0.6);
           for (let x = 0; x < P; x += 7) c.fillRect(x + ((x * 13) % 5), yB + 2 + (((x * 7) % 9) / 9) * (2.0 * M - yB - 4), 2, 1.5);
         }
         // um vão do galpão: parede de telha, cano, eletrocalhas, viga, telhado com a tesoura e a coluna de treliça
@@ -1601,12 +1603,22 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       const fc = fundoCache;
       // céu
       const ceu = ctx.createLinearGradient(0, piso - 12 * M, 0, piso);
-      ceu.addColorStop(0, cor(tom([84, 146, 214], 0.72)));
-      ceu.addColorStop(0.7, cor(tom([170, 206, 236], 0.72)));
-      ceu.addColorStop(1, cor(tom([224, 234, 240], 0.72)));
+      ceu.addColorStop(0, cor(tomF([84, 146, 214], 0.72)));
+      ceu.addColorStop(0.7, cor(tomF([170, 206, 236], 0.72)));
+      ceu.addColorStop(1, cor(tomF([224, 234, 240], 0.72)));
       ctx.fillStyle = ceu; ctx.fillRect(vx0, yTopo, vx1 - vx0, piso - yTopo);
+      // o sol, sobre o pátio do TLS (a céu aberto)
+      {
+        const sx = lf(Xm(-98), 0.12), sy = piso - 9.5 * M;
+        if (sx > vx0 - 3 * M && sx < vx1 + 3 * M) {
+          const gs = ctx.createRadialGradient(sx, sy, 0, sx, sy, 3 * M);
+          gs.addColorStop(0, 'rgba(255,250,225,.95)'); gs.addColorStop(0.18, 'rgba(255,236,170,.6)'); gs.addColorStop(1, 'rgba(255,230,160,0)');
+          ctx.fillStyle = gs; ctx.fillRect(sx - 3 * M, sy - 3 * M, 6 * M, 6 * M);
+          ctx.fillStyle = 'rgb(255,252,236)'; ctx.beginPath(); ctx.arc(sx, sy, 0.45 * M, 0, 6.283); ctx.fill();
+        }
+      }
       // nuvens, bem devagar
-      ctx.fillStyle = cor(tom([255, 255, 255], 0.8), escuro ? 0.25 : 0.85);
+      ctx.fillStyle = cor(tomF([255, 255, 255], 0.8), escuro ? 0.25 : 0.85);
       {
         const S = 9 * M, k = 0.1, base = camX * (1 - k) - (parado ? 0 : t * 0.15 * M);
         const i0 = Math.floor((vx0 - base) / S) - 1, i1 = Math.ceil((vx1 - base) / S) + 1;
@@ -1636,18 +1648,18 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         const predio = (x0: number, w: number, h: number, porta: boolean) => {
           if (!visL(x0, x0 + w)) return;
           const yT = piso - 0.45 * M - h;
-          ctx.fillStyle = cor(tom([236, 236, 230])); ctx.fillRect(x0, yT, w, h);
-          ctx.fillStyle = cor(tom([36, 84, 168])); ctx.fillRect(x0, yT + h * 0.68, w, h * 0.32);
-          ctx.fillStyle = cor(tom([196, 196, 190])); ctx.fillRect(x0 - 0.15 * M, yT - 0.18 * M, w + 0.3 * M, 0.2 * M);
-          ctx.strokeStyle = cor(tom([235, 235, 232])); ctx.lineWidth = 1;
+          ctx.fillStyle = cor(tomF([236, 236, 230])); ctx.fillRect(x0, yT, w, h);
+          ctx.fillStyle = cor(tomF([36, 84, 168])); ctx.fillRect(x0, yT + h * 0.68, w, h * 0.32);
+          ctx.fillStyle = cor(tomF([196, 196, 190])); ctx.fillRect(x0 - 0.15 * M, yT - 0.18 * M, w + 0.3 * M, 0.2 * M);
+          ctx.strokeStyle = cor(tomF([235, 235, 232])); ctx.lineWidth = 1;
           for (let jx = x0 + 0.5 * M; jx < x0 + w - 1.0 * M; jx += 1.7 * M) {
-            ctx.fillStyle = cor(tom([90, 100, 110])); ctx.fillRect(jx, yT + h * 0.22, 0.8 * M * sz, 0.6 * M * sz);
+            ctx.fillStyle = cor(tomF([90, 100, 110])); ctx.fillRect(jx, yT + h * 0.22, 0.8 * M * sz, 0.6 * M * sz);
             ctx.beginPath();
             for (let g = 1; g < 4; g++) { ctx.moveTo(jx + g * 0.2 * M * sz, yT + h * 0.22); ctx.lineTo(jx + g * 0.2 * M * sz, yT + h * 0.22 + 0.6 * M * sz); }
             ctx.moveTo(jx, yT + h * 0.22 + 0.3 * M * sz); ctx.lineTo(jx + 0.8 * M * sz, yT + h * 0.22 + 0.3 * M * sz);
             ctx.stroke();
           }
-          if (porta) { ctx.fillStyle = cor(tom([214, 216, 214])); ctx.fillRect(x0 + w - 1.0 * M, yT + h * 0.3, 0.7 * M, h * 0.7); }
+          if (porta) { ctx.fillStyle = cor(tomF([214, 216, 214])); ctx.fillRect(x0 + w - 1.0 * M, yT + h * 0.3, 0.7 * M, h * 0.7); }
         };
         predio(pr(20), 7 * M * sz, 2.7 * M * sz, false);
         predio(pr(-9), 5 * M * sz, 2.6 * M * sz, true);
@@ -1655,10 +1667,10 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         const conteiner = (x0: number, c: RGB, texto: string) => {
           const w = 3.6 * M * sz, h = 1.6 * M * sz, yT = piso - 0.45 * M - h;
           if (!visL(x0, x0 + w)) return;
-          ctx.fillStyle = cor(tom(c)); ctx.fillRect(x0, yT, w, h);
-          ctx.strokeStyle = cor(tom(misturar(c, [0, 0, 0], 0.25))); ctx.lineWidth = 1;
+          ctx.fillStyle = cor(tomF(c)); ctx.fillRect(x0, yT, w, h);
+          ctx.strokeStyle = cor(tomF(misturar(c, [0, 0, 0], 0.25))); ctx.lineWidth = 1;
           ctx.beginPath(); for (let x = x0 + 0.12 * M; x < x0 + w; x += 0.12 * M) { ctx.moveTo(x, yT); ctx.lineTo(x, yT + h); } ctx.stroke();
-          ctx.fillStyle = cor(tom([245, 245, 245]));
+          ctx.fillStyle = cor(tomF([245, 245, 245]));
           ctx.font = `700 ${0.36 * M * sz}px ${fonte('--font-barlow', 'Arial, Helvetica, sans-serif')}`;
           ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
           ctx.fillText(texto, x0 + w / 2, yT + h * 0.35);
@@ -1669,24 +1681,24 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         {
           const x0 = pr(-30), w = 12 * M * sz, yT = piso - 0.45 * M - 1.5 * M * sz;
           if (visL(x0 - 4 * M, x0 + w)) {
-            ctx.fillStyle = cor(tom([146, 180, 206])); ctx.fillRect(x0, yT, w, 1.0 * M * sz);
-            ctx.strokeStyle = cor(tom([112, 146, 172])); ctx.lineWidth = Math.max(1.5, 0.06 * M);
+            ctx.fillStyle = cor(tomF([146, 180, 206])); ctx.fillRect(x0, yT, w, 1.0 * M * sz);
+            ctx.strokeStyle = cor(tomF([112, 146, 172])); ctx.lineWidth = Math.max(1.5, 0.06 * M);
             ctx.beginPath();
             for (let x = x0 + 0.6 * M; x < x0 + w - M; x += 1.6 * M) { ctx.moveTo(x, yT + 0.95 * M * sz); ctx.lineTo(x + 0.6 * M, yT + 0.05 * M); ctx.moveTo(x + 0.6 * M, yT + 0.05 * M); ctx.lineTo(x + 0.6 * M, yT + 0.95 * M * sz); }
             ctx.stroke();
-            ctx.fillStyle = cor(tom([168, 96, 60]), 0.5); ctx.fillRect(x0 + 2 * M, yT + 0.2 * M, 1.4 * M, 0.3 * M);
-            ctx.fillStyle = cor(tom([46, 48, 52]));
+            ctx.fillStyle = cor(tomF([168, 96, 60]), 0.5); ctx.fillRect(x0 + 2 * M, yT + 0.2 * M, 1.4 * M, 0.3 * M);
+            ctx.fillStyle = cor(tomF([46, 48, 52]));
             // truques: a armação e as duas rodas de cada um, logo embaixo do estrado
             for (const bx of [x0 + 1.6 * M, x0 + w - 1.6 * M]) {
-              ctx.fillStyle = cor(tom([60, 62, 66])); ctx.fillRect(bx - 0.8 * M, yT + 1.0 * M * sz, 1.6 * M, 0.16 * M);
-              ctx.fillStyle = cor(tom([40, 42, 46]));
+              ctx.fillStyle = cor(tomF([60, 62, 66])); ctx.fillRect(bx - 0.8 * M, yT + 1.0 * M * sz, 1.6 * M, 0.16 * M);
+              ctx.fillStyle = cor(tomF([40, 42, 46]));
               for (const d of [-0.45, 0.45]) { ctx.beginPath(); ctx.arc(bx + d * M, yT + 1.0 * M * sz + 0.24 * M, 0.17 * M * sz, 0, 6.283); ctx.fill(); }
             }
             const gx = x0 - 3.2 * M, gy = yT - 1.4 * M * sz;
-            ctx.fillStyle = cor(tom([70, 72, 76])); ctx.fillRect(gx - 1.5 * M, yT + 0.6 * M * sz, 4.2 * M, 0.3 * M);
-            ctx.fillStyle = cor(tom([214, 168, 70])); ctx.fillRect(gx - 1.0 * M, gy, 2.6 * M * sz, 1.5 * M * sz);
-            ctx.fillStyle = cor(tom([70, 80, 90])); ctx.fillRect(gx - 0.8 * M, gy + 0.2 * M, 0.7 * M * sz, 0.5 * M * sz);
-            ctx.strokeStyle = cor(tom([206, 164, 72])); ctx.lineWidth = Math.max(1.5, 0.05 * M);
+            ctx.fillStyle = cor(tomF([70, 72, 76])); ctx.fillRect(gx - 1.5 * M, yT + 0.6 * M * sz, 4.2 * M, 0.3 * M);
+            ctx.fillStyle = cor(tomF([214, 168, 70])); ctx.fillRect(gx - 1.0 * M, gy, 2.6 * M * sz, 1.5 * M * sz);
+            ctx.fillStyle = cor(tomF([70, 80, 90])); ctx.fillRect(gx - 0.8 * M, gy + 0.2 * M, 0.7 * M * sz, 0.5 * M * sz);
+            ctx.strokeStyle = cor(tomF([206, 164, 72])); ctx.lineWidth = Math.max(1.5, 0.05 * M);
             const b0: [number, number] = [gx + 1.2 * M, gy + 0.4 * M], b1: [number, number] = [gx + 8.5 * M, gy - 3.4 * M];
             ctx.beginPath();
             ctx.moveTo(b0[0], b0[1]); ctx.lineTo(b1[0], b1[1]);
@@ -1698,19 +1710,19 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         {
           const x0 = pr(-74), w = 7 * M * sz, yT = piso - 0.45 * M - 1.9 * M * sz;
           if (visL(x0, x0 + w)) {
-            ctx.fillStyle = cor(tom([214, 216, 218]));
+            ctx.fillStyle = cor(tomF([214, 216, 218]));
             ctx.beginPath(); ctx.roundRect(x0, yT, w, 1.3 * M * sz, 0.6 * M * sz); ctx.fill();
-            ctx.fillStyle = cor(tom([176, 178, 182])); ctx.fillRect(x0 + w * 0.45, yT - 0.2 * M, 0.5 * M, 0.25 * M);
-            ctx.fillStyle = cor(tom([46, 48, 52]));
+            ctx.fillStyle = cor(tomF([176, 178, 182])); ctx.fillRect(x0 + w * 0.45, yT - 0.2 * M, 0.5 * M, 0.25 * M);
+            ctx.fillStyle = cor(tomF([46, 48, 52]));
             for (const bx of [x0 + M, x0 + w - M]) { ctx.beginPath(); ctx.arc(bx, piso - 0.62 * M, 0.24 * M * sz, 0, 6.283); ctx.fill(); }
           }
           const ex = pr(-40);
           if (visL(ex - 2 * M, ex + 3 * M)) {
-            ctx.fillStyle = cor(tom([222, 176, 40]));
+            ctx.fillStyle = cor(tomF([222, 176, 40]));
             ctx.fillRect(ex, piso - 1.7 * M * sz, 1.5 * M * sz, 0.9 * M * sz);
-            ctx.strokeStyle = cor(tom([222, 176, 40])); ctx.lineWidth = Math.max(2, 0.12 * M);
+            ctx.strokeStyle = cor(tomF([222, 176, 40])); ctx.lineWidth = Math.max(2, 0.12 * M);
             ctx.beginPath(); ctx.moveTo(ex + 1.3 * M, piso - 1.5 * M); ctx.lineTo(ex + 2.6 * M, piso - 2.6 * M); ctx.lineTo(ex + 3.2 * M, piso - 1.2 * M); ctx.stroke();
-            ctx.fillStyle = cor(tom([50, 52, 56])); ctx.fillRect(ex - 0.2 * M, piso - 0.9 * M * sz, 1.9 * M * sz, 0.35 * M);
+            ctx.fillStyle = cor(tomF([50, 52, 56])); ctx.fillRect(ex - 0.2 * M, piso - 0.9 * M * sz, 1.9 * M * sz, 0.35 * M);
           }
         }
       }
@@ -2006,7 +2018,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     // chão do pátio, a céu aberto: concreto claro com brita
     if (vx0 < xPatio) {
       const x1 = Math.min(vx1, xPatio);
-      ctx.fillStyle = cor(escuro ? misturar([150, 150, 146], pal.ceuTopo, 0.55) : [196, 192, 184]);
+      ctx.fillStyle = cor(escuro ? misturar([200, 196, 188], pal.ceuTopo, 0.14) : [206, 202, 194]); // brita clara, no sol
       ctx.fillRect(vx0, piso, x1 - vx0, H - piso);
       ctx.fillStyle = 'rgba(0,0,0,.12)';
       for (let x = Math.floor(vx0 / 9) * 9; x < x1; x += 9) ctx.fillRect(x + ((x * 7) % 5), piso + 3 + ((x * 13) % 11), 2, 1.5);
@@ -2404,7 +2416,8 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         desenharMarcaCaneta(ctx, marca, xg - (marca.largura * hMarca) / 2, topo + R * 0.55 - hMarca / 2, hMarca, escuro ? 0.62 : 0.9);
       }
       if (x < vx0 - R || x > vx1 + R) continue;
-      const quando = soldada.get(k);
+      // emendas que já passaram da Schlatter antes de a cena começar (lá no fim da linha e no pátio) já estão soldadas
+      const quando = soldada.get(k) ?? (x < xm - 0.6 * M ? -600 : undefined);
       const naMaquina = ciclo !== null && ciclo.k === k;
       if (quando === undefined) {
         // Emenda ainda não soldada: as duas barras estão separadas por uma fresta (uns 7 cm, um pouco exagerada para
@@ -3588,7 +3601,9 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
 
     // vinheta suave e saída do escuro
     const v = ctx.createRadialGradient(xc, H * 0.45, Math.min(W, H) * 0.3, xc, H * 0.5, Math.max(W, H) * 0.8);
-    v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, escuro ? 'rgba(0,0,0,.45)' : 'rgba(40,50,70,.12)');
+    // no pátio do TLS (sol aberto) a vinheta quase some
+    const sol = tour ? Math.min(1, Math.max(0, (xm - 80 * M - camX) / Wv)) : 0;
+    v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, escuro ? `rgba(0,0,0,${0.45 * (1 - 0.85 * sol)})` : 'rgba(40,50,70,.12)');
     ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
     const cortina = parado ? 0 : 1 - suave(0, completa ? 0.7 : 0.3, t);
     if (cortina > 0) { ctx.fillStyle = cor(pal.ceuTopo, cortina); ctx.fillRect(0, 0, W, H); }
