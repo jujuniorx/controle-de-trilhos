@@ -1487,6 +1487,53 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       const tom = (c: RGB, k = 0.6): RGB => (escuro ? misturar(c, pal.ceuTopo, k) : c);
       // lá fora é dia de sol, em qualquer tema: nos temas escuros só um pouco mais apagado
       const tomF = (c: RGB, _k = 0): RGB => (escuro ? misturar(c, pal.ceuTopo, 0.14) : c);
+      // truque de vagão de carga visto de lado (como nas fotos): duas rodas de aço com o friso, a caixa de rolamento
+      // amarela no meio de cada roda, a lateral fundida com o arco e a janela onde ficam as molas e a ponta da travessa,
+      // e as sapatas de freio. e = pixels por metro.
+      const truqueVagao = (c: CanvasRenderingContext2D, bx: number, yR: number, e: number) => {
+        const r = 0.42 * e, d = 0.86 * e, yC = yR - r;
+        // rodas
+        for (const sx of [-1, 1]) {
+          const wx = bx + sx * d;
+          c.fillStyle = cor(tomF([34, 35, 38])); c.beginPath(); c.arc(wx, yC, r, 0, 6.283); c.fill(); // friso
+          const gR = c.createRadialGradient(wx - r * 0.3, yC - r * 0.3, 0, wx, yC, r * 0.9);
+          gR.addColorStop(0, cor(tomF([132, 134, 138]))); gR.addColorStop(1, cor(tomF([70, 72, 76])));
+          c.fillStyle = gR; c.beginPath(); c.arc(wx, yC, r * 0.86, 0, 6.283); c.fill(); // pista
+          c.fillStyle = cor(tomF([56, 58, 62])); c.beginPath(); c.arc(wx, yC, r * 0.66, 0, 6.283); c.fill(); // disco
+          c.strokeStyle = cor(tomF([96, 98, 104])); c.lineWidth = Math.max(1, 0.02 * e);
+          c.beginPath(); c.arc(wx, yC, r * 0.5, 0, 6.283); c.stroke();
+          // caixa de rolamento
+          c.fillStyle = cor(tomF([196, 160, 56])); c.fillRect(wx - 0.13 * e, yC - 0.13 * e, 0.26 * e, 0.26 * e);
+          c.fillStyle = cor(tomF([40, 40, 44])); c.beginPath(); c.arc(wx, yC, 0.06 * e, 0, 6.283); c.fill();
+          // sapata de freio encostada na roda, do lado de dentro
+          c.fillStyle = cor(tomF([46, 48, 52]));
+          c.fillRect(wx - sx * (r + 0.02 * e) - (sx > 0 ? 0.06 * e : 0), yC - 0.18 * e, 0.06 * e, 0.36 * e);
+        }
+        // lateral do truque: barra de baixo (entre as caixas), a de cima em arco e a janela das molas
+        c.fillStyle = cor(tomF([58, 60, 64]));
+        c.beginPath();
+        c.moveTo(bx - d - 0.16 * e, yC - 0.16 * e);
+        c.lineTo(bx - 0.42 * e, yC - 0.5 * e); c.lineTo(bx + 0.42 * e, yC - 0.5 * e);
+        c.lineTo(bx + d + 0.16 * e, yC - 0.16 * e);
+        c.lineTo(bx + d + 0.16 * e, yC + 0.06 * e);
+        c.lineTo(bx + d - 0.15 * e, yC + 0.06 * e);
+        c.lineTo(bx + 0.4 * e, yC + 0.2 * e); c.lineTo(bx - 0.4 * e, yC + 0.2 * e);
+        c.lineTo(bx - d + 0.15 * e, yC + 0.06 * e);
+        c.lineTo(bx - d - 0.16 * e, yC + 0.06 * e);
+        c.closePath(); c.fill();
+        // janela com as molas e a ponta da travessa
+        const jL = bx - 0.3 * e, jR = bx + 0.3 * e, jT = yC - 0.38 * e, jB = yC + 0.12 * e;
+        c.fillStyle = cor(tomF([24, 25, 28])); c.fillRect(jL, jT, jR - jL, jB - jT);
+        c.fillStyle = cor(tomF([70, 72, 76])); c.fillRect(jL - 0.03 * e, jT - 0.02 * e, jR - jL + 0.06 * e, 0.12 * e); // travessa
+        c.strokeStyle = cor(tomF([176, 164, 120])); c.lineWidth = Math.max(1, 0.025 * e);
+        c.beginPath();
+        for (const mx of [-0.18, 0, 0.18]) {
+          const x = bx + mx * e;
+          for (let y = jT + 0.12 * e; y < jB - 0.02 * e; y += 0.05 * e) { c.moveTo(x - 0.06 * e, y); c.lineTo(x + 0.06 * e, y + 0.025 * e); }
+        }
+        c.stroke();
+        c.fillStyle = 'rgba(255,255,255,.12)'; c.fillRect(bx - d - 0.16 * e, yC - 0.17 * e, 2 * d + 0.32 * e, Math.max(1, 0.02 * e));
+      };
       const Xm = (m: number) => xm + m * M;
       const fimG = Xm(-80);
       const yAbre = piso - 3.9 * M; // embaixo disso a parede é aberta
@@ -1605,17 +1652,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         if (trem.x) {
           const c = trem.x, yR = TH; // topo do trilho
           const ocre: RGB = [206, 164, 92], ocreS: RGB = [170, 128, 64], ocreL: RGB = [226, 190, 122];
-          const truque = (bx: number) => {
-            c.fillStyle = cor(tomF([46, 48, 52])); c.fillRect(bx - 0.95 * M, yR - 0.62 * M, 1.9 * M, 0.2 * M);
-            c.fillStyle = cor(tomF([62, 64, 68]));
-            c.beginPath(); c.moveTo(bx - 0.75 * M, yR - 0.42 * M); c.lineTo(bx - 0.3 * M, yR - 0.6 * M); c.lineTo(bx + 0.3 * M, yR - 0.6 * M); c.lineTo(bx + 0.75 * M, yR - 0.42 * M); c.lineTo(bx + 0.75 * M, yR - 0.3 * M); c.lineTo(bx - 0.75 * M, yR - 0.3 * M); c.closePath(); c.fill();
-            c.strokeStyle = cor(tomF([150, 140, 110])); c.lineWidth = Math.max(1, 0.03 * M);
-            c.beginPath(); for (let k = 0; k < 5; k++) { const y = yR - 0.56 * M + k * 0.05 * M; c.moveTo(bx - 0.12 * M, y); c.lineTo(bx + 0.12 * M, y + 0.025 * M); } c.stroke();
-            for (const d of [-0.55, 0.55]) {
-              c.fillStyle = cor(tomF([36, 38, 42])); c.beginPath(); c.arc(bx + d * M, yR - 0.22 * M, 0.22 * M, 0, 6.283); c.fill();
-              c.fillStyle = cor(tomF([150, 152, 156])); c.beginPath(); c.arc(bx + d * M, yR - 0.22 * M, 0.07 * M, 0, 6.283); c.fill();
-            }
-          };
+          const truque = (bx: number) => truqueVagao(c, bx, yR, M);
           // vagão plataforma do guincho (chassi escuro)
           const pfL = 0, pfR = 10 * M, yDeck = yR - 1.05 * M;
           c.fillStyle = cor(tomF([58, 60, 64])); c.fillRect(pfL, yDeck, pfR - pfL, 0.32 * M);
@@ -1799,17 +1836,11 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
           // azul pequeno do lado. Fica parado lá fora: tanque com as pontas abauladas, a faixa de reforço,
           // o domo com a escotilha, a passarela com o guarda-corpo, a escadinha, a placa laranja de produto e os truques
           const szT = 0.5, x0 = lf(Xm(-35), 0.35), w = 6 * M * szT, hT = 1.05 * M * szT, yRl = piso - 1.75 * M;
-          const yT = yRl - 0.72 * M * szT - hT;
+          const yT = yRl - 1.02 * M * szT - hT;
           if (visL(x0 - M, x0 + w + M)) {
             // chassi e truques (rodas acima da cerca, com o eixo)
-            ctx.fillStyle = cor(tomF([54, 56, 60])); ctx.fillRect(x0 - 0.2 * M, yT + hT, w + 0.4 * M, 0.16 * M);
-            for (const bx of [x0 + 0.9 * M, x0 + w - 0.9 * M]) {
-              ctx.fillStyle = cor(tomF([62, 64, 68])); ctx.fillRect(bx - 0.55 * M, yT + hT + 0.16 * M, 1.1 * M, 0.14 * M);
-              for (const d of [-0.32, 0.32]) {
-                ctx.fillStyle = cor(tomF([40, 42, 46])); ctx.beginPath(); ctx.arc(bx + d * M, yRl - 0.2 * M * szT, 0.19 * M * szT, 0, 6.283); ctx.fill();
-                ctx.fillStyle = cor(tomF([150, 152, 156])); ctx.beginPath(); ctx.arc(bx + d * M, yRl - 0.2 * M * szT, 0.06 * M * szT, 0, 6.283); ctx.fill();
-              }
-            }
+            ctx.fillStyle = cor(tomF([54, 56, 60])); ctx.fillRect(x0 - 0.2 * M * szT, yT + hT, w + 0.4 * M * szT, 0.16 * M * szT);
+            for (const bx of [x0 + 1.0 * M * szT * 2, x0 + w - 1.0 * M * szT * 2]) truqueVagao(ctx, bx, yRl, M * szT);
             // tanque
             const gT = ctx.createLinearGradient(0, yT, 0, yT + hT);
             gT.addColorStop(0, cor(tomF([246, 246, 244]))); gT.addColorStop(0.45, cor(tomF([226, 228, 228]))); gT.addColorStop(1, cor(tomF([178, 180, 184])));
@@ -1849,8 +1880,18 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         // guincho burro e o vagão azul, mais perto (atrás do galpão, na altura do acabamento), com o gancho balançando
         {
           const kT = 0.7, eT = 0.62;
-          const x0 = lf(Xm(-41), kT), w = 27 * M * eT, h = 5.3 * M * eT, yB = piso - 0.42 * M;
+          // a linha lá fora fica num aterro, acima da cerca: assim os rodeiros aparecem inteiros
+          const x0 = lf(Xm(-41), kT), w = 27 * M * eT, h = 5.3 * M * eT, yB = piso - 1.3 * M;
           if (visL(x0, x0 + w)) {
+            // aterro com lastro de brita e o trilho por onde eles correm
+            const aL = x0 - 4 * M, aR = x0 + w + 4 * M, yChao = piso - 0.45 * M;
+            ctx.fillStyle = cor(tomF([150, 140, 128]));
+            ctx.beginPath(); ctx.moveTo(aL, yChao); ctx.lineTo(aL + 0.9 * M, yB + 0.06 * M); ctx.lineTo(aR - 0.9 * M, yB + 0.06 * M); ctx.lineTo(aR, yChao); ctx.closePath(); ctx.fill();
+            ctx.fillStyle = cor(tomF([118, 110, 100]), 0.6);
+            for (let x = aL + 0.9 * M; x < aR - 0.9 * M; x += 6) ctx.fillRect(x + ((x * 7) % 4), yB + 0.12 * M + ((x * 13) % 9) / 9 * (yChao - yB - 0.2 * M), 2, 1.5);
+            ctx.fillStyle = cor(tomF([92, 70, 52])); for (let x = aL + 1.0 * M; x < aR - 1.0 * M; x += 0.6 * M) ctx.fillRect(x, yB, 0.32 * M, 0.08 * M);
+            ctx.fillStyle = cor(tomF([128, 122, 118])); ctx.fillRect(aL + 0.9 * M, yB - 0.05 * M, aR - aL - 1.8 * M, 0.06 * M);
+            ctx.fillStyle = cor(tomF([200, 200, 204])); ctx.fillRect(aL + 0.9 * M, yB - 0.05 * M, aR - aL - 1.8 * M, Math.max(1, 0.015 * M));
             ctx.drawImage(fc.trem, x0, yB - h, w, h);
             const pt: [number, number] = [x0 + (27 - 0.6) * M * eT, yB - h + 1.15 * M * eT]; // a roldana na ponta da lança
             const ang = parado ? 0 : Math.sin(t * 0.9) * 0.06;
