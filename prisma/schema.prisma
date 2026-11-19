@@ -705,9 +705,26 @@ model EstoqueMaterial {
   atualizadoEm DateTime           @updatedAt
   // Apagado vai para a lixeira da área (fica guardado e pode ser restaurado). Só apaga com saldo zero.
   excluidoEm   DateTime?
+  // Abaixo disso o item fica amarelo e entra em "Precisa de atenção" (todas as áreas).
+  minimo       Decimal?           @db.Decimal(12, 3)
+  // Almoxarifado: prateleira e posição ("A-01"). Metrologia: "Instrumentos de medição" ou "Ferramentas".
+  grupo        String?
+  endereco     String?
+  // Trilhos: PERFIL (saldo em metros), TALA (pares) ou LISA (barras). Peso pela tabela FatorPerfil.
+  categoria        String?
+  perfil           PerfilTrilho?
+  furos            Int?
+  comprimentoBarra Decimal?       @db.Decimal(6, 2)
+  // Metrologia: última calibração e validade.
+  calibradoEm        DateTime?    @db.Date
+  calibracaoValidade DateTime?    @db.Date
+  // Sala de Óleo: quanto cabe guardado e em quê ("2 tambores", "balde").
+  capacidade   Decimal?           @db.Decimal(12, 3)
+  embalagem    String?
   movimentos   EstoqueMovimento[]
 
   @@index([areaId])
+  @@index([calibracaoValidade])
 }
 
 // Histórico: cada entrada, baixa ou ajuste fica registrado com quem fez e o saldo depois.
