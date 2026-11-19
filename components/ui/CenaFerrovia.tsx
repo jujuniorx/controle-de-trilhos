@@ -2104,6 +2104,26 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         }
       }
     }
+    // painel de comando do patim, atrás da linha: armário bege com os botões, o giroflex vermelho em cima e a placa
+    // amarela de cuidado
+    if (vis(xPat + 1.2 * M, xPat + 3.2 * M)) {
+      const qx = xPat + 1.6 * M, qT = piso - 2.6 * M, qw = 1.1 * M;
+      ctx.fillStyle = cor(mq([60, 62, 66])); ctx.fillRect(qx + 0.15 * M, piso - 0.9 * M, 0.08 * M, 0.9 * M); ctx.fillRect(qx + qw - 0.23 * M, piso - 0.9 * M, 0.08 * M, 0.9 * M);
+      ctx.fillStyle = cor(mq([206, 204, 196])); ctx.fillRect(qx, qT, qw, 1.7 * M);
+      ctx.fillStyle = 'rgba(0,0,0,.15)'; ctx.fillRect(qx + qw - 0.04 * M, qT, 0.04 * M, 1.7 * M);
+      for (let k = 0; k < 3; k++) { ctx.fillStyle = 'rgb(200,40,36)'; ctx.beginPath(); ctx.arc(qx + 0.4 * M + k * 0.14 * M, qT + 0.3 * M, 0.035 * M, 0, 6.283); ctx.fill(); }
+      ctx.fillStyle = 'rgb(40,170,90)'; ctx.beginPath(); ctx.arc(qx + 0.4 * M, qT + 0.55 * M, 0.035 * M, 0, 6.283); ctx.fill();
+      ctx.fillStyle = 'rgb(220,140,40)'; ctx.beginPath(); ctx.arc(qx + 0.68 * M, qT + 0.55 * M, 0.035 * M, 0, 6.283); ctx.fill();
+      ctx.fillStyle = 'rgb(200,40,36)'; ctx.beginPath(); ctx.arc(qx + 0.54 * M, qT + 0.78 * M, 0.04 * M, 0, 6.283); ctx.fill();
+      ctx.fillStyle = 'rgb(240,200,40)'; ctx.fillRect(qx + 0.3 * M, qT + 1.0 * M, 0.5 * M, 0.55 * M);
+      ctx.fillStyle = 'rgb(30,30,32)'; ctx.fillRect(qx + 0.34 * M, qT + 1.04 * M, 0.42 * M, 0.1 * M);
+      ctx.fillStyle = 'rgb(250,250,248)'; ctx.fillRect(qx + 0.36 * M, qT + 1.2 * M, 0.2 * M, 0.28 * M);
+      for (const [lx, c] of [[0.2, [240, 130, 50]], [0.85, [220, 30, 30]]] as [number, RGB][]) {
+        ctx.fillStyle = cor(mq([170, 170, 166])); ctx.fillRect(qx + lx * M - 0.06 * M, qT - 0.08 * M, 0.12 * M, 0.08 * M);
+        ctx.fillStyle = cor(c); ctx.beginPath(); ctx.roundRect(qx + lx * M - 0.07 * M, qT - 0.3 * M, 0.14 * M, 0.22 * M, 0.04 * M); ctx.fill();
+        if (!parado && Math.sin(t * 5 + lx * 3) > 0.3) { const g = ctx.createRadialGradient(qx + lx * M, qT - 0.19 * M, 0, qx + lx * M, qT - 0.19 * M, 0.3 * M); g.addColorStop(0, cor(c, 0.45)); g.addColorStop(1, cor(c, 0)); ctx.fillStyle = g; ctx.fillRect(qx + lx * M - 0.3 * M, qT - 0.5 * M, 0.6 * M, 0.6 * M); }
+      }
+    }
     // tubo azul que sai das mangueiras da Geismar e o coletor de pó Donaldson (caixa azul) ao lado
     if (vis(xGes - M, xGes + 5 * M)) {
       const yTubo = piso - 3.6 * M, cX = xGes + 3.4 * M, cW = 1.3 * M, cTop = piso - 2.4 * M;
@@ -2568,62 +2588,106 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
           curva: 0.05, agacha: 0, inclina: 0, capacete: [196, 44, 38], fase: 0.9,
         });
       }
-      // patim: corre num trilho amarelo no chão, por baixo da barra, e lixa embaixo da emenda (tira o volume da
-      // solda). O operador comanda pelos volantes; botoeira com o botão de emergência ao lado. Trabalho a quente.
+      // patim (como nas fotos): caixa amarela com as portas de tela, rodando num trilho amarelo no chão sobre quatro
+      // rodas com capa em meia-lua e tela preta. Em cima, a capa preta do cabeçote (por onde o trilho passa) e a gaiola
+      // de tela que cobre o trilho. Na frente, o volante grande e o pequeno; no alto, a botoeira cinza num braço com a
+      // mangueira; do lado direito, a rampa amarela e a caixa elétrica bege com os conduítes. Ele lixa embaixo da
+      // emenda (tira o volume da solda) indo e voltando; o operador fica na ponta, girando os volantes.
       if (vis(xPat - 3.5 * M, xPat + 3.5 * M)) {
         const lixa = trabalha(1.5, 7.5);
         const vai = lixa ? Math.sin((fase - 1.5) * 1.05) * 0.6 * M : 0;
         const px = xPat + vai;
-        // trilho amarelo no chão
-        ctx.fillStyle = amarelo(AM_S); ctx.fillRect(xPat - 3.2 * M, piso - 0.07 * M, 6.4 * M, 0.07 * M);
-        ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.fillRect(xPat - 3.2 * M, piso - 0.045 * M, 6.4 * M, 0.015 * M);
-        // corpo amarelo com as grades, rodando no trilho
-        const yT = topo + R + 0.28 * M;
-        const gP = ctx.createLinearGradient(px - 0.8 * M, 0, px + 0.8 * M, 0);
+        // trilho amarelo do chão (duas abas, com a canaleta escura)
+        ctx.fillStyle = amarelo(AM_S); ctx.fillRect(xPat - 3.4 * M, piso - 0.09 * M, 6.8 * M, 0.09 * M);
+        ctx.fillStyle = amarelo(AM); ctx.fillRect(xPat - 3.4 * M, piso - 0.09 * M, 6.8 * M, 0.03 * M);
+        ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(xPat - 3.4 * M, piso - 0.055 * M, 6.8 * M, 0.015 * M);
+        const yBase = piso - 0.18 * M, yTopo = topo + R + 0.04 * M; // a caixa vai do pé até logo embaixo do trilho
+        const cL = px - 0.85 * M, cR = px + 0.62 * M;
+        // caixa amarela
+        const gP = ctx.createLinearGradient(cL, 0, cR, 0);
         gP.addColorStop(0, amarelo(AM_L)); gP.addColorStop(1, amarelo(AM_S));
-        ctx.fillStyle = gP; ctx.fillRect(px - 0.8 * M, yT, 1.6 * M, piso - 0.1 * M - yT);
-        ctx.strokeStyle = 'rgba(30,30,30,.55)'; ctx.lineWidth = 1;
-        for (const [gx, gw] of [[px - 0.72 * M, 0.55 * M], [px + 0.05 * M, 0.62 * M]] as [number, number][]) {
-          const gy = yT + 0.1 * M, gh = piso - 0.28 * M - gy;
-          ctx.fillStyle = 'rgba(20,20,20,.35)'; ctx.fillRect(gx, gy, gw, gh);
+        ctx.fillStyle = gP; ctx.fillRect(cL, yTopo, cR - cL, yBase - yTopo);
+        ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(cL, yTopo, cR - cL, 0.04 * M);
+        // portas de tela (moldura amarela, tela escura)
+        const tela = (gx: number, gy: number, gw: number, gh: number) => {
+          ctx.fillStyle = 'rgba(22,22,24,.45)'; ctx.fillRect(gx, gy, gw, gh);
+          ctx.strokeStyle = 'rgba(40,36,20,.55)'; ctx.lineWidth = 1;
           ctx.beginPath();
-          for (let x = gx; x <= gx + gw; x += Math.max(3, 0.06 * M)) { ctx.moveTo(x, gy); ctx.lineTo(x, gy + gh); }
-          for (let y = gy; y <= gy + gh; y += Math.max(3, 0.06 * M)) { ctx.moveTo(gx, y); ctx.lineTo(gx + gw, y); }
+          const pm = Math.max(2.5, 0.045 * M);
+          for (let x = gx; x <= gx + gw; x += pm) { ctx.moveTo(x, gy); ctx.lineTo(x, gy + gh); }
+          for (let y = gy; y <= gy + gh; y += pm) { ctx.moveTo(gx, y); ctx.lineTo(gx + gw, y); }
           ctx.stroke();
-        }
-        ctx.fillStyle = 'rgb(36,36,40)';
-        for (const wx of [px - 0.55 * M, px + 0.55 * M]) { ctx.beginPath(); ctx.arc(wx, piso - 0.1 * M, 0.1 * M, Math.PI, 0); ctx.fill(); }
-        // cabeçote de lixa embaixo do trilho
-        const yR = topo + R + 0.12 * M - (lixa ? 0.02 * M : -0.04 * M);
-        ctx.fillStyle = 'rgb(112,98,84)';
-        ctx.beginPath(); ctx.arc(px, yR, 0.12 * M, 0, 6.283); ctx.fill();
-        ctx.fillStyle = cinzaMaq(60); ctx.fillRect(px - 0.16 * M, yR + 0.04 * M, 0.32 * M, 0.12 * M);
-        if (lixa) {
-          faiscasEm(px, topo + R + 0.02 * M, 320, -300, 60, 340);
-          faiscasEm(px, topo + R + 0.02 * M, 120, 220, 80, 260);
-        }
-        // volantes na frente (giram enquanto o operador comanda)
-        const vol = (vx: number, vy: number, r: number) => {
-          ctx.strokeStyle = 'rgb(28,29,32)'; ctx.lineWidth = Math.max(2, 0.035 * M);
-          ctx.beginPath(); ctx.arc(vx, vy, r, 0, 6.283); ctx.stroke();
-          const g = t * (lixa ? 2.2 : 0);
-          ctx.lineWidth = Math.max(1.5, 0.025 * M);
-          for (let k = 0; k < 4; k++) { const a = g + (k * Math.PI) / 2; ctx.beginPath(); ctx.moveTo(vx, vy); ctx.lineTo(vx + Math.cos(a) * r, vy + Math.sin(a) * r); ctx.stroke(); }
-          ctx.fillStyle = 'rgb(28,29,32)'; ctx.beginPath(); ctx.arc(vx, vy, r * 0.18, 0, 6.283); ctx.fill();
+          ctx.strokeStyle = amarelo(AM_S); ctx.lineWidth = Math.max(1.5, 0.025 * M); ctx.strokeRect(gx, gy, gw, gh);
         };
-        const v1: [number, number] = [px - 0.42 * M, piso - 0.62 * M], v2: [number, number] = [px - 0.02 * M, piso - 0.62 * M];
-        vol(v1[0], v1[1], 0.2 * M); vol(v2[0], v2[1], 0.13 * M);
-        // botoeira com o botão de emergência, num poste do lado da máquina
-        const bx = px + 0.95 * M;
-        ctx.fillStyle = 'rgb(40,42,46)'; ctx.fillRect(bx - 0.025 * M, topo - 0.35 * M, 0.05 * M, piso - topo + 0.35 * M - 0.1 * M);
-        ctx.fillStyle = cor(mq([150, 156, 162])); ctx.fillRect(bx - 0.11 * M, topo - 0.58 * M, 0.22 * M, 0.26 * M);
-        ctx.fillStyle = 'rgb(210,44,40)'; ctx.beginPath(); ctx.arc(bx, topo - 0.47 * M, 0.06 * M, 0, 6.283); ctx.fill();
-        // operador do lado da máquina (de costas para quem vê), girando o volante grande e o pequeno
-        const giraMao = lixa ? Math.sin(t * 2.2) * 0.06 * M : 0;
+        const gyP = yTopo + 0.14 * M, ghP = yBase - gyP - 0.06 * M;
+        tela(cL + 0.08 * M, gyP, 0.6 * M, ghP);
+        tela(cL + 0.74 * M, gyP, 0.62 * M, ghP);
+        // rodas com a capa em meia-lua e a tela preta
+        for (const wx of [cL + 0.25 * M, cR - 0.2 * M]) {
+          const rw = 0.2 * M, yb = piso - 0.09 * M;
+          ctx.fillStyle = 'rgb(28,28,30)'; ctx.beginPath(); ctx.arc(wx, yb - 0.13 * M, 0.13 * M, 0, 6.283); ctx.fill();
+          ctx.fillStyle = amarelo(AM);
+          ctx.beginPath(); ctx.moveTo(wx - rw, yb); ctx.lineTo(wx - rw, yb - 0.14 * M); ctx.arc(wx, yb - 0.14 * M, rw, Math.PI, Math.PI * 1.5); ctx.lineTo(wx, yb); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = 'rgba(20,20,22,.75)';
+          ctx.beginPath(); ctx.moveTo(wx, yb); ctx.lineTo(wx, yb - 0.34 * M); ctx.arc(wx, yb - 0.14 * M, rw, Math.PI * 1.5, Math.PI * 2); ctx.lineTo(wx + rw, yb); ctx.closePath(); ctx.fill();
+        }
+        // lado direito: gaiola de tela por cima do trilho, a rampa amarela embaixo e a caixa elétrica bege
+        const gaL = cR - 0.1 * M, gaR = cR + 0.95 * M, gaT = topo - 0.16 * M, gaB = topo + R + 0.1 * M;
+        ctx.fillStyle = amarelo(AM_S); ctx.fillRect(gaL, gaB, gaR - gaL, 0.12 * M);
+        ctx.fillStyle = amarelo(AM);
+        ctx.beginPath(); ctx.moveTo(cR, gaB + 0.12 * M); ctx.lineTo(cR + 0.62 * M, gaB + 0.12 * M); ctx.lineTo(cR + 0.4 * M, piso - 0.62 * M); ctx.lineTo(cR, piso - 0.62 * M); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = cor(mq([214, 210, 196])); ctx.fillRect(cR + 0.45 * M, gaB + 0.2 * M, 0.42 * M, 0.5 * M);
+        ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.arc(cR + 0.6 * M, gaB + 0.4 * M, 0.025 * M, 0, 6.283); ctx.fill();
+        ctx.strokeStyle = cor(mq([120, 124, 128])); ctx.lineWidth = Math.max(2, 0.04 * M);
+        ctx.beginPath(); ctx.moveTo(cR + 0.85 * M, gaB + 0.3 * M); ctx.bezierCurveTo(cR + 1.2 * M, gaB + 0.6 * M, cR + 1.15 * M, piso - 0.1 * M, cR + 0.9 * M, piso - 0.25 * M);
+        ctx.bezierCurveTo(cR + 0.7 * M, piso - 0.4 * M, cR + 1.0 * M, piso - 0.5 * M, cR + 1.05 * M, piso - 0.15 * M); ctx.stroke();
+        // gaiola: tela preta com a moldura amarela
+        ctx.fillStyle = 'rgba(16,16,18,.55)'; ctx.fillRect(gaL, gaT, gaR - gaL, gaB - gaT);
+        ctx.strokeStyle = 'rgba(70,70,74,.7)'; ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let x = gaL; x <= gaR; x += Math.max(2.5, 0.04 * M)) { ctx.moveTo(x, gaT); ctx.lineTo(x + 0.04 * M, gaB); }
+        ctx.stroke();
+        ctx.strokeStyle = amarelo(AM); ctx.lineWidth = Math.max(1.5, 0.035 * M);
+        ctx.beginPath(); ctx.moveTo(gaL, gaB); ctx.lineTo(gaL, gaT); ctx.lineTo(gaR, gaT); ctx.lineTo(gaR, gaB); ctx.stroke();
+        // capa preta do cabeçote sobre o trilho, com a alça
+        const kL = cL + 0.38 * M, kR = cR - 0.1 * M, kT = topo - 0.3 * M;
+        ctx.fillStyle = 'rgb(30,31,34)'; ctx.fillRect(kL, kT, kR - kL, yTopo - kT);
+        ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.fillRect(kL, kT, kR - kL, 0.04 * M);
+        ctx.strokeStyle = 'rgb(16,16,18)'; ctx.lineWidth = Math.max(1.5, 0.025 * M);
+        ctx.beginPath(); ctx.moveTo(kL + 0.12 * M, kT); ctx.lineTo(kL + 0.18 * M, kT - 0.08 * M); ctx.lineTo(kL + 0.4 * M, kT - 0.08 * M); ctx.lineTo(kL + 0.46 * M, kT); ctx.stroke();
+        ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fillRect(kL + 0.1 * M, yTopo - 0.12 * M, 0.3 * M, 0.02 * M);
+        if (lixa) {
+          faiscasEm(kL + 0.05 * M, topo + R + 0.02 * M, 260, -280, 40, 320);
+          faiscasEm(kR - 0.05 * M, topo + R + 0.02 * M, 100, 200, 60, 240);
+        }
+        // botoeira cinza num braço preto, com a mangueira descendo
+        const bx = cL + 0.2 * M, by = kT - 0.28 * M;
+        ctx.fillStyle = 'rgb(36,36,40)'; ctx.fillRect(bx + 0.06 * M, by + 0.12 * M, 0.06 * M, yTopo - by - 0.12 * M);
+        ctx.save(); ctx.translate(bx, by); ctx.rotate(-0.25);
+        ctx.fillStyle = cor(mq([96, 100, 106])); ctx.fillRect(-0.12 * M, 0, 0.5 * M, 0.16 * M);
+        ctx.fillStyle = 'rgb(220,40,36)'; ctx.beginPath(); ctx.arc(0.0, 0.08 * M, 0.035 * M, 0, 6.283); ctx.fill();
+        ctx.fillStyle = 'rgb(40,170,90)'; ctx.beginPath(); ctx.arc(0.12 * M, 0.08 * M, 0.02 * M, 0, 6.283); ctx.fill();
+        ctx.restore();
+        ctx.strokeStyle = cor(mq([90, 94, 100])); ctx.lineWidth = Math.max(1.5, 0.03 * M);
+        ctx.beginPath(); ctx.moveTo(bx - 0.05 * M, by + 0.14 * M); ctx.quadraticCurveTo(bx - 0.12 * M, yTopo, bx - 0.02 * M, yTopo + 0.2 * M); ctx.stroke();
+        // volantes pretos na frente: o grande sai para fora da caixa, o pequeno ao lado (giram com o operador)
+        const vol = (vx: number, vy: number, r: number) => {
+          ctx.strokeStyle = 'rgb(26,27,30)'; ctx.lineWidth = Math.max(2, r * 0.18);
+          ctx.beginPath(); ctx.arc(vx, vy, r, 0, 6.283); ctx.stroke();
+          const g = parado ? 0 : t * (lixa ? 1.6 : 0);
+          ctx.lineWidth = Math.max(1.5, r * 0.12);
+          for (let k = 0; k < 4; k++) { const a = g + (k * Math.PI) / 2 + 0.4; ctx.beginPath(); ctx.moveTo(vx, vy); ctx.lineTo(vx + Math.cos(a) * r, vy + Math.sin(a) * r); ctx.stroke(); }
+          ctx.fillStyle = 'rgb(26,27,30)'; ctx.beginPath(); ctx.arc(vx, vy, r * 0.22, 0, 6.283); ctx.fill();
+          ctx.fillStyle = 'rgb(110,112,118)'; ctx.beginPath(); ctx.arc(vx, vy, r * 0.08, 0, 6.283); ctx.fill();
+        };
+        const v1: [number, number] = [cL - 0.02 * M, yTopo + 0.3 * M], v2: [number, number] = [cL + 0.52 * M, yTopo + 0.3 * M];
+        vol(v1[0], v1[1], 0.3 * M); vol(v2[0], v2[1], 0.2 * M);
+        // operador na ponta da máquina (de costas para quem vê), girando o volante grande
+        const giraMao = lixa ? Math.sin(t * 1.6) * 0.08 * M : 0;
         desenharOperario(ctx, {
-          sx: px - 1.15 * M, piso, Hs: Hp, t, mq, parado, anda: 0, passo: 0,
-          maoE: [v1[0] - 0.18 * M, v1[1] + giraMao], alcE: 1, maoD: [v1[0] + 0.05 * M, v1[1] - 0.12 * M - giraMao], alcD: 1, dPeito: 0,
-          curva: 0.25, agacha: 0.12, inclina: 0.25, capacete: [150, 156, 162], fase: 1.3, quente: true,
+          sx: cL - 0.82 * M, piso, Hs: Hp, t, mq, parado, anda: lixa ? 0.4 : 0, passo: vai / (0.2 * M),
+          maoE: [v1[0] - 0.3 * M, v1[1] + giraMao], alcE: 1, maoD: [v1[0] - 0.12 * M, v1[1] - 0.26 * M - giraMao], alcD: 1, dPeito: 0,
+          curva: 0.2, agacha: 0.1, inclina: 0.25, capacete: [150, 156, 162], fase: 1.3, quente: true,
         });
       }
       // Boleteira (esmerilhadeira MP12, como nas fotos): o corpo amarelo roda em cima do trilho, dentro de um quadro de
