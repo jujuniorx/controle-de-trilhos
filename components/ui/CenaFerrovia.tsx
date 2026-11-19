@@ -2682,12 +2682,13 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         };
         const v1: [number, number] = [cL - 0.02 * M, yTopo + 0.3 * M], v2: [number, number] = [cL + 0.52 * M, yTopo + 0.3 * M];
         vol(v1[0], v1[1], 0.3 * M); vol(v2[0], v2[1], 0.2 * M);
-        // operador na ponta da máquina (de costas para quem vê), girando o volante grande
+        // operador na frente da máquina (de costas para quem vê), entre os dois volantes: a mão esquerda no grande, a
+        // direita no pequeno; anda junto com o patim
         const giraMao = lixa ? Math.sin(t * 1.6) * 0.08 * M : 0;
         desenharOperario(ctx, {
-          sx: cL - 0.82 * M, piso, Hs: Hp, t, mq, parado, anda: lixa ? 0.4 : 0, passo: vai / (0.2 * M),
-          maoE: [v1[0] - 0.3 * M, v1[1] + giraMao], alcE: 1, maoD: [v1[0] - 0.12 * M, v1[1] - 0.26 * M - giraMao], alcD: 1, dPeito: 0,
-          curva: 0.2, agacha: 0.1, inclina: 0.25, capacete: [150, 156, 162], fase: 1.3, quente: true,
+          sx: (v1[0] + v2[0]) / 2, piso, Hs: Hp, t, mq, parado, anda: lixa ? 0.4 : 0, passo: vai / (0.2 * M),
+          maoE: [v1[0] - 0.05 * M + giraMao, v1[1] - 0.28 * M], alcE: 1, maoD: [v2[0] + 0.04 * M, v2[1] - 0.18 * M + giraMao], alcD: 1, dPeito: 0,
+          curva: 0.35, agacha: 0.25, inclina: 0, capacete: [150, 156, 162], fase: 1.3, quente: true,
         });
       }
       // Boleteira (esmerilhadeira MP12, como nas fotos): o corpo amarelo roda em cima do trilho, dentro de um quadro de
