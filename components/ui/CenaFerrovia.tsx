@@ -2644,20 +2644,46 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         // cabo de aço até a argola e o "V" até os cantos do quadro
         ctx.strokeStyle = 'rgb(70,72,78)'; ctx.lineWidth = Math.max(1, 0.015 * M);
         const yArg = yBarraBol - 0.32 * M;
-        ctx.beginPath(); ctx.moveTo(mx, yMola + 0.42 * M); ctx.lineTo(mx, yArg);
+        ctx.beginPath(); ctx.moveTo(mx, yMola + 0.42 * M); ctx.lineTo(mx, yArg - 0.45 * M);
+        for (let k = 0; k < 7; k++) { const y = yArg - 0.45 * M + k * 0.04 * M; ctx.moveTo(mx - 0.03 * M, y); ctx.lineTo(mx + 0.03 * M, y + 0.02 * M); }
+        ctx.moveTo(mx, yArg - 0.17 * M); ctx.lineTo(mx, yArg);
         ctx.moveTo(mx, yArg); ctx.lineTo(mx - 0.58 * M, yBarraBol); ctx.moveTo(mx, yArg); ctx.lineTo(mx + 0.58 * M, yBarraBol); ctx.stroke();
         ctx.strokeStyle = amarelo(AM); ctx.lineWidth = Math.max(1, 0.02 * M); ctx.beginPath(); ctx.arc(mx, yArg + 0.03 * M, 0.03 * M, 0, 6.283); ctx.stroke();
         // cabo de força preto fazendo laço
         ctx.strokeStyle = 'rgb(22,22,26)'; ctx.lineWidth = Math.max(1.5, 0.025 * M);
-        ctx.beginPath(); ctx.moveTo(mx + 0.15 * M, yBal + 0.1 * M); ctx.bezierCurveTo(mx + 0.9 * M, yBal + 1.2 * M, mx - 0.9 * M, topo - 0.2 * M, mx - lado * 0.66 * M, topo - 0.3 * M); ctx.stroke();
-        // corpo fundido amarelo, comprido sobre o trilho, com os vazados e as duas rodas
-        const gB = ctx.createLinearGradient(0, topo - 0.34 * M, 0, topo - 0.04 * M);
-        gB.addColorStop(0, amarelo(AM_L)); gB.addColorStop(1, amarelo(AM_S));
-        ctx.fillStyle = gB; ctx.beginPath(); ctx.roundRect(mx - 0.56 * M, topo - 0.32 * M, 1.12 * M, 0.24 * M, 0.08 * M); ctx.fill();
-        ctx.fillStyle = 'rgba(40,34,20,.55)';
-        for (const hx of [-0.42, -0.26, 0.26, 0.42]) { ctx.beginPath(); ctx.moveTo(mx + hx * M - 0.05 * M, topo - 0.12 * M); ctx.lineTo(mx + hx * M, topo - 0.27 * M); ctx.lineTo(mx + hx * M + 0.05 * M, topo - 0.12 * M); ctx.closePath(); ctx.fill(); }
+        ctx.beginPath(); ctx.moveTo(mx + 0.15 * M, yBal + 0.1 * M); ctx.bezierCurveTo(mx + 0.9 * M, yBal + 1.2 * M, mx - lado * 1.4 * M, topo - 0.9 * M, mx - lado * 0.74 * M + (lado === 1 ? 0 : 0.0), topo - 0.44 * M); ctx.stroke();
+        // corpo fundido amarelo (MP12): comprido sobre o trilho, com as nervuras em X, as alças curvas nas pontas e as
+        // duas rodas grandes embaixo
+        const yC0 = topo - 0.3 * M, yC1 = topo - 0.1 * M;
         ctx.fillStyle = 'rgb(30,30,34)';
-        for (const wx of [mx - 0.42 * M, mx + 0.42 * M]) { ctx.beginPath(); ctx.arc(wx, topo - 0.08 * M, 0.075 * M, 0, 6.283); ctx.fill(); ctx.fillStyle = 'rgb(120,122,128)'; ctx.beginPath(); ctx.arc(wx, topo - 0.08 * M, 0.025 * M, 0, 6.283); ctx.fill(); ctx.fillStyle = 'rgb(30,30,34)'; }
+        for (const wx of [mx - 0.4 * M, mx + 0.4 * M]) {
+          ctx.beginPath(); ctx.arc(wx, topo - 0.09 * M, 0.09 * M, 0, 6.283); ctx.fill();
+          ctx.fillStyle = 'rgb(130,132,138)'; ctx.beginPath(); ctx.arc(wx, topo - 0.09 * M, 0.03 * M, 0, 6.283); ctx.fill(); ctx.fillStyle = 'rgb(30,30,34)';
+        }
+        const gB = ctx.createLinearGradient(0, yC0, 0, yC1);
+        gB.addColorStop(0, amarelo(AM_L)); gB.addColorStop(1, amarelo(AM_S));
+        ctx.fillStyle = gB;
+        ctx.beginPath();
+        ctx.moveTo(mx - 0.5 * M, yC1); ctx.lineTo(mx - 0.5 * M, yC0 + 0.04 * M); ctx.lineTo(mx - 0.3 * M, yC0);
+        ctx.lineTo(mx + 0.3 * M, yC0); ctx.lineTo(mx + 0.5 * M, yC0 + 0.04 * M); ctx.lineTo(mx + 0.5 * M, yC1); ctx.closePath(); ctx.fill();
+        // nervuras em X com os vazados
+        ctx.fillStyle = 'rgba(48,40,22,.6)';
+        for (const cxv of [-0.33, -0.12, 0.12, 0.33]) {
+          const ax = mx + cxv * M;
+          ctx.beginPath(); ctx.moveTo(ax - 0.07 * M, yC0 + 0.03 * M); ctx.lineTo(ax + 0.07 * M, yC0 + 0.03 * M); ctx.lineTo(ax, (yC0 + yC1) / 2); ctx.closePath(); ctx.fill();
+          ctx.beginPath(); ctx.moveTo(ax - 0.07 * M, yC1 - 0.02 * M); ctx.lineTo(ax + 0.07 * M, yC1 - 0.02 * M); ctx.lineTo(ax, (yC0 + yC1) / 2); ctx.closePath(); ctx.fill();
+        }
+        // alças curvas nas pontas
+        ctx.strokeStyle = amarelo(AM); ctx.lineWidth = Math.max(2, 0.04 * M); ctx.lineCap = 'round';
+        for (const d of [-1, 1]) {
+          ctx.beginPath(); ctx.moveTo(mx + d * 0.48 * M, yC0 + 0.05 * M);
+          ctx.quadraticCurveTo(mx + d * 0.66 * M, yC0 - 0.1 * M, mx + d * 0.6 * M, yC1 - 0.02 * M); ctx.stroke();
+        }
+        ctx.lineCap = 'butt';
+        // alavanquinha de trava com a bola preta, ao lado do fuso
+        ctx.strokeStyle = cor(mq([120, 124, 130])); ctx.lineWidth = Math.max(1, 0.02 * M);
+        ctx.beginPath(); ctx.moveTo(mx - 0.28 * M, yC0); ctx.lineTo(mx - 0.36 * M, yC0 - 0.12 * M); ctx.stroke();
+        ctx.fillStyle = 'rgb(26,26,30)'; ctx.beginPath(); ctx.arc(mx - 0.37 * M, yC0 - 0.13 * M, 0.03 * M, 0, 6.283); ctx.fill();
         // capa azul do rebolo, descendo pelo lado do boleto, e o rebolo girando
         ctx.fillStyle = cor(mq([44, 92, 170])); ctx.fillRect(mx - 0.26 * M, topo - 0.1 * M, 0.34 * M, 0.3 * M);
         ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.fillRect(mx - 0.26 * M, topo + 0.14 * M, 0.34 * M, 0.06 * M);
@@ -2686,20 +2712,25 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.beginPath(); ctx.moveTo(mx - 0.62 * M, yBarraBol); ctx.lineTo(mx + 0.62 * M, yBarraBol); ctx.stroke();
         ctx.lineCap = 'butt';
         // caixinha de comando cinza na ponta do quadro: botões e a parada de emergência vermelha
-        const cbx = mx - lado * 0.6 * M - (lado === 1 ? 0.22 * M : 0);
-        ctx.fillStyle = cor(mq([176, 180, 186])); ctx.fillRect(cbx, topo - 0.46 * M, 0.22 * M, 0.34 * M);
-        for (const [by, c] of [[0.07, 'rgb(40,90,200)'], [0.15, 'rgb(40,170,90)'], [0.21, 'rgb(220,50,44)']] as [number, string][]) { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(cbx + 0.11 * M, topo - 0.46 * M + by * M, 0.025 * M, 0, 6.283); ctx.fill(); }
-        ctx.fillStyle = 'rgb(220,40,36)'; ctx.beginPath(); ctx.arc(cbx + 0.11 * M, topo - 0.17 * M, 0.045 * M, 0, 6.283); ctx.fill();
-        ctx.fillStyle = 'rgb(236,196,40)'; ctx.fillRect(cbx + 0.06 * M, topo - 0.14 * M, 0.1 * M, 0.02 * M);
+        // fica para fora do quadro, mais baixa, na ponta do lado do operador; a tomada em cima, de onde desce o cabo
+        const cbx = lado === 1 ? mx - 0.85 * M : mx + 0.63 * M, cby = topo - 0.34 * M;
+        ctx.fillStyle = cor(mq([150, 154, 160])); ctx.fillRect(cbx + 0.03 * M, cby - 0.1 * M, 0.08 * M, 0.1 * M);
+        ctx.fillStyle = cor(mq([184, 188, 194])); ctx.fillRect(cbx, cby, 0.22 * M, 0.38 * M);
+        ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.fillRect(cbx + 0.2 * M, cby, 0.02 * M, 0.38 * M);
+        for (const [by, c] of [[0.07, 'rgb(40,90,200)'], [0.16, 'rgb(40,170,90)'], [0.22, 'rgb(220,50,44)']] as [number, string][]) { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(cbx + 0.11 * M, cby + by * M, 0.024 * M, 0, 6.283); ctx.fill(); }
+        ctx.fillStyle = 'rgb(236,196,40)'; ctx.beginPath(); ctx.arc(cbx + 0.11 * M, cby + 0.31 * M, 0.05 * M, 0, 6.283); ctx.fill();
+        ctx.fillStyle = 'rgb(220,40,36)'; ctx.beginPath(); ctx.arc(cbx + 0.11 * M, cby + 0.31 * M, 0.035 * M, 0, 6.283); ctx.fill();
+        ctx.strokeStyle = cor(mq([40, 80, 160])); ctx.lineWidth = Math.max(1.5, 0.03 * M);
+        ctx.beginPath(); ctx.moveTo(lado === 1 ? cbx + 0.22 * M : cbx, cby + 0.15 * M); ctx.lineTo(mx - lado * 0.6 * M, cby + 0.15 * M); ctx.stroke();
       };
       // boleteira 1: operador do lado de cá, empurrando e puxando pela alça
       {
         const lixa1 = trabalha(0.8, 7.8);
         boleteira(xBol1, lixa1, 1);
-        if (vis(xBol1 - 2 * M, xBol1 + M)) {
+        if (vis(xBol1 - 2.4 * M, xBol1 + M)) {
           desenharOperario(ctx, {
-            sx: xBol1 - 0.95 * M, piso, Hs: Hp, t, mq, parado, anda: lixa1 ? 0.5 : 0, passo: t * 3.2,
-            maoE: [xBol1 - 0.5 * M, yBarraBol], alcE: 1, maoD: [xBol1 - 0.25 * M, yBarraBol], alcD: 1, dPeito: 0,
+            sx: xBol1 - 1.35 * M, piso, Hs: Hp, t, mq, parado, anda: lixa1 ? 0.5 : 0, passo: t * 3.2,
+            maoE: [xBol1 - 0.62 * M, yBarraBol], alcE: 1, maoD: [xBol1 - 0.45 * M, yBarraBol], alcD: 1, dPeito: 0,
             curva: 0.15, agacha: 0.05, inclina: 0.2, capacete: [150, 156, 162], fase: 2.1, quente: true,
           });
         }
