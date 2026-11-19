@@ -1942,6 +1942,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
           }
           if (porta) { ctx.fillStyle = cor(tomF([214, 216, 214])); ctx.fillRect(x0 + w - 1.0 * M, yT + h * 0.3, 0.7 * M, h * 0.7); }
         };
+        predio(pr(22), 8 * M * sz, 2.8 * M * sz, true); // a oficina, atrás da preparação
         predio(pr(-58), 9 * M * sz, 3.0 * M * sz, true);
         const conteiner = (x0: number, c: RGB, texto: string) => {
           const w = 3.6 * M * sz, h = 1.6 * M * sz, yT = piso - 0.45 * M - h;
