@@ -1189,6 +1189,8 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
   const cascas: { x: number; y: number; vx: number; vy: number; r: number; v: number; giro: number; quente: number; chao?: number }[] = [];
   let soldouLogo = false;
   let camera: { Z: number; ax: number; ay: number; fx: number; fy: number } | null = null;
+  let roloApertado = false;
+  const sopros: { x: number; y: number; vx: number; vy: number; r: number; v: number }[] = [];
   // borda esquerda dos cartões da tela inicial (em px do canvas), medida de vez em quando
   let cartoesX: number | null = null, cartoesEm = -9, cartoesW = 0;
   const medirCartoes = (): number | null => {
@@ -1487,7 +1489,17 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     const amarelo = (c: RGB): string => cor(escuro ? misturar(c, pal.ceuTopo, 0.3) : c);
     const AM: RGB = [236, 186, 36], AM_S: RGB = [176, 132, 18], AM_L: RGB = [252, 214, 90];
     const portais = [xR - 0.85 * M, xR + 0.78 * M];
-    const x01 = xR - 2.15 * M, w01 = 0.8 * M; // máquina "01" (alinhadora) antes da régua
+    const x01 = xR - 2.15 * M, w01 = 0.8 * M; // rolo opressor "01", antes da régua: é ele que dá tração ao trilho
+    // Rolo opressor: quando o soldador empurra o joystick, os cilindros descem e apertam o rolo de cima contra o
+    // boleto (sopro de ar na válvula), o motor gira o rolo de baixo e o trilho anda; soltou, o motor para e os
+    // cilindros sobem com outro sopro.
+    const apertoEm = (a: number, b: number) => suave(a - 0.4, a - 0.1, fase) * (1 - suave(b + 0.05, b + 0.35, fase));
+    const aperto = parado ? 0 : Math.max(1 - suave(CHEGA + 0.05, CHEGA + 0.35, t), apertoEm(F.moveA0, F.moveA1), apertoEm(F.moveB0, F.moveB1));
+    if (!parado && (aperto > 0.5) !== roloApertado) {
+      roloApertado = aperto > 0.5;
+      for (let i = 0; i < 7; i++) sopros.push({ x: x01 + w01 * (0.25 + Math.random() * 0.5), y: topo - 0.72 * M, vx: (Math.random() - 0.5) * 0.6 * M, vy: -(0.1 + Math.random() * 0.3) * M, r: 0.03 * M, v: 1 });
+    }
+    const xRolo = x01 + w01 / 2, rRolo = 0.12 * M, girou = u / rRolo;
     {
       // tela de arame de proteção ao fundo
       const tL = xR - 1.5 * M, tR = xR + 1.45 * M, tT = piso - 1.7 * M;
@@ -1518,9 +1530,35 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText('01', x01 + w01 * 0.5, (topo + R + piso) / 2);
         ctx.textAlign = 'left';
+        // rolo de baixo (motriz), logo embaixo do patim, girando com o trilho
+        const yRb = topo + R + rRolo * 0.92;
+        ctx.fillStyle = 'rgb(56,58,64)';
+        ctx.beginPath(); ctx.arc(xRolo, yRb, rRolo, 0, 6.283); ctx.fill();
+        ctx.strokeStyle = 'rgb(150,154,162)'; ctx.lineWidth = Math.max(1, 0.018 * M);
+        for (let k = 0; k < 4; k++) {
+          const a = -girou + (k * Math.PI) / 2;
+          ctx.beginPath(); ctx.moveTo(xRolo + Math.cos(a) * rRolo * 0.25, yRb + Math.sin(a) * rRolo * 0.25); ctx.lineTo(xRolo + Math.cos(a) * rRolo * 0.85, yRb + Math.sin(a) * rRolo * 0.85); ctx.stroke();
+        }
+        ctx.fillStyle = 'rgb(200,204,210)';
+        ctx.beginPath(); ctx.arc(xRolo, yRb, rRolo * 0.2, 0, 6.283); ctx.fill();
         // motor e redutor ao lado
         ctx.fillStyle = cor(misturar([120, 124, 130], pal.ceuTopo, escuro ? 0.3 : 0));
         ctx.beginPath(); ctx.ellipse(x01 - 0.18 * M, piso - 0.42 * M, 0.2 * M, 0.17 * M, 0, 0, 6.283); ctx.fill();
+        // tampa da ventoinha do motor: as aletas giram enquanto ele puxa
+        ctx.strokeStyle = 'rgba(40,42,46,.7)'; ctx.lineWidth = Math.max(1, 0.012 * M);
+        for (let k = 0; k < 6; k++) {
+          const a = -girou * 3 + (k * Math.PI) / 3;
+          ctx.beginPath(); ctx.moveTo(x01 - 0.3 * M, piso - 0.42 * M); ctx.lineTo(x01 - 0.3 * M + Math.cos(a) * 0.07 * M, piso - 0.42 * M + Math.sin(a) * 0.12 * M); ctx.stroke();
+        }
+        // lâmpada verde do "01": acesa enquanto o rolo está apertado
+        const lx01 = x01 + w01 * 0.85, ly01 = topo + R + 0.12 * M;
+        if (aperto > 0.5) {
+          const gl = ctx.createRadialGradient(lx01, ly01, 0, lx01, ly01, 0.12 * M);
+          gl.addColorStop(0, 'rgba(90,230,120,.55)'); gl.addColorStop(1, 'rgba(90,230,120,0)');
+          ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(lx01, ly01, 0.12 * M, 0, 6.283); ctx.fill();
+        }
+        ctx.fillStyle = aperto > 0.5 ? 'rgb(110,240,140)' : 'rgb(40,90,56)';
+        ctx.beginPath(); ctx.arc(lx01, ly01, 0.03 * M, 0, 6.283); ctx.fill();
         ctx.fillStyle = amarelo(AM);
         ctx.fillRect(x01 - 0.06 * M, piso - 0.6 * M, 0.1 * M, 0.36 * M);
       }
@@ -1725,14 +1763,40 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.fillRect(x01 - 0.02 * M, yb, 0.08 * M, topo - yb);
         ctx.fillStyle = amarelo(AM);
         ctx.fillRect(x01 - 0.05 * M, yb - 0.1 * M, w01 + 0.1 * M, 0.12 * M);
-        for (const cx of [x01 + w01 * 0.3, x01 + w01 * 0.7]) {
+        // rolo de cima: encostado no boleto quando aperta, 8 cm acima quando solta
+        const yRc = topo - R * 0.06 - rRolo - 0.08 * M * (1 - aperto);
+        const garfo = yRc - rRolo - 0.03 * M;
+        for (const cx of [x01 + w01 * 0.18, x01 + w01 * 0.82]) {
           const gc = ctx.createLinearGradient(cx - 0.06 * M, 0, cx + 0.06 * M, 0);
           gc.addColorStop(0, 'rgb(150,154,160)'); gc.addColorStop(0.45, 'rgb(232,234,238)'); gc.addColorStop(1, 'rgb(120,124,130)');
           ctx.fillStyle = gc;
-          ctx.fillRect(cx - 0.06 * M, yb + 0.02 * M, 0.12 * M, 0.34 * M);
-          ctx.fillStyle = 'rgb(196,200,206)';
-          ctx.fillRect(cx - 0.018 * M, yb + 0.36 * M, 0.036 * M, topo - R * 0.06 - yb - 0.36 * M);
+          ctx.fillRect(cx - 0.06 * M, yb + 0.02 * M, 0.12 * M, 0.26 * M);
+          ctx.fillStyle = 'rgb(196,200,206)'; // haste, que estica quando o cilindro desce
+          ctx.fillRect(cx - 0.018 * M, yb + 0.28 * M, 0.036 * M, Math.max(0, garfo - yb - 0.28 * M));
         }
+        // garfo amarelo que segura o eixo do rolo, preso nas duas hastes
+        ctx.fillStyle = amarelo(AM);
+        ctx.fillRect(x01 + w01 * 0.12, garfo - 0.04 * M, w01 * 0.76, 0.06 * M);
+        ctx.fillRect(xRolo - 0.03 * M, garfo, 0.06 * M, yRc - garfo);
+        ctx.fillStyle = 'rgb(56,58,64)';
+        ctx.beginPath(); ctx.arc(xRolo, yRc, rRolo, 0, 6.283); ctx.fill();
+        ctx.strokeStyle = 'rgb(150,154,162)'; ctx.lineWidth = Math.max(1, 0.018 * M);
+        for (let k = 0; k < 4; k++) {
+          const a = girou + (k * Math.PI) / 2;
+          ctx.beginPath(); ctx.moveTo(xRolo + Math.cos(a) * rRolo * 0.25, yRc + Math.sin(a) * rRolo * 0.25); ctx.lineTo(xRolo + Math.cos(a) * rRolo * 0.85, yRc + Math.sin(a) * rRolo * 0.85); ctx.stroke();
+        }
+        ctx.fillStyle = 'rgb(200,204,210)';
+        ctx.beginPath(); ctx.arc(xRolo, yRc, rRolo * 0.2, 0, 6.283); ctx.fill();
+        // válvula com o sopro de ar quando os cilindros mexem
+        ctx.fillStyle = 'rgb(60,64,72)';
+        ctx.fillRect(x01 + w01 * 0.45, yb - 0.16 * M, 0.1 * M, 0.07 * M);
+      }
+      for (const b of sopros) { b.x += b.vx * dt; b.y += b.vy * dt; b.r += dt * 0.25 * M; b.v -= dt * 1.6; }
+      for (let i = sopros.length - 1; i >= 0; i--) if (sopros[i].v <= 0) sopros.splice(i, 1);
+      for (const b of sopros) {
+        const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+        g.addColorStop(0, `rgba(235,240,245,${0.35 * b.v})`); g.addColorStop(1, 'rgba(235,240,245,0)');
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 6.283); ctx.fill();
       }
     }
 
