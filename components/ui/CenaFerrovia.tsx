@@ -1942,21 +1942,84 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
           }
           if (porta) { ctx.fillStyle = cor(tomF([214, 216, 214])); ctx.fillRect(x0 + w - 1.0 * M, yT + h * 0.3, 0.7 * M, h * 0.7); }
         };
-        predio(pr(22), 8 * M * sz, 2.8 * M * sz, true); // a oficina, atrás da preparação
-        predio(pr(-58), 9 * M * sz, 3.0 * M * sz, true);
-        const conteiner = (x0: number, c: RGB, texto: string) => {
-          const w = 3.6 * M * sz, h = 1.6 * M * sz, yT = piso - 0.45 * M - h;
+        // sala do Setor de Metalurgia, atrás das boleteiras (como na foto): bloco branco com a barra azul embaixo, a
+        // platibanda, a calha, as janelas basculantes com grade e vidro, a porta de chapa azul, o ar-condicionado, a
+        // luminária e o extintor na parede
+        {
+          const w = 9 * M * sz, h = 3.0 * M * sz, x0 = pr(-58), yT = piso - 0.45 * M - h;
+          if (visL(x0 - M, x0 + w + M)) {
+            const gP = ctx.createLinearGradient(0, yT, 0, yT + h);
+            gP.addColorStop(0, cor(tomF([244, 244, 240]))); gP.addColorStop(1, cor(tomF([224, 224, 218])));
+            ctx.fillStyle = gP; ctx.fillRect(x0, yT, w, h);
+            // barra azul com um leve brilho e o rodapé
+            const gA = ctx.createLinearGradient(0, yT + h * 0.66, 0, yT + h);
+            gA.addColorStop(0, cor(tomF([46, 98, 186]))); gA.addColorStop(1, cor(tomF([30, 72, 150])));
+            ctx.fillStyle = gA; ctx.fillRect(x0, yT + h * 0.66, w, h * 0.34);
+            ctx.fillStyle = cor(tomF([24, 56, 120])); ctx.fillRect(x0, yT + h - 0.08 * M, w, 0.08 * M);
+            // platibanda e calha
+            ctx.fillStyle = cor(tomF([214, 214, 208])); ctx.fillRect(x0 - 0.18 * M, yT - 0.32 * M, w + 0.36 * M, 0.34 * M);
+            ctx.fillStyle = cor(tomF([186, 186, 180])); ctx.fillRect(x0 - 0.18 * M, yT - 0.02 * M, w + 0.36 * M, 0.05 * M);
+            ctx.fillStyle = cor(tomF([170, 172, 174])); ctx.fillRect(x0 + w - 0.12 * M, yT, 0.07 * M, h); // condutor da calha
+            // janelas basculantes: moldura, vidro escuro com reflexo, grade
+            const nJ = 4, jw = 0.95 * M * sz, jh = 0.75 * M * sz, jy = yT + h * 0.2;
+            for (let k2 = 0; k2 < nJ; k2++) {
+              const jx = x0 + 0.55 * M + k2 * 1.55 * M;
+              ctx.fillStyle = cor(tomF([200, 200, 196])); ctx.fillRect(jx - 0.05 * M, jy - 0.05 * M, jw + 0.1 * M, jh + 0.12 * M);
+              const gV = ctx.createLinearGradient(jx, jy, jx + jw, jy + jh);
+              gV.addColorStop(0, cor(tomF([96, 120, 140]))); gV.addColorStop(1, cor(tomF([60, 74, 88])));
+              ctx.fillStyle = gV; ctx.fillRect(jx, jy, jw, jh);
+              ctx.fillStyle = 'rgba(255,255,255,.18)';
+              ctx.beginPath(); ctx.moveTo(jx, jy + jh * 0.6); ctx.lineTo(jx + jw * 0.4, jy); ctx.lineTo(jx + jw * 0.55, jy); ctx.lineTo(jx, jy + jh * 0.85); ctx.closePath(); ctx.fill();
+              ctx.strokeStyle = cor(tomF([236, 236, 232])); ctx.lineWidth = Math.max(1, 0.025 * M);
+              ctx.beginPath();
+              for (let g = 1; g < 4; g++) { ctx.moveTo(jx + (g * jw) / 4, jy); ctx.lineTo(jx + (g * jw) / 4, jy + jh); }
+              for (let g = 1; g < 3; g++) { ctx.moveTo(jx, jy + (g * jh) / 3); ctx.lineTo(jx + jw, jy + (g * jh) / 3); }
+              ctx.stroke();
+              ctx.fillStyle = cor(tomF([180, 180, 176])); ctx.fillRect(jx - 0.08 * M, jy + jh + 0.06 * M, jw + 0.16 * M, 0.05 * M); // peitoril
+            }
+            // porta de chapa azul com a vista e a maçaneta
+            const px = x0 + w - 1.15 * M, pw = 0.8 * M, py = yT + h * 0.26;
+            ctx.fillStyle = cor(tomF([200, 200, 196])); ctx.fillRect(px - 0.06 * M, py - 0.06 * M, pw + 0.12 * M, yT + h - py + 0.06 * M);
+            ctx.fillStyle = cor(tomF([58, 104, 170])); ctx.fillRect(px, py, pw, yT + h - py - 0.08 * M);
+            ctx.strokeStyle = cor(tomF([40, 82, 146])); ctx.lineWidth = 1;
+            ctx.beginPath(); for (let y = py + 0.2 * M; y < yT + h - 0.2 * M; y += 0.12 * M) { ctx.moveTo(px + 0.08 * M, y); ctx.lineTo(px + pw - 0.08 * M, y); } ctx.stroke();
+            ctx.fillStyle = cor(tomF([210, 210, 206])); ctx.fillRect(px + pw - 0.18 * M, py + 0.9 * M * sz, 0.1 * M, 0.04 * M);
+            // luminária sobre a porta
+            ctx.fillStyle = cor(tomF([70, 72, 76])); ctx.fillRect(px + pw / 2 - 0.15 * M, py - 0.28 * M, 0.3 * M, 0.1 * M);
+            ctx.fillStyle = cor(tomF([255, 246, 210])); ctx.fillRect(px + pw / 2 - 0.12 * M, py - 0.18 * M, 0.24 * M, 0.03 * M);
+            // ar-condicionado com a grade e o dreno
+            const ax = x0 + 0.5 * M + 4 * 1.55 * M - 0.3 * M, ay = yT + h * 0.24;
+            if (ax + 0.7 * M < px - 0.2 * M) {
+              ctx.fillStyle = cor(tomF([232, 232, 228])); ctx.fillRect(ax, ay, 0.7 * M, 0.5 * M);
+              ctx.strokeStyle = cor(tomF([170, 172, 174])); ctx.lineWidth = 1;
+              ctx.beginPath(); ctx.arc(ax + 0.42 * M, ay + 0.25 * M, 0.16 * M, 0, 6.283);
+              for (let y = ay + 0.08 * M; y < ay + 0.45 * M; y += 0.06 * M) { ctx.moveTo(ax + 0.05 * M, y); ctx.lineTo(ax + 0.2 * M, y); }
+              ctx.stroke();
+              ctx.strokeStyle = cor(tomF([150, 152, 156])); ctx.beginPath(); ctx.moveTo(ax + 0.1 * M, ay + 0.5 * M); ctx.lineTo(ax + 0.1 * M, yT + h * 0.66); ctx.stroke();
+            }
+            // extintor na parede, com a placa
+            const ex2 = x0 + 0.2 * M;
+            ctx.fillStyle = cor(tomF([210, 40, 36])); ctx.fillRect(ex2, yT + h * 0.06, 0.24 * M, 0.24 * M);
+            ctx.fillStyle = cor(tomF([200, 36, 32])); ctx.beginPath(); ctx.roundRect(ex2 + 0.05 * M, yT + h * 0.44, 0.14 * M, 0.42 * M, 0.05 * M); ctx.fill();
+            // sombra da platibanda na parede
+            ctx.fillStyle = 'rgba(0,0,0,.08)'; ctx.fillRect(x0, yT + 0.03 * M, w, 0.12 * M);
+          }
+        }
+        const conteiner = (x0: number, c: RGB, texto: string, esc = sz, base = piso - 0.45 * M) => {
+          const w = 3.6 * M * esc, h = 1.6 * M * esc, yT = base - h;
           if (!visL(x0, x0 + w)) return;
           ctx.fillStyle = cor(tomF(c)); ctx.fillRect(x0, yT, w, h);
           ctx.strokeStyle = cor(tomF(misturar(c, [0, 0, 0], 0.25))); ctx.lineWidth = 1;
           ctx.beginPath(); for (let x = x0 + 0.12 * M; x < x0 + w; x += 0.12 * M) { ctx.moveTo(x, yT); ctx.lineTo(x, yT + h); } ctx.stroke();
           ctx.fillStyle = cor(tomF([245, 245, 245]));
-          ctx.font = `700 ${0.36 * M * sz}px ${fonte('--font-barlow', 'Arial, Helvetica, sans-serif')}`;
+          ctx.font = `700 ${0.36 * M * esc}px ${fonte('--font-barlow', 'Arial, Helvetica, sans-serif')}`;
           ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
           ctx.fillText(texto, x0 + w / 2, yT + h * 0.35);
           ctx.textAlign = 'left';
         };
-        conteiner(pr(28), [44, 104, 184], 'rumo');
+        // o da Rumo fica lá atrás, um pouco na frente do capim alto
+        conteiner(lf(Xm(34), 0.35), [44, 104, 184], 'rumo', 0.55, piso - 1.9 * M);
+        predio(pr(22), 8 * M * sz, 2.8 * M * sz, true); // a oficina, atrás da preparação
         conteiner(pr(-15), [120, 128, 134], 'AGILIBOX');
         {
           // vagão-tanque branco lá em cima do barranco, longe, atrás do guincho burro (como nas fotos), com o contêiner
