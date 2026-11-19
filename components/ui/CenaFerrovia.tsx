@@ -1917,16 +1917,27 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       const alcE = esqVara ? 1 : noBotao > 0.01 ? noBotao : segura;
       const maoD: [number, number] | null = naGrade > 0.01 ? puxador : naVara > 0.01 ? G : null;
       const alcD = naGrade > 0.01 ? naGrade : naVara;
+      // Na solda voa faísca para todo lado: depois de apertar o botão os dois se afastam da máquina e só voltam
+      // quando ela termina de recalcar. O soldador dá uns passos para trás (para perto de quem olha a tela, por isso
+      // fica um pouco maior e mais embaixo); o da régua sai de perto da boca da máquina, por onde sai o leque de faíscas.
+      const afasta = parado ? 0 : suave(F.botao1, F.garra - 0.05, fase) - suave(F.recalque + 0.15, F.recalque + 0.65, fase);
+      const andandoLonge = afasta > 0.02 && afasta < 0.98 ? 1 : 0;
+      const escAf = 1 + 0.12 * afasta;
+      ctx.save();
+      ctx.translate(sxS + 0.3 * M * afasta, piso + (H - piso) * 0.55 * afasta);
+      ctx.scale(escAf, escAf);
+      ctx.translate(-sxS, -piso);
       desenharOperario(ctx, {
         sx: sxS, piso, Hs, t, mq, parado,
-        anda: andaS, passo: (sxS - posCtrl) / (Hs * 0.13),
+        anda: Math.max(andaS, andandoLonge), passo: (sxS - posCtrl) / (Hs * 0.13) + afasta * 5,
         maoE, alcE, maoD, alcD, dPeito: kv > 0.6 ? 1 : 0,
         curva: 0.12 * kv, agacha: 0, inclina: -0.35 * Math.max(segura, noBotao) - 0.3 * kv,
         capacete: [150, 156, 162], fase: 0,
       });
+      ctx.restore();
 
       // ---------- o segundo operário: a régua na emenda que acabou de sair da Schlatter ----------
-      const xR = xm - d1, sxR = xR + 0.04 * M;
+      const xR = xm - d1, sxR = xR + 0.04 * M - 1.6 * M * afasta;
       const HsR = 1.55 * M; // o da régua é mais baixo que o soldador
       if (sxR - 0.7 * M > 0) {
         const r = parado ? 1.6 : fase - F.regua0;
@@ -1951,7 +1962,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         const mRegD: [number, number] = [mix(a1[0], xR + 0.26 * M, ergue), mix(a1[1] + 0.03 * M, yDeit - esp * 0.3, ergue)];
         desenharOperario(ctx, {
           sx: sxR, piso, Hs: HsR, t, mq, parado,
-          anda: 0, passo: 0,
+          anda: andandoLonge, passo: afasta * 7,
           maoE: mRegE, alcE: ergue, maoD: mRegD, alcD: 1, dPeito: 0,
           curva: 0.12 * ergue + 0.22 * mira, agacha: 0, inclina: -0.25 * mira,
           capacete: [236, 238, 240], fase: 1.7,
