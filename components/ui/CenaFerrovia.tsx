@@ -1200,7 +1200,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     const R = 0.23 * M; // altura do perfil
     const L = 12 * M; // uma barra de 12 m
     const piso = H * 0.95;
-    const topo = piso - 0.85 * M; // o trilho corre a 85 cm do chão, sobre os roletes
+    const topo = piso - 1.05 * M; // o trilho corre a cerca de 1,05 m do chão (altura da cintura), sobre os roletes
     const rr = 0.1 * M; // rolete de 20 cm
 
     // Schlatter à direita no computador (fora dos cartões); no celular, mais para a direita também.
@@ -1874,15 +1874,16 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
 
       // ---------- o segundo operário: a régua na emenda que acabou de sair da Schlatter ----------
       const xR = xm - d1, sxR = xR + 0.04 * M;
+      const HsR = 1.55 * M; // o da régua é mais baixo que o soldador
       if (sxR - 0.7 * M > 0) {
         const r = parado ? 1.6 : fase - F.regua0;
         const ergue = suave(0, 0.5, r) * (1 - suave(2.8, 3.3, r)); // 0 em pé do lado dele, 1 deitada sobre o boleto
         const desce = suave(0.45, 0.8, r) * (1 - suave(2.65, 2.95, r));
-        const mira = suave(0.9, 1.35, r) * (1 - suave(2.3, 2.7, r)); // se abaixa e mira ao longo da régua
+        const mira = suave(0.9, 1.35, r) * (1 - suave(2.3, 2.7, r)); // inclina um pouco e olha ao longo da régua (sem agachar)
         const yBol = topo - R * 0.06;
         const esp = Math.max(2, 0.035 * M);
         const yDeit = yBol - esp / 2 - 0.25 * M * (1 - desce);
-        const ladoX = sxR + 0.17 * Hs;
+        const ladoX = sxR + 0.17 * HsR;
         const a0: [number, number] = [mix(ladoX, xR - 0.5 * M, ergue), mix(piso - 0.02 * M, yDeit, ergue)];
         const a1: [number, number] = [mix(ladoX, xR + 0.5 * M, ergue), mix(piso - 1.0 * M, yDeit, ergue)];
         ctx.lineCap = 'butt';
@@ -1896,10 +1897,10 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         const mRegE: [number, number] = [xR - 0.24 * M, yDeit - esp * 0.3];
         const mRegD: [number, number] = [mix(a1[0], xR + 0.26 * M, ergue), mix(a1[1] + 0.03 * M, yDeit - esp * 0.3, ergue)];
         desenharOperario(ctx, {
-          sx: sxR, piso, Hs, t, mq, parado,
+          sx: sxR, piso, Hs: HsR, t, mq, parado,
           anda: 0, passo: 0,
           maoE: mRegE, alcE: ergue, maoD: mRegD, alcD: 1, dPeito: 0,
-          curva: 0.3 * ergue + 0.65 * mira, agacha: 0.22 * mira, inclina: -0.4 * mira,
+          curva: 0.12 * ergue + 0.22 * mira, agacha: 0, inclina: -0.25 * mira,
           capacete: [236, 238, 240], fase: 1.7,
         });
       }
