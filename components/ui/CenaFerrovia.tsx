@@ -1794,36 +1794,20 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         };
         conteiner(pr(28), [44, 104, 184], 'rumo');
         conteiner(pr(-15), [120, 128, 134], 'AGILIBOX');
-        // guincho burro e o vagão azul, mais perto (atrás do galpão, na altura do acabamento), com o gancho balançando
         {
-          const kT = 0.7, eT = 0.62;
-          const x0 = lf(Xm(-41), kT), w = 27 * M * eT, h = 5.3 * M * eT, yB = piso - 0.42 * M;
-          if (visL(x0, x0 + w)) {
-            ctx.drawImage(fc.trem, x0, yB - h, w, h);
-            const pt: [number, number] = [x0 + (27 - 0.6) * M * eT, yB - h + 1.15 * M * eT]; // a roldana na ponta da lança
-            const ang = parado ? 0 : Math.sin(t * 0.9) * 0.06;
-            const cabo = 2.2 * M * eT;
-            const gx = pt[0] + Math.sin(ang) * cabo, gy = pt[1] + Math.cos(ang) * cabo;
-            ctx.strokeStyle = cor(tomF([60, 62, 66])); ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.moveTo(pt[0], pt[1]); ctx.lineTo(gx, gy); ctx.stroke();
-            ctx.fillStyle = cor(tomF([60, 62, 66])); ctx.fillRect(gx - 0.1 * M * eT, gy, 0.2 * M * eT, 0.25 * M * eT);
-            ctx.strokeStyle = cor(tomF([200, 160, 60])); ctx.lineWidth = Math.max(1, 0.04 * M * eT);
-            ctx.beginPath(); ctx.arc(gx, gy + 0.36 * M * eT, 0.09 * M * eT, -Math.PI / 2, Math.PI); ctx.stroke();
-          }
-        }
-        {
-          // vagão-tanque branco (como o das fotos, parado lá fora): tanque com as pontas abauladas, a faixa de reforço,
+          // vagão-tanque branco lá em cima do barranco, longe, atrás do guincho burro (como nas fotos), com o contêiner
+          // azul pequeno do lado. Fica parado lá fora: tanque com as pontas abauladas, a faixa de reforço,
           // o domo com a escotilha, a passarela com o guarda-corpo, a escadinha, a placa laranja de produto e os truques
-          const x0 = pr(-74), w = 6 * M * sz, hT = 1.05 * M * sz, yRl = piso - 0.45 * M;
-          const yT = yRl - 0.72 * M * sz - hT;
+          const szT = 0.5, x0 = lf(Xm(-35), 0.35), w = 6 * M * szT, hT = 1.05 * M * szT, yRl = piso - 1.75 * M;
+          const yT = yRl - 0.72 * M * szT - hT;
           if (visL(x0 - M, x0 + w + M)) {
             // chassi e truques (rodas acima da cerca, com o eixo)
             ctx.fillStyle = cor(tomF([54, 56, 60])); ctx.fillRect(x0 - 0.2 * M, yT + hT, w + 0.4 * M, 0.16 * M);
             for (const bx of [x0 + 0.9 * M, x0 + w - 0.9 * M]) {
               ctx.fillStyle = cor(tomF([62, 64, 68])); ctx.fillRect(bx - 0.55 * M, yT + hT + 0.16 * M, 1.1 * M, 0.14 * M);
               for (const d of [-0.32, 0.32]) {
-                ctx.fillStyle = cor(tomF([40, 42, 46])); ctx.beginPath(); ctx.arc(bx + d * M, yRl - 0.2 * M * sz, 0.19 * M * sz, 0, 6.283); ctx.fill();
-                ctx.fillStyle = cor(tomF([150, 152, 156])); ctx.beginPath(); ctx.arc(bx + d * M, yRl - 0.2 * M * sz, 0.06 * M * sz, 0, 6.283); ctx.fill();
+                ctx.fillStyle = cor(tomF([40, 42, 46])); ctx.beginPath(); ctx.arc(bx + d * M, yRl - 0.2 * M * szT, 0.19 * M * szT, 0, 6.283); ctx.fill();
+                ctx.fillStyle = cor(tomF([150, 152, 156])); ctx.beginPath(); ctx.arc(bx + d * M, yRl - 0.2 * M * szT, 0.06 * M * szT, 0, 6.283); ctx.fill();
               }
             }
             // tanque
@@ -1852,6 +1836,34 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
             ctx.fillStyle = cor(tomF([250, 250, 248])); ctx.strokeStyle = cor(tomF([200, 40, 36]));
             ctx.beginPath(); ctx.moveTo(lx, ly - 0.17 * M); ctx.lineTo(lx + 0.17 * M, ly); ctx.lineTo(lx, ly + 0.17 * M); ctx.lineTo(lx - 0.17 * M, ly); ctx.closePath(); ctx.fill(); ctx.stroke();
           }
+          // contêiner azul pequeno ao lado do tanque
+          {
+            const cx0 = lf(Xm(-35), 0.35) - 1.3 * M;
+            if (visL(cx0, cx0 + 1.1 * M)) {
+              ctx.fillStyle = cor(tomF([40, 110, 190])); ctx.fillRect(cx0, piso - 1.75 * M - 0.6 * M, 1.1 * M, 0.6 * M);
+              ctx.strokeStyle = cor(tomF([30, 86, 156])); ctx.lineWidth = 1; ctx.beginPath();
+              for (let x = cx0 + 0.1 * M; x < cx0 + 1.1 * M; x += 0.1 * M) { ctx.moveTo(x, piso - 2.35 * M); ctx.lineTo(x, piso - 1.75 * M); } ctx.stroke();
+            }
+          }
+        }
+        // guincho burro e o vagão azul, mais perto (atrás do galpão, na altura do acabamento), com o gancho balançando
+        {
+          const kT = 0.7, eT = 0.62;
+          const x0 = lf(Xm(-41), kT), w = 27 * M * eT, h = 5.3 * M * eT, yB = piso - 0.42 * M;
+          if (visL(x0, x0 + w)) {
+            ctx.drawImage(fc.trem, x0, yB - h, w, h);
+            const pt: [number, number] = [x0 + (27 - 0.6) * M * eT, yB - h + 1.15 * M * eT]; // a roldana na ponta da lança
+            const ang = parado ? 0 : Math.sin(t * 0.9) * 0.06;
+            const cabo = 2.2 * M * eT;
+            const gx = pt[0] + Math.sin(ang) * cabo, gy = pt[1] + Math.cos(ang) * cabo;
+            ctx.strokeStyle = cor(tomF([60, 62, 66])); ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(pt[0], pt[1]); ctx.lineTo(gx, gy); ctx.stroke();
+            ctx.fillStyle = cor(tomF([60, 62, 66])); ctx.fillRect(gx - 0.1 * M * eT, gy, 0.2 * M * eT, 0.25 * M * eT);
+            ctx.strokeStyle = cor(tomF([200, 160, 60])); ctx.lineWidth = Math.max(1, 0.04 * M * eT);
+            ctx.beginPath(); ctx.arc(gx, gy + 0.36 * M * eT, 0.09 * M * eT, -Math.PI / 2, Math.PI); ctx.stroke();
+          }
+        }
+        {
           const ex = pr(-63);
           if (visL(ex - 2 * M, ex + 3 * M)) {
             ctx.fillStyle = cor(tomF([222, 176, 40]));
