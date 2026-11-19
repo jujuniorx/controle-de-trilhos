@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { CampoObservacao, Secao } from '@/components/portaria/Secao';
+import { BuscaMotorista } from '@/components/portaria/BuscaMotorista';
 import { ICONE_RECEBIMENTOS, ICONE_SETA_BAIXO } from '@/components/portaria/icones';
 import { cancelarChegadaAction, confirmarSaidaChegadaAction, definirOrdemChegadaAction, desfazerSaidaChegadaAction, registrarChegadaAction, salvarChegadaAction } from './actions';
 import type { ResultadoPortaria } from '../actions';
@@ -182,9 +183,10 @@ export function CartaoChegada({ item, origens = [] }: { item: ItemChegada; orige
             </button>
           )}
           <Secao titulo="Motorista">
+            {campo('motoristaCpf', 'CPF do motorista', { inputMode: 'numeric', maxLength: 14, placeholder: '000.000.000-00' })}
+            <BuscaMotorista cpf={v.motoristaCpf} excluirId={item.id} desabilitado={pendente || bloqueado} aoEscolher={(d) => setV((a) => ({ ...a, ...d }))} />
             {campo('transportadora', 'Empresa (transportadora)')}
             {campo('motoristaNome', 'Motorista')}
-            {campo('motoristaCpf', 'CPF do motorista', { inputMode: 'numeric', maxLength: 14, placeholder: '000.000.000-00' })}
             {campo('motoristaTelefone', 'Telefone do motorista', { inputMode: 'tel', maxLength: 16, placeholder: '(00) 00000-0000' })}
           </Secao>
           <Secao titulo="Veículo">

@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { CampoObservacao, ICONE_CAMINHAO, Secao } from '@/components/portaria/Secao';
+import { BuscaMotorista } from '@/components/portaria/BuscaMotorista';
 import { ICONE_SETA_BAIXO } from '@/components/portaria/icones';
 import { apagarCarretaAction, confirmarSaidaAction, desfazerSaidaAction, registrarChegadaAction, salvarDadosAction, type ResultadoPortaria } from './actions';
 import { ROTULO_ESTADO } from '@/lib/domain/portaria';
@@ -163,9 +164,10 @@ export function CartaoPortaria({ item, origens = [] }: { item: ItemPortaria; ori
           {/* Pátio: observação escrita na carreta, sempre visível antes dos campos. */}
           {item.observacao && <p className="rounded-lg bg-warn/10 px-3 py-2 text-sm text-warn"><b>Pátio:</b> {item.observacao}</p>}
           <Secao titulo="Motorista">
+            {campo('motoristaCpf', 'CPF do motorista', { inputMode: 'numeric', maxLength: 14, placeholder: '000.000.000-00' })}
+            <BuscaMotorista cpf={v.motoristaCpf} excluirId={item.id} desabilitado={pendente || saiu} aoEscolher={(d) => setV((a) => ({ ...a, ...d }))} />
             {campo('transportadora', 'Empresa (transportadora)')}
             {campo('motoristaNome', 'Motorista')}
-            {campo('motoristaCpf', 'CPF do motorista', { inputMode: 'numeric', maxLength: 14, placeholder: '000.000.000-00' })}
             {campo('motoristaTelefone', 'Telefone do motorista', { inputMode: 'tel', maxLength: 16, placeholder: '(00) 00000-0000' })}
           </Secao>
           <Secao titulo="Caminhão">

@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { novoEnvioPortariaAction } from './actions';
 import { ICONE_MAIS } from '@/components/portaria/icones';
+import { BuscaMotorista } from '@/components/portaria/BuscaMotorista';
 import { formatarCpfDigitado, formatarTelefoneDigitado } from '@/lib/validation/portaria';
 
 type Campos = {
@@ -107,12 +108,13 @@ export function NovoEnvioPortaria({ origens = [] }: { origens?: string[] }) {
       {campo('destino', 'Carregar para (destino)', { obrigatorio: true })}
       {campo('origem', 'Local (de onde sai)', { lista: true })}
       {campo('materialPrevisto', 'Material')}
+      {campo('motoristaCpf', 'CPF do motorista', { placeholder: '000.000.000-00', maxLength: 14 })}
+      <BuscaMotorista cpf={valores.motoristaCpf} desabilitado={pendente} aoEscolher={(d) => setValores((a) => ({ ...a, ...d }))} />
       {campo('transportadora', 'Empresa')}
       <div className="grid grid-cols-2 gap-2">
         {campo('motoristaNome', 'Motorista')}
-        {campo('motoristaCpf', 'CPF', { placeholder: '000.000.000-00', maxLength: 14 })}
+        {campo('motoristaTelefone', 'Telefone', { placeholder: '(00) 00000-0000', maxLength: 16 })}
       </div>
-      {campo('motoristaTelefone', 'Telefone', { placeholder: '(00) 00000-0000', maxLength: 16 })}
       <div className="grid grid-cols-2 gap-2">
         {campo('placaCavalo', 'Placa do cavalo', { placeholder: 'ABC1D23 ou CMG1234', maxLength: 7 })}
         {campo('placaCarreta', 'Placa da carreta', { placeholder: 'ABC1D23 ou CMG1234', maxLength: 7 })}

@@ -9,6 +9,8 @@ import { apagarCarretaPelaPortaria, confirmarSaidaCarreta, criarEnvioPelaPortari
 import { ErroRegraNegocio } from '@/lib/services/errors';
 import { enviarLembretesSaidaPendente } from '@/lib/services/lembretesSaida';
 import { dadosPortariaSchema, novoEnvioPortariaSchema } from '@/lib/validation/portaria';
+import { buscarMotoristaPorCpf } from '@/lib/services/motoristas';
+import type { MotoristaEncontrado } from '@/lib/domain/motoristaPortaria';
 
 export interface ResultadoPortaria {
   ok: boolean;
@@ -117,6 +119,21 @@ export async function desfazerSaidaAction(id: string): Promise<ResultadoPortaria
     if (e instanceof ErroRegraNegocio) return { ok: false, erro: e.message };
     console.error('[portaria] falha ao desfazer saída', e);
     return { ok: false, erro: 'Não foi possível concluir. Tente de novo.' };
+  }
+}
+
+/** Portaria: CPF digitado -> dados do motorista e caminhões das viagens anteriores. Só leitura. */
+export async function buscarMotoristaAction(
+  cpf: string,
+  excluirId?: string,
+): Promise<{ ok: true; motorista: MotoristaEncontrado | null } | { ok: false; erro: string }> {
+  await requirePortaria();
+  if (typeof cpf !== 'string' || (excluirId != null && typeof excluirId !== 'string')) return { ok: false, erro: 'CPF inválido.' };
+  try {
+    return { ok: true, motorista: await buscarMotoristaPorCpf(cpf, excluirId) };
+  } catch (e) {
+    console.error('[portaria] falha ao buscar motorista', e);
+    return { ok: false, erro: 'Não foi possível buscar agora. Preencha os dados à mão.' };
   }
 }
 
