@@ -9,7 +9,7 @@
  * p: ponto da rolagem da seção (0 a 1) em que a câmera fica parada na estação.
  */
 export type IdEstacao =
-  | 'preparacao' | 'gesmar' | 'schlatter' | 'regua' | 'rolo' | 'patim' | 'boleteira1' | 'boleteira2' | 'rolos' | 'patio';
+  | 'preparacao' | 'geismar' | 'schlatter' | 'regua' | 'rolo' | 'patim' | 'boleteira1' | 'boleteira2' | 'rolos' | 'patio';
 
 export interface EstacaoLinha {
   id: IdEstacao;
@@ -20,16 +20,16 @@ export interface EstacaoLinha {
 }
 
 const BASE: Omit<EstacaoLinha, 'p'>[] = [
-  { id: 'preparacao', nome: 'Preparação', metros: 49, texto: 'O operador do pórtico encaixa um gancho em cada ponta da barra, tira da pilha no chão e coloca sobre os roletes.' },
-  { id: 'gesmar', nome: 'Gesmar', metros: 12, texto: 'Da bancada, o operador comanda a Gesmar, que lixa o patim e o boleto nas pontas para a solda, e manda a barra para a Schlatter.' },
+  { id: 'preparacao', nome: 'Preparação', metros: 49, texto: 'Dois pórticos de 2 t, um em cada ponta, tiram a barra da pilha e colocam sobre os roletes.' },
+  { id: 'geismar', nome: 'Geismar', metros: 12, texto: 'O operador só aperta os botões: a máquina lixa as pontas da barra sozinha, indo para frente e para trás, e o coletor puxa o pó.' },
   { id: 'schlatter', nome: 'Schlatter', metros: 0, texto: 'Solda elétrica por centelhamento: as pontas se aproximam, centelham e recebem o recalque. Depois o soldador raspa a borra pela portinhola.' },
   { id: 'regua', nome: 'Régua', metros: -3.8, texto: 'Logo depois da solda, a régua de aço deitada sobre o boleto confere se a emenda ficou alinhada.' },
   { id: 'rolo', nome: 'Rolo opressor 01', metros: -5.5, texto: 'Dá a tração da linha: os cilindros encostam o rolo no patim e o motor puxa a barra.' },
-  { id: 'patim', nome: 'Patim', metros: -12, texto: 'Lixa a parte de baixo da emenda para não ficar o volume da solda. Trabalho a quente: viseira e avental de raspa.' },
-  { id: 'boleteira1', nome: 'Boleteira 1', metros: -24, texto: 'Lixa o boleto e a lateral do trilho. Os cantos o operador acerta com a retífica de rebolo.' },
-  { id: 'boleteira2', nome: 'Boleteira 2', metros: -36, texto: 'A segunda boleteira, do outro lado da linha, faz o mesmo acabamento no boleto e na lateral.' },
-  { id: 'rolos', nome: 'Rolos opressores', metros: -43, texto: 'Mais três rolos opressores no fim da linha puxam o trilho em direção ao pátio.' },
-  { id: 'patio', nome: 'Pátio do TLS', metros: -60, texto: 'A céu aberto: as talhas erguem o trilho longo soldado (TLS) de uma vez e colocam na pilha, que vai crescendo.' },
+  { id: 'patim', nome: 'Patim', metros: -36, texto: 'Corre num trilho amarelo no chão, por baixo da barra, e lixa embaixo da emenda. O operador comanda pelos volantes. Trabalho a quente: viseira e avental de raspa.' },
+  { id: 'boleteira1', nome: 'Boleteira 1', metros: -48, texto: 'Presa no balancim azul, lixa o boleto e a lateral do trilho. Os cantos o operador acerta com a retífica, que fica no suporte ao lado.' },
+  { id: 'boleteira2', nome: 'Boleteira 2', metros: -60, texto: 'A segunda boleteira faz o mesmo acabamento. Aqui o operador fica do outro lado da linha.' },
+  { id: 'rolos', nome: 'Rolos opressores', metros: -75, texto: 'Depois do rolete 49, os rolos opressores 02, 03 e 04 puxam o trilho para fora do galpão.' },
+  { id: 'patio', nome: 'Pátio do TLS', metros: -95, texto: 'A céu aberto: o operador engata as talhas no trilho longo soldado (TLS), ergue tudo de uma vez e põe na pilha, sobre os cavaletes vermelhos.' },
 ];
 
 export const ESTACOES_LINHA: EstacaoLinha[] = BASE.map((e, i) => ({ ...e, p: 0.06 + (i * 0.9) / (BASE.length - 1) }));

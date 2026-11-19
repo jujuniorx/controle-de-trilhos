@@ -1499,6 +1499,15 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         }
       }
     }
+    // tubulação vermelha de incêndio correndo pela parede do galpão (como nas fotos), até o fim do galpão
+    {
+      const fimG = xm - 80 * M - camX;
+      if (fimG < W) {
+        const yC = piso - 3.4 * M;
+        ctx.fillStyle = cor(escuro ? misturar([196, 40, 40], pal.ceuTopo, 0.55) : [196, 40, 40], 0.75);
+        ctx.fillRect(Math.max(0, fimG), yC, W - Math.max(0, fimG), Math.max(2, 0.06 * M));
+      }
+    }
     // outra estação soldando lá no fundo: um clarão que pisca de vez em quando
     const pisca = Math.max(0, Math.sin(t * 13) * Math.sin(t * 2.3) * Math.sin(t * 0.7 + 1));
     if (!parado && pisca > 0.2) {
@@ -1510,7 +1519,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
 
     // ---------- pátio do TLS: depois do fim do galpão é céu aberto, com sol ----------
     {
-      const bx = xm - 47 * M - camX; // onde o galpão acaba, na tela
+      const bx = xm - 80 * M - camX; // onde o galpão acaba, na tela
       if (bx > 0) {
         const xs = Math.min(bx, W);
         const esc = escuro ? 0.45 : 0;
@@ -1563,6 +1572,17 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     ctx.fillRect(vx0, piso, W, H - piso);
     ctx.fillStyle = cor(pal.aco, escuro ? 0.06 : 0.25);
     ctx.fillRect(vx0, piso, W, 1);
+    // piso pintado do galpão (como nas fotos): a faixa da linha avermelhada, a borda amarela e o corredor
+    // cinza-azulado na frente. No pátio, a céu aberto, o chão é outro (desenhado mais adiante).
+    {
+      const gx0 = Math.max(vx0, xm - 80 * M), hc = H - piso;
+      if (gx0 < vx1) {
+        const tom = (c: RGB): RGB => (escuro ? misturar(c, pal.ceuTopo, 0.5) : c);
+        ctx.fillStyle = cor(tom([158, 78, 54]), 0.85); ctx.fillRect(gx0, piso, vx1 - gx0, hc * 0.42);
+        ctx.fillStyle = cor(tom([226, 182, 44]), 0.9); ctx.fillRect(gx0, piso + hc * 0.42, vx1 - gx0, Math.max(2, hc * 0.05));
+        ctx.fillStyle = cor(tom([84, 104, 120]), 0.85); ctx.fillRect(gx0, piso + hc * 0.47, vx1 - gx0, hc * 0.53);
+      }
+    }
     {
       const escMaq = (c: RGB): RGB => (escuro ? misturar(c, pal.ceuTopo, 0.35) : c);
       const cL = Math.max(vx0, xm - 2.2 * M), cR = Math.min(vx1, xm + 3.0 * M), hc = H - piso;
@@ -1719,11 +1739,13 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     }
 
     // ---------- a linha inteira (passeio): posições e o que fica atrás do trilho ----------
-    // Cada estação fica onde a emenda para: a barra para a cada 12 m (Gesmar 12 m antes da Schlatter; patim e
-    // boleteiras 12, 24 e 36 m depois). A preparação fica na ponta de cima e o pátio do TLS depois do galpão.
+    // Cada estação fica onde a emenda para: a barra para a cada 12 m (Geismar 12 m antes da Schlatter; patim e
+    // boleteiras 36, 48 e 60 m depois, nos roletes 35, 40 e 45, como nas fotos). A preparação fica na ponta de cima,
+    // os rolos opressores 02 a 04 depois do rolete 49 e o pátio do TLS depois do galpão.
     const X = (m: number) => xm + m * M;
-    const xGes = X(12), xPat = X(-12), xB1 = X(-24), xB2 = X(-36), xPatio = X(-47);
-    const rolosFim = [X(-40.5), X(-43), X(-45.5)].map((x) => x - w01 / 2);
+    const xGes = X(12), xPat = X(-36), xB1 = X(-48), xB2 = X(-60), xPatio = X(-80);
+    const xPassarela = X(-42);
+    const rolosFim = [X(-72.5), X(-75), X(-77.5)].map((x) => x - w01 / 2);
     const vis = (a: number, b: number) => b > vx0 - 2 * M && a < vx1 + 2 * M;
     const parada = parado || Math.abs(vel) < 0.5;
     const trabalha = (a: number, b: number) => !parado && parada && fase > a && fase < b && t >= CHEGA;
@@ -1757,6 +1779,58 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.fillRect(xb0 + i * 0.12 * M, yb, L - i * 0.24 * M, camadaPilha * 0.72);
       }
     }
+    // tela de arame com postes amarelos atrás da linha, da Geismar até a entrada da Schlatter (como nas fotos)
+    if (vis(X(17), X(2.3))) {
+      const a0 = X(2.3), a1 = X(17), yT = piso - 1.25 * M;
+      ctx.strokeStyle = cor(mq([120, 126, 132]), escuro ? 0.35 : 0.5); ctx.lineWidth = 1;
+      ctx.beginPath();
+      const malha = Math.max(5, 0.12 * M);
+      for (let x = a0; x <= a1; x += malha) { ctx.moveTo(x, yT); ctx.lineTo(x, piso - 0.05 * M); }
+      for (let y = yT; y <= piso - 0.05 * M; y += malha) { ctx.moveTo(a0, y); ctx.lineTo(a1, y); }
+      ctx.stroke();
+      ctx.fillStyle = cor(mq([70, 74, 80])); ctx.fillRect(a0, yT - 0.04 * M, a1 - a0, 0.05 * M);
+      for (let x = a0; x <= a1 + 1; x += 2 * M) { ctx.fillStyle = amarelo(AM_S); ctx.fillRect(x - 0.035 * M, yT - 0.05 * M, 0.07 * M, piso - yT + 0.05 * M); }
+    }
+    // tubo azul que sai das mangueiras da Geismar e o coletor de pó Donaldson (caixa azul) ao lado
+    if (vis(xGes - M, xGes + 5 * M)) {
+      const yTubo = piso - 3.6 * M, cX = xGes + 3.4 * M, cW = 1.3 * M, cTop = piso - 2.4 * M;
+      const azul = (k = 0) => cor(mq([38 + k, 92 + k, 172 + k]));
+      ctx.fillStyle = azul(4);
+      ctx.fillRect(xGes - 0.45 * M, yTubo - 0.13 * M, cX + cW * 0.5 - xGes + 0.45 * M, 0.26 * M);
+      ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fillRect(xGes - 0.45 * M, yTubo - 0.13 * M, cX + cW * 0.5 - xGes + 0.45 * M, 0.06 * M);
+      ctx.fillStyle = azul(4); ctx.fillRect(cX + cW * 0.5 - 0.13 * M, yTubo, 0.26 * M, cTop - yTubo - 0.3 * M);
+      // coletor: caixa azul com a chaminé em cima, a porta e as pernas
+      ctx.fillStyle = azul(-6); ctx.fillRect(cX, cTop, cW, piso - cTop - 0.25 * M);
+      ctx.fillStyle = azul(8); ctx.fillRect(cX + cW * 0.3, cTop - 0.3 * M, cW * 0.4, 0.3 * M);
+      ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.fillRect(cX + cW * 0.35, cTop + 0.5 * M, cW * 0.35, 1.0 * M);
+      ctx.fillStyle = azul(-20);
+      for (const lx of [cX + 0.05 * M, cX + cW - 0.13 * M]) ctx.fillRect(lx, piso - 0.25 * M, 0.08 * M, 0.25 * M);
+      ctx.fillStyle = 'rgba(255,255,255,.85)';
+      ctx.font = `700 ${0.11 * M}px ${fonte('--font-barlow-cond', '"Barlow Condensed", "Arial Narrow", sans-serif')}`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('Donaldson', cX + cW / 2, cTop + 0.25 * M);
+      ctx.textAlign = 'left';
+    }
+    // balancim azul das boleteiras: viga no alto com colunas; a boleteira 1 fica pendurada nele
+    const yBal = piso - 3.9 * M;
+    if (vis(X(-63), X(-45))) {
+      const azul = (k = 0) => cor(mq([40 + k, 86 + k, 160 + k]));
+      for (const cx of [X(-45.5), X(-54), X(-62.5)]) { ctx.fillStyle = azul(-8); ctx.fillRect(cx - 0.1 * M, yBal, 0.2 * M, piso - yBal); }
+      ctx.fillStyle = azul(6); ctx.fillRect(X(-62.8), yBal - 0.18 * M, X(-45.2) - X(-62.8), 0.2 * M);
+      ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fillRect(X(-62.8), yBal - 0.18 * M, X(-45.2) - X(-62.8), 0.05 * M);
+    }
+    // placa do setor pendurada no telhado, logo depois da passarela
+    if (vis(X(-46), X(-43))) {
+      const sx = X(-44.6), sy = piso - 4.7 * M, sw = 1.9 * M, sh = 0.36 * M;
+      ctx.strokeStyle = cor(mq([90, 94, 100])); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(sx + 0.2 * M, sy); ctx.lineTo(sx + 0.2 * M, sy - 1.2 * M); ctx.moveTo(sx + sw - 0.2 * M, sy); ctx.lineTo(sx + sw - 0.2 * M, sy - 1.2 * M); ctx.stroke();
+      ctx.fillStyle = cor(mq([30, 78, 150])); ctx.fillRect(sx, sy, sw, sh);
+      ctx.fillStyle = 'rgba(255,255,255,.95)';
+      ctx.font = `700 ${0.16 * M}px ${fonte('--font-barlow-cond', '"Barlow Condensed", "Arial Narrow", sans-serif')}`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('SETOR DE METALURGIA', sx + sw / 2, sy + sh / 2);
+      ctx.textAlign = 'left';
+    }
     // boleteira 2: fica do outro lado da linha (atrás do trilho), com o operador de frente para quem vê a tela
     if (vis(xB2 - M, xB2 + 2 * M)) {
       const gB = ctx.createLinearGradient(xB2 - 0.6 * M, 0, xB2 + 0.6 * M, 0);
@@ -1771,15 +1845,21 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       desenharOperario(ctx, {
         sx: xB2 + 0.95 * M, piso, Hs: 1.72 * M, t, mq, parado, anda: 0, passo: 0,
         maoE: [xB2 + 0.35 * M, topo - 0.3 * M], alcE: quente2 ? 1 : 0.3, maoD: [xB2 + 0.55 * M, topo - 0.15 * M], alcD: quente2 ? 1 : 0, dPeito: 0,
-        curva: 0, agacha: 0, inclina: -0.2, capacete: [150, 156, 162], fase: 2.4, quente: true, frente: true,
+        curva: 0, agacha: 0, inclina: -0.2, capacete: [196, 44, 38], fase: 2.4, quente: true, frente: true,
       });
       ctx.restore();
     }
     // três rolos opressores no fim da linha (bloco e rolo atrás do trilho)
     rolosFim.forEach((x0, i) => roloAtras(x0, String(i + 2).padStart(2, '0')));
     // pilha do TLS no pátio, atrás da linha: cresce enquanto a pessoa fica olhando
-    const tlsX0 = X(-77), tlsX1 = X(-49);
+    const tlsX0 = X(-110), tlsX1 = X(-82);
     if (vis(tlsX0, tlsX1)) {
+      // cavaletes vermelhos embaixo da pilha
+      for (let x = tlsX0 + 0.8 * M; x < tlsX1; x += 3.4 * M) {
+        ctx.fillStyle = cor(escuro ? misturar([178, 46, 38], pal.ceuTopo, 0.35) : [178, 46, 38]);
+        ctx.beginPath(); ctx.moveTo(x - 0.3 * M, piso); ctx.lineTo(x - 0.12 * M, piso - 0.22 * M); ctx.lineTo(x + 0.12 * M, piso - 0.22 * M); ctx.lineTo(x + 0.3 * M, piso); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(x - 0.2 * M, piso - 0.22 * M, 0.4 * M, 0.04 * M);
+      }
       for (let i = 0; i < tlsCamadas; i++) {
         const yb = piso - 0.2 * M - (i + 1) * 0.15 * M;
         ctx.fillStyle = cor(misturar([140, 96, 60], pal.ceuTopo, escuro ? 0.4 : 0.05));
@@ -1792,7 +1872,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     // onde já tem máquina embaixo do trilho não vai rolete
     const ocupado = (x: number) =>
       [x01, ...rolosFim].some((x0) => x > x0 - 0.3 * M && x < x0 + w01 + 0.3 * M) ||
-      Math.abs(x - xGes) < 1.2 * M || Math.abs(x - xPat) < 1.0 * M || Math.abs(x - xB1) < 1.0 * M;
+      Math.abs(x - xGes) < 1.8 * M || Math.abs(x - xPat) < 1.6 * M || Math.abs(x - xB1) < 1.0 * M;
 
     // ---------- roletes ----------
     // Rolos de aço deitados atravessando o trilho (não são bolas), em suportes de chapa amarela parafusados no chão,
@@ -1832,23 +1912,38 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         const a = giro + (k * 2 * Math.PI) / 3;
         ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * rr * 0.3, yRol + Math.sin(a) * rr * 0.3); ctx.lineTo(x + Math.cos(a) * rr * 0.8, yRol + Math.sin(a) * rr * 0.8); ctx.stroke();
       }
-      // pé e mancal da frente, com o eixo
-      pe(x, yRol + rr * 0.55, amPeL, amPeS);
-      ctx.fillStyle = cor(misturar(pal.acoLado, [0, 0, 0], 0.5));
-      ctx.beginPath(); ctx.arc(x, yRol + rr * 0.55, rr * 0.18, 0, 6.283); ctx.fill();
-      ctx.fillStyle = amPe; // base parafusada, ligando os dois pés
-      ctx.fillRect(x - rr * 1.1, piso - 0.045 * M, rr * 2.2 + fx, 0.045 * M);
-      ctx.fillStyle = 'rgba(0,0,0,.4)';
-      for (const bx of [x - rr * 0.85, x + fx + rr * 0.85]) { ctx.beginPath(); ctx.arc(bx, piso - 0.022 * M, Math.max(1, 0.012 * M), 0, 6.283); ctx.fill(); }
-      // número pintado no pé da frente
-      const tn = Math.max(6, 0.11 * M);
-      ctx.save();
-      ctx.translate(x, (yRol + piso) / 2 + rr * 0.6); ctx.rotate(-Math.PI / 2);
-      ctx.fillStyle = 'rgba(16,16,18,.85)';
-      ctx.font = `700 ${tn}px ${fonte('--font-barlow-cond', '"Barlow Condensed", "Arial Narrow", sans-serif')}`;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      if (num >= 1 && num <= 49) ctx.fillText(String(num).padStart(2, '0'), 0, 0);
-      ctx.restore();
+      // pedestal da frente (como nas fotos): trapézio amarelo com a grade de ventilação em cima e o número grande
+      {
+        const yP = yRol + rr * 0.35, topoW = 0.36 * M, baseW = 0.62 * M;
+        const gp = ctx.createLinearGradient(x - baseW / 2, 0, x + baseW / 2, 0);
+        gp.addColorStop(0, amPeL); gp.addColorStop(1, amPeS);
+        ctx.fillStyle = gp;
+        ctx.beginPath();
+        ctx.moveTo(x - topoW / 2, yP); ctx.lineTo(x + topoW / 2, yP); ctx.lineTo(x + baseW / 2, piso); ctx.lineTo(x - baseW / 2, piso); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = amPe; ctx.fillRect(x - topoW / 2 - 0.02 * M, yP - 0.03 * M, topoW + 0.04 * M, 0.05 * M);
+        // grade de ventilação
+        const gx0 = x - 0.12 * M, gy0 = yP + 0.07 * M, gw = 0.24 * M, gh = 0.15 * M;
+        ctx.fillStyle = 'rgba(20,20,22,.6)'; ctx.fillRect(gx0, gy0, gw, gh);
+        ctx.strokeStyle = 'rgba(200,200,200,.55)'; ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let gx = gx0; gx <= gx0 + gw + 0.1; gx += Math.max(2.5, 0.035 * M)) { ctx.moveTo(gx, gy0); ctx.lineTo(gx, gy0 + gh); }
+        for (let gy = gy0; gy <= gy0 + gh + 0.1; gy += Math.max(2.5, 0.035 * M)) { ctx.moveTo(gx0, gy); ctx.lineTo(gx0 + gw, gy); }
+        ctx.stroke();
+        // eixo do rolo saindo do mancal
+        ctx.fillStyle = cor(misturar(pal.acoLado, [0, 0, 0], 0.5));
+        ctx.beginPath(); ctx.arc(x, yRol, rr * 0.22, 0, 6.283); ctx.fill();
+        // número pintado de preto
+        if (num >= 1 && num <= 49) {
+          const tn = Math.max(7, 0.17 * M);
+          ctx.fillStyle = 'rgba(16,16,18,.88)';
+          ctx.font = `700 ${tn}px ${fonte('--font-barlow-cond', '"Barlow Condensed", "Arial Narrow", sans-serif')}`;
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText(String(num).padStart(2, '0'), x, (gy0 + gh + piso) / 2);
+          ctx.textAlign = 'left';
+        }
+        ctx.fillStyle = 'rgba(0,0,0,.4)';
+        for (const bx of [x - baseW / 2 + 0.05 * M, x + baseW / 2 - 0.05 * M]) { ctx.beginPath(); ctx.arc(bx, piso - 0.022 * M, Math.max(1, 0.012 * M), 0, 6.283); ctx.fill(); }
+      }
     }
 
     // ---------- o trilho (perfil de lado, um pouco visto de cima) ----------
@@ -2044,74 +2139,156 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     {
       const Hp = 1.75 * M;
       const cinzaMaq = (c: number) => cor(mq([c, c + 4, c + 10]));
-      // Gesmar: lixa o patim e o boleto nas pontas antes da solda (cabeçote em cima e embaixo), com a bancada ao lado
+      // Geismar BRA 32 (como na foto): corpo amarelo sobre a base azul, com a janelinha do disco e a placa "BRA 32".
+      // O operador só aperta os botões da botoeira; a máquina lixa as pontas sozinha, indo para frente e para trás.
+      // As duas mangueiras pretas sobem do corpo até o tubo azul que leva o pó para o coletor (desenhado atrás).
       if (vis(xGes - 2 * M, xGes + 3.5 * M)) {
         const lixa = trabalha(1.0, 6.5);
-        const desce = lixa ? 1 : 0;
-        // colunas e travessa
-        ctx.fillStyle = cinzaMaq(96);
-        ctx.fillRect(xGes - 0.85 * M, topo - 1.05 * M, 0.14 * M, piso - topo + 1.05 * M);
-        ctx.fillRect(xGes + 0.71 * M, topo - 1.05 * M, 0.14 * M, piso - topo + 1.05 * M);
-        ctx.fillStyle = cinzaMaq(120);
-        ctx.fillRect(xGes - 0.9 * M, topo - 1.15 * M, 1.8 * M, 0.16 * M);
-        ctx.fillStyle = cor(mq([46, 96, 170]));
-        ctx.fillRect(xGes - 0.4 * M, topo - 1.13 * M, 0.8 * M, 0.11 * M);
-        ctx.fillStyle = 'rgba(255,255,255,.9)';
-        ctx.font = `700 ${0.085 * M}px ${fonte('--font-barlow-cond', '"Barlow Condensed", "Arial Narrow", sans-serif')}`;
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('GESMAR', xGes, topo - 1.075 * M);
-        ctx.textAlign = 'left';
-        // cabeçote de cima (motor e rebolo) descendo até o boleto, e o de baixo subindo até o patim
-        const yC = topo - 0.32 * M - 0.12 * M * (1 - desce);
-        ctx.fillStyle = cinzaMaq(70);
-        ctx.fillRect(xGes - 0.16 * M, topo - 0.99 * M, 0.32 * M, yC - topo + 0.99 * M - 0.12 * M);
-        const giraG = t * (lixa ? 40 : 0);
-        for (const [cy, r] of [[yC, 0.13 * M], [topo + R + 0.2 * M + 0.1 * M * (1 - desce), 0.13 * M]] as [number, number][]) {
-          ctx.fillStyle = 'rgb(112,98,84)';
-          ctx.beginPath(); ctx.arc(xGes, cy, r, 0, 6.283); ctx.fill();
-          ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 1;
-          for (let k = 0; k < 4; k++) { const a = giraG + (k * Math.PI) / 2; ctx.beginPath(); ctx.moveTo(xGes, cy); ctx.lineTo(xGes + Math.cos(a) * r, cy + Math.sin(a) * r); ctx.stroke(); }
-          ctx.fillStyle = cinzaMaq(60); ctx.fillRect(xGes - r * 1.1, cy - r * 1.15, r * 2.2, r * 0.4); // capa do rebolo
+        const vai = lixa ? Math.sin((fase - 1.0) * 1.15) * 0.42 * M : 0;
+        const cx = xGes + vai;
+        const azul = (k = 0) => cor(mq([38 + k, 92 + k, 172 + k]));
+        // base azul no chão e os dois pilares azuis que prendem o trilho, um de cada lado
+        ctx.fillStyle = azul(-10);
+        ctx.fillRect(xGes - 1.65 * M, piso - 0.14 * M, 3.3 * M, 0.14 * M);
+        for (const px of [xGes - 1.5 * M, xGes + 1.5 * M]) {
+          ctx.fillStyle = azul(0);
+          ctx.fillRect(px - 0.1 * M, topo - 0.32 * M, 0.2 * M, piso - topo + 0.32 * M);
+          ctx.fillStyle = azul(18);
+          ctx.fillRect(px - 0.07 * M, topo - 0.62 * M, 0.14 * M, 0.3 * M); // cilindro em cima
+          ctx.fillStyle = 'rgba(0,0,0,.25)';
+          ctx.fillRect(px - 0.1 * M, topo + R + 0.02 * M, 0.2 * M, 0.06 * M);
         }
+        // trilho de rolamento da máquina (ela anda sobre a base)
+        ctx.fillStyle = azul(-24);
+        ctx.fillRect(xGes - 1.3 * M, piso - 0.36 * M, 2.6 * M, 0.08 * M);
+        // corpo amarelo
+        const yTop = topo - 1.0 * M, yBase = piso - 0.36 * M;
+        const gC = ctx.createLinearGradient(cx - 0.6 * M, 0, cx + 0.6 * M, 0);
+        gC.addColorStop(0, amarelo(AM_L)); gC.addColorStop(1, amarelo(AM_S));
+        ctx.fillStyle = gC;
+        ctx.fillRect(cx - 0.6 * M, yTop, 1.2 * M, yBase - yTop);
+        ctx.fillStyle = 'rgba(0,0,0,.18)';
+        ctx.fillRect(cx - 0.6 * M, yTop, 1.2 * M, 0.05 * M);
+        ctx.fillRect(cx + 0.2 * M, yTop + 0.05 * M, 0.02 * M, yBase - yTop - 0.05 * M); // junta da porta
+        // bloco do lado, mais baixo, com o motor azul
+        ctx.fillStyle = amarelo(AM_S);
+        ctx.fillRect(cx + 0.6 * M, piso - 1.0 * M, 0.38 * M, 0.64 * M);
+        ctx.fillStyle = azul(10); ctx.fillRect(cx + 0.66 * M, piso - 1.22 * M, 0.26 * M, 0.22 * M);
+        // janelinha com o disco de lixa girando, na altura do trilho
+        const jx = cx - 0.42 * M, jy = topo - 0.62 * M, jw = 0.5 * M, jh = 0.78 * M;
+        ctx.fillStyle = 'rgb(28,30,34)';
+        ctx.fillRect(jx, jy, jw, jh);
+        ctx.strokeStyle = cor(mq([210, 214, 220])); ctx.lineWidth = Math.max(1.5, 0.03 * M);
+        ctx.strokeRect(jx, jy, jw, jh);
+        const dcx = jx + jw * 0.55, dcy = topo - 0.18 * M, dr = 0.17 * M;
+        ctx.fillStyle = 'rgb(176,180,186)'; ctx.beginPath(); ctx.arc(dcx, dcy, dr, 0, 6.283); ctx.fill();
+        ctx.fillStyle = 'rgb(120,104,90)'; ctx.beginPath(); ctx.arc(dcx, dcy, dr * 0.72, 0, 6.283); ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 1;
+        const giraD = t * (lixa ? 45 : 0);
+        for (let k = 0; k < 4; k++) { const a = giraD + (k * Math.PI) / 2; ctx.beginPath(); ctx.moveTo(dcx, dcy); ctx.lineTo(dcx + Math.cos(a) * dr * 0.7, dcy + Math.sin(a) * dr * 0.7); ctx.stroke(); }
+        ctx.fillStyle = 'rgb(40,42,46)'; ctx.beginPath(); ctx.arc(dcx, dcy, dr * 0.16, 0, 6.283); ctx.fill();
         if (lixa) {
-          faiscasEm(xGes + 0.1 * M, topo - R * 0.06, 260, -260, -60, 300);
-          faiscasEm(xGes + 0.1 * M, topo + R, 200, -200, 40, 260);
+          const g = ctx.createRadialGradient(dcx, topo, 0, dcx, topo, 0.4 * M);
+          g.addColorStop(0, 'rgba(255,190,110,.55)'); g.addColorStop(1, 'rgba(255,140,60,0)');
+          ctx.fillStyle = g; ctx.fillRect(jx, jy, jw, jh);
+          faiscasEm(cx - 0.62 * M, topo + R * 0.3, 120, -180, -30, 200);
+          faiscasEm(cx + 0.62 * M, topo + R * 0.3, 90, 180, -30, 200);
         }
-        // bancada de comando e o operador da Gesmar (de costas, mãos no painel)
-        const bx0 = xGes + 1.7 * M;
-        ctx.fillStyle = cinzaMaq(84);
-        ctx.fillRect(bx0, piso - 0.95 * M, 0.9 * M, 0.95 * M);
-        ctx.fillStyle = cinzaMaq(150);
-        ctx.beginPath(); ctx.moveTo(bx0 - 0.05 * M, piso - 0.95 * M); ctx.lineTo(bx0 + 0.95 * M, piso - 0.95 * M); ctx.lineTo(bx0 + 0.85 * M, piso - 1.12 * M); ctx.lineTo(bx0 + 0.05 * M, piso - 1.12 * M); ctx.closePath(); ctx.fill();
-        for (let k = 0; k < 5; k++) {
-          ctx.fillStyle = k === 0 ? (lixa ? 'rgb(255,170,60)' : 'rgb(110,70,30)') : k === 4 ? 'rgb(200,50,40)' : 'rgb(40,170,90)';
-          ctx.beginPath(); ctx.arc(bx0 + (0.15 + k * 0.15) * M, piso - 1.03 * M, 0.025 * M, 0, 6.283); ctx.fill();
+        // placa "BRA 32"
+        ctx.fillStyle = 'rgb(244,244,240)';
+        ctx.fillRect(cx - 0.5 * M, yTop + 0.1 * M, 0.62 * M, 0.17 * M);
+        ctx.fillStyle = cor(mq([30, 80, 170]));
+        ctx.font = `700 ${0.13 * M}px ${fonte('--font-barlow-cond', '"Barlow Condensed", "Arial Narrow", sans-serif')}`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('BRA 32', cx - 0.19 * M, yTop + 0.19 * M);
+        ctx.textAlign = 'left';
+        // bocais e as duas mangueiras pretas sanfonadas subindo até o tubo azul (o tubo e o coletor ficam atrás)
+        const yTubo = piso - 3.6 * M;
+        for (const [ox, tx] of [[-0.38, -0.25], [0.02, 0.55]] as [number, number][]) {
+          const bx = cx + ox * M;
+          ctx.fillStyle = amarelo(AM);
+          ctx.fillRect(bx - 0.08 * M, yTop - 0.38 * M, 0.16 * M, 0.38 * M);
+          const x2 = xGes + tx * M;
+          ctx.strokeStyle = 'rgb(26,27,30)'; ctx.lineWidth = Math.max(3, 0.15 * M); ctx.lineCap = 'butt';
+          ctx.beginPath(); ctx.moveTo(bx, yTop - 0.38 * M);
+          ctx.bezierCurveTo(bx, yTop - 1.4 * M, x2, yTubo + 1.0 * M, x2, yTubo + 0.1 * M); ctx.stroke();
+          ctx.strokeStyle = 'rgba(255,255,255,.13)'; ctx.lineWidth = Math.max(2, 0.13 * M);
+          ctx.setLineDash([Math.max(1, 0.025 * M), Math.max(2, 0.05 * M)]);
+          ctx.beginPath(); ctx.moveTo(bx, yTop - 0.38 * M);
+          ctx.bezierCurveTo(bx, yTop - 1.4 * M, x2, yTubo + 1.0 * M, x2, yTubo + 0.1 * M); ctx.stroke();
+          ctx.setLineDash([]);
         }
+        // botoeira num poste amarelo, ao lado da máquina, e o operador apertando os botões
+        const bpx = xGes + 1.95 * M, byT = piso - 1.42 * M;
+        ctx.fillStyle = amarelo(AM_S); ctx.fillRect(bpx - 0.04 * M, byT + 0.32 * M, 0.08 * M, piso - byT - 0.32 * M);
+        ctx.fillStyle = cor(mq([196, 200, 204])); ctx.fillRect(bpx - 0.13 * M, byT, 0.26 * M, 0.34 * M);
+        ctx.fillStyle = 'rgb(200,40,36)'; ctx.beginPath(); ctx.arc(bpx, byT - 0.02 * M, 0.05 * M, Math.PI, 0); ctx.fill();
+        const botoes: [number, number, string][] = [[-0.06, 0.09, 'rgb(40,170,90)'], [0.06, 0.09, 'rgb(220,60,50)'], [-0.06, 0.2, 'rgb(240,190,40)'], [0.06, 0.2, 'rgb(50,110,200)']];
+        for (const [bx, by, c] of botoes) { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(bpx + bx * M, byT + by * M, 0.03 * M, 0, 6.283); ctx.fill(); }
+        // aperta um botão quando a máquina começa, outro quando ela troca de lado
+        const aperta = !parado && ((fase > 0.6 && fase < 1.1) || (fase > 3.6 && fase < 4.0) || (fase > 6.3 && fase < 6.7));
         desenharOperario(ctx, {
-          sx: bx0 + 0.45 * M, piso, Hs: Hp, t, mq, parado, anda: 0, passo: 0,
-          maoE: [bx0 + 0.25 * M, piso - 1.05 * M], alcE: 1, maoD: [bx0 + 0.62 * M, piso - 1.05 * M], alcD: lixa ? 1 : 0.6, dPeito: 0,
-          curva: 0.15, agacha: 0, inclina: 0, capacete: [236, 238, 240], fase: 0.9,
+          sx: bpx + 0.38 * M, piso, Hs: Hp, t, mq, parado, anda: 0, passo: 0,
+          maoE: [bpx + (aperta ? 0.02 : 0.08) * M, byT + (aperta ? 0.1 : 0.16) * M], alcE: aperta ? 1 : 0.55, maoD: null, alcD: 0, dPeito: 0,
+          curva: 0.05, agacha: 0, inclina: 0, capacete: [196, 44, 38], fase: 0.9,
         });
       }
-      // patim: lixadeira embaixo do trilho, tira o volume da solda; operador com viseira e avental de raspa
-      if (vis(xPat - 1.5 * M, xPat + 2 * M)) {
+      // patim: corre num trilho amarelo no chão, por baixo da barra, e lixa embaixo da emenda (tira o volume da
+      // solda). O operador comanda pelos volantes; botoeira com o botão de emergência ao lado. Trabalho a quente.
+      if (vis(xPat - 3.5 * M, xPat + 3.5 * M)) {
         const lixa = trabalha(1.5, 7.5);
-        ctx.fillStyle = amarelo(AM);
-        ctx.fillRect(xPat - 0.7 * M, topo + R + 0.28 * M, 1.4 * M, piso - topo - R - 0.28 * M);
-        ctx.fillStyle = amarelo(AM_S);
-        ctx.fillRect(xPat - 0.75 * M, piso - 0.08 * M, 1.5 * M, 0.08 * M);
+        const vai = lixa ? Math.sin((fase - 1.5) * 1.05) * 0.6 * M : 0;
+        const px = xPat + vai;
+        // trilho amarelo no chão
+        ctx.fillStyle = amarelo(AM_S); ctx.fillRect(xPat - 3.2 * M, piso - 0.07 * M, 6.4 * M, 0.07 * M);
+        ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.fillRect(xPat - 3.2 * M, piso - 0.045 * M, 6.4 * M, 0.015 * M);
+        // corpo amarelo com as grades, rodando no trilho
+        const yT = topo + R + 0.28 * M;
+        const gP = ctx.createLinearGradient(px - 0.8 * M, 0, px + 0.8 * M, 0);
+        gP.addColorStop(0, amarelo(AM_L)); gP.addColorStop(1, amarelo(AM_S));
+        ctx.fillStyle = gP; ctx.fillRect(px - 0.8 * M, yT, 1.6 * M, piso - 0.1 * M - yT);
+        ctx.strokeStyle = 'rgba(30,30,30,.55)'; ctx.lineWidth = 1;
+        for (const [gx, gw] of [[px - 0.72 * M, 0.55 * M], [px + 0.05 * M, 0.62 * M]] as [number, number][]) {
+          const gy = yT + 0.1 * M, gh = piso - 0.28 * M - gy;
+          ctx.fillStyle = 'rgba(20,20,20,.35)'; ctx.fillRect(gx, gy, gw, gh);
+          ctx.beginPath();
+          for (let x = gx; x <= gx + gw; x += Math.max(3, 0.06 * M)) { ctx.moveTo(x, gy); ctx.lineTo(x, gy + gh); }
+          for (let y = gy; y <= gy + gh; y += Math.max(3, 0.06 * M)) { ctx.moveTo(gx, y); ctx.lineTo(gx + gw, y); }
+          ctx.stroke();
+        }
+        ctx.fillStyle = 'rgb(36,36,40)';
+        for (const wx of [px - 0.55 * M, px + 0.55 * M]) { ctx.beginPath(); ctx.arc(wx, piso - 0.1 * M, 0.1 * M, Math.PI, 0); ctx.fill(); }
+        // cabeçote de lixa embaixo do trilho
         const yR = topo + R + 0.12 * M - (lixa ? 0.02 * M : -0.04 * M);
         ctx.fillStyle = 'rgb(112,98,84)';
-        ctx.beginPath(); ctx.arc(xPat, yR, 0.12 * M, 0, 6.283); ctx.fill();
-        ctx.fillStyle = cinzaMaq(60); ctx.fillRect(xPat - 0.16 * M, yR + 0.04 * M, 0.32 * M, 0.12 * M);
+        ctx.beginPath(); ctx.arc(px, yR, 0.12 * M, 0, 6.283); ctx.fill();
+        ctx.fillStyle = cinzaMaq(60); ctx.fillRect(px - 0.16 * M, yR + 0.04 * M, 0.32 * M, 0.12 * M);
         if (lixa) {
-          faiscasEm(xPat, topo + R + 0.02 * M, 320, -300, 60, 340);
-          faiscasEm(xPat, topo + R + 0.02 * M, 120, 220, 80, 260);
+          faiscasEm(px, topo + R + 0.02 * M, 320, -300, 60, 340);
+          faiscasEm(px, topo + R + 0.02 * M, 120, 220, 80, 260);
         }
+        // volantes na frente (giram enquanto o operador comanda)
+        const vol = (vx: number, vy: number, r: number) => {
+          ctx.strokeStyle = 'rgb(28,29,32)'; ctx.lineWidth = Math.max(2, 0.035 * M);
+          ctx.beginPath(); ctx.arc(vx, vy, r, 0, 6.283); ctx.stroke();
+          const g = t * (lixa ? 2.2 : 0);
+          ctx.lineWidth = Math.max(1.5, 0.025 * M);
+          for (let k = 0; k < 4; k++) { const a = g + (k * Math.PI) / 2; ctx.beginPath(); ctx.moveTo(vx, vy); ctx.lineTo(vx + Math.cos(a) * r, vy + Math.sin(a) * r); ctx.stroke(); }
+          ctx.fillStyle = 'rgb(28,29,32)'; ctx.beginPath(); ctx.arc(vx, vy, r * 0.18, 0, 6.283); ctx.fill();
+        };
+        const v1: [number, number] = [px - 0.42 * M, piso - 0.62 * M], v2: [number, number] = [px - 0.02 * M, piso - 0.62 * M];
+        vol(v1[0], v1[1], 0.2 * M); vol(v2[0], v2[1], 0.13 * M);
+        // botoeira com o botão de emergência, num poste do lado da máquina
+        const bx = px + 0.95 * M;
+        ctx.fillStyle = 'rgb(40,42,46)'; ctx.fillRect(bx - 0.025 * M, topo - 0.35 * M, 0.05 * M, piso - topo + 0.35 * M - 0.1 * M);
+        ctx.fillStyle = cor(mq([150, 156, 162])); ctx.fillRect(bx - 0.11 * M, topo - 0.58 * M, 0.22 * M, 0.26 * M);
+        ctx.fillStyle = 'rgb(210,44,40)'; ctx.beginPath(); ctx.arc(bx, topo - 0.47 * M, 0.06 * M, 0, 6.283); ctx.fill();
+        // operador do lado da máquina (de costas para quem vê), girando o volante grande e o pequeno
+        const giraMao = lixa ? Math.sin(t * 2.2) * 0.06 * M : 0;
         desenharOperario(ctx, {
-          sx: xPat + 1.15 * M, piso, Hs: Hp, t, mq, parado, anda: 0, passo: 0,
-          maoE: [xPat + 0.65 * M, topo + R + 0.3 * M], alcE: 1, maoD: null, alcD: 0, dPeito: 0,
-          curva: 0.2, agacha: 0.1, inclina: -0.2, capacete: [150, 156, 162], fase: 1.3, quente: true,
+          sx: px - 1.15 * M, piso, Hs: Hp, t, mq, parado, anda: 0, passo: 0,
+          maoE: [v1[0] - 0.18 * M, v1[1] + giraMao], alcE: 1, maoD: [v1[0] + 0.05 * M, v1[1] - 0.12 * M - giraMao], alcD: 1, dPeito: 0,
+          curva: 0.25, agacha: 0.12, inclina: 0.25, capacete: [150, 156, 162], fase: 1.3, quente: true,
         });
       }
       // boleteira 1 (lado de cá): cabeçote lixando o boleto, indo e vindo; operador acertando o canto com a retífica
@@ -2153,20 +2330,82 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.fillStyle = 'rgb(112,98,84)'; ctx.beginPath(); ctx.arc(xB2 + vai, topo - 0.2 * M, 0.14 * M, 0, 6.283); ctx.fill();
         if (lixa) faiscasEm(xB2 + vai, topo - R * 0.06, 300, 260, -110, 360);
       }
+      // suportes amarelos feitos para guardar a retífica e a esmerilhadeira, ao lado das boleteiras
+      const suporte = (sx0: number) => {
+        if (!vis(sx0 - M, sx0 + M)) return;
+        const yS = piso - 1.15 * M;
+        ctx.fillStyle = amarelo(AM_S); ctx.fillRect(sx0 - 0.04 * M, yS, 0.08 * M, piso - yS);
+        ctx.fillRect(sx0 - 0.28 * M, piso - 0.05 * M, 0.56 * M, 0.05 * M);
+        ctx.fillStyle = amarelo(AM); ctx.fillRect(sx0 - 0.32 * M, yS - 0.04 * M, 0.64 * M, 0.06 * M);
+        // esmerilhadeira (corpo cinza e disco) e retífica (corpo verde-azulado) encaixadas
+        ctx.fillStyle = cinzaMaq(90); ctx.fillRect(sx0 - 0.27 * M, yS + 0.04 * M, 0.11 * M, 0.3 * M);
+        ctx.fillStyle = cinzaMaq(150); ctx.beginPath(); ctx.arc(sx0 - 0.215 * M, yS + 0.38 * M, 0.09 * M, 0, 6.283); ctx.fill();
+        ctx.fillStyle = cor(mq([30, 110, 140])); ctx.fillRect(sx0 + 0.12 * M, yS + 0.04 * M, 0.09 * M, 0.34 * M);
+        ctx.fillStyle = cinzaMaq(150); ctx.fillRect(sx0 + 0.15 * M, yS + 0.38 * M, 0.03 * M, 0.08 * M);
+      };
+      suporte(xB1 + 1.6 * M);
+      suporte(xB2 - 1.6 * M);
+      // cabo do balancim segurando a boleteira 1
+      if (vis(xB1 - M, xB1 + M)) {
+        ctx.strokeStyle = 'rgb(36,38,42)'; ctx.lineWidth = Math.max(1, 0.02 * M);
+        ctx.beginPath(); ctx.moveTo(xB1, yBal); ctx.lineTo(xB1, topo - 1.05 * M); ctx.stroke();
+        ctx.fillStyle = cor(mq([40, 86, 160])); ctx.fillRect(xB1 - 0.12 * M, yBal, 0.24 * M, 0.3 * M);
+      }
+      // passarela por cima dos roletes 36 a 39: pilares, piso da passarela, guarda-corpo e a escada descendo
+      if (vis(xPassarela - 3 * M, xPassarela + 3 * M)) {
+        const yD = piso - 2.8 * M, x0 = xPassarela - 0.75 * M, x1 = xPassarela + 0.75 * M;
+        ctx.fillStyle = amarelo(AM_S);
+        for (const px of [x0, x1]) ctx.fillRect(px - 0.07 * M, yD, 0.14 * M, piso - yD);
+        ctx.fillStyle = amarelo(AM); ctx.fillRect(x0 - 0.15 * M, yD - 0.14 * M, x1 - x0 + 0.3 * M, 0.16 * M);
+        ctx.strokeStyle = amarelo(AM); ctx.lineWidth = Math.max(1.5, 0.05 * M);
+        ctx.beginPath();
+        ctx.moveTo(x0 - 0.1 * M, yD - 1.05 * M); ctx.lineTo(x1 + 0.1 * M, yD - 1.05 * M);
+        ctx.moveTo(x0 - 0.1 * M, yD - 0.55 * M); ctx.lineTo(x1 + 0.1 * M, yD - 0.55 * M);
+        for (const px of [x0 - 0.05 * M, xPassarela, x1 + 0.05 * M]) { ctx.moveTo(px, yD - 0.14 * M); ctx.lineTo(px, yD - 1.05 * M); }
+        // escada: desce do lado da preparação, com os degraus
+        const e0x = x1 + 0.15 * M, e1x = x1 + 2.4 * M;
+        ctx.moveTo(e0x, yD - 0.06 * M); ctx.lineTo(e1x, piso);
+        ctx.moveTo(e0x, yD - 1.0 * M); ctx.lineTo(e1x, piso - 0.95 * M);
+        ctx.stroke();
+        ctx.lineWidth = Math.max(1, 0.03 * M);
+        ctx.beginPath();
+        for (let k = 1; k < 10; k++) { const f = k / 10; const sx = mix(e0x, e1x, f), sy = mix(yD - 0.06 * M, piso, f); ctx.moveTo(sx - 0.12 * M, sy); ctx.lineTo(sx + 0.12 * M, sy); }
+        ctx.stroke();
+      }
       // rolos opressores do fim: a parte de cima (cilindros)
       rolosFim.forEach((x0) => roloFrente(x0));
-      // pórtico da preparação: tira a barra da pilha com um gancho em cada ponta e põe sobre os roletes
-      if (vis(xb0 - 1.5 * M, xb0 + L + 1.5 * M)) {
+      // preparação: dois pórticos de 2 t (PR 01 e PR 02), um em cada ponta da barra; tiram a barra da pilha e põem
+      // sobre os roletes. Estrutura amarela com a placa "CAP 2 TON" no alto, como na foto.
+      if (vis(xb0 - 2.5 * M, xb0 + L + 2.5 * M)) {
         const yViga = piso - 4.6 * M;
-        const pe1 = xb0 - 1.0 * M, pe2 = xb0 + L + 1.0 * M;
-        for (const px of [pe1, pe2]) {
-          ctx.fillStyle = amarelo(AM_S);
-          ctx.beginPath(); ctx.moveTo(px - 0.6 * M, piso); ctx.lineTo(px - 0.08 * M, yViga); ctx.lineTo(px + 0.08 * M, yViga); ctx.lineTo(px + 0.6 * M, piso); ctx.lineTo(px + 0.45 * M, piso); ctx.lineTo(px, yViga + 0.4 * M); ctx.lineTo(px - 0.45 * M, piso); ctx.closePath(); ctx.fill();
-          ctx.fillStyle = 'rgb(40,40,44)'; ctx.fillRect(px - 0.7 * M, piso - 0.12 * M, 1.4 * M, 0.12 * M); // truque com rodas
-        }
-        const gv = ctx.createLinearGradient(0, yViga - 0.25 * M, 0, yViga + 0.1 * M);
-        gv.addColorStop(0, amarelo(AM_L)); gv.addColorStop(1, amarelo(AM_S));
-        ctx.fillStyle = gv; ctx.fillRect(pe1 - 0.3 * M, yViga - 0.25 * M, pe2 - pe1 + 0.6 * M, 0.3 * M);
+        const centros = [xb0 + 0.8 * M, xb0 + L - 0.8 * M];
+        centros.forEach((gc, i) => {
+          for (const px of [gc - 1.7 * M, gc + 1.7 * M]) {
+            const gp = ctx.createLinearGradient(px - 0.12 * M, 0, px + 0.12 * M, 0);
+            gp.addColorStop(0, amarelo(AM_L)); gp.addColorStop(1, amarelo(AM_S));
+            ctx.fillStyle = gp; ctx.fillRect(px - 0.12 * M, yViga, 0.24 * M, piso - yViga);
+            ctx.fillStyle = amarelo(AM_S); ctx.fillRect(px - 0.3 * M, piso - 0.12 * M, 0.6 * M, 0.12 * M); // sapata
+          }
+          // mão-francesa entre a perna e a viga
+          ctx.strokeStyle = amarelo(AM_S); ctx.lineWidth = Math.max(2, 0.1 * M);
+          ctx.beginPath();
+          ctx.moveTo(gc - 1.6 * M, yViga + 0.9 * M); ctx.lineTo(gc - 0.9 * M, yViga + 0.1 * M);
+          ctx.moveTo(gc + 1.6 * M, yViga + 0.9 * M); ctx.lineTo(gc + 0.9 * M, yViga + 0.1 * M);
+          ctx.stroke();
+          const gv = ctx.createLinearGradient(0, yViga - 0.3 * M, 0, yViga + 0.1 * M);
+          gv.addColorStop(0, amarelo(AM_L)); gv.addColorStop(1, amarelo(AM_S));
+          ctx.fillStyle = gv; ctx.fillRect(gc - 2.0 * M, yViga - 0.3 * M, 4.0 * M, 0.34 * M);
+          // placa branca pendurada na viga
+          const pw = 0.9 * M, ph = 0.42 * M, pyT = yViga - 0.3 * M - ph - 0.04 * M;
+          ctx.fillStyle = 'rgb(246,246,242)'; ctx.fillRect(gc + 0.5 * M, pyT, pw, ph);
+          ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 1; ctx.strokeRect(gc + 0.5 * M, pyT, pw, ph);
+          ctx.fillStyle = 'rgb(20,20,22)';
+          ctx.font = `700 ${0.15 * M}px ${fonte('--font-barlow-cond', '"Barlow Condensed", "Arial Narrow", sans-serif')}`;
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText('CAP 2 TON', gc + 0.5 * M + pw / 2, pyT + ph * 0.32);
+          ctx.fillText(`PR 0${i + 1}`, gc + 0.5 * M + pw / 2, pyT + ph * 0.74);
+          ctx.textAlign = 'left';
+        });
         // ganchos: descem na pilha, sobem com a barra, esperam e baixam a barra nos roletes
         const yAlto = topo - 2.0 * M, yPilha = piso - 4 * camadaPilha - 0.05 * M, yCarga = topo - 1.4 * M, yLinha = topo - R * 0.06;
         let yG = yAlto, comBarra = false;
@@ -2198,18 +2437,18 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.beginPath(); ctx.moveTo(mao[0], mao[1]); ctx.lineTo(ganchos[0], yViga + 0.35 * M); ctx.stroke();
         desenharOperario(ctx, {
           sx: ox0, piso, Hs: Hp, t, mq, parado, anda: 0, passo: 0,
-          maoE: mao, alcE: 1, maoD: null, alcD: 0, dPeito: 0, curva: 0, agacha: 0, inclina: -0.1, capacete: [236, 238, 240], fase: 0.4,
+          maoE: mao, alcE: 1, maoD: null, alcD: 0, dPeito: 0, curva: 0, agacha: 0, inclina: -0.1, capacete: [150, 156, 162], fase: 0.4,
         });
         ctx.fillStyle = amarelo(AM); ctx.fillRect(mao[0] - 0.05 * M, mao[1] - 0.16 * M, 0.1 * M, 0.2 * M); // botoeira
       }
       // pátio do TLS: viga com várias talhas; de tempos em tempos erguem o trilho longo de uma vez e põem na pilha
-      if (vis(X(-78), X(-48))) {
+      if (vis(X(-111), X(-81))) {
         const yViga = piso - 4.2 * M;
-        for (let x = X(-49); x >= X(-78); x -= 7 * M) {
+        for (let x = X(-82); x >= X(-111); x -= 7 * M) {
           ctx.fillStyle = amarelo(AM_S);
           ctx.fillRect(x - 0.08 * M, yViga, 0.16 * M, piso - yViga);
         }
-        ctx.fillStyle = amarelo(AM); ctx.fillRect(X(-78), yViga - 0.2 * M, X(-48) - X(-78), 0.24 * M);
+        ctx.fillStyle = amarelo(AM); ctx.fillRect(X(-111), yViga - 0.2 * M, X(-81) - X(-111), 0.24 * M);
         const ciclo = Math.floor(t / 26), ct = parado ? 0 : t % 26;
         const yAlto = topo - 1.8 * M, yLinha = topo - R * 0.06, yErguido = topo - 1.2 * M, yPilha = piso - 0.2 * M - (tlsCamadas + 1) * 0.15 * M;
         let yG = yAlto, carga = 0;
@@ -2220,7 +2459,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         if (ct > 4.5 && ct < 11.5) carga = 1;
         if (!parado && ct >= 11.5 && tlsCiclo !== ciclo) { tlsCiclo = ciclo; tlsCamadas = Math.min(16, tlsCamadas + 1); }
         for (let i = 0; i < 6; i++) {
-          const gx = X(-51) - i * 4.6 * M;
+          const gx = X(-84) - i * 4.6 * M;
           ctx.fillStyle = 'rgb(56,58,64)'; ctx.fillRect(gx - 0.16 * M, yViga + 0.04 * M, 0.32 * M, 0.26 * M);
           ctx.strokeStyle = 'rgb(60,62,68)'; ctx.lineWidth = Math.max(1, 0.018 * M);
           ctx.beginPath(); ctx.moveTo(gx, yViga + 0.3 * M); ctx.lineTo(gx, yG - 0.16 * M); ctx.stroke();
@@ -2229,15 +2468,15 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         }
         if (carga) {
           ctx.fillStyle = cor(misturar(pal.aco, pal.acoLado, 0.4));
-          ctx.fillRect(X(-76), yG, X(-49) - X(-76), R * (ct > 8 ? 0.8 : 1));
+          ctx.fillRect(X(-109), yG, X(-82) - X(-109), R * (ct > 8 ? 0.8 : 1));
         }
-        const oxT = X(-49.5);
+        const oxT = X(-82.5);
         const mao: [number, number] = [oxT - 0.15 * M, piso - 1.25 * M];
         ctx.strokeStyle = 'rgb(30,30,34)'; ctx.lineWidth = Math.max(1, 0.012 * M);
-        ctx.beginPath(); ctx.moveTo(mao[0], mao[1]); ctx.lineTo(X(-51), yViga + 0.3 * M); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(mao[0], mao[1]); ctx.lineTo(X(-84), yViga + 0.3 * M); ctx.stroke();
         desenharOperario(ctx, {
           sx: oxT, piso, Hs: Hp, t, mq, parado, anda: 0, passo: 0,
-          maoE: mao, alcE: 1, maoD: null, alcD: 0, dPeito: 0, curva: 0, agacha: 0, inclina: -0.1, capacete: [236, 238, 240], fase: 3.1,
+          maoE: mao, alcE: 1, maoD: null, alcD: 0, dPeito: 0, curva: 0, agacha: 0, inclina: -0.1, capacete: [196, 44, 38], fase: 3.1,
         });
         ctx.fillStyle = amarelo(AM); ctx.fillRect(mao[0] - 0.05 * M, mao[1] - 0.16 * M, 0.1 * M, 0.2 * M);
       }
@@ -2747,7 +2986,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
           anda: recuaR > 0 ? andandoLonge : 0, passo: afasta * 7,
           maoE: mRegE, alcE: ergue, maoD: mRegD, alcD: 1, dPeito: 0,
           curva: 0.12 * ergue + 0.22 * mira, agacha: 0, inclina: -0.25 * mira,
-          capacete: [236, 238, 240], fase: 1.7,
+          capacete: [196, 44, 38], fase: 1.7,
         });
       }
 
