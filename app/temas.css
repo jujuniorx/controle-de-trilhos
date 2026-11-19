@@ -1014,7 +1014,7 @@ html[data-tema="pastel"]:root {
 
 /* Passeio pela linha de producao (components/LinhaTour.tsx): a cena fica fixa atras da pagina e a camera anda
    conforme a rolagem da secao .linha-tour. Com "reduzir movimento" nao tem passeio e a cena volta ao normal. */
-.home-entrada .fundo-trilhos { position: fixed !important; inset: 0 !important; }
+.home-entrada .fundo-trilhos { position: fixed !important; inset: 0 !important; background: rgb(var(--cena-ceu-topo, 5 9 18)); }
 .linha-tour { position: relative; z-index: 1; pointer-events: none; }
 .linha-tour-painel { position: sticky; top: 0; height: 100vh; height: 100dvh; display: flex; flex-direction: column; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px)); }
 .linha-tour-topo { width: min(560px, 100%); display: flex; flex-direction: column; gap: 12px; opacity: 0; transform: translateY(-8px); transition: opacity .45s ease, transform .45s ease; }

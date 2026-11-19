@@ -1187,7 +1187,11 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
   // soldador no joystick e a solda acende o logo (data-cena="solda"); depois a câmera se afasta enquanto o logo sobe
   // para o lugar e o resto da tela entra (data-cena="recua"). Um toque pula para o fim.
   const raizHtml = document.documentElement;
-  const cinema = completa && !reduzirMovimento() && raizHtml.hasAttribute('data-intro');
+  // No celular (tela estreita) não tem a abertura em plano contínuo: a página já entra com a cena no lugar (a câmera
+  // aproximando e se afastando ali deixava a tela vazia e engasgada).
+  const telaEstreita = window.innerWidth < 600;
+  const cinema = completa && !reduzirMovimento() && raizHtml.hasAttribute('data-intro') && !telaEstreita;
+  if (!cinema && raizHtml.hasAttribute('data-intro')) { raizHtml.removeAttribute('data-intro'); raizHtml.removeAttribute('data-cena'); }
   // A primeira emenda chega na Schlatter em CHEGA; o centelhamento passa por SOLDA, junto com a emenda do logo.
   const CHEGA = cinema ? 1.6 : 0.55, SOLDA = CHEGA + 0.7;
   const CENA = { solda: SOLDA - 1.15, recua0: SOLDA + 1.1, recua1: SOLDA + 2.5, fim: SOLDA + 3.3 };
@@ -1271,6 +1275,8 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     };
   };
   let roloApertado = false;
+  // telas à parte com o que se repete no fundo (ver desenharFundoGalpao)
+  let fundoCache: { chave: string; longe: HTMLCanvasElement; meio: HTMLCanvasElement; galpao: HTMLCanvasElement; P: number } | null = null;
   let tlsCamadas = 3, tlsCiclo = -1; // pilha do TLS no pátio: cresce a cada içamento das talhas
   const sopros: { x: number; y: number; vx: number; vy: number; r: number; v: number }[] = [];
 
@@ -1313,7 +1319,8 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
   };
 
 
-  const controle = laco(cv, 2, () => { pal = paletaAbertura(caixa); padrao = null; }, (ctx, W, H, tReal, dt) => {
+  // no celular a tela já é densa: 1,5 basta e deixa a cena bem mais leve
+  const controle = laco(cv, window.innerWidth < 700 ? 1.5 : 2, () => { pal = paletaAbertura(caixa); padrao = null; fundoCache = null; }, (ctx, W, H, tReal, dt) => {
     const t = tReal + pulo;
     // Passeio pela linha (tela inicial): o canvas fica fixo atrás da página. Enquanto a parte de cima rola, a cena
     // rola junto (offY), com a altura do "mundo" igual à da parte de cima; quando a seção .linha-tour entra, a câmera
@@ -1336,7 +1343,8 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     // Escala de verdade: a máquina (2,6 m de altura) ocupa cerca de 30% da altura da tela; o soldador tem 1,75 m.
     // O perfil (TR68, 186 mm) sai só um pouco maior que o real (23 cm), para continuar lendo como trilho.
     // No celular a máquina fica menor e embaixo de tudo (a tela inicial e o login reservam esse espaço no CSS).
-    const M = W < 600 ? Math.max(34, Math.min(50, W / 9)) : Math.max(40, Math.min(H * 0.115, W / 11)); // um metro
+    // no celular em pé, um pouco maior (a linha aparecia miúda embaixo dos botões)
+    const M = W < 600 ? Math.max(34, Math.min(62, Htela > W * 1.15 ? W / 6.8 : W / 9)) : Math.max(40, Math.min(H * 0.115, W / 11)); // um metro
     const R = 0.23 * M; // altura do perfil
     const L = 12 * M; // uma barra de 12 m
     const piso = H * 0.95;
@@ -1473,15 +1481,124 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     // incêndio e as eletrocalhas) e embaixo dela é aberto: aparece o pátio de brita, o capim, o barranco, os prédios
     // brancos com a faixa azul, os vagões e o guindaste parados e, lá longe, os galpões velhos de telhado enferrujado.
     // O que está lá fora anda mais devagar que a linha (parallax). Depois do fim do galpão é o pátio, a céu aberto.
+    // Para ficar leve no celular, o que se repete (um vão do galpão, a mata de longe, o barranco) é desenhado uma vez
+    // em telas à parte e só carimbado a cada quadro.
     const desenharFundoGalpao = () => {
       const tom = (c: RGB, k = 0.6): RGB => (escuro ? misturar(c, pal.ceuTopo, k) : c);
       const Xm = (m: number) => xm + m * M;
       const fimG = Xm(-80);
       const yAbre = piso - 3.9 * M; // embaixo disso a parede é aberta
       const yParede = piso - 8.6 * M; // topo da parede: começa o telhado
-      const yTopo = -2 * H;
+      const yTileG = yParede - 2.0 * M; // a tela do vão do galpão começa um pouco acima das tesouras
+      const yVisTopo = offY + Htela - Htela / zt - 4; // o alto do que aparece na tela (no mundo)
+      const yTopo = Math.min(yTileG, yVisTopo);
       const lf = (xw: number, k: number) => camX + Wv / 2 + (xw - camX - Wv / 2) * k;
       const hash = (i: number) => { const v = Math.sin(i * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };
+      const vao = 7.5 * M;
+      // resolução das telas à parte: a da tela, um pouco mais no celular em pé (lá a câmera do passeio aproxima)
+      const dprF = Math.min(3, (cv.width / Math.max(1, W)) * (Htela > W * 1.15 ? 1.5 : 1));
+      // ---- telas à parte (refeitas se mudar o tamanho, o tema ou a resolução) ----
+      const chave = `${Math.round(M * 100)}|${escuro}|${pal.ceuTopo.join(',')}|${dprF}`;
+      if (!fundoCache || fundoCache.chave !== chave) {
+        const nova = (w: number, h: number, d: number) => {
+          const c = document.createElement('canvas');
+          c.width = Math.max(1, Math.ceil(w * d)); c.height = Math.max(1, Math.ceil(h * d));
+          const x = c.getContext('2d');
+          if (x) x.setTransform(d, 0, 0, d, 0, 0);
+          return { c, x };
+        };
+        const P = 24 * M; // período das camadas de fora
+        // mata e galpões velhos (lá longe), na resolução 1: é fundo
+        const longe = nova(P, 4.6 * M, 1);
+        if (longe.x) {
+          const c = longe.x, y0 = piso - 4.6 * M, S = 4 * M, n = 6;
+          const hm = (i: number) => hash(((i % n) + n) % n);
+          c.fillStyle = cor(tom([82, 128, 74]));
+          for (let i = -2; i <= n + 1; i++) for (let j = 0; j < 4; j++) {
+            const r = (0.7 + hash((((i % n) + n) % n) * 4 + j) * 0.8) * M;
+            c.beginPath(); c.ellipse(i * S + j * 1.3 * M, piso - (2.9 + hash((((i % n) + n) % n) + j * 9) * 1.1) * M - y0, r * 1.3, r, 0, 0, 6.283); c.fill();
+          }
+          for (let i = -2; i <= n + 1; i++) {
+            if (hm(i + 40) < 0.45) continue;
+            const x = i * S, w = (3 + hm(i + 41) * 3) * M, yR = piso - (2.5 + hm(i + 42) * 0.4) * M - y0;
+            c.fillStyle = cor(tom([150, 146, 140])); c.fillRect(x, yR + 0.35 * M, w, 1.2 * M);
+            const gR = c.createLinearGradient(0, yR, 0, yR + 0.45 * M);
+            gR.addColorStop(0, cor(tom([168, 92, 56]))); gR.addColorStop(1, cor(tom([118, 62, 40])));
+            c.fillStyle = gR;
+            c.beginPath(); c.moveTo(x - 0.2 * M, yR + 0.45 * M); c.lineTo(x + 0.3 * M, yR); c.lineTo(x + w - 0.3 * M, yR); c.lineTo(x + w + 0.2 * M, yR + 0.45 * M); c.closePath(); c.fill();
+            c.fillStyle = cor(tom([90, 50, 34]), 0.5);
+            for (let rx = 0.4 * M; rx < w - 0.3 * M; rx += 0.9 * M) if (hash(i * 31 + rx / M) > 0.5) c.fillRect(x + rx, yR + 0.05 * M, 0.35 * M, 0.38 * M);
+          }
+        }
+        // barranco de capim e o pátio de brita (meio)
+        const meio = nova(P, 2.0 * M, dprF);
+        if (meio.x) {
+          const c = meio.x, y0 = piso - 2.0 * M, yB = piso - 0.5 * M - y0;
+          c.fillStyle = cor(tom([104, 152, 72]));
+          c.beginPath(); c.moveTo(0, yB);
+          for (let x = 0; x <= P + 1; x += 0.4 * M) {
+            const q = x / P;
+            c.lineTo(x, piso - (1.35 + 0.35 * Math.sin(q * 2 * Math.PI * 2) + 0.15 * Math.sin(q * 2 * Math.PI * 9)) * M - y0);
+          }
+          c.lineTo(P, yB); c.closePath(); c.fill();
+          c.strokeStyle = cor(tom([132, 176, 88])); c.lineWidth = Math.max(1, 0.03 * M);
+          c.beginPath();
+          const nT = Math.round(P / (0.22 * M));
+          for (let k = 0; k < nT; k++) { const x = (k * P) / nT, h = (0.25 + hash(k) * 0.45) * M; c.moveTo(x, yB); c.lineTo(x + 0.06 * M, yB - h); }
+          c.stroke();
+          c.fillStyle = cor(tom([170, 164, 154])); c.fillRect(0, yB, P, 2.0 * M - yB);
+          c.fillStyle = cor(tom([120, 114, 106]), 0.6);
+          for (let x = 0; x < P; x += 7) c.fillRect(x + ((x * 13) % 5), yB + 2 + (((x * 7) % 9) / 9) * (2.0 * M - yB - 4), 2, 1.5);
+        }
+        // um vão do galpão: parede de telha, cano, eletrocalhas, viga, telhado com a tesoura e a coluna de treliça
+        const hG = piso - yTileG;
+        const gal = nova(vao, hG, dprF);
+        if (gal.x) {
+          const c = gal.x, Y = (y: number) => y - yTileG, cx = 0.4 * M;
+          const parede = c.createLinearGradient(0, Y(yParede), 0, Y(yAbre));
+          parede.addColorStop(0, cor(tom([62, 54, 48], 0.5))); parede.addColorStop(1, cor(tom([84, 72, 62], 0.5)));
+          c.fillStyle = parede; c.fillRect(0, Y(yParede), vao, yAbre - yParede);
+          const onda = vao / Math.max(1, Math.round(vao / Math.max(4, 0.16 * M)));
+          c.fillStyle = cor(tom([40, 34, 30], 0.5), 0.55);
+          for (let x = 0; x < vao - 0.5; x += onda) c.fillRect(x, Y(yParede), Math.max(1, onda * 0.3), yAbre - yParede);
+          c.fillStyle = cor(tom([120, 106, 92], 0.5), 0.35);
+          for (let x = onda * 0.55; x < vao; x += onda) c.fillRect(x, Y(yParede), 1, yAbre - yParede);
+          c.fillStyle = cor(tom([30, 28, 26], 0.5), 0.8);
+          for (const y of [piso - 5.2 * M, piso - 6.9 * M]) c.fillRect(0, Y(y), vao, Math.max(1.5, 0.05 * M));
+          c.fillStyle = `rgba(255,255,255,${escuro ? 0.12 : 0.5})`;
+          for (let x = 0; x < vao - 0.5; x += vao / 15) c.fillRect(x, Y(piso - 4.35 * M), 1.5, 1.5);
+          c.fillStyle = cor(tom([196, 40, 40], 0.45)); c.fillRect(0, Y(piso - 7.6 * M), vao, Math.max(2, 0.09 * M));
+          c.fillStyle = 'rgba(255,255,255,.18)'; c.fillRect(0, Y(piso - 7.6 * M), vao, Math.max(1, 0.02 * M));
+          const furo = vao / Math.max(1, Math.round(vao / (0.12 * M)));
+          for (const y of [yAbre - 0.32 * M, piso - 6.0 * M]) {
+            c.fillStyle = cor(tom([168, 172, 176], 0.5)); c.fillRect(0, Y(y), vao, Math.max(3, 0.13 * M));
+            c.fillStyle = cor(tom([90, 94, 98], 0.5));
+            for (let x = 0; x < vao - 0.5; x += furo) c.fillRect(x, Y(y) + 0.04 * M, Math.max(1, 0.04 * M), Math.max(1, 0.04 * M));
+          }
+          c.fillStyle = cor(tom([52, 52, 54], 0.5)); c.fillRect(0, Y(yAbre) - 0.12 * M, vao, 0.14 * M);
+          c.fillStyle = cor(tom([46, 48, 52], 0.5)); c.fillRect(0, 0, vao, Y(yParede));
+          c.fillStyle = cor(tom([70, 72, 76], 0.5), 0.6);
+          for (let y = Y(yParede) - 1.6 * M; y > 0; y -= 0.22 * M) c.fillRect(0, y, vao, 1);
+          const yt0 = Y(yParede - 0.1 * M), yt1 = Y(yParede - 1.3 * M);
+          c.strokeStyle = cor(tom([96, 100, 106], 0.5)); c.lineWidth = Math.max(1, 0.05 * M);
+          c.beginPath();
+          c.moveTo(0, yt0); c.lineTo(vao, yt0); c.moveTo(0, yt1); c.lineTo(vao, yt1);
+          for (let k = 0; k < 10; k++) { const x = (k * vao) / 10; c.moveTo(x, k % 2 === 0 ? yt0 : yt1); c.lineTo(x + vao / 10, k % 2 === 0 ? yt1 : yt0); }
+          c.stroke();
+          const corC = cor(tom([128, 132, 138], 0.5));
+          c.fillStyle = corC;
+          c.fillRect(cx - 0.2 * M, yt1, 0.07 * M, hG - yt1);
+          c.fillRect(cx + 0.13 * M, yt1, 0.07 * M, hG - yt1);
+          c.strokeStyle = corC; c.lineWidth = Math.max(1, 0.025 * M);
+          c.beginPath();
+          for (let y = hG; y > yt1; y -= 0.45 * M) { c.moveTo(cx - 0.17 * M, y); c.lineTo(cx + 0.17 * M, y - 0.22 * M); c.lineTo(cx - 0.17 * M, y - 0.45 * M); }
+          c.stroke();
+          c.fillStyle = cor(tom([90, 94, 100], 0.5)); c.fillRect(cx - 0.32 * M, hG - 0.06 * M, 0.64 * M, 0.06 * M);
+          c.fillStyle = cor(tom([60, 62, 66], 0.5)); c.fillRect(cx + vao / 2 - 0.25 * M, yt1 + 0.24 * M, 0.5 * M, 0.08 * M);
+        }
+        fundoCache = { chave, longe: longe.c, meio: meio.c, galpao: gal.c, P };
+      }
+      const fc = fundoCache;
       // céu
       const ceu = ctx.createLinearGradient(0, piso - 12 * M, 0, piso);
       ceu.addColorStop(0, cor(tom([84, 146, 214], 0.72)));
@@ -1491,76 +1608,40 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       // nuvens, bem devagar
       ctx.fillStyle = cor(tom([255, 255, 255], 0.8), escuro ? 0.25 : 0.85);
       {
-        const S = 9 * M, k = 0.1, base = camX * (1 - k) - t * 0.15 * M;
+        const S = 9 * M, k = 0.1, base = camX * (1 - k) - (parado ? 0 : t * 0.15 * M);
         const i0 = Math.floor((vx0 - base) / S) - 1, i1 = Math.ceil((vx1 - base) / S) + 1;
         for (let i = i0; i <= i1; i++) {
           if (hash(i) < 0.35) continue;
           const nx = base + i * S + hash(i + 7) * 3 * M, ny = piso - (6 + hash(i + 3) * 4) * M, r = (0.4 + hash(i + 5) * 0.4) * M;
+          ctx.beginPath();
           for (const [dx, dy, rr] of [[0, 0, 1], [0.9, -0.35, 0.85], [1.8, 0, 0.95], [0.9, 0.2, 1]] as [number, number, number][]) {
-            ctx.beginPath(); ctx.ellipse(nx + dx * r * 1.4, ny + dy * r, rr * r * 1.5, rr * r * 0.8, 0, 0, 6.283); ctx.fill();
+            ctx.moveTo(nx + dx * r * 1.4 + rr * r * 1.5, ny + dy * r);
+            ctx.ellipse(nx + dx * r * 1.4, ny + dy * r, rr * r * 1.5, rr * r * 0.8, 0, 0, 6.283);
           }
+          ctx.fill();
         }
       }
-      // camada de longe (k 0,25): mata e os galpões velhos de telhado enferrujado
+      // as camadas de fora, carimbadas
+      const carimbo = (img: HTMLCanvasElement, k: number, y0: number, h: number) => {
+        const base = camX * (1 - k);
+        for (let j = Math.floor((vx0 - base) / fc.P); base + j * fc.P < vx1; j++) ctx.drawImage(img, base + j * fc.P, y0, fc.P, h);
+      };
+      carimbo(fc.longe, 0.25, piso - 4.6 * M, 4.6 * M);
+      carimbo(fc.meio, 0.5, piso - 2.0 * M, 2.0 * M);
+      // o que está parado lá fora (camada do meio)
       {
-        const k = 0.25, S = 5 * M, base = camX * (1 - k) + Wv / 2 * (1 - k) * 0;
-        const i0 = Math.floor((vx0 - base) / S) - 2, i1 = Math.ceil((vx1 - base) / S) + 2;
-        ctx.fillStyle = cor(tom([82, 128, 74]));
-        for (let i = i0; i <= i1; i++) {
-          const x = base + i * S;
-          for (let j = 0; j < 4; j++) {
-            const r = (0.7 + hash(i * 4 + j) * 0.8) * M;
-            ctx.beginPath(); ctx.ellipse(x + j * 1.3 * M, piso - (2.9 + hash(i + j * 9) * 1.1) * M, r * 1.3, r, 0, 0, 6.283); ctx.fill();
-          }
-        }
-        for (let i = i0; i <= i1; i++) {
-          if (hash(i + 40) < 0.45) continue;
-          const x = base + i * S, w = (4 + hash(i + 41) * 5) * M, yR = piso - (2.5 + hash(i + 42) * 0.4) * M;
-          ctx.fillStyle = cor(tom([150, 146, 140])); ctx.fillRect(x, yR + 0.35 * M, w, 1.2 * M);
-          const gR = ctx.createLinearGradient(0, yR, 0, yR + 0.45 * M);
-          gR.addColorStop(0, cor(tom([168, 92, 56]))); gR.addColorStop(1, cor(tom([118, 62, 40])));
-          ctx.fillStyle = gR;
-          ctx.beginPath(); ctx.moveTo(x - 0.2 * M, yR + 0.45 * M); ctx.lineTo(x + 0.3 * M, yR); ctx.lineTo(x + w - 0.3 * M, yR); ctx.lineTo(x + w + 0.2 * M, yR + 0.45 * M); ctx.closePath(); ctx.fill();
-          ctx.fillStyle = cor(tom([90, 50, 34]), 0.5);
-          for (let rx = x + 0.4 * M; rx < x + w - 0.3 * M; rx += 0.9 * M) if (hash(rx) > 0.5) ctx.fillRect(rx, yR + 0.05 * M, 0.35 * M, 0.38 * M);
-        }
-      }
-      // camada do meio (k 0,5): barranco de capim, o pátio de brita e o que está parado lá fora
-      {
-        const k = 0.5;
-        const yB = piso - 0.5 * M;
-        ctx.fillStyle = cor(tom([104, 152, 72]));
-        ctx.beginPath(); ctx.moveTo(vx0 - M, yB);
-        for (let x = vx0 - M; x <= vx1 + M; x += 0.4 * M) {
-          const q = (x - camX * (1 - k)) / M;
-          ctx.lineTo(x, piso - (1.35 + 0.35 * Math.sin(q * 0.21) + 0.15 * Math.sin(q * 0.9)) * M);
-        }
-        ctx.lineTo(vx1 + M, yB); ctx.closePath(); ctx.fill();
-        // capim alto em tufos
-        ctx.strokeStyle = cor(tom([132, 176, 88])); ctx.lineWidth = Math.max(1, 0.03 * M);
-        ctx.beginPath();
-        for (let x = Math.floor((vx0 - camX * (1 - k)) / (0.22 * M)) * 0.22 * M + camX * (1 - k); x <= vx1; x += 0.22 * M) {
-          const h = (0.25 + hash(Math.round(x / M * 10)) * 0.45) * M;
-          ctx.moveTo(x, yB); ctx.lineTo(x + 0.06 * M, yB - h);
-        }
-        ctx.stroke();
-        // brita
-        ctx.fillStyle = cor(tom([170, 164, 154])); ctx.fillRect(vx0, yB, vx1 - vx0, piso - yB);
-        ctx.fillStyle = cor(tom([120, 114, 106]), 0.6);
-        for (let x = Math.floor(vx0 / 7) * 7; x < vx1; x += 7) ctx.fillRect(x + ((x * 13) % 5), yB + 2 + ((x * 7) % 9) / 9 * (piso - yB - 4), 2, 1.5);
-        const sz = 0.85; // o que está lá fora parece um pouco menor
+        const k = 0.5, sz = 0.85;
         const pr = (m: number) => lf(Xm(m), k);
         const visL = (a: number, b: number) => b > vx0 - M && a < vx1 + M;
-        // prédio branco com a faixa azul embaixo, janelas de grade e o telhado de fibrocimento
         const predio = (x0: number, w: number, h: number, porta: boolean) => {
           if (!visL(x0, x0 + w)) return;
           const yT = piso - 0.45 * M - h;
           ctx.fillStyle = cor(tom([236, 236, 230])); ctx.fillRect(x0, yT, w, h);
           ctx.fillStyle = cor(tom([36, 84, 168])); ctx.fillRect(x0, yT + h * 0.68, w, h * 0.32);
           ctx.fillStyle = cor(tom([196, 196, 190])); ctx.fillRect(x0 - 0.15 * M, yT - 0.18 * M, w + 0.3 * M, 0.2 * M);
+          ctx.strokeStyle = cor(tom([235, 235, 232])); ctx.lineWidth = 1;
           for (let jx = x0 + 0.5 * M; jx < x0 + w - 1.0 * M; jx += 1.7 * M) {
             ctx.fillStyle = cor(tom([90, 100, 110])); ctx.fillRect(jx, yT + h * 0.22, 0.8 * M * sz, 0.6 * M * sz);
-            ctx.strokeStyle = cor(tom([235, 235, 232])); ctx.lineWidth = 1;
             ctx.beginPath();
             for (let g = 1; g < 4; g++) { ctx.moveTo(jx + g * 0.2 * M * sz, yT + h * 0.22); ctx.lineTo(jx + g * 0.2 * M * sz, yT + h * 0.22 + 0.6 * M * sz); }
             ctx.moveTo(jx, yT + h * 0.22 + 0.3 * M * sz); ctx.lineTo(jx + 0.8 * M * sz, yT + h * 0.22 + 0.3 * M * sz);
@@ -1571,7 +1652,6 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         predio(pr(20), 7 * M * sz, 2.7 * M * sz, false);
         predio(pr(-9), 5 * M * sz, 2.6 * M * sz, true);
         predio(pr(-58), 9 * M * sz, 3.0 * M * sz, true);
-        // contêineres: o azul da Rumo e o cinza da Agilibox
         const conteiner = (x0: number, c: RGB, texto: string) => {
           const w = 3.6 * M * sz, h = 1.6 * M * sz, yT = piso - 0.45 * M - h;
           if (!visL(x0, x0 + w)) return;
@@ -1586,7 +1666,6 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         };
         conteiner(pr(28), [44, 104, 184], 'rumo');
         conteiner(pr(-15), [120, 128, 134], 'AGILIBOX');
-        // vagão plataforma azul-claro (PDR) com as nervuras, e o guindaste ferroviário amarelo com a lança de treliça
         {
           const x0 = pr(-30), w = 12 * M * sz, yT = piso - 0.45 * M - 1.5 * M * sz;
           if (visL(x0 - 4 * M, x0 + w)) {
@@ -1597,8 +1676,12 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
             ctx.stroke();
             ctx.fillStyle = cor(tom([168, 96, 60]), 0.5); ctx.fillRect(x0 + 2 * M, yT + 0.2 * M, 1.4 * M, 0.3 * M);
             ctx.fillStyle = cor(tom([46, 48, 52]));
-            for (const bx of [x0 + 1.6 * M, x0 + w - 1.6 * M]) for (const d of [-0.5, 0.5]) { ctx.beginPath(); ctx.arc(bx + d * M, piso - 0.62 * M, 0.26 * M * sz, 0, 6.283); ctx.fill(); }
-            // guindaste em cima de outro vagão, à esquerda
+            // truques: a armação e as duas rodas de cada um, logo embaixo do estrado
+            for (const bx of [x0 + 1.6 * M, x0 + w - 1.6 * M]) {
+              ctx.fillStyle = cor(tom([60, 62, 66])); ctx.fillRect(bx - 0.8 * M, yT + 1.0 * M * sz, 1.6 * M, 0.16 * M);
+              ctx.fillStyle = cor(tom([40, 42, 46]));
+              for (const d of [-0.45, 0.45]) { ctx.beginPath(); ctx.arc(bx + d * M, yT + 1.0 * M * sz + 0.24 * M, 0.17 * M * sz, 0, 6.283); ctx.fill(); }
+            }
             const gx = x0 - 3.2 * M, gy = yT - 1.4 * M * sz;
             ctx.fillStyle = cor(tom([70, 72, 76])); ctx.fillRect(gx - 1.5 * M, yT + 0.6 * M * sz, 4.2 * M, 0.3 * M);
             ctx.fillStyle = cor(tom([214, 168, 70])); ctx.fillRect(gx - 1.0 * M, gy, 2.6 * M * sz, 1.5 * M * sz);
@@ -1612,7 +1695,6 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
             ctx.stroke();
           }
         }
-        // vagão-tanque branco e a escavadeira amarela, perto do fim do galpão
         {
           const x0 = pr(-74), w = 7 * M * sz, yT = piso - 0.45 * M - 1.9 * M * sz;
           if (visL(x0, x0 + w)) {
@@ -1632,87 +1714,38 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
           }
         }
       }
-      // o galpão: parede de telha no alto, telhado, colunas de treliça, luminárias
+      // o galpão: o vão carimbado ao longo da linha, o telhado acima dele, e por coluna a luz, o extintor ou o ventilador
       const gx0 = Math.max(vx0, fimG), gx1 = vx1;
       if (gx0 < gx1) {
-        // parede de telha marrom-escura (ondulada, com as terças)
-        const parede = ctx.createLinearGradient(0, yParede, 0, yAbre);
-        parede.addColorStop(0, cor(tom([62, 54, 48], 0.5))); parede.addColorStop(1, cor(tom([84, 72, 62], 0.5)));
-        ctx.fillStyle = parede; ctx.fillRect(gx0, yParede, gx1 - gx0, yAbre - yParede);
-        const onda = Math.max(4, 0.16 * M);
-        ctx.fillStyle = cor(tom([40, 34, 30], 0.5), 0.55);
-        for (let x = Math.floor(gx0 / onda) * onda; x < gx1; x += onda) ctx.fillRect(x, yParede, Math.max(1, onda * 0.3), yAbre - yParede);
-        ctx.fillStyle = cor(tom([120, 106, 92], 0.5), 0.35);
-        for (let x = Math.floor(gx0 / onda) * onda + onda * 0.55; x < gx1; x += onda) ctx.fillRect(x, yParede, 1, yAbre - yParede);
-        ctx.fillStyle = cor(tom([30, 28, 26], 0.5), 0.8);
-        for (const y of [piso - 5.2 * M, piso - 6.9 * M]) ctx.fillRect(gx0, y, gx1 - gx0, Math.max(1.5, 0.05 * M));
-        // pontinhos de luz entre as telhas, numa fileira
-        ctx.fillStyle = `rgba(255,255,255,${escuro ? 0.12 : 0.5})`;
-        for (let x = Math.floor(gx0 / (0.5 * M)) * 0.5 * M; x < gx1; x += 0.5 * M) ctx.fillRect(x, piso - 4.35 * M, 1.5, 1.5);
-        // cano vermelho de incêndio
-        ctx.fillStyle = cor(tom([196, 40, 40], 0.45)); ctx.fillRect(gx0, piso - 7.6 * M, gx1 - gx0, Math.max(2, 0.09 * M));
-        ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(gx0, piso - 7.6 * M, gx1 - gx0, Math.max(1, 0.02 * M));
-        // eletrocalhas cinzas furadas: uma logo acima da abertura, outra no meio da parede
-        for (const y of [yAbre - 0.32 * M, piso - 6.0 * M]) {
-          ctx.fillStyle = cor(tom([168, 172, 176], 0.5)); ctx.fillRect(gx0, y, gx1 - gx0, Math.max(3, 0.13 * M));
-          ctx.fillStyle = cor(tom([90, 94, 98], 0.5));
-          for (let x = Math.floor(gx0 / (0.12 * M)) * 0.12 * M; x < gx1; x += 0.12 * M) ctx.fillRect(x, y + 0.04 * M, Math.max(1, 0.04 * M), Math.max(1, 0.04 * M));
-        }
-        // viga da beirada da abertura
-        ctx.fillStyle = cor(tom([52, 52, 54], 0.5)); ctx.fillRect(gx0, yAbre - 0.12 * M, gx1 - gx0, 0.14 * M);
-        // telhado (visto por baixo): telha escura e as tesouras de treliça
-        ctx.fillStyle = cor(tom([46, 48, 52], 0.5)); ctx.fillRect(gx0, yTopo, gx1 - gx0, yParede - yTopo);
-        ctx.fillStyle = cor(tom([70, 72, 76], 0.5), 0.6);
-        for (let y = yParede - 1.6 * M; y > yParede - 30 * M; y -= 0.22 * M) ctx.fillRect(gx0, y, gx1 - gx0, 1);
-        const vao = 7.5 * M;
-        ctx.strokeStyle = cor(tom([96, 100, 106], 0.5)); ctx.lineWidth = Math.max(1, 0.05 * M);
-        ctx.beginPath();
-        const yt0 = yParede - 0.1 * M, yt1 = yParede - 1.3 * M;
-        ctx.moveTo(gx0, yt0); ctx.lineTo(gx1, yt0); ctx.moveTo(gx0, yt1); ctx.lineTo(gx1, yt1);
-        for (let x = Math.floor(gx0 / (0.75 * M)) * 0.75 * M; x < gx1; x += 0.75 * M) {
-          const par = Math.round(x / (0.75 * M)) % 2 === 0;
-          ctx.moveTo(x, par ? yt0 : yt1); ctx.lineTo(x + 0.75 * M, par ? yt1 : yt0);
-        }
-        ctx.stroke();
-        // colunas de treliça, luminárias, extintores e ventiladores
+        if (yTopo < yTileG) { ctx.fillStyle = cor(tom([46, 48, 52], 0.5)); ctx.fillRect(gx0, yTopo, gx1 - gx0, yTileG - yTopo + 1); }
         const c0 = Math.floor((gx0 - xm) / vao) - 1, c1 = Math.ceil((gx1 - xm) / vao) + 1;
+        ctx.save();
+        ctx.beginPath(); ctx.rect(gx0, yTopo, gx1 - gx0, piso - yTopo); ctx.clip();
+        for (let c = c0; c <= c1; c++) ctx.drawImage(fc.galpao, xm + c * vao, yTileG, vao, piso - yTileG);
+        ctx.restore();
         const liga = parado ? 1 : suave(0.15, 0.6, t * (completa ? 1 : 3));
+        const yLuz = yParede - 1.3 * M + 0.32 * M;
         for (let c = c0; c <= c1; c++) {
           const cx = xm + c * vao + 0.4 * M;
-          if (cx < fimG + 0.2 * M) continue;
-          const corC = cor(tom([128, 132, 138], 0.5));
-          ctx.fillStyle = corC;
-          ctx.fillRect(cx - 0.2 * M, yt1, 0.07 * M, piso - yt1);
-          ctx.fillRect(cx + 0.13 * M, yt1, 0.07 * M, piso - yt1);
-          ctx.strokeStyle = corC; ctx.lineWidth = Math.max(1, 0.025 * M);
-          ctx.beginPath();
-          for (let y = piso; y > yt1; y -= 0.45 * M) { ctx.moveTo(cx - 0.17 * M, y); ctx.lineTo(cx + 0.17 * M, y - 0.22 * M); ctx.lineTo(cx - 0.17 * M, y - 0.45 * M); }
-          ctx.stroke();
-          ctx.fillStyle = cor(tom([90, 94, 100], 0.5)); ctx.fillRect(cx - 0.32 * M, piso - 0.06 * M, 0.64 * M, 0.06 * M);
-          // luminária de LED embaixo da treliça
-          const ly = yt1 + 0.3 * M, lx = cx + vao / 2;
-          ctx.fillStyle = cor(tom([60, 62, 66], 0.5)); ctx.fillRect(lx - 0.25 * M, ly - 0.06 * M, 0.5 * M, 0.08 * M);
+          if (cx < fimG + 0.2 * M || cx > gx1 + vao) continue;
           if (liga > 0) {
-            ctx.fillStyle = `rgba(255,250,235,${0.95 * liga})`; ctx.fillRect(lx - 0.22 * M, ly + 0.02 * M, 0.44 * M, Math.max(1.5, 0.03 * M));
-            const facho = ctx.createLinearGradient(0, ly, 0, piso);
-            facho.addColorStop(0, cor(pal.farol, (escuro ? 0.1 : 0.05) * liga)); facho.addColorStop(1, cor(pal.farol, 0));
-            ctx.fillStyle = facho;
-            ctx.beginPath(); ctx.moveTo(lx - 0.22 * M, ly); ctx.lineTo(lx + 0.22 * M, ly); ctx.lineTo(lx + 2.4 * M, piso); ctx.lineTo(lx - 2.4 * M, piso); ctx.closePath(); ctx.fill();
+            const lx = cx + vao / 2;
+            ctx.fillStyle = `rgba(255,250,235,${0.95 * liga})`; ctx.fillRect(lx - 0.22 * M, yLuz, 0.44 * M, Math.max(1.5, 0.03 * M));
           }
           const h = hash(c + 100);
           if (h < 0.35) {
-            // extintor vermelho com a placa
             ctx.fillStyle = cor(tom([200, 36, 36], 0.4));
             ctx.beginPath(); ctx.roundRect(cx + 0.24 * M, piso - 1.5 * M, 0.16 * M, 0.5 * M, 0.06 * M); ctx.fill();
             ctx.fillStyle = cor(tom([40, 40, 44], 0.4)); ctx.fillRect(cx + 0.29 * M, piso - 1.6 * M, 0.06 * M, 0.1 * M);
           } else if (h < 0.6) {
-            // ventilador de parede preso na coluna (gira)
             const vx = cx + 0.55 * M, vy = piso - 3.0 * M, r = 0.38 * M;
             ctx.strokeStyle = cor(tom([30, 30, 34], 0.4)); ctx.lineWidth = Math.max(1, 0.02 * M);
             ctx.beginPath(); ctx.arc(vx, vy, r, 0, 6.283); ctx.stroke();
             ctx.fillStyle = cor(tom([30, 30, 34], 0.4), 0.85);
             const g = parado ? 0 : t * 9 + c;
-            for (let k = 0; k < 3; k++) { const a = g + (k * 2 * Math.PI) / 3; ctx.beginPath(); ctx.ellipse(vx + Math.cos(a) * r * 0.48, vy + Math.sin(a) * r * 0.48, r * 0.45, r * 0.16, a, 0, 6.283); ctx.fill(); }
+            ctx.beginPath();
+            for (let k = 0; k < 3; k++) { const a = g + (k * 2 * Math.PI) / 3; ctx.moveTo(vx, vy); ctx.ellipse(vx + Math.cos(a) * r * 0.48, vy + Math.sin(a) * r * 0.48, r * 0.45, r * 0.16, a, 0, 6.283); }
+            ctx.fill();
             ctx.fillRect(cx + 0.18 * M, vy - 0.03 * M, 0.37 * M - r * 0.1, 0.06 * M);
           }
         }
@@ -1724,10 +1757,14 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.fillRect(fimG - 1.2 * M, yParede - 1.45 * M, 1.4 * M, 0.2 * M);
         ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(fimG + 0.16 * M, yParede - 1.3 * M, 0.08 * M, piso - yParede + 1.3 * M);
       }
-      // na parte de cima da tela inicial (antes do passeio) o fundo fica sob uma névoa da cor do tema, para os cartões
-      // lerem bem; ela some quando a seção da linha entra
-      const nevoa = tour ? 0.78 * (1 - suave(0.1, 0.85, entra)) : 0.78;
-      if (nevoa > 0.01) { ctx.fillStyle = cor(pal.ceuTopo, nevoa); ctx.fillRect(vx0, yTopo, vx1 - vx0, piso - yTopo); }
+      // na parte de cima da tela inicial, uma sombra suave só no alto, atrás do título (some quando o passeio entra)
+      const sombraTopo = tour ? 1 - suave(0.1, 0.7, entra) : 1;
+      if (sombraTopo > 0.01) {
+        const yA = offY, yB = offY + Htela * 0.42;
+        const g = ctx.createLinearGradient(0, yA, 0, yB);
+        g.addColorStop(0, cor(pal.ceuTopo, 0.7 * sombraTopo)); g.addColorStop(1, cor(pal.ceuTopo, 0));
+        ctx.fillStyle = g; ctx.fillRect(vx0, yA, vx1 - vx0, yB - yA);
+      }
     };
 
     // daqui em diante, tudo é do mundo: anda de lado com a câmera do passeio
@@ -2370,23 +2407,42 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       const quando = soldada.get(k);
       const naMaquina = ciclo !== null && ciclo.k === k;
       if (quando === undefined) {
+        // Emenda ainda não soldada: as duas barras estão separadas por uma fresta (uns 7 cm, um pouco exagerada para
+        // aparecer), com o corte de cada ponta à mostra. Depois da Geismar as pontas ficam lixadas (aço brilhante dos
+        // dois lados). Na Schlatter a fresta vai fechando no centelhamento e some no recalque.
+        const fresta = 0.07 * M;
+        const lixada = parado || k <= kAtual || (k === kAtual + 1 && fase > 3.5);
+        const fecha = naMaquina ? suave(F.garra, F.recalque, fase) : 0;
+        const gw = Math.max(1, fresta * (1 - fecha));
+        const yT = topo - R * 0.06, hT = R * 1.06;
+        if (lixada) {
+          const lb = 0.16 * M;
+          const g = ctx.createLinearGradient(x - gw / 2 - lb, 0, x + gw / 2 + lb, 0);
+          g.addColorStop(0, 'rgba(235,240,246,0)'); g.addColorStop(0.42, `rgba(235,240,246,${escuro ? 0.45 : 0.6})`);
+          g.addColorStop(0.58, `rgba(235,240,246,${escuro ? 0.45 : 0.6})`); g.addColorStop(1, 'rgba(235,240,246,0)');
+          ctx.fillStyle = g; ctx.fillRect(x - gw / 2 - lb, yT, gw + 2 * lb, R * 0.33);
+          ctx.fillRect(x - gw / 2 - lb, topo + R * 0.76, gw + 2 * lb, R * 0.24);
+        }
+        // a fresta (o vão entre as barras) e o corte das pontas, em "I"
+        ctx.fillStyle = 'rgba(14,15,18,.92)'; ctx.fillRect(x - gw / 2, yT, gw, hT);
+        const faceC = cor(misturar(pal.aco, pal.acoLado, lixada ? 0.1 : 0.4));
+        const faceA = cor(misturar(pal.acoLado, pal.ceuTopo, 0.25));
+        const fw = Math.max(1, Math.min(gw * 0.35, 0.02 * M));
+        for (const [xe, d] of [[x - gw / 2, 1], [x + gw / 2, -1]] as [number, number][]) {
+          ctx.fillStyle = faceC; ctx.fillRect(xe, yT, d * fw, R * 0.39); ctx.fillRect(xe, topo + R * 0.76, d * fw, R * 0.24);
+          ctx.fillStyle = faceA; ctx.fillRect(xe, topo + R * 0.33, d * fw * 0.6, R * 0.43);
+        }
         if (naMaquina && fase > F.garra) {
           // centelhamento: as pontas em brasa se aproximando, com a fresta brilhando
-          const fecha = suave(F.garra, F.centelha, fase);
-          const larg = mix(4, 1, fecha);
           const brilho = Math.min(1, forcaCentelha + 0.2);
-          const g = ctx.createLinearGradient(x - 0.1 * M, 0, x + 0.1 * M, 0);
+          const g = ctx.createLinearGradient(x - 0.12 * M, 0, x + 0.12 * M, 0);
           g.addColorStop(0, 'rgba(255,120,40,0)');
           g.addColorStop(0.5, `rgba(255,200,110,${0.85 * brilho})`);
           g.addColorStop(1, 'rgba(255,120,40,0)');
           ctx.fillStyle = g;
-          ctx.fillRect(x - 0.1 * M, topo - R * 0.06, 0.2 * M, R * 1.06);
+          ctx.fillRect(x - 0.12 * M, yT, 0.24 * M, hT);
           ctx.fillStyle = `rgba(255,250,230,${brilho})`;
-          ctx.fillRect(x - larg / 2, topo - R * 0.06, larg, R * 1.06);
-        } else {
-          // ainda não soldada: fresta entre as barras
-          ctx.fillStyle = cor(pal.ceuTopo, 0.95);
-          ctx.fillRect(x - 1.5, topo - R * 0.06, 3, R * 1.06);
+          ctx.fillRect(x - gw / 2, yT, gw, hT);
         }
         continue;
       }
