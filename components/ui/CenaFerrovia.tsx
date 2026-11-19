@@ -1410,28 +1410,6 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         }
       }
     }
-    // pilha de barras novas esperando no fundo, à esquerda, separadas por calços de madeira
-    {
-      const camadas = W < 600 ? 3 : 4;
-      // fica à esquerda do rolo opressor (no celular, onde não cabe, não aparece)
-      const pR = xR - 2.75 * M, pL = Math.max(W * 0.02, pR - 4 * M);
-      const hb = Math.max(4, 0.16 * M), calco = Math.max(2, 0.06 * M);
-      const corBarra = misturar(pal.acoLado, pal.ceuHorizonte, 0.45), corCalco = misturar([120, 80, 50], pal.ceuHorizonte, 0.5);
-      if (pR - pL > 1.5 * M)
-      for (let i = 0; i < camadas; i++) {
-        const yb = piso - (i + 1) * (hb + calco);
-        ctx.fillStyle = cor(corCalco, 0.8);
-        for (let x = pL + 0.3 * M; x < pR; x += 1.6 * M) ctx.fillRect(x, yb + hb, 0.12 * M, calco);
-        const gb = ctx.createLinearGradient(0, yb, 0, yb + hb);
-        gb.addColorStop(0, cor(misturar(corBarra, [255, 255, 255], 0.25), 0.85));
-        gb.addColorStop(1, cor(misturar(corBarra, pal.ceuTopo, 0.35), 0.85));
-        ctx.fillStyle = gb;
-        ctx.fillRect(pL + i * 0.08 * M, yb, pR - pL - i * 0.16 * M, hb);
-        ctx.fillStyle = 'rgba(0,0,0,.25)';
-        for (let x = pL + 0.9 * M; x < pR - 0.5 * M; x += 2.3 * M) ctx.fillRect(x, yb, 1, hb);
-      }
-    }
-
     // outra estação soldando lá no fundo: um clarão que pisca de vez em quando
     const pisca = Math.max(0, Math.sin(t * 13) * Math.sin(t * 2.3) * Math.sin(t * 0.7 + 1));
     if (!parado && pisca > 0.2) {
@@ -1563,25 +1541,60 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     }
 
     // ---------- roletes ----------
-    const esp = 2.5 * M; // roletes a cada 2,5 m
+    // Rolos de aço deitados atravessando o trilho (não são bolas), em suportes de chapa amarela parafusados no chão,
+    // um a cada 2,5 m e numerados como na linha (o número cresce no sentido em que o trilho anda, para a esquerda).
+    // Giram com o trilho só quando ele anda. Onde fica o rolo opressor "01" não tem rolete.
+    const esp = 2.5 * M;
     const yRol = topo + R + rr;
+    const fx = rr * 2.4, fy = -rr * 1.2; // o comprimento do rolo indo para trás (vista um pouco de cima)
     for (let x = (xc % esp) - esp; x < W + esp; x += esp) {
-      // pé do rolete
-      ctx.fillStyle = cor(misturar(pal.acoLado, pal.ceuTopo, 0.55));
-      ctx.beginPath(); ctx.moveTo(x - rr * 0.5, yRol); ctx.lineTo(x + rr * 0.5, yRol); ctx.lineTo(x + rr * 1.3, piso); ctx.lineTo(x - rr * 1.3, piso); ctx.closePath(); ctx.fill();
-      // rolete com reflexo e marcas que giram
-      const g = ctx.createRadialGradient(x - rr * 0.3, yRol - rr * 0.4, rr * 0.1, x, yRol, rr);
-      g.addColorStop(0, cor(pal.aco)); g.addColorStop(1, cor(misturar(pal.acoLado, pal.ceuTopo, 0.3)));
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, yRol, rr, 0, 6.283); ctx.fill();
-      const ang = -u / rr;
-      ctx.strokeStyle = cor(misturar(pal.acoLado, [0, 0, 0], 0.55), 0.7);
-      ctx.lineWidth = Math.max(1, rr * 0.12);
+      if (x > x01 - 0.3 * M && x < x01 + w01 + 0.3 * M) continue;
+      const num = 24 - Math.round((x - xc) / esp);
+      const amPe = amarelo(AM), amPeS = amarelo(AM_S), amPeL = amarelo(AM_L);
+      const pe = (px: number, py: number, claro: string, escuroC: string) => {
+        // suporte reto de chapa dobrada, com o mancal em cima
+        const g = ctx.createLinearGradient(px - rr * 0.6, 0, px + rr * 0.6, 0);
+        g.addColorStop(0, claro); g.addColorStop(1, escuroC);
+        ctx.fillStyle = g;
+        ctx.fillRect(px - rr * 0.45, py, rr * 0.9, piso - py - 0.04 * M);
+        ctx.fillRect(px - rr * 0.75, py - rr * 0.45, rr * 1.5, rr * 0.9); // mancal
+      };
+      // pé e mancal de trás (do outro lado do trilho)
+      pe(x + fx, yRol + fy, amPeS, amPeS);
+      // corpo do rolo, de trás para a frente
+      ctx.save(); ctx.translate(x, yRol); ctx.rotate(Math.atan2(fy, fx));
+      const gc = ctx.createLinearGradient(0, -rr, 0, rr);
+      gc.addColorStop(0, cor(misturar(pal.aco, [255, 255, 255], 0.15))); gc.addColorStop(0.45, cor(misturar(pal.aco, pal.acoLado, 0.45))); gc.addColorStop(1, cor(misturar(pal.acoLado, pal.ceuTopo, 0.4)));
+      ctx.fillStyle = gc;
+      ctx.fillRect(0, -rr, Math.hypot(fx, fy), rr * 2);
+      ctx.restore();
+      // face redonda da frente, com as marcas que giram com o trilho
+      const gf = ctx.createRadialGradient(x - rr * 0.3, yRol - rr * 0.35, rr * 0.1, x, yRol, rr);
+      gf.addColorStop(0, cor(misturar(pal.aco, [255, 255, 255], 0.2))); gf.addColorStop(1, cor(misturar(pal.acoLado, pal.ceuTopo, 0.25)));
+      ctx.fillStyle = gf; ctx.beginPath(); ctx.arc(x, yRol, rr, 0, 6.283); ctx.fill();
+      const giro = -u / rr;
+      ctx.strokeStyle = cor(misturar(pal.acoLado, [0, 0, 0], 0.5), 0.6); ctx.lineWidth = Math.max(1, rr * 0.12);
       for (let k = 0; k < 3; k++) {
-        const a = ang + (k * 2 * Math.PI) / 3;
-        ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * rr * 0.25, yRol + Math.sin(a) * rr * 0.25); ctx.lineTo(x + Math.cos(a) * rr * 0.8, yRol + Math.sin(a) * rr * 0.8); ctx.stroke();
+        const a = giro + (k * 2 * Math.PI) / 3;
+        ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * rr * 0.3, yRol + Math.sin(a) * rr * 0.3); ctx.lineTo(x + Math.cos(a) * rr * 0.8, yRol + Math.sin(a) * rr * 0.8); ctx.stroke();
       }
-      ctx.fillStyle = cor(misturar(pal.acoLado, [0, 0, 0], 0.6), 0.8);
-      ctx.beginPath(); ctx.arc(x, yRol, rr * 0.18, 0, 6.283); ctx.fill();
+      // pé e mancal da frente, com o eixo
+      pe(x, yRol + rr * 0.55, amPeL, amPeS);
+      ctx.fillStyle = cor(misturar(pal.acoLado, [0, 0, 0], 0.5));
+      ctx.beginPath(); ctx.arc(x, yRol + rr * 0.55, rr * 0.18, 0, 6.283); ctx.fill();
+      ctx.fillStyle = amPe; // base parafusada, ligando os dois pés
+      ctx.fillRect(x - rr * 1.1, piso - 0.045 * M, rr * 2.2 + fx, 0.045 * M);
+      ctx.fillStyle = 'rgba(0,0,0,.4)';
+      for (const bx of [x - rr * 0.85, x + fx + rr * 0.85]) { ctx.beginPath(); ctx.arc(bx, piso - 0.022 * M, Math.max(1, 0.012 * M), 0, 6.283); ctx.fill(); }
+      // número pintado no pé da frente
+      const tn = Math.max(6, 0.11 * M);
+      ctx.save();
+      ctx.translate(x, (yRol + piso) / 2 + rr * 0.6); ctx.rotate(-Math.PI / 2);
+      ctx.fillStyle = 'rgba(16,16,18,.85)';
+      ctx.font = `700 ${tn}px ${fonte('--font-barlow-cond', '"Barlow Condensed", "Arial Narrow", sans-serif')}`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(String(num).padStart(2, '0'), 0, 0);
+      ctx.restore();
     }
 
     // ---------- o trilho (perfil de lado, um pouco visto de cima) ----------
