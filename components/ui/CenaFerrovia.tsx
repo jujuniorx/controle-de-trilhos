@@ -5,9 +5,11 @@ import { useEffect, useRef } from 'react';
 /**
  * Cena da ferrovia em canvas, usada no fundo das telas.
  *
- * inicio (tela inicial, logins e abertura do app): o TLS saindo do estaleiro. O trilho longo desliza sobre
- *   roletes na parte de baixo e para na Schlatter a cada barra: as garras descem, a emenda centelha, recalca,
- *   é rebarbada e segue esfriando. Atrás, o galpão com as luminárias; ao lado da máquina, o soldador.
+ * inicio (tela inicial, logins e abertura do app): o TLS saindo do estaleiro. O trilho longo corre sobre roletes
+ *   na parte de baixo e só anda quando o soldador segura o joystick do painel Siemens. Na Schlatter ele fecha a
+ *   portinhola, aperta a solda (a emenda centelha e recalca), abre a portinhola e raspa a borra com a espátula.
+ *   Logo depois da máquina, o segundo operário deita a régua sobre a emenda e confere o alinhamento. Os dois
+ *   aparecem de costas, com a logo da Rumo no uniforme. Atrás, o galpão com as luminárias.
  *   A primeira solda acontece junto com a solda do logo. ("abertura" é o nome antigo e cai aqui também.)
  * saudacao (faixa "Bom dia"): a via vista de lado, com o céu da hora de verdade (sol nascendo, de tarde,
  *   pondo, lua e estrelas à noite), a serra ao fundo, postes com fios, os dormentes passando e, de tempos
@@ -553,10 +555,10 @@ function desenharFrenteSchlatter(c: CanvasRenderingContext2D, g: GeoMaquina) {
     linha(mL + 0.17 * M, y, meio - 0.12 * M, y, 'rgba(0,0,0,.3)', 1.2);
     linha(mL + 0.17 * M, y + 1.2, meio - 0.12 * M, y + 1.2, 'rgba(255,255,255,.18)');
   }
-  // plaqueta da máquina
-  const plL = meio + 0.1 * M, plW = wL - 0.17 * M - plL;
+  // plaqueta da máquina (na porta da esquerda, embaixo das venezianas; a da direita leva o painel de comando)
+  const plL = mL + 0.1 * M, plW = PAINEL(M, wL, mT).px - 0.08 * M - plL, plY = mT + 0.86 * M;
   c.fillStyle = 'rgb(200,204,210)';
-  c.fillRect(plL, mT + 0.32 * M, plW, 0.13 * M);
+  c.fillRect(plL, plY, plW, 0.13 * M);
   c.fillStyle = 'rgb(40,44,52)';
   let tam = 0.075 * M;
   c.font = `700 ${tam}px ${fonte('--font-barlow-cond', '"Barlow Condensed", "Arial Narrow", sans-serif')}`;
@@ -564,7 +566,7 @@ function desenharFrenteSchlatter(c: CanvasRenderingContext2D, g: GeoMaquina) {
   if (largTexto > plW * 0.86) { tam *= (plW * 0.86) / largTexto; c.font = `700 ${tam}px ${fonte('--font-barlow-cond', '"Barlow Condensed", "Arial Narrow", sans-serif')}`; }
   c.textBaseline = 'middle';
   c.textAlign = 'center';
-  c.fillText('SCHLATTER', plL + plW / 2, mT + 0.386 * M);
+  c.fillText('SCHLATTER', plL + plW / 2, plY + 0.066 * M);
   c.textAlign = 'left';
   // botoeira de emergência amarela com o botão vermelho
   const bx = mL + 0.16 * M, by = wB - 0.62 * M;
@@ -608,6 +610,71 @@ function desenharFrenteSchlatter(c: CanvasRenderingContext2D, g: GeoMaquina) {
   c.fillRect(mL - 0.04 * M, piso - 0.08 * M, mR - mL + 0.08 * M, 0.08 * M);
   for (let x = mL + 0.15 * M; x < mR - 0.1 * M; x += 0.3 * M) parafuso(x, wB + 0.08 * M);
   linha(mL, wB, mR, wB, luzAresta);
+
+  // painel de comando Siemens preso na lateral, à esquerda da porta (como na foto): caixa bege com as duas telas,
+  // botão de emergência em cima, fileira de alavancas embaixo e o controle amarelo pendurado no suporte azul
+  {
+    const pn = PAINEL(M, wL, mT);
+    // braço articulado que segura o painel, subindo até a viga azul
+    c.fillStyle = cor(mq([176, 150, 104]));
+    c.fillRect(pn.x0 + (pn.x1 - pn.x0) * 0.55, mT - 0.02 * M, 0.07 * M, pn.y0 - mT + 0.02 * M);
+    c.fillStyle = cor(mq([120, 100, 70]));
+    c.beginPath(); c.ellipse(pn.x0 + (pn.x1 - pn.x0) * 0.55 + 0.035 * M, pn.y0, 0.07 * M, 0.025 * M, 0, 0, 6.283); c.fill();
+    // cabo preto do controle
+    c.strokeStyle = 'rgb(24,24,28)'; c.lineWidth = Math.max(1.2, 0.018 * M);
+    c.beginPath(); c.moveTo(pn.px + pn.pw / 2, pn.py0); c.quadraticCurveTo(pn.px + pn.pw * 0.6, pn.y0 - 0.12 * M, pn.x0 + (pn.x1 - pn.x0) * 0.5, pn.y0 - 0.05 * M); c.stroke();
+    // caixa
+    c.fillStyle = 'rgba(0,0,0,.3)';
+    c.fillRect(pn.x0 + 0.02 * M, pn.y0 + 0.02 * M, pn.x1 - pn.x0, pn.y1 - pn.y0);
+    painel(pn.x0, pn.y0, pn.x1 - pn.x0, pn.y1 - pn.y0, [214, 206, 186], 0.12, 0.12);
+    c.strokeStyle = 'rgba(0,0,0,.35)'; c.lineWidth = 1;
+    c.strokeRect(pn.x0, pn.y0, pn.x1 - pn.x0, pn.y1 - pn.y0);
+    const pw = pn.x1 - pn.x0, ph = pn.y1 - pn.y0;
+    // tela de texto (verde) com teclado e o painel de teclas
+    c.fillStyle = cor(mq([196, 200, 204]));
+    c.fillRect(pn.x0 + pw * 0.1, pn.y0 + ph * 0.24, pw * 0.34, ph * 0.5);
+    c.fillStyle = 'rgb(150,196,110)';
+    c.fillRect(pn.x0 + pw * 0.14, pn.y0 + ph * 0.28, pw * 0.26, ph * 0.13);
+    c.fillStyle = 'rgba(40,60,40,.6)';
+    for (let i = 0; i < 2; i++) c.fillRect(pn.x0 + pw * 0.16, pn.y0 + ph * (0.31 + i * 0.05), pw * 0.2, Math.max(0.6, ph * 0.012));
+    c.fillStyle = 'rgba(60,64,70,.55)';
+    for (let r = 0; r < 4; r++) for (let k = 0; k < 4; k++) c.fillRect(pn.x0 + pw * (0.14 + k * 0.065), pn.y0 + ph * (0.46 + r * 0.065), pw * 0.04, ph * 0.04);
+    c.fillStyle = cor(mq([228, 230, 228]));
+    c.fillRect(pn.x0 + pw * 0.5, pn.y0 + ph * 0.24, pw * 0.4, ph * 0.5);
+    for (let r = 0; r < 5; r++) for (let k = 0; k < 6; k++) {
+      const verde = (r * 7 + k * 3) % 5 === 0;
+      c.fillStyle = verde ? 'rgb(150,230,60)' : 'rgba(80,84,90,.45)';
+      c.fillRect(pn.x0 + pw * (0.53 + k * 0.058), pn.y0 + ph * (0.29 + r * 0.085), pw * 0.04, ph * 0.05);
+    }
+    // botão de emergência (cogumelo vermelho na base amarela)
+    c.fillStyle = cor(SCH.AMARELO);
+    c.beginPath(); c.arc(pn.x0 + pw * 0.4, pn.y0 + ph * 0.12, ph * 0.075, 0, 6.283); c.fill();
+    c.fillStyle = 'rgb(205,40,36)';
+    c.beginPath(); c.arc(pn.x0 + pw * 0.4, pn.y0 + ph * 0.12, ph * 0.055, 0, 6.283); c.fill();
+    // fileira de alavanquinhas embaixo (a primeira, maior, é o joystick que faz a barra andar: desenhada à parte)
+    for (let k = 1; k < 8; k++) {
+      const ax = pn.jx + k * pw * 0.1, ay = pn.jy;
+      c.fillStyle = 'rgb(30,32,36)';
+      c.fillRect(ax - pw * 0.025, ay - ph * 0.04, pw * 0.05, ph * 0.08);
+      c.strokeStyle = 'rgb(20,20,24)'; c.lineWidth = Math.max(1, pw * 0.018);
+      c.beginPath(); c.moveTo(ax, ay); c.lineTo(ax + pw * 0.03, ay + ph * 0.07); c.stroke();
+    }
+    c.fillStyle = 'rgb(40,42,46)';
+    c.beginPath(); c.arc(pn.jx, pn.jy, pw * 0.04, 0, 6.283); c.fill();
+    // alça cromada embaixo
+    c.strokeStyle = 'rgb(196,200,206)'; c.lineWidth = Math.max(1.2, 0.014 * M);
+    c.beginPath(); c.moveTo(pn.x0 + pw * 0.75, pn.y1); c.quadraticCurveTo(pn.x0 + pw * 0.95, pn.y1 + ph * 0.18, pn.x1, pn.y1 - ph * 0.08); c.stroke();
+    // controle amarelo (botoeira pendente) no suporte azul, do lado esquerdo do painel
+    c.fillStyle = cor(mq([44, 84, 170]));
+    c.fillRect(pn.px - pn.pw * 0.18, pn.py0 - ph * 0.04, pn.pw * 1.36, Math.max(2, ph * 0.035));
+    c.fillRect(pn.px - pn.pw * 0.18, pn.py1, pn.pw * 1.36, Math.max(2, ph * 0.035));
+    c.fillRect(pn.px - pn.pw * 0.18, pn.py0 - ph * 0.04, Math.max(1.5, pn.pw * 0.12), pn.py1 - pn.py0 + ph * 0.07);
+    painel(pn.px, pn.py0, pn.pw, pn.py1 - pn.py0, SCH.AMARELO, 0.18, 0.08);
+    c.fillStyle = 'rgb(205,40,36)';
+    c.beginPath(); c.arc(pn.px + pn.pw / 2, pn.py0 + (pn.py1 - pn.py0) * 0.16, pn.pw * 0.26, 0, 6.283); c.fill();
+    c.fillStyle = 'rgb(26,26,30)';
+    for (let k = 0; k < 4; k++) { c.beginPath(); c.arc(pn.px + pn.pw / 2, pn.py0 + (pn.py1 - pn.py0) * (0.36 + k * 0.16), pn.pw * 0.2, 0, 6.283); c.fill(); }
+  }
 
   // moldura da janela, com chanfro
   c.strokeStyle = 'rgba(0,0,0,.55)'; c.lineWidth = Math.max(2, 0.03 * M);
@@ -681,9 +748,23 @@ function desenharPortaSchlatter(c: CanvasRenderingContext2D, M: number, w: numbe
   c.strokeRect(j.abX, j.y, j.abW, j.h);
 }
 
+/** Painel de comando Siemens à esquerda da porta: caixa, joystick (jx, jy), botão de solda, lâmpadas e o controle amarelo. */
+function PAINEL(M: number, wL: number, mT: number) {
+  const x0 = wL - 0.6 * M, x1 = wL - 0.1 * M, y0 = mT + 0.8 * M, y1 = mT + 1.38 * M;
+  const pw = 0.13 * M;
+  return {
+    x0, x1, y0, y1,
+    jx: x0 + (x1 - x0) * 0.12, jy: y1 - (y1 - y0) * 0.1,
+    botao: [x0 + (x1 - x0) * 0.62, y0 + (y1 - y0) * 0.45] as [number, number],
+    lampLaranja: [x0 + (x1 - x0) * 0.16, y0 - 0.045 * M] as [number, number],
+    lampVerde: [x0 + (x1 - x0) * 0.86, y0 - 0.045 * M] as [number, number],
+    px: x0 - pw - 0.04 * M, pw, py0: y0 + 0.06 * M, py1: y0 + 0.5 * M,
+  };
+}
+
 /** Posição da janelinha de visita na porta (em relação ao canto da porta). */
 function JANELINHA(M: number) {
-  return { caixaX: 0.2 * M, caixaW: 0.24 * M, abX: 0.48 * M, abW: 0.32 * M, y: 0.55 * M, h: 0.5 * M };
+  return { caixaX: 0.2 * M, caixaW: 0.24 * M, abX: 0.48 * M, abW: 0.32 * M, y: 0.95 * M, h: 0.48 * M };
 }
 
 // ---------- marcação de caneta de tinta nos trilhos ("S-01", "S-02"...) ----------
@@ -790,13 +871,20 @@ function desenharMarcaCaneta(ctx: CanvasRenderingContext2D, m: MarcaCaneta, x: n
   ctx.restore();
 }
 
-interface PoseSoldador {
+interface PoseOperario {
   sx: number; piso: number; Hs: number; t: number; mq: (c: RGB) => RGB; parado: boolean;
   /** andando (0 parado, 1 andando) e a fase do passo */
   anda: number; passo: number;
-  /** onde a mão da frente vai (grade ou botão) e quanto (0 a 1) */
-  alvo: [number, number] | null; alcance: number;
-  protege: number; confere: number;
+  /** aonde vai cada mão (esquerda e direita dele; de costas, a esquerda fica à esquerda da tela) e quanto (0 a 1) */
+  maoE: [number, number] | null; alcE: number;
+  maoD: [number, number] | null; alcD: number;
+  /** mão direita na frente do peito (segurando a espátula): o braço fica escondido atrás das costas */
+  dPeito: number;
+  /** curva o tronco para a frente (0 a 1), dobra os joelhos (0 a 1), desloca os ombros para o lado (-1 a 1) */
+  curva: number; agacha: number; inclina: number;
+  capacete: RGB;
+  /** para os dois não respirarem no mesmo compasso */
+  fase: number;
 }
 
 /** Dois segmentos (ombro, cotovelo, mão): devolve o cotovelo, dobrando para baixo. */
@@ -809,53 +897,88 @@ function cotovelo(ax: number, ay: number, bx: number, by: number, l1: number, l2
 }
 
 /**
- * O soldador, de lado, olhando para a máquina (à esquerda), como na foto do estaleiro: capacete cinza com abafador de
- * concha preso nas laterais, óculos de proteção, uniforme azul-marinho da Rumo com faixas refletivas (tronco, braços e
- * canelas), alças cinza cruzadas nas costas, luvas e botinas pretas.
- * Anda até a grade e até o painel, vira as barras da grade, aperta o botão, protege o rosto no centelhamento e se
- * inclina para conferir a emenda. Parado, respira e troca o peso de perna.
+ * Logo da Rumo como vai nas costas do uniforme: "rum" e o "o" com a seta, em branco, e a frase embaixo.
+ * (cx, base) é o meio da linha de base; larg é a largura do "rumo"; sy achata quando o corpo se curva.
  */
-function desenharSoldador(ctx: CanvasRenderingContext2D, p: PoseSoldador) {
+function desenharLogoRumo(ctx: CanvasRenderingContext2D, cx: number, base: number, larg: number, sy: number, tinta: string) {
+  const tam = larg * 0.4;
+  ctx.save();
+  ctx.translate(cx, base);
+  ctx.scale(1, sy);
+  ctx.fillStyle = tinta; ctx.strokeStyle = tinta;
+  ctx.font = `600 ${tam}px ${fonte('--font-barlow', 'Arial, Helvetica, sans-serif')}`;
+  ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+  const wRum = ctx.measureText('rum').width;
+  const r = tam * 0.27;
+  const x0 = -(wRum + tam * 0.05 + r * 2) / 2;
+  ctx.fillText('rum', x0, 0);
+  // o "o" da marca: um anel aberto em cima à direita, com a seta curva saindo de dentro
+  const ox = x0 + wRum + tam * 0.05 + r, oy = -r;
+  ctx.lineWidth = tam * 0.105; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.arc(ox, oy, r - tam * 0.05, -0.15, Math.PI * 1.72); ctx.stroke();
+  ctx.lineWidth = tam * 0.085;
+  ctx.beginPath(); ctx.moveTo(ox - r * 0.35, oy + r * 0.3); ctx.quadraticCurveTo(ox + r * 0.25, oy + r * 0.05, ox + r * 0.72, oy - r * 0.62); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ox + r * 0.3, oy - r * 0.62); ctx.lineTo(ox + r * 0.78, oy - r * 0.7); ctx.lineTo(ox + r * 0.74, oy - r * 0.2); ctx.stroke();
+  // "Somos o Brasil em movimento": só escreve quando dá para ler; menor que isso vira um fio
+  const tf = tam * 0.21;
+  if (tf >= 4.5) {
+    ctx.font = `500 ${tf}px ${fonte('--font-barlow', 'Arial, Helvetica, sans-serif')}`;
+    ctx.textAlign = 'center';
+    ctx.globalAlpha *= 0.9;
+    ctx.fillText('Somos o Brasil em movimento', 0, tam * 0.36);
+  } else {
+    ctx.globalAlpha *= 0.45;
+    ctx.fillRect(-larg * 0.42, tam * 0.2, larg * 0.84, Math.max(0.6, tam * 0.06));
+  }
+  ctx.restore();
+}
+
+/**
+ * Operário da Rumo visto de costas (como nas fotos do estaleiro): capacete com abafador 3M creme dos dois lados,
+ * uniforme azul-marinho de manga comprida com a logo "rumo" e a frase nas costas, faixa refletiva na cintura e nos
+ * antebraços, duas faixas em cada canela, luvas e botinas pretas. Cada mão pode ir até um alvo; o tronco curva para
+ * a frente (para dentro da tela), os joelhos dobram e os ombros pendem para o lado do alvo.
+ */
+function desenharOperario(ctx: CanvasRenderingContext2D, p: PoseOperario) {
   const { sx, piso, Hs, t, mq } = p;
-  const azul = cor(mq([34, 46, 96])), azulLuz = cor(mq([52, 68, 128])), azulSombra = cor(mq([22, 30, 66]));
-  const contorno = cor(mq([12, 16, 34]));
-  const faixa = cor(mq([200, 230, 70])), prata = cor(mq([214, 220, 226]));
-  const pele = cor(mq([178, 128, 96])), peleSombra = cor(mq([140, 96, 70]));
-  const cinzaCap = cor(mq([150, 156, 162])), cinzaCapLuz = cor(mq([196, 200, 206])), cinzaCapSombra = cor(mq([104, 110, 118]));
-  const concha = cor(mq([46, 48, 54])), conchaLuz = cor(mq([84, 88, 96]));
-  const preto = cor(mq([22, 22, 26])), pretoLuz = cor(mq([58, 58, 64]));
+  const azul = cor(mq([30, 40, 80])), azulLuz = cor(mq([50, 64, 116])), azulSombra = cor(mq([18, 25, 54]));
+  const contorno = cor(mq([10, 13, 28]));
+  const faixa = cor(mq([206, 236, 74])), prata = cor(mq([210, 216, 222]));
+  const pele = cor(mq([176, 126, 94])), peleSombra = cor(mq([134, 92, 66])), cabelo = cor(mq([36, 28, 24]));
+  const capL = misturar(p.capacete, [255, 255, 255], 0.3), capS = misturar(p.capacete, [0, 0, 0], 0.32);
+  const concha = cor(mq([222, 208, 160])), conchaS = cor(mq([160, 146, 104])), conchaArco = cor(mq([60, 62, 68]));
+  const preto = cor(mq([20, 20, 24])), pretoLuz = cor(mq([62, 62, 70]));
+  const branco = cor(mq([240, 242, 246]));
+
   const vivo = p.parado ? 0 : 1;
-  const peso = Math.sin(t * 0.42) * vivo * (1 - p.anda);
-  const respira = Math.sin(t * 1.7) * Hs * 0.004 * vivo;
-  const passada = Math.sin(p.passo) * p.anda; // -1 a 1: uma perna à frente, depois a outra
-  const sobe = Math.abs(Math.cos(p.passo)) * p.anda * Hs * 0.012; // o corpo sobe um pouco a cada passo
-  // alvo baixo faz ele se curvar; conferir também
-  const abaixa = p.alvo && p.alcance > 0 ? Math.max(0, Math.min(1, (p.alvo[1] - (piso - Hs * 0.62)) / (Hs * 0.3))) * p.alcance : 0;
-  const curva = Math.max(p.confere, abaixa * 0.9);
-  const incl = -0.14 * curva + 0.05 * p.protege;
-  const quadril: [number, number] = [sx + peso * Hs * 0.014 - curva * Hs * 0.03, piso - Hs * 0.52 + Math.abs(peso) * Hs * 0.004 + curva * Hs * 0.035 - sobe];
-  const ombro: [number, number] = [quadril[0] + Math.sin(incl) * Hs * 0.3, quadril[1] - Math.cos(incl) * Hs * 0.3 + respira];
-  const cabeca: [number, number] = [ombro[0] + Math.sin(incl) * Hs * 0.11 + p.protege * Hs * 0.035, ombro[1] - Hs * 0.115];
-  const peFrente: [number, number] = [sx - Hs * 0.07 - passada * Hs * 0.13, piso - Math.max(0, -Math.cos(p.passo)) * p.anda * Hs * 0.03];
-  const peTras: [number, number] = [sx + Hs * 0.06 + passada * Hs * 0.13, piso - Math.max(0, Math.cos(p.passo)) * p.anda * Hs * 0.03];
+  const peso = Math.sin(t * 0.42 + p.fase) * vivo * (1 - p.anda);
+  const respira = Math.sin(t * 1.7 + p.fase) * Hs * 0.003 * vivo;
+  const sobe = Math.abs(Math.cos(p.passo)) * p.anda * Hs * 0.01;
+  // de costas, o passo aparece como um pé subindo de cada vez
+  const peE: [number, number] = [sx - Hs * 0.058 - p.agacha * Hs * 0.03, piso - Math.max(0, Math.sin(p.passo)) * p.anda * Hs * 0.035];
+  const peD: [number, number] = [sx + Hs * 0.058 + p.agacha * Hs * 0.03, piso - Math.max(0, -Math.sin(p.passo)) * p.anda * Hs * 0.035];
+  const qx = sx + peso * Hs * 0.012 + p.inclina * Hs * 0.015;
+  const qy = piso - Hs * 0.5 + p.agacha * Hs * 0.15 + Math.abs(peso) * Hs * 0.003 - sobe;
+  const hT = Hs * 0.3 * (1 - 0.45 * p.curva); // o tronco encurta quando se curva para dentro da tela
+  const ox = qx + p.inclina * Hs * 0.06, oy = qy - hT + respira;
+  const cab: [number, number] = [ox + p.inclina * Hs * 0.02, oy - Hs * 0.1 * (1 - 0.7 * p.curva)];
+
   const linha = (pts: [number, number][], largura: number, c: string) => {
     ctx.strokeStyle = c; ctx.lineWidth = largura; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
     for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
     ctx.stroke();
   };
-  // membro com contorno escuro e um brilho fino na frente, para ter volume
   const membro = (pts: [number, number][], largura: number, c: string, luz?: string) => {
     linha(pts, largura + Math.max(1, Hs * 0.008), contorno);
     linha(pts, largura, c);
     if (luz) {
-      ctx.save(); ctx.translate(-largura * 0.22, -largura * 0.05);
-      linha(pts, largura * 0.22, luz);
+      ctx.save(); ctx.translate(-largura * 0.22, 0);
+      linha(pts, largura * 0.2, luz);
       ctx.restore();
     }
   };
-  // faixa refletiva atravessando um segmento (amarela com o filete prata no meio)
-  const faixaEm = (a: [number, number], b: [number, number], f: number, largura: number, alt = Hs * 0.024) => {
+  const faixaEm = (a: [number, number], b: [number, number], f: number, largura: number, alt = Hs * 0.022) => {
     const x = mix(a[0], b[0], f), y = mix(a[1], b[1], f);
     const ang = Math.atan2(b[1] - a[1], b[0] - a[0]) + Math.PI / 2;
     const dx = Math.cos(ang) * largura * 0.47, dy = Math.sin(ang) * largura * 0.47;
@@ -866,146 +989,114 @@ function desenharSoldador(ctx: CanvasRenderingContext2D, p: PoseSoldador) {
     ctx.beginPath(); ctx.moveTo(x - dx, y - dy); ctx.lineTo(x + dx, y + dy); ctx.stroke();
     ctx.lineCap = 'round';
   };
-  const L1 = Hs * 0.17, L2 = Hs * 0.17, perna = Hs * 0.236;
-  // botina preta de bico redondo, com solado e salto
-  const botaEm = (pe: [number, number], c: string) => {
-    const x = pe[0], y = pe[1];
-    ctx.fillStyle = c;
-    ctx.beginPath();
-    ctx.moveTo(x + Hs * 0.045, y - Hs * 0.012);
-    ctx.lineTo(x + Hs * 0.04, y - Hs * 0.075);
-    ctx.lineTo(x - Hs * 0.01, y - Hs * 0.075);
-    ctx.quadraticCurveTo(x - Hs * 0.03, y - Hs * 0.045, x - Hs * 0.065, y - Hs * 0.04);
-    ctx.quadraticCurveTo(x - Hs * 0.088, y - Hs * 0.035, x - Hs * 0.085, y - Hs * 0.012);
-    ctx.closePath(); ctx.fill();
-    ctx.fillStyle = pretoLuz; // solado
-    ctx.fillRect(x - Hs * 0.086, y - Hs * 0.014, Hs * 0.135, Hs * 0.014);
-    ctx.fillStyle = 'rgba(255,255,255,.18)'; // brilho do couro no bico
-    ctx.beginPath(); ctx.ellipse(x - Hs * 0.055, y - Hs * 0.04, Hs * 0.016, Hs * 0.006, -0.3, 0, 6.283); ctx.fill();
-  };
-  // luva preta com punho
-  const luvaEm = (de: [number, number], mao: [number, number]) => {
-    const ang = Math.atan2(mao[1] - de[1], mao[0] - de[0]);
+
+  // pernas: calça azul-marinho com duas faixas na canela e botina preta (vista pelo calcanhar)
+  const perna = Hs * 0.226;
+  for (const [lado, pe] of [[-1, peE], [1, peD]] as [number, [number, number]][]) {
+    const q: [number, number] = [qx + lado * Hs * 0.05, qy];
+    const tor: [number, number] = [pe[0], pe[1] - Hs * 0.055];
+    const jo = cotovelo(q[0], q[1], tor[0], tor[1], perna, perna, lado < 0 ? 1 : -1);
+    membro([q, jo, tor], Hs * 0.088, lado < 0 ? azul : azulSombra, lado < 0 ? azulLuz : undefined);
+    faixaEm(jo, tor, 0.42, Hs * 0.088);
+    faixaEm(jo, tor, 0.66, Hs * 0.088);
+    ctx.fillStyle = preto;
+    ctx.beginPath(); ctx.roundRect(pe[0] - Hs * 0.04, pe[1] - Hs * 0.075, Hs * 0.08, Hs * 0.075, [Hs * 0.03, Hs * 0.03, Hs * 0.012, Hs * 0.012]); ctx.fill();
+    ctx.fillStyle = pretoLuz;
+    ctx.fillRect(pe[0] - Hs * 0.042, pe[1] - Hs * 0.014, Hs * 0.084, Hs * 0.014);
+    ctx.fillStyle = 'rgba(255,255,255,.14)';
+    ctx.beginPath(); ctx.ellipse(pe[0] - Hs * 0.012, pe[1] - Hs * 0.05, Hs * 0.012, Hs * 0.018, 0, 0, 6.283); ctx.fill();
+  }
+
+  // braços: cada mão vai até o alvo; o cotovelo dobra para fora e para baixo
+  const L1 = Hs * 0.165, L2 = Hs * 0.165;
+  const braco = (lado: number, alvo: [number, number] | null, alc: number) => {
+    const om: [number, number] = [ox + lado * Hs * 0.108, oy + Hs * 0.028];
+    const livre: [number, number] = [om[0] + lado * Hs * 0.018, om[1] + Hs * 0.31 - p.anda * Math.abs(Math.sin(p.passo)) * Hs * 0.012];
+    const a = alvo ?? livre;
+    const mao: [number, number] = [mix(livre[0], a[0], alc), mix(livre[1], a[1], alc)];
+    const c1 = cotovelo(om[0], om[1], mao[0], mao[1], L1, L2, 1), c2 = cotovelo(om[0], om[1], mao[0], mao[1], L1, L2, -1);
+    const nota = (c: [number, number]) => c[1] + lado * (c[0] - om[0]) * 0.25;
+    const cot = nota(c1) >= nota(c2) ? c1 : c2;
+    membro([om, cot, mao], Hs * 0.062, lado < 0 ? azul : azulSombra, lado < 0 ? azulLuz : undefined);
+    faixaEm(cot, mao, 0.22, Hs * 0.062);
+    // luva preta com punho
+    const ang = Math.atan2(mao[1] - cot[1], mao[0] - cot[0]);
     ctx.save(); ctx.translate(mao[0], mao[1]); ctx.rotate(ang);
     ctx.fillStyle = preto;
-    ctx.beginPath(); ctx.roundRect(-Hs * 0.035, -Hs * 0.026, Hs * 0.03, Hs * 0.052, Hs * 0.006); ctx.fill(); // punho
-    ctx.beginPath(); ctx.ellipse(Hs * 0.01, 0, Hs * 0.03, Hs * 0.024, 0, 0, 6.283); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(-Hs * 0.034, -Hs * 0.025, Hs * 0.03, Hs * 0.05, Hs * 0.006); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(Hs * 0.01, 0, Hs * 0.029, Hs * 0.023, 0, 0, 6.283); ctx.fill();
     ctx.fillStyle = pretoLuz;
-    ctx.beginPath(); ctx.ellipse(Hs * 0.012, -Hs * 0.01, Hs * 0.016, Hs * 0.006, 0, 0, 6.283); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(Hs * 0.012, -Hs * 0.009, Hs * 0.015, Hs * 0.006, 0, 0, 6.283); ctx.fill();
     ctx.restore();
   };
+  // mão direita no peito (espátula): o braço passa por trás das costas, então vem antes do tronco
+  if (p.dPeito > 0.5) braco(1, p.maoD, p.alcD);
 
-  // braço de trás: balança ao andar, sobe para proteger o rosto no centelhamento
-  const ombroTras: [number, number] = [ombro[0] + Hs * 0.03, ombro[1] + Hs * 0.01];
-  const maoTrasLivre: [number, number] = [ombroTras[0] + Hs * 0.02 + passada * Hs * 0.1, ombroTras[1] + Hs * 0.3];
-  const maoTrasRosto: [number, number] = [cabeca[0] - Hs * 0.09, cabeca[1] + Hs * 0.02];
-  const maoTras: [number, number] = [mix(maoTrasLivre[0], maoTrasRosto[0], p.protege), mix(maoTrasLivre[1], maoTrasRosto[1], p.protege)];
-  const cotTras = cotovelo(ombroTras[0], ombroTras[1], maoTras[0], maoTras[1], L1, L2, p.protege > 0.5 ? 1 : -1);
-  membro([ombroTras, cotTras, maoTras], Hs * 0.068, azulSombra);
-  faixaEm(ombroTras, cotTras, 0.62, Hs * 0.068);
-  luvaEm(cotTras, maoTras);
-  // perna de trás
-  const qT: [number, number] = [quadril[0] + Hs * 0.02, quadril[1]];
-  const tornT: [number, number] = [peTras[0], peTras[1] - Hs * 0.05];
-  const joelhoT = cotovelo(qT[0], qT[1], tornT[0], tornT[1], perna, perna, 1); // joelho dobra para a frente
-  membro([qT, joelhoT, tornT], Hs * 0.086, azulSombra);
-  faixaEm(joelhoT, tornT, 0.3, Hs * 0.086);
-  faixaEm(joelhoT, tornT, 0.62, Hs * 0.086);
-  botaEm(peTras, preto);
-  // perna da frente
-  const qF: [number, number] = [quadril[0] - Hs * 0.02, quadril[1]];
-  const tornF: [number, number] = [peFrente[0], peFrente[1] - Hs * 0.05];
-  const joelho = cotovelo(qF[0], qF[1], tornF[0], tornF[1], perna * (1 + 0.01 * peso), perna, 1);
-  membro([qF, joelho, tornF], Hs * 0.09, azul, azulLuz);
-  faixaEm(joelho, tornF, 0.3, Hs * 0.09);
-  faixaEm(joelho, tornF, 0.62, Hs * 0.09);
-  botaEm(peFrente, preto);
-
-  // tronco: jaqueta com ombros, frente (peito) à esquerda e costas à direita, faixa refletiva e alça cinza (de lado, o "rumo" das costas não aparece)
-  ctx.save();
-  ctx.translate(quadril[0], quadril[1] + respira * 0.5);
-  ctx.rotate(incl);
+  // tronco: jaqueta vista de costas, mais larga nos ombros, com pala, faixa refletiva na cintura e a logo
+  const lo = Hs * 0.125, lq = Hs * 0.1, barra = qy + Hs * 0.065;
   const corpo = new Path2D();
-  corpo.moveTo(-Hs * 0.078, Hs * 0.03);
-  corpo.quadraticCurveTo(-Hs * 0.095, -Hs * 0.16, -Hs * 0.07, -Hs * 0.29);
-  corpo.quadraticCurveTo(-Hs * 0.05, -Hs * 0.33, Hs * 0.01, -Hs * 0.33);
-  corpo.quadraticCurveTo(Hs * 0.08, -Hs * 0.33, Hs * 0.088, -Hs * 0.27);
-  corpo.quadraticCurveTo(Hs * 0.1, -Hs * 0.12, Hs * 0.084, Hs * 0.03);
+  corpo.moveTo(ox - lo * 0.62, oy - Hs * 0.014);
+  corpo.quadraticCurveTo(ox - lo * 1.02, oy - Hs * 0.012, ox - lo, oy + Hs * 0.045);
+  corpo.lineTo(qx - lq * 1.04, barra);
+  corpo.quadraticCurveTo(qx, barra + Hs * 0.012, qx + lq * 1.04, barra);
+  corpo.lineTo(ox + lo, oy + Hs * 0.045);
+  corpo.quadraticCurveTo(ox + lo * 1.02, oy - Hs * 0.012, ox + lo * 0.62, oy - Hs * 0.014);
   corpo.closePath();
   ctx.lineWidth = Math.max(1, Hs * 0.008); ctx.strokeStyle = contorno; ctx.stroke(corpo);
-  const sombraCorpo = ctx.createLinearGradient(-Hs * 0.09, 0, Hs * 0.1, 0);
-  sombraCorpo.addColorStop(0, azulLuz); sombraCorpo.addColorStop(0.45, azul); sombraCorpo.addColorStop(1, azulSombra);
-  ctx.fillStyle = sombraCorpo; ctx.fill(corpo);
+  const gC = ctx.createLinearGradient(ox - lo, 0, ox + lo, 0);
+  gC.addColorStop(0, azulLuz); gC.addColorStop(0.4, azul); gC.addColorStop(1, azulSombra);
+  ctx.fillStyle = gC; ctx.fill(corpo);
   ctx.save(); ctx.clip(corpo);
-  // barra da jaqueta e costura do lado
-  ctx.fillStyle = azulSombra; ctx.fillRect(-Hs * 0.1, Hs * 0.012, Hs * 0.2, Hs * 0.02);
+  const yTronco = (f: number) => mix(oy, barra, f);
   ctx.strokeStyle = azulSombra; ctx.lineWidth = Math.max(1, Hs * 0.004);
-  ctx.beginPath(); ctx.moveTo(-Hs * 0.012, -Hs * 0.3); ctx.lineTo(-Hs * 0.004, Hs * 0.02); ctx.stroke();
-  // faixa refletiva em volta do tronco
-  ctx.fillStyle = faixa; ctx.fillRect(-Hs * 0.1, -Hs * 0.125, Hs * 0.2, Hs * 0.03);
-  ctx.fillStyle = prata; ctx.fillRect(-Hs * 0.1, -Hs * 0.114, Hs * 0.2, Hs * 0.008);
-  // alças cinza cruzadas nas costas (de lado aparece uma, descendo das costas até a cintura)
-  ctx.strokeStyle = prata; ctx.lineWidth = Hs * 0.014; ctx.lineCap = 'butt';
-  ctx.beginPath(); ctx.moveTo(Hs * 0.095, -Hs * 0.25); ctx.lineTo(-Hs * 0.03, Hs * 0.03); ctx.stroke();
-  ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = Math.max(1, Hs * 0.003);
-  ctx.beginPath(); ctx.moveTo(Hs * 0.1, -Hs * 0.24); ctx.lineTo(-Hs * 0.024, Hs * 0.035); ctx.stroke();
-  ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(ox - lo, yTronco(0.14)); ctx.quadraticCurveTo(ox, yTronco(0.17), ox + lo, yTronco(0.14)); ctx.stroke(); // pala
+  ctx.beginPath(); ctx.moveTo(qx - lq * 0.5, yTronco(0.62)); ctx.lineTo(qx - lq * 0.5, barra); ctx.moveTo(qx + lq * 0.5, yTronco(0.62)); ctx.lineTo(qx + lq * 0.5, barra); ctx.stroke(); // pences
+  const yf = yTronco(0.8), hf = Hs * 0.026 * (1 - 0.3 * p.curva);
+  ctx.fillStyle = faixa; ctx.fillRect(ox - lo * 1.2, yf, lo * 2.4, hf);
+  ctx.fillStyle = prata; ctx.fillRect(ox - lo * 1.2, yf + hf * 0.36, lo * 2.4, Math.max(1, hf * 0.28));
+  ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(qx - lq * 1.2, barra - Hs * 0.012, lq * 2.4, Hs * 0.012); // barra da jaqueta
+  desenharLogoRumo(ctx, (ox + qx) / 2 + (ox - qx) * 0.35, yTronco(0.37), lo * 1.25, 1 - 0.45 * p.curva, branco);
   ctx.restore();
   // gola
   ctx.fillStyle = azulSombra;
-  ctx.beginPath(); ctx.ellipse(-Hs * 0.005, -Hs * 0.325, Hs * 0.045, Hs * 0.016, 0, 0, 6.283); ctx.fill();
-  ctx.restore();
+  ctx.beginPath(); ctx.ellipse(ox, oy - Hs * 0.008, Hs * 0.05, Hs * 0.017, 0, 0, 6.283); ctx.fill();
 
-  // cabeça: pescoço, rosto de perfil, óculos de proteção, capacete cinza e abafador de concha
-  const cx = cabeca[0], cy = cabeca[1];
-  linha([[ombro[0] - Hs * 0.004, ombro[1] - Hs * 0.012], [cx + Hs * 0.004, cy + Hs * 0.045]], Hs * 0.046, peleSombra);
-  ctx.fillStyle = pele;
-  ctx.beginPath(); ctx.ellipse(cx, cy + Hs * 0.004, Hs * 0.052, Hs * 0.06, 0, 0, 6.283); ctx.fill();
-  // nariz e queixo de perfil, olhando para a esquerda
-  ctx.beginPath(); ctx.moveTo(cx - Hs * 0.048, cy - Hs * 0.004); ctx.lineTo(cx - Hs * 0.066, cy + Hs * 0.016); ctx.lineTo(cx - Hs * 0.046, cy + Hs * 0.022); ctx.fill();
+  // cabeça vista de trás: nuca, cabelo curto, abafador creme dos dois lados e o capacete com aba
+  const cx = cab[0], cy = cab[1];
+  // nuca e pescoço (pele), o cabelo curto só logo abaixo da aba
   ctx.fillStyle = peleSombra;
-  ctx.beginPath(); ctx.ellipse(cx - Hs * 0.03, cy + Hs * 0.052, Hs * 0.024, Hs * 0.008, 0, 0, 6.283); ctx.fill(); // sombra do queixo
-  ctx.fillRect(cx - Hs * 0.044, cy + Hs * 0.033, Hs * 0.014, Hs * 0.003); // boca
-  // óculos de proteção: lente clara envolvente com armação escura e a haste indo até a concha
-  ctx.fillStyle = 'rgba(190,225,240,.55)';
-  ctx.beginPath(); ctx.roundRect(cx - Hs * 0.06, cy - Hs * 0.018, Hs * 0.04, Hs * 0.024, Hs * 0.006); ctx.fill();
-  ctx.strokeStyle = preto; ctx.lineWidth = Math.max(1, Hs * 0.006);
-  ctx.beginPath(); ctx.roundRect(cx - Hs * 0.06, cy - Hs * 0.018, Hs * 0.04, Hs * 0.024, Hs * 0.006); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(cx - Hs * 0.02, cy - Hs * 0.012); ctx.lineTo(cx + Hs * 0.012, cy - Hs * 0.008); ctx.stroke();
-  ctx.fillStyle = 'rgba(255,255,255,.7)';
-  ctx.fillRect(cx - Hs * 0.054, cy - Hs * 0.013, Hs * 0.012, Math.max(1, Hs * 0.004));
-  // capacete cinza: casco com nervura, aba na frente e a borda
-  ctx.fillStyle = cinzaCapSombra;
-  ctx.beginPath(); ctx.ellipse(cx + Hs * 0.004, cy - Hs * 0.026, Hs * 0.074, Hs * 0.062, 0, Math.PI, 0); ctx.fill();
-  const casco = ctx.createLinearGradient(cx - Hs * 0.07, cy - Hs * 0.09, cx + Hs * 0.07, cy - Hs * 0.02);
-  casco.addColorStop(0, cinzaCapLuz); casco.addColorStop(0.6, cinzaCap); casco.addColorStop(1, cinzaCapSombra);
+  ctx.beginPath(); ctx.roundRect(cx - Hs * 0.028, cy + Hs * 0.01, Hs * 0.056, Math.max(Hs * 0.02, oy - cy), Hs * 0.012); ctx.fill();
+  ctx.fillStyle = pele;
+  ctx.beginPath(); ctx.ellipse(cx, cy + Hs * 0.014, Hs * 0.046, Hs * 0.044, 0, 0, 6.283); ctx.fill();
+  ctx.fillStyle = 'rgba(0,0,0,.18)';
+  ctx.beginPath(); ctx.ellipse(cx, cy + Hs * 0.05, Hs * 0.03, Hs * 0.01, 0, 0, 6.283); ctx.fill();
+  ctx.fillStyle = cabelo;
+  ctx.beginPath(); ctx.ellipse(cx, cy - Hs * 0.004, Hs * 0.047, Hs * 0.028, 0, 0, 6.283); ctx.fill();
+  for (const lado of [-1, 1]) {
+    const kx = cx + lado * Hs * 0.054, ky = cy + Hs * 0.012;
+    ctx.strokeStyle = conchaArco; ctx.lineWidth = Math.max(1.5, Hs * 0.01);
+    ctx.beginPath(); ctx.moveTo(kx, ky - Hs * 0.028); ctx.lineTo(kx - lado * Hs * 0.004, cy - Hs * 0.024); ctx.stroke();
+    ctx.fillStyle = conchaS;
+    ctx.beginPath(); ctx.ellipse(kx, ky, Hs * 0.022, Hs * 0.033, 0, 0, 6.283); ctx.fill();
+    ctx.fillStyle = concha;
+    ctx.beginPath(); ctx.ellipse(kx + lado * Hs * 0.004, ky - Hs * 0.002, Hs * 0.018, Hs * 0.029, 0, 0, 6.283); ctx.fill();
+    ctx.fillStyle = conchaArco;
+    ctx.fillRect(kx - Hs * 0.008, ky + Hs * 0.018, Hs * 0.016, Math.max(1, Hs * 0.005));
+  }
+  const casco = ctx.createLinearGradient(cx - Hs * 0.07, cy - Hs * 0.1, cx + Hs * 0.07, cy - Hs * 0.01);
+  casco.addColorStop(0, cor(mq(capL))); casco.addColorStop(0.55, cor(mq(p.capacete))); casco.addColorStop(1, cor(mq(capS)));
+  ctx.fillStyle = cor(mq(capS)); // aba que contorna o casco
+  ctx.beginPath(); ctx.ellipse(cx, cy - Hs * 0.012, Hs * 0.084, Hs * 0.019, 0, 0, 6.283); ctx.fill();
   ctx.fillStyle = casco;
-  ctx.beginPath(); ctx.ellipse(cx + Hs * 0.002, cy - Hs * 0.028, Hs * 0.07, Hs * 0.058, 0, Math.PI, 0); ctx.fill();
-  ctx.strokeStyle = cinzaCapLuz; ctx.lineWidth = Math.max(1, Hs * 0.008); // nervura do casco
-  ctx.beginPath(); ctx.ellipse(cx + Hs * 0.002, cy - Hs * 0.028, Hs * 0.04, Hs * 0.056, 0, Math.PI * 1.05, Math.PI * 1.85); ctx.stroke();
-  ctx.fillStyle = cinzaCap; // aba da frente e borda
-  ctx.beginPath(); ctx.moveTo(cx - Hs * 0.068, cy - Hs * 0.03); ctx.lineTo(cx - Hs * 0.1, cy - Hs * 0.02); ctx.lineTo(cx - Hs * 0.098, cy - Hs * 0.014); ctx.lineTo(cx - Hs * 0.06, cy - Hs * 0.02); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = cinzaCapSombra;
-  ctx.fillRect(cx - Hs * 0.068, cy - Hs * 0.031, Hs * 0.142, Hs * 0.01);
-  // abafador de concha: braço preso na lateral do capacete e a concha sobre a orelha
-  ctx.strokeStyle = concha; ctx.lineWidth = Math.max(1.5, Hs * 0.01);
-  ctx.beginPath(); ctx.moveTo(cx + Hs * 0.022, cy - Hs * 0.026); ctx.lineTo(cx + Hs * 0.02, cy - Hs * 0.005); ctx.stroke();
-  ctx.fillStyle = concha;
-  ctx.beginPath(); ctx.ellipse(cx + Hs * 0.02, cy + Hs * 0.012, Hs * 0.024, Hs * 0.032, 0, 0, 6.283); ctx.fill();
-  ctx.fillStyle = conchaLuz;
-  ctx.beginPath(); ctx.ellipse(cx + Hs * 0.014, cy + Hs * 0.006, Hs * 0.012, Hs * 0.018, 0, 0, 6.283); ctx.fill();
-  ctx.fillStyle = faixa; // detalhe amarelo da concha
-  ctx.fillRect(cx + Hs * 0.012, cy + Hs * 0.03, Hs * 0.016, Math.max(1, Hs * 0.005));
+  ctx.beginPath(); ctx.ellipse(cx, cy - Hs * 0.016, Hs * 0.073, Hs * 0.07, 0, Math.PI, 0); ctx.fill();
+  ctx.strokeStyle = cor(mq(capL)); ctx.lineWidth = Math.max(1, Hs * 0.01); // nervura do casco
+  ctx.beginPath(); ctx.moveTo(cx, cy - Hs * 0.082); ctx.quadraticCurveTo(cx + Hs * 0.004, cy - Hs * 0.05, cx, cy - Hs * 0.02); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.ellipse(cx - Hs * 0.03, cy - Hs * 0.055, Hs * 0.018, Hs * 0.01, -0.5, 0, 6.283); ctx.fill();
 
-  // braço da frente: solto (balançando ao andar) ou indo até a grade / o botão
-  const maoLivre: [number, number] = [ombro[0] - Hs * 0.04 - passada * Hs * 0.1, ombro[1] + Hs * 0.31];
-  const alvo = p.alvo ?? maoLivre;
-  const mao: [number, number] = [mix(maoLivre[0], alvo[0], p.alcance), mix(maoLivre[1], alvo[1], p.alcance)];
-  const ombroF: [number, number] = [ombro[0] - Hs * 0.02, ombro[1] + Hs * 0.01];
-  const cot = cotovelo(ombroF[0], ombroF[1], mao[0], mao[1], L1, L2, -1);
-  membro([ombroF, cot, mao], Hs * 0.07, azul, azulLuz);
-  faixaEm(ombroF, cot, 0.62, Hs * 0.07);
-  luvaEm(cot, mao);
+  // braço esquerdo e, se não estiver no peito, o direito: por cima das costas
+  braco(-1, p.maoE, p.alcE);
+  if (p.dPeito <= 0.5) braco(1, p.maoD, p.alcD);
 }
 
 // ---------- início: o TLS saindo do estaleiro ----------
@@ -1029,17 +1120,26 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
   const parado = reduzirMovimento();
   // A primeira emenda chega na Schlatter em CHEGA; o centelhamento passa por SOLDA, junto com a emenda do logo.
   const CHEGA = 0.55, SOLDA = 1.25;
-  // Ciclo da Schlatter (s desde a chegada da emenda): garras descem, centelhamento, recalque, rebarbação, garras sobem.
-  // Ciclo da Schlatter (s desde a chegada da emenda), como na máquina de verdade:
-  // o soldador desce a grade na mão, se afasta e aperta o botão; a porta fecha sozinha (hidráulico, da direita para a
-  // esquerda); as garras descem, centelha, recalca, rebarba; as garras sobem, a porta abre sozinha; ele volta, sobe a
-  // grade e confere a emenda.
+  // Ciclo de cada emenda (s desde que ela parou dentro da Schlatter), como no estaleiro:
+  // o soldador solta o joystick, vai até a portinhola e fecha a grade com a mão direita, volta ao painel e aperta a
+  // solda; as garras descem, centelha, recalca, sobem; ele volta, abre a grade, pega a espátula no gancho e raspa a
+  // borra (a casca em volta da solda) pela janelinha. Guarda a espátula, volta ao painel e empurra o joystick para a
+  // esquerda: a barra anda até a régua, onde o segundo operário confere o alinhamento; depois mais um empurrão leva a
+  // próxima emenda para dentro da máquina.
   const F = {
-    grade: 0.9, vai: 1.8, botao: 2.0, fecha: 2.8, garraIni: 2.8, garra: 3.1, centelha: 4.5, recalque: 4.7, rebarba: 5.1,
-    sobe: 5.4, abre: 6.2, volta: 7.0, sobeGrade: 7.6, solta: 7.8, confere: 8.6,
+    solta: 0.15, vaiJan: 0.25, chegaJan: 0.75, gradeFecha0: 0.8, gradeFecha1: 1.35,
+    voltaCtrl0: 1.4, voltaCtrl1: 1.9, botao0: 1.95, botao1: 2.25,
+    garraIni: 2.3, garra: 2.6, centelha: 4.0, recalque: 4.2, rebarba: 4.5, sobe: 4.8,
+    vaiJan2: 4.9, chegaJan2: 5.4, gradeAbre0: 5.45, gradeAbre1: 6.0,
+    pega0: 6.05, pega1: 6.55, raspa0: 6.6, raspa1: 9.3, guarda0: 9.35, guarda1: 9.85,
+    voltaCtrl2: 9.9, chegaCtrl2: 10.4,
+    moveA0: 10.55, moveA1: 12.0,
+    regua0: 12.15, regua1: 15.5,
+    moveB0: 15.7, moveB1: 18.4, fim: 18.6,
   };
+  let cicloK = 0;
+  let cicloInicio = CHEGA - F.voltaCtrl1; // na abertura ele já fechou a grade e está chegando no painel
   let ciclo: { k: number; inicio: number } | null = null;
-  let ultimoInicio = -99; // começo do último ciclo da Schlatter (para o soldador terminar os gestos)
   const fumaca: { x: number; y: number; r: number; v: number }[] = [];
   let frente: HTMLCanvasElement | null = null; // frente da máquina desenhada uma vez e reaproveitada
   let chaveFrente = '';
@@ -1047,6 +1147,8 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
   let chavePortaCache = '';
   const faiscas: Faisca[] = [];
   const brasas: { x: number; y: number; vy: number; vx: number; v: number }[] = [];
+  // pedaços da borra que a espátula solta e caem pela janelinha
+  const cascas: { x: number; y: number; vx: number; vy: number; r: number; v: number; giro: number; quente: number }[] = [];
   let soldouLogo = false;
 
   // Emendas: k = 0 é a que chega no meio na abertura. Guarda quando cada uma foi soldada (s).
@@ -1054,8 +1156,8 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
   if (!completa) for (let k = -6; k < 0; k++) soldada.set(k, -60);
   if (reduzirMovimento()) for (let k = -6; k <= 6; k++) soldada.set(k, -60);
   let u = 0; // quanto o trilho andou desde que a emenda 0 ficou no meio (px)
+  let uAntes: number | null = null;
   let vel = 0;
-  let proxima = 0; // próxima emenda a soldar
   let ultimoT = 0;
 
   // Textura do aço (pontinhos e manchas), desenhada uma vez e repetida.
@@ -1102,32 +1204,28 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
     const rr = 0.1 * M; // rolete de 20 cm
 
     // Schlatter à direita no computador (fora dos cartões); no celular, mais para a direita também.
-    const xm = W >= 900 ? W * 0.74 : W * 0.58;
+    const xm = W >= 900 ? W * 0.76 : W * 0.58;
+    // a régua fica um pouco depois da máquina (o trilho anda para a esquerda)
+    const d1 = (W < 600 ? 2.5 : 2.7) * M;
 
     // ---------- movimento do trilho e ciclo da solda ----------
-    if (parado) {
-      u = L * 0.35; vel = 0;
-    } else if (t < CHEGA) {
+    // O trilho só anda enquanto o soldador segura o joystick do painel: um empurrão leva a emenda soldada até a
+    // régua (d1), outro leva a próxima emenda para dentro da máquina (o resto da barra de 12 m).
+    if (!parado) while (t - cicloInicio >= F.fim) { cicloInicio += F.fim; cicloK++; }
+    const fase = parado ? 7.6 : t - cicloInicio;
+    const kAtual = parado ? 0 : cicloK;
+    if (!parado && t < CHEGA) {
       // abertura: o trilho entra pela direita e freia com a emenda 0 dentro da máquina
       const D = completa ? W * 0.95 : W * 0.35;
       const e = 1 - Math.pow(1 - t / CHEGA, 3);
       u = -D * (1 - e);
-      vel = 0;
-      if (!ciclo) ciclo = { k: 0, inicio: SOLDA - (F.garra + 0.15) };
-    } else if (ciclo && t - ciclo.inicio < F.solta) {
-      vel = 0;
-      u = ciclo.k * L;
     } else {
-      if (ciclo) { proxima = ciclo.k + 1; ciclo = null; }
-      vel = mix(vel, 1.1 * M, 1 - Math.pow(0.05, dt)); // cerca de 1 m/s
-      const antes = u;
-      u += vel * dt;
-      const alvo = proxima * L;
-      if (antes < alvo && u >= alvo) { u = alvo; vel = 0; ciclo = { k: proxima, inicio: t }; }
+      u = kAtual * L + d1 * suave(F.moveA0, F.moveA1, fase) + (L - d1) * suave(F.moveB0, F.moveB1, fase);
     }
-    if (ciclo) ultimoInicio = ciclo.inicio;
-    const fase = ciclo ? t - ciclo.inicio : 99;
-    if (ciclo && fase >= F.centelha && !soldada.has(ciclo.k)) soldada.set(ciclo.k, ciclo.inicio + F.centelha);
+    vel = uAntes === null || dt <= 0 ? 0 : (u - uAntes) / dt;
+    uAntes = u;
+    ciclo = { k: kAtual, inicio: cicloInicio };
+    if (fase >= F.centelha && !soldada.has(kAtual)) soldada.set(kAtual, cicloInicio + F.centelha);
     // centelhamento: chuva de faíscas saindo da fresta para os dois lados
     const centelhando = !parado && ciclo !== null && fase > F.garra && fase < F.centelha;
     const forcaCentelha = centelhando ? suave(F.garra, F.garra + 0.3, fase) * (0.75 + 0.25 * Math.sin(t * 40)) : 0;
@@ -1411,8 +1509,8 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         continue;
       }
       const idade = ultimoT - quando;
-      // rebordo do recalque: aparece na hora e a lâmina da rebarbação tira
-      const rebordo = idade < F.recalque - F.centelha ? 1 : 1 - suave(F.recalque - F.centelha, F.rebarba - F.centelha, idade);
+      // rebordo do recalque (a borra): aparece na hora e sai com a espátula do soldador
+      const rebordo = idade < F.recalque - F.centelha ? 1 : 1 - suave(F.raspa0 - F.centelha, F.raspa1 - F.centelha, idade);
       // marca fina da emenda depois de rebarbada e esmerilhada
       ctx.fillStyle = 'rgba(255,255,255,.28)';
       ctx.fillRect(x - 0.03 * M, topo - R * 0.06, 0.06 * M, R * 0.06);
@@ -1503,11 +1601,11 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       }
       ctx.drawImage(frente, ox, oy, ow, oh);
 
-      // posições do ciclo: grade (0 em cima, 1 embaixo), porta (0 aberta, 1 fechada) e o soldador
-      const fu = parado ? 99 : t - ultimoInicio;
-      const gradeDesce = suave(0.1, F.grade, fu) - suave(F.volta + 0.05, F.sobeGrade, fu);
-      const portaFecha = suave(F.botao, F.fecha, fu) - suave(F.sobe, F.abre, fu);
-      const soldando = fu >= F.botao && fu < F.sobe;
+      // posições do ciclo: grade da portinhola (0 aberta, 1 fechada). A porta grande fica fechada: o soldador
+      // trabalha pela portinhola.
+      const gradeDesce = parado ? 0 : suave(F.gradeFecha0, F.gradeFecha1, fase) - suave(F.gradeAbre0, F.gradeAbre1, fase);
+      const portaFecha = 1;
+      const soldando = !parado && fase >= F.botao1 && fase < F.sobe;
 
       // porta laranja: anda da direita (aberta) para a esquerda (fechada, sobre a janela), puxada pelo hidráulico
       const portaW = wR - wL, portaH = wB - mT;
@@ -1614,34 +1712,40 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       ctx.beginPath(); ctx.arc(piv[0], piv[1], Math.max(1.5, 0.016 * M), 0, 6.283); ctx.fill();
       const puxador: [number, number] = ponta;
 
-      // painel de comando no pedestal, ao lado da máquina: verde pronta, âmbar piscando soldando, vermelha apagada
-      const pedX = mR + (W < 600 ? 0.5 : 0.75) * M;
-      const pedTopo = piso - 1.15 * M;
-      ctx.fillStyle = cor(mq([60, 64, 72]));
-      ctx.fillRect(pedX - 0.03 * M, pedTopo, 0.06 * M, piso - pedTopo);
-      ctx.fillRect(pedX - 0.12 * M, piso - 0.04 * M, 0.24 * M, 0.04 * M);
-      const cx0 = pedX - 0.16 * M, cy0 = pedTopo - 0.4 * M;
-      const caixaG = ctx.createLinearGradient(cx0, cy0, cx0 + 0.32 * M, cy0 + 0.4 * M);
-      caixaG.addColorStop(0, cor(mq([96, 102, 110]))); caixaG.addColorStop(1, cor(mq([58, 62, 70])));
-      ctx.fillStyle = caixaG;
-      ctx.beginPath(); ctx.roundRect(cx0, cy0, 0.32 * M, 0.4 * M, 0.03 * M); ctx.fill();
-      const lampadas: [RGB, boolean][] = [[[90, 230, 140], !soldando], [[255, 190, 60], soldando && Math.sin(t * 12) > 0], [[230, 60, 50], false]];
-      lampadas.forEach(([c, acesa], i) => {
-        const lx = cx0 + 0.07 * M + i * 0.09 * M, ly = cy0 + 0.09 * M;
+      // painel de comando: lâmpada verde (pronta), laranja piscando enquanto solda, e o joystick que faz a barra andar
+      const pn = PAINEL(M, wL, mT);
+      for (const [[lx, ly], c, acesa] of [[pn.lampLaranja, [255, 150, 40], soldando && Math.sin(t * 12) > 0], [pn.lampVerde, [90, 230, 120], !soldando]] as [[number, number], RGB, boolean][]) {
+        ctx.fillStyle = 'rgb(50,52,58)';
+        ctx.fillRect(lx - 0.035 * M, ly + 0.02 * M, 0.07 * M, 0.025 * M);
         if (acesa) {
-          const g = ctx.createRadialGradient(lx, ly, 0, lx, ly, 0.12 * M);
-          g.addColorStop(0, cor(c, 0.6)); g.addColorStop(1, cor(c, 0));
-          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(lx, ly, 0.12 * M, 0, 6.283); ctx.fill();
+          const g = ctx.createRadialGradient(lx, ly, 0, lx, ly, 0.14 * M);
+          g.addColorStop(0, cor(c, 0.55)); g.addColorStop(1, cor(c, 0));
+          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(lx, ly, 0.14 * M, 0, 6.283); ctx.fill();
         }
-        ctx.fillStyle = cor(acesa ? c : misturar(c, [0, 0, 0], 0.65));
-        ctx.beginPath(); ctx.arc(lx, ly, 0.03 * M, 0, 6.283); ctx.fill();
-      });
-      const botao: [number, number] = [cx0 + 0.16 * M, cy0 + 0.25 * M];
-      const apertando = suave(F.vai, F.vai + 0.12, fu) * (1 - suave(F.botao + 0.05, F.botao + 0.3, fu));
-      ctx.fillStyle = apertando > 0.6 ? 'rgb(140,255,170)' : 'rgb(40,170,90)';
-      ctx.beginPath(); ctx.arc(botao[0], botao[1], 0.06 * M, 0, 6.283); ctx.fill();
+        ctx.fillStyle = cor(acesa ? c : misturar(c, [0, 0, 0], 0.55));
+        ctx.beginPath(); ctx.arc(lx, ly + 0.02 * M, 0.035 * M, Math.PI, 0); ctx.fill();
+        ctx.fillRect(lx - 0.035 * M, ly + 0.02 * M, 0.07 * M, 0.004 * M + 1);
+      }
+      // segura o joystick para a esquerda enquanto a barra anda (na abertura também)
+      const tira = (a: number, b: number) => suave(a - 0.15, a + 0.05, fase) * (1 - suave(b, b + 0.2, fase));
+      const empurra = parado ? 0 : Math.max(1 - suave(CHEGA - 0.05, CHEGA + 0.1, t),
+        suave(F.moveA0 - 0.1, F.moveA0 + 0.04, fase) * (1 - suave(F.moveA1 - 0.08, F.moveA1 + 0.06, fase)),
+        suave(F.moveB0 - 0.1, F.moveB0 + 0.04, fase) * (1 - suave(F.moveB1 - 0.08, F.moveB1 + 0.06, fase)));
+      const segura = parado ? 0 : Math.max(1 - suave(CHEGA, CHEGA + 0.3, t), tira(F.moveA0 - 0.1, F.moveA1), tira(F.moveB0 - 0.1, F.moveB1), 1 - suave(0, F.solta + 0.1, fase));
+      const angJ = -0.55 * empurra, compJ = 0.11 * M;
+      const manopla: [number, number] = [pn.jx + Math.sin(angJ) * compJ, pn.jy - Math.cos(angJ) * compJ];
+      ctx.strokeStyle = 'rgb(24,24,28)'; ctx.lineWidth = Math.max(2, 0.022 * M); ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(pn.jx, pn.jy); ctx.lineTo(manopla[0], manopla[1]); ctx.stroke();
+      ctx.fillStyle = 'rgb(20,20,24)';
+      ctx.beginPath(); ctx.arc(manopla[0], manopla[1], Math.max(2.5, 0.03 * M), 0, 6.283); ctx.fill();
       ctx.fillStyle = 'rgba(255,255,255,.35)';
-      ctx.beginPath(); ctx.arc(botao[0] - 0.015 * M, botao[1] - 0.015 * M, 0.02 * M, 0, 6.283); ctx.fill();
+      ctx.beginPath(); ctx.arc(manopla[0] - 0.01 * M, manopla[1] - 0.01 * M, Math.max(1, 0.01 * M), 0, 6.283); ctx.fill();
+      // a tecla da solda acende quando ele aperta
+      const noBotao = parado ? 0 : tira(F.botao0, F.botao1);
+      if (noBotao > 0.6) {
+        ctx.fillStyle = 'rgba(170,255,120,.9)';
+        ctx.fillRect(pn.botao[0] - 0.02 * M, pn.botao[1] - 0.015 * M, 0.04 * M, 0.03 * M);
+      }
 
       // tubo de exaustão azul saindo da saia de lona
       ctx.lineCap = 'round';
@@ -1685,23 +1789,118 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.fillStyle = g; ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, 6.283); ctx.fill();
       }
 
-      // o soldador: perto da grade quando a máquina está parada, no painel enquanto ela solda
+      // ---------- o soldador: painel, portinhola, espátula ----------
       const Hs = 1.75 * M;
-      const perto = wR + 0.38 * M;
-      const longe = pedX + 0.36 * M;
-      if (longe + Hs * 0.12 < W) {
-        const ida = suave(F.grade, F.vai, fu), volta = suave(F.abre, F.volta, fu);
-        const sxS = perto + (longe - perto) * (ida - volta);
-        const anda = (fu > F.grade && fu < F.vai) || (fu > F.abre && fu < F.volta) ? 1 : 0;
-        const naGrade = suave(0, 0.12, fu) * (1 - suave(F.grade - 0.1, F.grade + 0.1, fu)) + suave(F.volta - 0.1, F.volta + 0.1, fu) * (1 - suave(F.sobeGrade, F.sobeGrade + 0.2, fu));
-        const noBotao = suave(F.vai - 0.15, F.vai + 0.1, fu) * (1 - suave(F.botao + 0.05, F.botao + 0.35, fu));
-        const alvo: [number, number] | null = naGrade > 0.01 ? puxador : noBotao > 0.01 ? botao : null;
-        desenharSoldador(ctx, {
-          sx: sxS, piso, Hs, t, mq, parado,
-          anda: parado ? 0 : anda, passo: (sxS - perto) / (Hs * 0.13),
-          alvo, alcance: Math.max(naGrade, noBotao),
-          protege: parado ? 0 : 0.6 * suave(F.garra, F.garra + 0.25, fu) * (1 - suave(F.centelha - 0.2, F.centelha + 0.2, fu)),
-          confere: parado ? 0 : suave(F.sobeGrade, F.sobeGrade + 0.35, fu) * (1 - suave(F.confere - 0.4, F.confere + 0.2, fu)),
+      const posCtrl = wL + 0.12 * M, posJan = wL + 1.38 * M;
+      const ombroY = piso - 0.82 * Hs;
+      const vai = (a: number, b: number) => suave(a, b, fase);
+      const naJanela = parado ? 1 : t < CHEGA ? 0 : vai(F.vaiJan, F.chegaJan) - vai(F.voltaCtrl0, F.voltaCtrl1) + vai(F.vaiJan2, F.chegaJan2) - vai(F.voltaCtrl2, F.chegaCtrl2);
+      const andaS = !parado && t >= CHEGA && [[F.vaiJan, F.chegaJan], [F.voltaCtrl0, F.voltaCtrl1], [F.vaiJan2, F.chegaJan2], [F.voltaCtrl2, F.chegaCtrl2]].some(([a, b]) => fase > a && fase < b) ? 1 : 0;
+      // espátula: 0 no gancho da porta, 1 nas mãos, enfiada pela janelinha
+      const comVara = parado ? 1 : vai(F.pega0, F.pega1) * (1 - vai(F.guarda0, F.guarda1));
+      const entra = parado ? 1 : vai(F.pega1 - 0.1, F.raspa0 + 0.15) * (1 - vai(F.raspa1 - 0.05, F.guarda0 + 0.15));
+      const raspando = parado ? 1 : vai(F.raspa0, F.raspa0 + 0.25) * (1 - vai(F.raspa1 - 0.3, F.raspa1));
+      const curso = parado ? 0.03 * M : 0.1 * M * Math.sin((fase - F.raspa0) * Math.PI * 2 * 1.4) * raspando;
+      const sxS = mix(posCtrl, posJan, naJanela) + curso * 0.25 * comVara;
+      const hx = abX + jn.abW + 0.3 * M, hy0 = abY - 0.12 * M; // gancho na porta, à direita da janelinha
+      const rH: [number, number] = [sxS + 0.04 * Hs, ombroY + 0.14 * Hs];
+      const pontaJan: [number, number] = [abX + jn.abW * 0.2, abY + jn.h * 0.6];
+      const angMao = Math.atan2(pontaJan[1] - rH[1], pontaJan[0] - rH[0]);
+      const kv = comVara;
+      const ang = mix(Math.PI / 2, angMao, kv);
+      const dir: [number, number] = [Math.cos(ang), Math.sin(ang)];
+      const pegaGancho: [number, number] = [hx, hy0 + 0.35 * M];
+      const avanco = curso - 0.25 * M * (1 - entra);
+      const pegaMao: [number, number] = [rH[0] + Math.cos(angMao) * avanco, rH[1] + Math.sin(angMao) * avanco];
+      const G: [number, number] = [mix(pegaGancho[0], pegaMao[0], kv), mix(pegaGancho[1], pegaMao[1], kv)];
+      const atras = mix(0.35 * M, 0.08 * M, kv), frenteV = mix(1.0 * M, 1.27 * M, kv);
+      const v0: [number, number] = [G[0] - dir[0] * atras, G[1] - dir[1] * atras];
+      const v1: [number, number] = [G[0] + dir[0] * frenteV, G[1] + dir[1] * frenteV];
+      // a parte que entra pela janelinha aparece só dentro dela (o resto fica atrás da porta)
+      ctx.save();
+      const vista = new Path2D();
+      vista.rect(abX, abY, jn.abW, jn.h);
+      vista.rect(abX + jn.abW, 0, W, H);
+      ctx.clip(vista);
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = 'rgb(20,22,26)'; ctx.lineWidth = Math.max(2.5, 0.042 * M);
+      ctx.beginPath(); ctx.moveTo(v0[0], v0[1]); ctx.lineTo(v1[0], v1[1]); ctx.stroke();
+      ctx.strokeStyle = 'rgb(150,156,166)'; ctx.lineWidth = Math.max(1, 0.014 * M);
+      ctx.beginPath(); ctx.moveTo(v0[0], v0[1] - 0.006 * M); ctx.lineTo(v1[0], v1[1] - 0.006 * M); ctx.stroke();
+      ctx.restore();
+      if (kv < 0.5) {
+        // gancho
+        ctx.strokeStyle = 'rgb(40,42,46)'; ctx.lineWidth = Math.max(1.5, 0.018 * M);
+        ctx.beginPath(); ctx.arc(hx, hy0 + 0.02 * M, 0.03 * M, Math.PI, Math.PI * 2.2); ctx.stroke();
+      }
+      // borra raspada: pedaços de casca (alguns ainda em brasa) caindo pela beirada de baixo da janelinha
+      if (!parado && raspando > 0.3 && Math.random() < dt * 26 * raspando) {
+        cascas.push({
+          x: abX + jn.abW * (0.15 + Math.random() * 0.7), y: abY + jn.h, vx: (Math.random() - 0.4) * 0.5 * M, vy: Math.random() * 0.4 * M,
+          r: (0.008 + Math.random() * 0.014) * M, v: 1, giro: Math.random() * 6.28, quente: Math.random() < 0.35 ? 1 : 0,
+        });
+        if (Math.random() < 0.4) faiscas.push({ x: abX + jn.abW * Math.random(), y: abY + jn.h * (0.4 + Math.random() * 0.6), vx: (Math.random() - 0.3) * 120, vy: -(Math.random() * 90), v: 0.2 + Math.random() * 0.25 });
+      }
+      for (const k of cascas) {
+        k.vy += 9.8 * M * dt; k.x += k.vx * dt; k.y += k.vy * dt; k.giro += dt * 6; k.quente = Math.max(0, k.quente - dt * 0.7);
+        if (k.y > piso - k.r) { k.y = piso - k.r; k.vy *= -0.25; k.vx *= 0.5; k.v -= dt * 0.6; }
+      }
+      for (let i = cascas.length - 1; i >= 0; i--) if (cascas[i].v <= 0) cascas.splice(i, 1);
+      for (const k of cascas) {
+        ctx.save(); ctx.translate(k.x, k.y); ctx.rotate(k.giro);
+        ctx.globalAlpha = Math.min(1, k.v * 2);
+        ctx.fillStyle = k.quente > 0.05 ? cor(misturar([60, 44, 36], [255, 140, 50], k.quente)) : 'rgb(52,44,40)';
+        ctx.beginPath(); ctx.moveTo(-k.r, -k.r * 0.4); ctx.lineTo(k.r * 0.3, -k.r * 0.7); ctx.lineTo(k.r, k.r * 0.2); ctx.lineTo(-k.r * 0.2, k.r * 0.6); ctx.closePath(); ctx.fill();
+        ctx.restore();
+      }
+
+      // mãos do soldador: a esquerda no joystick, no botão da solda ou na espátula; a direita na alavanca da
+      // portinhola (do lado direito da janelinha) ou segurando a espátula junto do peito
+      const naGrade = parado ? 0 : tira(F.gradeFecha0, F.gradeFecha1) + tira(F.gradeAbre0, F.gradeAbre1);
+      const naVara = parado ? 1 : suave(F.pega0 - 0.1, F.pega0 + 0.15, fase) * (1 - suave(F.guarda1 - 0.1, F.guarda1 + 0.1, fase));
+      const esqVara = kv > 0.85 ? 1 : 0;
+      const pontoVara: [number, number] = [G[0] + dir[0] * 0.55 * M, G[1] + dir[1] * 0.55 * M];
+      const maoE: [number, number] | null = esqVara ? pontoVara : noBotao > 0.01 ? pn.botao : segura > 0.01 ? manopla : null;
+      const alcE = esqVara ? 1 : noBotao > 0.01 ? noBotao : segura;
+      const maoD: [number, number] | null = naGrade > 0.01 ? puxador : naVara > 0.01 ? G : null;
+      const alcD = naGrade > 0.01 ? naGrade : naVara;
+      desenharOperario(ctx, {
+        sx: sxS, piso, Hs, t, mq, parado,
+        anda: andaS, passo: (sxS - posCtrl) / (Hs * 0.13),
+        maoE, alcE, maoD, alcD, dPeito: kv > 0.6 ? 1 : 0,
+        curva: 0.12 * kv, agacha: 0, inclina: -0.35 * Math.max(segura, noBotao) - 0.3 * kv,
+        capacete: [150, 156, 162], fase: 0,
+      });
+
+      // ---------- o segundo operário: a régua na emenda que acabou de sair da Schlatter ----------
+      const xR = xm - d1, sxR = xR + 0.04 * M;
+      if (sxR - 0.7 * M > 0) {
+        const r = parado ? 1.6 : fase - F.regua0;
+        const ergue = suave(0, 0.5, r) * (1 - suave(2.8, 3.3, r)); // 0 em pé do lado dele, 1 deitada sobre o boleto
+        const desce = suave(0.45, 0.8, r) * (1 - suave(2.65, 2.95, r));
+        const mira = suave(0.9, 1.35, r) * (1 - suave(2.3, 2.7, r)); // se abaixa e mira ao longo da régua
+        const yBol = topo - R * 0.06;
+        const esp = Math.max(2, 0.035 * M);
+        const yDeit = yBol - esp / 2 - 0.25 * M * (1 - desce);
+        const ladoX = sxR + 0.17 * Hs;
+        const a0: [number, number] = [mix(ladoX, xR - 0.5 * M, ergue), mix(piso - 0.02 * M, yDeit, ergue)];
+        const a1: [number, number] = [mix(ladoX, xR + 0.5 * M, ergue), mix(piso - 1.0 * M, yDeit, ergue)];
+        ctx.lineCap = 'butt';
+        ctx.strokeStyle = 'rgb(46,48,54)'; ctx.lineWidth = esp + 1.5;
+        ctx.beginPath(); ctx.moveTo(a0[0], a0[1]); ctx.lineTo(a1[0], a1[1]); ctx.stroke();
+        const gR = ctx.createLinearGradient(a0[0], a0[1] - esp, a0[0], a0[1] + esp);
+        gR.addColorStop(0, 'rgb(214,218,224)'); gR.addColorStop(1, 'rgb(118,122,130)');
+        ctx.strokeStyle = gR; ctx.lineWidth = esp;
+        ctx.beginPath(); ctx.moveTo(a0[0], a0[1]); ctx.lineTo(a1[0], a1[1]); ctx.stroke();
+        ctx.lineCap = 'round';
+        const mRegE: [number, number] = [xR - 0.24 * M, yDeit - esp * 0.3];
+        const mRegD: [number, number] = [mix(a1[0], xR + 0.26 * M, ergue), mix(a1[1] + 0.03 * M, yDeit - esp * 0.3, ergue)];
+        desenharOperario(ctx, {
+          sx: sxR, piso, Hs, t, mq, parado,
+          anda: 0, passo: 0,
+          maoE: mRegE, alcE: ergue, maoD: mRegD, alcD: 1, dPeito: 0,
+          curva: 0.3 * ergue + 0.65 * mira, agacha: 0.22 * mira, inclina: -0.4 * mira,
+          capacete: [236, 238, 240], fase: 1.7,
         });
       }
 
