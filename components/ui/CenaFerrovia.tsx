@@ -1568,6 +1568,7 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
             c.beginPath(); c.ellipse(i * S + j * 1.3 * M, piso - (2.9 + hash((((i % n) + n) % n) + j * 9) * 1.1) * M - y0, r * 1.3, r, 0, 0, 6.283); c.fill();
           }
           for (let i = -2; i <= n + 1; i++) {
+            continue; // sem casas lá longe: só a mata (como nas fotos)
             if (hm(i + 40) < 0.45) continue;
             const x = i * S, w = (3 + hm(i + 41) * 3) * M, yR = piso - (2.5 + hm(i + 42) * 0.4) * M - y0;
             c.fillStyle = cor(tomF([150, 146, 140])); c.fillRect(x, yR + 0.35 * M, w, 1.2 * M);
@@ -1793,6 +1794,96 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       };
       carimbo(fc.longe, 0.25, piso - 4.6 * M, 4.6 * M);
       carimbo(fc.meio, 0.5, piso - 2.0 * M, 2.0 * M);
+      // o barranco de capim alto, por todo o fundo (como nas fotos e no vídeo do pátio); atrás do pátio do TLS (como no vídeo): logo atrás da pilha, a rua de serviço clara e o guarda-corpo de tubo;
+      // depois sobe um barranco grande de capim que tampa quase todo o fundo. Lá em cima do barranco: o monte de brita
+      // escura, o contêiner, as pilhas de dormentes velhos, os vagões velhos avermelhados e as árvores.
+      {
+        const pa = vx0, pb = vx1;
+        if (pa < pb) {
+          const k = 0.6, pr = (m: number) => lf(Xm(m), k);
+          const visL = (a: number, b: number) => b > pa - M && a < pb + M;
+          const yCrista = piso - 3.3 * M; // alto do barranco
+          const crista = (x: number) => yCrista + (0.18 * Math.sin((x - camX * (1 - k)) / M * 0.35) + 0.1 * Math.sin((x - camX * (1 - k)) / M * 1.3)) * M;
+          // árvores atrás do barranco
+          ctx.fillStyle = cor(tomF([74, 116, 64]));
+          for (let x = Math.floor((pa - camX * (1 - k)) / (1.6 * M)) * 1.6 * M + camX * (1 - k); x < pb + M; x += 1.6 * M) {
+            const q = Math.round((x - camX * (1 - k)) / (1.6 * M));
+            if (hash(q + 300) < 0.35) continue;
+            const r = (0.7 + hash(q + 301) * 0.7) * M;
+            ctx.beginPath(); ctx.ellipse(x, crista(x) - r * 0.6, r * 1.2, r, 0, 0, 6.283); ctx.fill();
+          }
+          // coisas em cima do barranco
+          const yTopo2 = (x: number) => crista(x) + 0.08 * M;
+          const bx = pr(-93);
+          if (visL(bx - 2 * M, bx + 2 * M)) {
+            const yb = yTopo2(bx);
+            ctx.fillStyle = cor(tomF([84, 88, 98]));
+            ctx.beginPath(); ctx.moveTo(bx - 1.7 * M, yb); ctx.quadraticCurveTo(bx - 0.5 * M, yb - 1.0 * M, bx, yb - 1.05 * M); ctx.quadraticCurveTo(bx + 0.5 * M, yb - 1.0 * M, bx + 1.7 * M, yb); ctx.closePath(); ctx.fill();
+            ctx.fillStyle = cor(tomF([120, 124, 134]), 0.5);
+            for (let q = 0; q < 30; q++) ctx.fillRect(bx + (hash(q) - 0.5) * 2.4 * M, yb - hash(q + 9) * 0.8 * M, 2, 2);
+          }
+          const ctn = pr(-101);
+          if (visL(ctn, ctn + 2.6 * M)) {
+            const yb = yTopo2(ctn + 1.3 * M);
+            ctx.fillStyle = cor(tomF([92, 120, 140])); ctx.fillRect(ctn, yb - 1.1 * M, 2.6 * M, 1.1 * M);
+            ctx.strokeStyle = cor(tomF([70, 96, 114])); ctx.lineWidth = 1; ctx.beginPath();
+            for (let x = ctn + 0.12 * M; x < ctn + 2.6 * M; x += 0.12 * M) { ctx.moveTo(x, yb - 1.1 * M); ctx.lineTo(x, yb); } ctx.stroke();
+          }
+          const dx = pr(-86);
+          if (visL(dx, dx + 3.6 * M)) {
+            const yb = yTopo2(dx + 1.8 * M);
+            for (let r = 0; r < 3; r++) for (let q = 0; q < 6; q++) {
+              ctx.fillStyle = cor(tomF(hash(r * 7 + q) > 0.5 ? [96, 70, 50] : [114, 86, 62]));
+              ctx.fillRect(dx + q * 0.58 * M + (r % 2) * 0.2 * M, yb - (r + 1) * 0.18 * M, 0.5 * M, 0.15 * M);
+            }
+          }
+          for (const wm of [-108, -116]) {
+            const wx = pr(wm);
+            if (!visL(wx, wx + 5 * M)) continue;
+            const yb = yTopo2(wx + 2.5 * M);
+            ctx.fillStyle = cor(tomF([134, 62, 48])); ctx.fillRect(wx, yb - 1.35 * M, 5 * M, 1.05 * M);
+            ctx.fillStyle = cor(tomF([104, 46, 36]));
+            for (let x = wx + 0.5 * M; x < wx + 4.9 * M; x += 0.8 * M) ctx.fillRect(x, yb - 1.35 * M, 0.07 * M, 1.05 * M);
+            ctx.fillStyle = cor(tomF([46, 48, 52]));
+            for (const w of [wx + 0.8 * M, wx + 4.2 * M]) { ctx.beginPath(); ctx.arc(w, yb - 0.18 * M, 0.17 * M, 0, 6.283); ctx.fill(); }
+          }
+          // o barranco de capim, cobrindo do alto até a rua
+          const yRua = piso - 0.7 * M;
+          const gB = ctx.createLinearGradient(0, yCrista, 0, yRua);
+          gB.addColorStop(0, cor(tomF([116, 166, 74]))); gB.addColorStop(1, cor(tomF([96, 146, 62])));
+          ctx.fillStyle = gB;
+          ctx.beginPath(); ctx.moveTo(pa - M, yRua);
+          for (let x = pa - M; x <= pb + M; x += 0.3 * M) ctx.lineTo(x, crista(x));
+          ctx.lineTo(pb + M, yRua); ctx.closePath(); ctx.fill();
+          // tufos e moitas no barranco
+          ctx.strokeStyle = cor(tomF([128, 176, 84]), 0.7); ctx.lineWidth = Math.max(1, 0.025 * M);
+          ctx.beginPath();
+          for (let x = Math.floor(pa / (0.18 * M)) * 0.18 * M; x < pb; x += 0.18 * M) {
+            const q = Math.round(x / (0.18 * M));
+            const y = mix(crista(x), yRua, hash(q + 500));
+            const h = (0.06 + hash(q + 501) * 0.1) * M;
+            ctx.moveTo(x - 0.04 * M, y); ctx.lineTo(x, y - h); ctx.lineTo(x + 0.04 * M, y);
+          }
+          ctx.stroke();
+          ctx.fillStyle = cor(tomF([78, 124, 56]), 0.8);
+          for (let x = Math.floor(pa / (1.3 * M)) * 1.3 * M; x < pb; x += 1.3 * M) {
+            const q = Math.round(x / (1.3 * M));
+            if (hash(q + 600) < 0.5) continue;
+            const y = mix(crista(x) + 0.4 * M, yRua - 0.2 * M, hash(q + 601));
+            ctx.beginPath(); ctx.ellipse(x, y, 0.4 * M, 0.2 * M, 0, 0, 6.283); ctx.fill();
+          }
+          // rua de serviço clara e o guarda-corpo de tubo, só no pátio (a céu aberto)
+          const pbR = Math.min(pb, fimG);
+          if (pa < pbR) {
+          ctx.fillStyle = cor(tomF([212, 208, 200])); ctx.fillRect(pa, yRua, pbR - pa, piso - yRua);
+          ctx.fillStyle = cor(tomF([186, 182, 174])); ctx.fillRect(pa, yRua, pbR - pa, 0.05 * M);
+          ctx.fillStyle = cor(tomF([150, 154, 160])); ctx.fillRect(pa, yRua - 0.5 * M, pbR - pa, 0.06 * M);
+          ctx.fillStyle = cor(tomF([214, 218, 222])); ctx.fillRect(pa, yRua - 0.5 * M, pbR - pa, 0.02 * M);
+          ctx.fillStyle = cor(tomF([130, 134, 140]));
+          for (let x = Math.floor(pa / (2 * M)) * 2 * M; x < pbR; x += 2 * M) ctx.fillRect(x, yRua - 0.5 * M, 0.05 * M, 0.5 * M);
+          }
+        }
+      }
       // o que está parado lá fora (camada do meio)
       {
         const k = 0.5, sz = 0.85;
@@ -1814,8 +1905,6 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
           }
           if (porta) { ctx.fillStyle = cor(tomF([214, 216, 214])); ctx.fillRect(x0 + w - 1.0 * M, yT + h * 0.3, 0.7 * M, h * 0.7); }
         };
-        predio(pr(20), 7 * M * sz, 2.7 * M * sz, false);
-        predio(pr(-9), 5 * M * sz, 2.6 * M * sz, true);
         predio(pr(-58), 9 * M * sz, 3.0 * M * sz, true);
         const conteiner = (x0: number, c: RGB, texto: string) => {
           const w = 3.6 * M * sz, h = 1.6 * M * sz, yT = piso - 0.45 * M - h;
@@ -1913,93 +2002,6 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
             ctx.beginPath(); ctx.moveTo(ex + 1.3 * M, piso - 1.5 * M); ctx.lineTo(ex + 2.6 * M, piso - 2.6 * M); ctx.lineTo(ex + 3.2 * M, piso - 1.2 * M); ctx.stroke();
             ctx.fillStyle = cor(tomF([50, 52, 56])); ctx.fillRect(ex - 0.2 * M, piso - 0.9 * M * sz, 1.9 * M * sz, 0.35 * M);
           }
-        }
-      }
-      // atrás do pátio do TLS (como no vídeo): logo atrás da pilha, a rua de serviço clara e o guarda-corpo de tubo;
-      // depois sobe um barranco grande de capim que tampa quase todo o fundo. Lá em cima do barranco: o monte de brita
-      // escura, o contêiner, as pilhas de dormentes velhos, os vagões velhos avermelhados e as árvores.
-      {
-        const pa = vx0, pb = Math.min(vx1, fimG + 3 * M);
-        if (pa < pb) {
-          const k = 0.6, pr = (m: number) => lf(Xm(m), k);
-          const visL = (a: number, b: number) => b > pa - M && a < pb + M;
-          const yCrista = piso - 3.3 * M; // alto do barranco
-          const crista = (x: number) => yCrista + (0.18 * Math.sin((x - camX * (1 - k)) / M * 0.35) + 0.1 * Math.sin((x - camX * (1 - k)) / M * 1.3)) * M;
-          // árvores atrás do barranco
-          ctx.fillStyle = cor(tomF([74, 116, 64]));
-          for (let x = Math.floor((pa - camX * (1 - k)) / (1.6 * M)) * 1.6 * M + camX * (1 - k); x < pb + M; x += 1.6 * M) {
-            const q = Math.round((x - camX * (1 - k)) / (1.6 * M));
-            if (hash(q + 300) < 0.35) continue;
-            const r = (0.7 + hash(q + 301) * 0.7) * M;
-            ctx.beginPath(); ctx.ellipse(x, crista(x) - r * 0.6, r * 1.2, r, 0, 0, 6.283); ctx.fill();
-          }
-          // coisas em cima do barranco
-          const yTopo2 = (x: number) => crista(x) + 0.08 * M;
-          const bx = pr(-93);
-          if (visL(bx - 2 * M, bx + 2 * M)) {
-            const yb = yTopo2(bx);
-            ctx.fillStyle = cor(tomF([84, 88, 98]));
-            ctx.beginPath(); ctx.moveTo(bx - 1.7 * M, yb); ctx.quadraticCurveTo(bx - 0.5 * M, yb - 1.0 * M, bx, yb - 1.05 * M); ctx.quadraticCurveTo(bx + 0.5 * M, yb - 1.0 * M, bx + 1.7 * M, yb); ctx.closePath(); ctx.fill();
-            ctx.fillStyle = cor(tomF([120, 124, 134]), 0.5);
-            for (let q = 0; q < 30; q++) ctx.fillRect(bx + (hash(q) - 0.5) * 2.4 * M, yb - hash(q + 9) * 0.8 * M, 2, 2);
-          }
-          const ctn = pr(-101);
-          if (visL(ctn, ctn + 2.6 * M)) {
-            const yb = yTopo2(ctn + 1.3 * M);
-            ctx.fillStyle = cor(tomF([92, 120, 140])); ctx.fillRect(ctn, yb - 1.1 * M, 2.6 * M, 1.1 * M);
-            ctx.strokeStyle = cor(tomF([70, 96, 114])); ctx.lineWidth = 1; ctx.beginPath();
-            for (let x = ctn + 0.12 * M; x < ctn + 2.6 * M; x += 0.12 * M) { ctx.moveTo(x, yb - 1.1 * M); ctx.lineTo(x, yb); } ctx.stroke();
-          }
-          const dx = pr(-86);
-          if (visL(dx, dx + 3.6 * M)) {
-            const yb = yTopo2(dx + 1.8 * M);
-            for (let r = 0; r < 3; r++) for (let q = 0; q < 6; q++) {
-              ctx.fillStyle = cor(tomF(hash(r * 7 + q) > 0.5 ? [96, 70, 50] : [114, 86, 62]));
-              ctx.fillRect(dx + q * 0.58 * M + (r % 2) * 0.2 * M, yb - (r + 1) * 0.18 * M, 0.5 * M, 0.15 * M);
-            }
-          }
-          for (const wm of [-108, -116]) {
-            const wx = pr(wm);
-            if (!visL(wx, wx + 5 * M)) continue;
-            const yb = yTopo2(wx + 2.5 * M);
-            ctx.fillStyle = cor(tomF([134, 62, 48])); ctx.fillRect(wx, yb - 1.35 * M, 5 * M, 1.05 * M);
-            ctx.fillStyle = cor(tomF([104, 46, 36]));
-            for (let x = wx + 0.5 * M; x < wx + 4.9 * M; x += 0.8 * M) ctx.fillRect(x, yb - 1.35 * M, 0.07 * M, 1.05 * M);
-            ctx.fillStyle = cor(tomF([46, 48, 52]));
-            for (const w of [wx + 0.8 * M, wx + 4.2 * M]) { ctx.beginPath(); ctx.arc(w, yb - 0.18 * M, 0.17 * M, 0, 6.283); ctx.fill(); }
-          }
-          // o barranco de capim, cobrindo do alto até a rua
-          const yRua = piso - 0.7 * M;
-          const gB = ctx.createLinearGradient(0, yCrista, 0, yRua);
-          gB.addColorStop(0, cor(tomF([116, 166, 74]))); gB.addColorStop(1, cor(tomF([96, 146, 62])));
-          ctx.fillStyle = gB;
-          ctx.beginPath(); ctx.moveTo(pa - M, yRua);
-          for (let x = pa - M; x <= pb + M; x += 0.3 * M) ctx.lineTo(x, crista(x));
-          ctx.lineTo(pb + M, yRua); ctx.closePath(); ctx.fill();
-          // tufos e moitas no barranco
-          ctx.strokeStyle = cor(tomF([128, 176, 84]), 0.7); ctx.lineWidth = Math.max(1, 0.025 * M);
-          ctx.beginPath();
-          for (let x = Math.floor(pa / (0.18 * M)) * 0.18 * M; x < pb; x += 0.18 * M) {
-            const q = Math.round(x / (0.18 * M));
-            const y = mix(crista(x), yRua, hash(q + 500));
-            const h = (0.06 + hash(q + 501) * 0.1) * M;
-            ctx.moveTo(x - 0.04 * M, y); ctx.lineTo(x, y - h); ctx.lineTo(x + 0.04 * M, y);
-          }
-          ctx.stroke();
-          ctx.fillStyle = cor(tomF([78, 124, 56]), 0.8);
-          for (let x = Math.floor(pa / (1.3 * M)) * 1.3 * M; x < pb; x += 1.3 * M) {
-            const q = Math.round(x / (1.3 * M));
-            if (hash(q + 600) < 0.5) continue;
-            const y = mix(crista(x) + 0.4 * M, yRua - 0.2 * M, hash(q + 601));
-            ctx.beginPath(); ctx.ellipse(x, y, 0.4 * M, 0.2 * M, 0, 0, 6.283); ctx.fill();
-          }
-          // rua de serviço clara e o guarda-corpo de tubo
-          ctx.fillStyle = cor(tomF([212, 208, 200])); ctx.fillRect(pa, yRua, pb - pa, piso - yRua);
-          ctx.fillStyle = cor(tomF([186, 182, 174])); ctx.fillRect(pa, yRua, pb - pa, 0.05 * M);
-          ctx.fillStyle = cor(tomF([150, 154, 160])); ctx.fillRect(pa, yRua - 0.5 * M, pb - pa, 0.06 * M);
-          ctx.fillStyle = cor(tomF([214, 218, 222])); ctx.fillRect(pa, yRua - 0.5 * M, pb - pa, 0.02 * M);
-          ctx.fillStyle = cor(tomF([130, 134, 140]));
-          for (let x = Math.floor(pa / (2 * M)) * 2 * M; x < pb; x += 2 * M) ctx.fillRect(x, yRua - 0.5 * M, 0.05 * M, 0.5 * M);
         }
       }
       // o galpão: o vão carimbado ao longo da linha, o telhado acima dele, e por coluna a luz, o extintor ou o ventilador
