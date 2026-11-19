@@ -1812,15 +1812,47 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
           }
         }
         {
-          const x0 = pr(-74), w = 7 * M * sz, yT = piso - 0.45 * M - 1.9 * M * sz;
-          if (visL(x0, x0 + w)) {
-            ctx.fillStyle = cor(tomF([214, 216, 218]));
-            ctx.beginPath(); ctx.roundRect(x0, yT, w, 1.3 * M * sz, 0.6 * M * sz); ctx.fill();
-            ctx.fillStyle = cor(tomF([176, 178, 182])); ctx.fillRect(x0 + w * 0.45, yT - 0.2 * M, 0.5 * M, 0.25 * M);
-            ctx.fillStyle = cor(tomF([46, 48, 52]));
-            for (const bx of [x0 + M, x0 + w - M]) { ctx.beginPath(); ctx.arc(bx, piso - 0.62 * M, 0.24 * M * sz, 0, 6.283); ctx.fill(); }
+          // vagão-tanque branco (como o das fotos, parado lá fora): tanque com as pontas abauladas, a faixa de reforço,
+          // o domo com a escotilha, a passarela com o guarda-corpo, a escadinha, a placa laranja de produto e os truques
+          const x0 = pr(-74), w = 6 * M * sz, hT = 1.05 * M * sz, yRl = piso - 0.45 * M;
+          const yT = yRl - 0.72 * M * sz - hT;
+          if (visL(x0 - M, x0 + w + M)) {
+            // chassi e truques (rodas acima da cerca, com o eixo)
+            ctx.fillStyle = cor(tomF([54, 56, 60])); ctx.fillRect(x0 - 0.2 * M, yT + hT, w + 0.4 * M, 0.16 * M);
+            for (const bx of [x0 + 0.9 * M, x0 + w - 0.9 * M]) {
+              ctx.fillStyle = cor(tomF([62, 64, 68])); ctx.fillRect(bx - 0.55 * M, yT + hT + 0.16 * M, 1.1 * M, 0.14 * M);
+              for (const d of [-0.32, 0.32]) {
+                ctx.fillStyle = cor(tomF([40, 42, 46])); ctx.beginPath(); ctx.arc(bx + d * M, yRl - 0.2 * M * sz, 0.19 * M * sz, 0, 6.283); ctx.fill();
+                ctx.fillStyle = cor(tomF([150, 152, 156])); ctx.beginPath(); ctx.arc(bx + d * M, yRl - 0.2 * M * sz, 0.06 * M * sz, 0, 6.283); ctx.fill();
+              }
+            }
+            // tanque
+            const gT = ctx.createLinearGradient(0, yT, 0, yT + hT);
+            gT.addColorStop(0, cor(tomF([246, 246, 244]))); gT.addColorStop(0.45, cor(tomF([226, 228, 228]))); gT.addColorStop(1, cor(tomF([178, 180, 184])));
+            ctx.fillStyle = gT;
+            ctx.beginPath(); ctx.roundRect(x0, yT, w, hT, hT * 0.5); ctx.fill();
+            ctx.strokeStyle = cor(tomF([170, 172, 176])); ctx.lineWidth = Math.max(1, 0.03 * M);
+            ctx.beginPath(); for (const fx of [0.3, 0.7]) { ctx.moveTo(x0 + w * fx, yT + 0.02 * M); ctx.lineTo(x0 + w * fx, yT + hT - 0.02 * M); } ctx.stroke();
+            // domo com a escotilha e a passarela com guarda-corpo
+            ctx.fillStyle = cor(tomF([200, 202, 204])); ctx.fillRect(x0 + w * 0.44, yT - 0.22 * M, w * 0.12, 0.26 * M);
+            ctx.fillStyle = cor(tomF([150, 152, 156])); ctx.fillRect(x0 + w * 0.42, yT - 0.26 * M, w * 0.16, 0.05 * M);
+            ctx.strokeStyle = cor(tomF([110, 112, 118])); ctx.lineWidth = Math.max(1, 0.025 * M);
+            ctx.beginPath();
+            ctx.moveTo(x0 + w * 0.3, yT - 0.35 * M); ctx.lineTo(x0 + w * 0.7, yT - 0.35 * M);
+            for (const fx of [0.3, 0.4, 0.6, 0.7]) { ctx.moveTo(x0 + w * fx, yT - 0.35 * M); ctx.lineTo(x0 + w * fx, yT + 0.03 * M); }
+            // escadinha na lateral
+            ctx.moveTo(x0 + w * 0.36, yT + 0.05 * M); ctx.lineTo(x0 + w * 0.36, yT + hT + 0.15 * M);
+            ctx.moveTo(x0 + w * 0.39, yT + 0.05 * M); ctx.lineTo(x0 + w * 0.39, yT + hT + 0.15 * M);
+            for (let k2 = 1; k2 < 6; k2++) { const y = yT + 0.05 * M + (k2 * (hT + 0.1 * M)) / 6; ctx.moveTo(x0 + w * 0.36, y); ctx.lineTo(x0 + w * 0.39, y); }
+            ctx.stroke();
+            // placa laranja de produto e o losango
+            ctx.fillStyle = cor(tomF([232, 128, 40])); ctx.fillRect(x0 + w * 0.6, yT + hT * 0.4, 0.42 * M, 0.26 * M);
+            ctx.fillStyle = cor(tomF([30, 30, 32])); ctx.fillRect(x0 + w * 0.6, yT + hT * 0.4 + 0.12 * M, 0.42 * M, 0.02 * M);
+            const lx = x0 + w * 0.8, ly = yT + hT * 0.52;
+            ctx.fillStyle = cor(tomF([250, 250, 248])); ctx.strokeStyle = cor(tomF([200, 40, 36]));
+            ctx.beginPath(); ctx.moveTo(lx, ly - 0.17 * M); ctx.lineTo(lx + 0.17 * M, ly); ctx.lineTo(lx, ly + 0.17 * M); ctx.lineTo(lx - 0.17 * M, ly); ctx.closePath(); ctx.fill(); ctx.stroke();
           }
-          const ex = pr(-67);
+          const ex = pr(-63);
           if (visL(ex - 2 * M, ex + 3 * M)) {
             ctx.fillStyle = cor(tomF([222, 176, 40]));
             ctx.fillRect(ex, piso - 1.7 * M * sz, 1.5 * M * sz, 0.9 * M * sz);
@@ -1892,13 +1924,13 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
           for (let x = pa - M; x <= pb + M; x += 0.3 * M) ctx.lineTo(x, crista(x));
           ctx.lineTo(pb + M, yRua); ctx.closePath(); ctx.fill();
           // tufos e moitas no barranco
-          ctx.strokeStyle = cor(tomF([140, 186, 92])); ctx.lineWidth = Math.max(1, 0.025 * M);
+          ctx.strokeStyle = cor(tomF([128, 176, 84]), 0.7); ctx.lineWidth = Math.max(1, 0.025 * M);
           ctx.beginPath();
           for (let x = Math.floor(pa / (0.18 * M)) * 0.18 * M; x < pb; x += 0.18 * M) {
             const q = Math.round(x / (0.18 * M));
             const y = mix(crista(x), yRua, hash(q + 500));
-            const h = (0.12 + hash(q + 501) * 0.25) * M;
-            ctx.moveTo(x, y); ctx.lineTo(x + 0.05 * M, y - h);
+            const h = (0.06 + hash(q + 501) * 0.1) * M;
+            ctx.moveTo(x - 0.04 * M, y); ctx.lineTo(x, y - h); ctx.lineTo(x + 0.04 * M, y);
           }
           ctx.stroke();
           ctx.fillStyle = cor(tomF([78, 124, 56]), 0.8);
