@@ -12,7 +12,7 @@ import {
 } from '@/lib/services/usina';
 import { seriesDaSemana } from '@/lib/services/usinaGraficos';
 import { prisma } from '@/lib/db';
-import { intervaloDoPeriodo, rotuloDoDia } from '@/lib/usina/periodo';
+import { intervaloDoPeriodo, rotuloDoDia, desdeValido, diasDaFaixa, linhasPorDia, rotuloFaixaCurta } from '@/lib/usina/periodo';
 import { observacoesDoPeriodo } from '@/lib/services/observacaoSetor';
 import { somarDias } from '@/lib/usina/diasUteis';
 import { METROS_POR_BARRA } from '@/lib/domain/informativo';
@@ -53,7 +53,7 @@ export interface CaminhaoTabelaRelatorio {
   corte: { dia: number; semana: number; mes: number };
 }
 
-export interface SetorRelatorio { titulo: string; cor: string; linhas: LinhaRelatorio[]; grafico: GraficoRelatorio | null; grade?: GradeRelatorio; serra?: SerraRelatorio; caminhoes?: CaminhaoTabelaRelatorio[]; /** Observação do setor no dia (só usada no PDF diário). */ observacao?: string }
+export interface SetorRelatorio { titulo: string; cor: string; linhas: LinhaRelatorio[]; grafico: GraficoRelatorio | null; grade?: GradeRelatorio; serra?: SerraRelatorio; caminhoes?: CaminhaoTabelaRelatorio[]; /** Observação do setor no dia (só usada no PDF diário). */ observacao?: string; /** Nome da coluna do dia na tabela; "PERÍODO" quando o relatório junta vários dias. */ rotuloColunaDia?: string }
 
 /** Produção de uma equipe de geração: o dia e a semana. */
 export interface EquipeGeracaoRelatorio {
@@ -64,6 +64,12 @@ export interface EquipeGeracaoRelatorio {
 
 export interface DadosRelatorio {
   data: string;
+  /** Primeiro dia do relatório diário. Igual a `data` num dia só; antes dela quando junta vários dias (ex.: sexta a domingo). */
+  desde: string;
+  /** Rótulo do valor "do dia" no topo: "Do dia" ou "No período". */
+  rotuloValorDia: string;
+  /** Posição (0 = segunda) dos dias do relatório no gráfico da semana, para ficarem em destaque. */
+  diasDestaque: number[];
   rotulosDias: string[];
   /** Nome da coluna "do dia" com o dia da semana, ex.: "Do dia (sexta-feira, 23/10)". */
   rotuloDia: string;
@@ -85,28 +91,42 @@ export const ROTULO_CAMINHAO: Record<string, string> = { CW01: 'E17 / CW01', CW0
 export const COR_CAMINHAO: Record<string, string> = { CW01: '#ea580c', CW02: '#84cc16', CW03: '#0891b2' };
 
 /** Mesmos números do relatório gerencial da usina, em forma simples para a tela e para o PDF. */
-export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio> {
+export async function montarDadosRelatorio(data: string, desdePedido?: string | null): Promise<DadosRelatorio> {
   const serie = await seriesDaSemana(data);
-  // Observação de cada equipe de geração no dia (Alécio, Bruno, Reginaldo).
+  // Relatório de vários dias (ex.: na segunda, sexta a domingo): a coluna do dia soma a faixa toda.
+  const desde = desdeValido(desdePedido, data);
+  const varios = desde < data;
+  const faixa = { inicio: desde, fim: data };
+  const diasFaixa = diasDaFaixa(desde, data);
+  const naFaixa = (d: string) => d >= desde && d <= data;
+  // Observação de cada equipe de geração no dia (Alécio, Bruno, Reginaldo); em vários dias, de cada dia da faixa.
   const equipesDia = await prisma.geracaoDia.findMany({
-    where: { data: new Date(`${data}T00:00:00Z`) },
-    select: { lider: true, observacao: true, local: true },
+    where: { data: { gte: new Date(`${desde}T00:00:00Z`), lte: new Date(`${data}T00:00:00Z`) } },
+    select: { data: true, lider: true, observacao: true, local: true },
   });
   const rotuloEquipe: Record<string, string> = { ALECIO: 'Equipe 1', BRUNO: 'Equipe 2', REGINALDO: 'Equipe 3' };
   // Ordem fixa do cadastro (Alécio, Bruno, Reginaldo). Cada equipe com lançamento no dia aparece com o local,
   // mesmo sem observação. Formato: "Nome (LOCAL): observação".
-  const observacoesGeracao = LIDERES.map((l) => equipesDia.find((e) => e.lider === l.valor))
-    .filter((e): e is NonNullable<typeof e> => !!e && (!!e.local?.trim() || !!e.observacao?.trim()))
-    .map((e) => {
-      const local = e.local?.trim();
-      const texto = e.observacao?.trim() || 'Sem observação.';
-      return `${rotuloEquipe[e.lider] ?? e.lider}${local ? ` (${local})` : ''}: ${texto}`;
-    });
+  const textoEquipe = (e: (typeof equipesDia)[number]) => {
+    const local = e.local?.trim();
+    const texto = e.observacao?.trim() || 'Sem observação.';
+    return `${rotuloEquipe[e.lider] ?? e.lider}${local ? ` (${local})` : ''}: ${texto}`;
+  };
+  const temInfoEquipe = (e: (typeof equipesDia)[number]) => !!e.local?.trim() || !!e.observacao?.trim();
+  const ordemLider = (lider: string) => LIDERES.findIndex((l) => l.valor === lider);
+  const observacoesGeracao = varios
+    ? linhasPorDia(
+        [...equipesDia].filter(temInfoEquipe).sort((a, b) => ordemLider(a.lider) - ordemLider(b.lider)).map((e) => ({ data: iso(e.data), chave: e.lider, texto: textoEquipe(e) })),
+        diasFaixa,
+      )
+    : LIDERES.map((l) => equipesDia.find((e) => e.lider === l.valor && iso(e.data) === data))
+        .filter((e): e is NonNullable<typeof e> => !!e && temInfoEquipe(e))
+        .map(textoEquipe);
   const { inicio, fim } = intervaloDoPeriodo('semana', data);
   const mes = intervaloDoPeriodo('mes', data);
   const dias = serie.rotulos.length;
 
-  const trilRel = await montarTrilheirosRelatorio(data);
+  const trilRel = await montarTrilheirosRelatorio(data, desde);
   // Local e observação de cada caminhão: o local é o último lançado até a data do relatório (pode ser de outra semana);
   // a observação é a do próprio dia.
   const registrosCaminhao = await prisma.caminhaoSoldaDia.findMany({
@@ -117,19 +137,28 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
   const infoCaminhao = (cw: string) => {
     const doCaminhao = registrosCaminhao.filter((r) => r.caminhao === cw);
     const comLocal = doCaminhao.filter((r) => r.local).slice(-1)[0];
+    if (varios) {
+      // Vários dias: a observação de cada dia, com o dia na frente.
+      const linhas = linhasPorDia(
+        doCaminhao.filter((r) => naFaixa(iso(r.data)) && r.observacao?.trim()).map((r) => ({ data: iso(r.data), chave: cw, texto: r.observacao!.trim() })),
+        diasFaixa,
+      );
+      return { local: comLocal?.local ?? null, observacao: linhas.length ? linhas.join('; ') : null };
+    }
     const doDia = doCaminhao.find((r) => r.data.toISOString().slice(0, 10) === data);
     return { local: comLocal?.local ?? null, observacao: doDia?.observacao ?? null };
   };
   const [estD, estS, estM, gerD, gerS, camD, camS, serraSem, serraMesRows] = await Promise.all([
-    estaleiroDoPeriodo('dia', data),
+    estaleiroDoPeriodo(faixa, data),
     estaleiroDoPeriodo('semana', data),
     estaleiroDoPeriodo('mes', data),
-    geracaoDoPeriodo('dia', data),
+    geracaoDoPeriodo(faixa, data),
     geracaoDoPeriodo('semana', data),
-    caminhoesDoPeriodo('dia', data),
+    caminhoesDoPeriodo(faixa, data),
     caminhoesDoPeriodo('semana', data),
+    // Da segunda da semana (ou do primeiro dia da faixa, se for antes) até o domingo.
     prisma.composicaoDia.findMany({
-      where: { data: { gte: new Date(`${inicio}T00:00:00Z`), lte: new Date(`${fim}T00:00:00Z`) } },
+      where: { data: { gte: new Date(`${desde < inicio ? desde : inicio}T00:00:00Z`), lte: new Date(`${fim}T00:00:00Z`) } },
       select: { data: true, ativo: true, barras: true, observacao: true },
     }),
     prisma.composicaoDia.findMany({
@@ -140,11 +169,13 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
 
   // Serra (modelo do informativo): barras de W61 e W62 × 10,5 m, estimativa em metros.
   // Observação de cada composição no dia (W61 e W62), digitada no formulário da serra.
-  const observacoesSerra = serraSem
-    .filter((r) => iso(r.data) === data && r.observacao && r.observacao.trim())
-    .map((r) => `${r.ativo}: ${r.observacao!.trim()}`);
-  const barrasDia = (ativo: string) => serraSem.filter((r) => r.ativo === ativo && iso(r.data) === data).reduce((t, r) => t + (r.barras ?? 0), 0);
-  const barrasSemana = (ativo: string) => serraSem.filter((r) => r.ativo === ativo).reduce((t, r) => t + (r.barras ?? 0), 0);
+  const obsSerraDoDia = serraSem.filter((r) => naFaixa(iso(r.data)) && r.observacao && r.observacao.trim());
+  const observacoesSerra = varios
+    ? linhasPorDia(obsSerraDoDia.map((r) => ({ data: iso(r.data), chave: r.ativo, texto: `${r.ativo}: ${r.observacao!.trim()}` })), diasFaixa)
+    : obsSerraDoDia.map((r) => `${r.ativo}: ${r.observacao!.trim()}`);
+  const barrasDia = (ativo: string) => serraSem.filter((r) => r.ativo === ativo && naFaixa(iso(r.data))).reduce((t, r) => t + (r.barras ?? 0), 0);
+  const naSemana = (d: string) => d >= inicio && d <= fim;
+  const barrasSemana = (ativo: string) => serraSem.filter((r) => r.ativo === ativo && naSemana(iso(r.data))).reduce((t, r) => t + (r.barras ?? 0), 0);
   const barrasMes = (ativo: string) => serraMesRows.filter((r) => r.ativo === ativo).reduce((t, r) => t + (r.barras ?? 0), 0);
   const metrosDeBarras = (b: number) => Math.round(b * METROS_POR_BARRA * 100) / 100;
   const serraDiaSerie = (ativo: string) => {
@@ -164,12 +195,35 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
   const geraDia = (f: (l: (typeof gerD.porLider)[number]) => number) => soma(gerD.porLider, f);
   const geraSem = (f: (l: (typeof gerS.porLider)[number]) => number) => soma(gerS.porLider, f);
 
-  const observacoes = await observacoesDoPeriodo(inicio, somarDias(inicio, 6));
+  const observacoes = await observacoesDoPeriodo(desde < inicio ? desde : inicio, somarDias(inicio, 6));
+  // Observação geral do setor (a da tela do relatório), de cada dia da faixa, com o dia na frente.
+  const obsSetorFaixa = (setor: string) =>
+    linhasPorDia(diasFaixa.map((d) => ({ data: d, chave: setor, texto: observacoes[`${d}|${setor}`] ?? '' })), diasFaixa);
+  // Estaleiro sem solda e sem corte (fim de semana, feriado): diz que ficou parado, em vez de só mostrar zeros.
+  const estaleiroParado = estD.totais.soldas === 0 && estD.totais.cortes === 0;
+  const avisoParado = estaleiroParado ? (varios ? `Sem produção no período (${rotuloFaixaCurta(desde, data)}).` : 'Sem produção no dia.') : null;
+  const obsEstaleiro = varios ? obsSetorFaixa('estaleiro') : [];
+  const temObsEstaleiroDia = !varios && !!observacoes[`${data}|estaleiro`]?.trim();
+  const observacaoEstaleiro = varios
+    ? [...(avisoParado ? [avisoParado] : []), ...obsEstaleiro].join('\n') || undefined
+    : !temObsEstaleiroDia && avisoParado
+      ? avisoParado
+      : undefined;
+  const ouSetor = (proprias: string[], setor: string) => (proprias.length ? proprias : varios ? obsSetorFaixa(setor) : []);
+  const obsGeracaoFinal = ouSetor(observacoesGeracao, 'geracao');
+  const obsSerraFinal = ouSetor(observacoesSerra, 'serra');
+  // Dias do relatório dentro da semana do gráfico (0 = segunda), para o destaque.
+  const diasDestaque = diasFaixa
+    .map((d) => Math.round((Date.parse(`${d}T00:00:00Z`) - Date.parse(`${inicio}T00:00:00Z`)) / 86400000))
+    .filter((i) => i >= 0 && i < 7);
 
-  return {
+  const dados: DadosRelatorio = {
     data,
+    desde,
+    rotuloValorDia: varios ? 'No período' : 'Do dia',
+    diasDestaque,
     observacoes,
-    rotuloDia: rotuloDoDia(data),
+    rotuloDia: varios ? `No período (${rotuloFaixaCurta(desde, data)})` : rotuloDoDia(data),
     rotulosDias: serie.rotulos,
     equipesGeracao: gerS.porLider.map((l) => {
       const d = gerD.porLider.find((x) => x.valor === l.valor)?.periodo;
@@ -228,6 +282,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       {
         titulo: 'Estaleiro de solda',
         cor: CORES_SETOR.estaleiro,
+        observacao: observacaoEstaleiro,
         linhas: [
           { secao: 'Soldas e cortes', rotulo: 'Soldas (und)', dia: `${estD.totais.soldas}`, semana: `${estS.totais.soldas}`, mes: `${estM.totais.soldas}`, porDia: serie.estaleiro.soldas.map(String) },
           { rotulo: 'Cortes (und)', dia: `${estD.totais.cortes}`, semana: `${estS.totais.cortes}`, mes: `${estM.totais.cortes}`, porDia: serie.estaleiro.cortes.map(String) },
@@ -250,7 +305,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       {
         titulo: 'Geração de trilho',
         cor: CORES_SETOR.geracao,
-        observacao: observacoesGeracao.length ? observacoesGeracao.join('\n') : undefined,
+        observacao: obsGeracaoFinal.length ? obsGeracaoFinal.join('\n') : undefined,
         linhas: [
           { rotulo: 'Carregado (m)', dia: fmtMetros(geraDia((l) => l.periodo.carregamentoM)), semana: fmtMetros(geraSem((l) => l.periodo.carregamentoM)), mes: fmtMetros(geraSem((l) => l.mes.carregamentoM)), porDia: serie.geracao.carregado.map((v) => fmtMetros(v)) },
           { rotulo: 'Na via (m)', dia: fmtMetros(geraDia((l) => l.periodo.deixadaViaM)), semana: fmtMetros(geraSem((l) => l.periodo.deixadaViaM)), mes: fmtMetros(geraSem((l) => l.mes.deixadaViaM)), porDia: serie.geracao.deixado.map((v) => fmtMetros(v)) },
@@ -267,7 +322,7 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       {
         titulo: 'Recolhimento serra',
         cor: CORES_SETOR.serra,
-        observacao: observacoesSerra.length ? observacoesSerra.join('\n') : undefined,
+        observacao: obsSerraFinal.length ? obsSerraFinal.join('\n') : undefined,
         serra: {
           linhas: COMPOSICOES.map((a, i) => ({
             ativo: a,
@@ -352,6 +407,8 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
       },
     ],
   };
+  if (varios) dados.setores = dados.setores.map((st) => ({ ...st, rotuloColunaDia: 'PERÍODO' }));
+  return dados;
 }
 
 export interface EquipeTrilheiro {
@@ -415,7 +472,10 @@ async function descarregadasNoMes(data: string): Promise<number> {
 }
 
 /** Situacao de cada trilheiro no dia: ultimo lancamento da tabela diaria ate a data do relatorio. */
-export async function montarTrilheirosRelatorio(data: string): Promise<TrilheirosRelatorio> {
+export async function montarTrilheirosRelatorio(data: string, desdePedido?: string | null): Promise<TrilheirosRelatorio> {
+  const desde = desdeValido(desdePedido, data);
+  const varios = desde < data;
+  const diasFaixa = diasDaFaixa(desde, data);
   const diaMs = (iso: string) => Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)));
   const equipes: EquipeTrilheiro[] = await Promise.all(
     TRILHEIROS.map(async (t) => {
@@ -427,6 +487,25 @@ export async function montarTrilheirosRelatorio(data: string): Promise<Trilheiro
       });
       // A observação é a do próprio dia do relatório (não a do último dia com barras).
       const doDia = await prisma.trilheiroDia.findUnique({ where: { data_trilheiro: { data: dataRel, trilheiro: t } } });
+      // Vários dias: observação de cada dia da faixa, com o dia na frente.
+      const obsFaixa = varios
+        ? linhasPorDia(
+            (
+              await prisma.trilheiroDia.findMany({
+                where: { trilheiro: t, data: { gte: new Date(`${desde}T00:00:00Z`), lte: dataRel }, observacao: { not: null } },
+                orderBy: { data: 'asc' },
+              })
+            ).map((x) => ({ data: iso(x.data), chave: t, texto: x.observacao ?? '' })),
+            diasFaixa,
+          ).join('; ') || null
+        : null;
+      // Último lançamento antes da faixa: a diferença até ele é o que foi descarregado nos dias do relatório.
+      const antesDaFaixa = varios
+        ? await prisma.trilheiroDia.findFirst({
+            where: { trilheiro: t, data: { lt: new Date(`${desde}T00:00:00Z`) }, descarregadas: { not: null } },
+            orderBy: { data: 'desc' },
+          })
+        : null;
       // Dia anterior do mesmo giro: a diferenca entre os dois e o que foi descarregado no dia.
       const anterior = r
         ? await prisma.trilheiroDia.findFirst({
@@ -442,7 +521,7 @@ export async function montarTrilheirosRelatorio(data: string): Promise<Trilheiro
           partida: null,
           diasDesdePartida: null,
           local: null,
-          observacao: doDia?.observacao ?? null,
+          observacao: varios ? obsFaixa : doDia?.observacao ?? null,
           total: 0,
           descarregadas: 0,
           descarregadasDia: 0,
@@ -463,11 +542,17 @@ export async function montarTrilheirosRelatorio(data: string): Promise<Trilheiro
         partida,
         diasDesdePartida,
         local: r.local ?? null,
-        observacao: doDia?.observacao ?? null,
+        observacao: varios ? obsFaixa : doDia?.observacao ?? null,
         total,
         descarregadas,
         // "Do dia" só vale se houve lançamento na própria data do relatório; senão mostra zero, e não o último dia lançado.
-        descarregadasDia: r.data.toISOString().slice(0, 10) === data ? Math.max(0, descarregadas - baseDoGiro) : 0,
+        descarregadasDia: varios
+          ? iso(r.data) >= desde
+            ? Math.max(0, descarregadas - (antesDaFaixa && antesDaFaixa.boEm?.getTime() === r.boEm?.getTime() ? antesDaFaixa.descarregadas ?? 0 : 0))
+            : 0
+          : r.data.toISOString().slice(0, 10) === data
+            ? Math.max(0, descarregadas - baseDoGiro)
+            : 0,
         status: 'Em execução',
       };
     }),

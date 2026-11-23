@@ -21,7 +21,8 @@ export function GraficoBarras({
   unidade?: string;
   altura?: number;
   /** Índice do dia escolhido: os outros dias ficam em cinza e as barras são finas. */
-  destaque?: number;
+  /** Dia (0 = segunda) ou dias em destaque. */
+  destaque?: number | number[];
 }) {
   const largura = 600;
   const margemEsq = 36;
@@ -40,6 +41,7 @@ export function GraficoBarras({
   const barraCheia = Math.max(1, (grupo * 0.8) / Math.max(1, series.length));
   // Com destaque (diário), as barras são finas: o espaço da semana fica limpo, sem barras gordas.
   const barra = destaque === undefined ? barraCheia : Math.min(barraCheia, 6);
+  const emDestaque = (i: number) => (Array.isArray(destaque) ? destaque.includes(i) : destaque === i);
   const yDe = (v: number) => topoArea + areaA - (v / max) * areaA;
   const mostraValor = rotulos.length <= 10 && series.length <= 2;
 
@@ -88,7 +90,7 @@ export function GraficoBarras({
               );
             })}
             {(rotulos.length <= 10 || i % (rotulos.length > 20 ? 5 : 2) === 0 || i === rotulos.length - 1) && (
-              <text x={margemEsq + i * grupo + grupo / 2} y={altura - 6} textAnchor="middle" fontSize="14" fontWeight={destaque === i ? 700 : 400} fill={destaque === undefined || destaque === i ? '#555' : '#aaa'}>
+              <text x={margemEsq + i * grupo + grupo / 2} y={altura - 6} textAnchor="middle" fontSize="14" fontWeight={emDestaque(i) ? 700 : 400} fill={destaque === undefined || emDestaque(i) ? '#555' : '#aaa'}>
                 {r}
               </text>
             )}

@@ -1,6 +1,6 @@
 // Relatório da usina — leitura e gravação dos lançamentos. Datas sempre como 'AAAA-MM-DD'.
 import { prisma } from '@/lib/db';
-import { intervaloDoPeriodo, inicioDaSemana, type Periodo } from '@/lib/usina/periodo';
+import { intervaloDoPeriodo, inicioDaSemana, type Periodo, type Faixa } from '@/lib/usina/periodo';
 import { somarDias, diasUteisNaUsina, conjuntoFeriados } from '@/lib/usina/diasUteis';
 import { METROS_POR_BARRA } from '@/lib/domain/informativo';
 
@@ -20,7 +20,7 @@ export const ROTULO_TLS: Record<TipoTlsValor, string> = {
 const iso = (d: Date | null | undefined) => (d ? d.toISOString().slice(0, 10) : null);
 const dataBanco = (s: string) => new Date(`${s}T00:00:00Z`);
 
-export async function estaleiroDoPeriodo(periodo: Periodo, data: string) {
+export async function estaleiroDoPeriodo(periodo: Periodo | Faixa, data: string) {
   const { inicio, fim } = intervaloDoPeriodo(periodo, data);
   const semana = inicioDaSemana(data);
 
@@ -209,7 +209,7 @@ export async function salvarNomeEquipe(codigo: LiderValor, nome: string) {
 
 export const META_GERACAO_MENSAL_M = 5000;
 
-export async function geracaoDoPeriodo(periodo: Periodo, data: string) {
+export async function geracaoDoPeriodo(periodo: Periodo | Faixa, data: string) {
   const { inicio, fim } = intervaloDoPeriodo(periodo, data);
   const mes = intervaloDoPeriodo('mes', data);
   const [dias, doMes] = await Promise.all([
@@ -327,7 +327,7 @@ export function rotuloComposicao(ativo: string): string {
   return rota ? `${ativo} · ${rota}` : ativo;
 }
 
-export async function composicoesDoPeriodo(periodo: Periodo, data: string) {
+export async function composicoesDoPeriodo(periodo: Periodo | Faixa, data: string) {
   const { inicio, fim } = intervaloDoPeriodo(periodo, data);
   const linhas = await prisma.composicaoDia.findMany({ where: { data: { gte: dataBanco(inicio), lte: dataBanco(fim) } } });
   return COMPOSICOES.map((c) => {
@@ -368,7 +368,7 @@ export async function salvarComposicoesDias(
 // ─── Caminhão de solda (CW01, CW02 e CW03) ─────────────────────────────────────
 export const CAMINHOES_ATIVOS = ['CW01', 'CW02', 'CW03'] as const;
 
-export async function caminhoesDoPeriodo(periodo: Periodo, data: string) {
+export async function caminhoesDoPeriodo(periodo: Periodo | Faixa, data: string) {
   const { inicio, fim } = intervaloDoPeriodo(periodo, data);
   const ano = `${data.slice(0, 4)}-01-01`;
   const mes = intervaloDoPeriodo('mes', data);

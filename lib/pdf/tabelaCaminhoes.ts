@@ -38,6 +38,7 @@ export function desenharCaminhoes(
   h: number,
   modo: 'semanal' | 'diario' | 'mensal' = 'semanal',
   colunas: Coluna[] = ['dia', 'semana', 'mes'],
+  rotuloDia = 'DIA',
 ) {
   const base = topo - h;
   const corSetor = hex(cor);
@@ -79,7 +80,7 @@ export function desenharCaminhoes(
   centroGrupo('SOLDA (UND)', 'solda');
   centroGrupo('SOLDA REPROVADA (UND)', 'corte');
   p.texto('CAMINHÃO', x + 10, yCabecalho, 6.5, 'negrito', CINZA);
-  ordem.forEach((n) => centro(NOME[n.split('-')[1] as Coluna], posicao(n), yCabecalho, 6.5, 'negrito', CINZA));
+  ordem.forEach((n) => { const k = n.split('-')[1] as Coluna; centro(k === 'dia' ? rotuloDia : NOME[k], posicao(n), yCabecalho, 6.5, 'negrito', CINZA); });
   // LOCAL centralizado na coluna (entre xLocal e xObs).
   textoCentroLocal('LOCAL', x + xLocal + 45, yCabecalho, 6.5, 'negrito', CINZA);
   if (comObservacao) p.texto('OBSERVAÇÃO', x + xObs, yCabecalho, 6.5, 'negrito', CINZA);

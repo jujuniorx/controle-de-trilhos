@@ -65,12 +65,12 @@ function valorCentroComCores(p: PaginaPdf, valor: string, cores: string[] | unde
 }
 
 /** Tabela da serra: W61 e W62 nas linhas; Dia, Semana e Mês com barras e metros, cada composição na sua cor. */
-function desenharTabelaSerra(p: PaginaPdf, serra: SerraRelatorio, x: number, topo: number, w: number, colunas: Coluna[] = TODAS_COLUNAS) {
+function desenharTabelaSerra(p: PaginaPdf, serra: SerraRelatorio, x: number, topo: number, w: number, colunas: Coluna[] = TODAS_COLUNAS, rotuloDia = 'DIA') {
   const colunaRotulo = 42;
   const colW = (w - colunaRotulo - 12) / 6;
   // Borda direita de cada coluna (barras e metros de Dia, Semana e Mês), encostadas à direita.
   const todosGrupos: { rotulo: string; chave: 'dia' | 'semana' | 'mes' }[] = [
-    { rotulo: 'DIA', chave: 'dia' },
+    { rotulo: rotuloDia, chave: 'dia' },
     { rotulo: 'SEMANA', chave: 'semana' },
     { rotulo: 'NO MÊS', chave: 'mes' },
   ];
@@ -119,7 +119,7 @@ function fmtMetrosPdf(v: number): string {
 }
 
 /** Gráfico de barras por dia: uma barra por série e por dia, na área (x, yBase) até (x+w, yBase+altura). */
-export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yBase: number, w: number, altura: number, rotulos: string[] = [], bwMax = 4, destaque?: number) {
+export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yBase: number, w: number, altura: number, rotulos: string[] = [], bwMax = 4, destaque?: number | number[]) {
   const n = Math.max(1, ...g.series.map((s) => s.valores.length));
   const topo = Math.max(1, ...g.series.flatMap((s) => s.valores));
   const gw = w / n;
@@ -138,18 +138,22 @@ export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yB
   const yRotulo = yBase - 9;
   rotulos.forEach((r, i) => {
     const cx = x + i * gw + gw / 2;
-    const dest = destaque === i;
+    const dest = Array.isArray(destaque) ? destaque.includes(i) : destaque === i;
     p.texto(r, cx - larguraTexto(r, 6) / 2, yRotulo, 6, dest ? 'negrito' : 'normal', destaque === undefined || dest ? CINZA : hex('#aaaaaa'));
   });
 }
 
 /** Gráfico do dia (uma barra por série) com a observação do setor logo acima. Só no PDF diário. */
-function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, base: number, w: number, rotulos: string[], destaque?: number, limiteTopo?: number) {
+function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, base: number, w: number, rotulos: string[], destaque?: number | number[], limiteTopo?: number) {
   if (!s.grafico) return;
   // Campo de observação: caixa com o rótulo OBSERVAÇÃO, igual às caixas de colunas, em todos os setores.
   const texto = s.observacao?.trim() ?? '';
-  const trechos = texto ? (texto.includes('\n') ? texto.split('\n') : [texto]) : ['Sem observação registrada neste dia.'];
-  const linhas = trechos.flatMap((t) => quebrarLinhas(t, 7, w - 28));
+  const trechos = texto ? (texto.includes('\n') ? texto.split('\n') : [texto]) : [s.rotuloColunaDia ? 'Sem observação registrada no período.' : 'Sem observação registrada neste dia.'];
+  const todas = trechos.flatMap((t) => quebrarLinhas(t, 7, w - 28));
+  // Com vários dias a observação pode crescer: a caixa para antes de empurrar o gráfico para cima da tabela.
+  // Sobra sempre lugar para a legenda e um gráfico baixo; o que não couber termina em reticências.
+  const maxLinhas = limiteTopo === undefined ? 6 : Math.max(2, Math.floor((limiteTopo - 10 - 12 - 24 - 8 - (base + 4) - 14) / 8));
+  const linhas = todas.length > maxLinhas ? [...todas.slice(0, maxLinhas - 1), `${todas[maxLinhas - 1]!.replace(/\s+\S*$/, '')}…`] : todas;
   const caixaBase = base + 4;
   const textoBase = caixaBase + 5;
   const alturaCaixa = 8 + linhas.length * 8 + 6;
@@ -172,7 +176,7 @@ function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, 
   desenharGrafico(p, s.grafico, x + 8, yGrafico, w - 16, alturaGrafico, rotulos, 4, destaque);
 }
 
-export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = [], mensal = false, colunas: Coluna[] = ['dia', 'semana', 'mes'], comGrafico = true, destaque?: number) {
+export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = [], mensal = false, colunas: Coluna[] = ['dia', 'semana', 'mes'], comGrafico = true, destaque?: number | number[]) {
   const base = topo - h;
   // No diário o gráfico é da semana, com o dia escolhido em destaque; a observação fica embaixo da tabela.
   const diarioSetor = destaque !== undefined;
@@ -183,7 +187,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   // Os números da serra são estimados: a indicação fica na coluna Metros est.
   p.texto(s.titulo, x + 8, topo - 14, 8, 'negrito', BRANCO);
   if (s.serra) {
-    desenharTabelaSerra(p, s.serra, x, topo, w, mensal ? ['mes'] : colunas);
+    desenharTabelaSerra(p, s.serra, x, topo, w, mensal ? ['mes'] : colunas, s.rotuloColunaDia);
     if (s.grafico && comGrafico) {
       if (diarioSetor) desenharObservacaoEGrafico(p, s, x, base, w, rotulos, destaque);
       else desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 22, rotulos);
@@ -199,7 +203,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   const passo = 66;
   // Borda direita de cada coluna: a última ativa encosta em xMes e as anteriores andam para a esquerda.
   const xDe = (c: Coluna) => xMes - (ativas.length - 1 - ativas.indexOf(c)) * passo;
-  const nomeDe: Record<Coluna, string> = { dia: 'DIA', semana: 'SEMANA', mes: 'NO MÊS' };
+  const nomeDe: Record<Coluna, string> = { dia: s.rotuloColunaDia ?? 'DIA', semana: 'SEMANA', mes: 'NO MÊS' };
   // Linhas no padrão da tabela de trilheiros: mais altas no cartão largo; mais compactas no gerencial.
   const altLinhaSetor = largo ? 16 : 13;
   const yCabecalho = topo - 32;
@@ -350,8 +354,8 @@ function montarPaginasUsina(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 
   const diario = modo === 'diario';
   // As colunas são as escolhidas pelo usuário (Dia, Semana, No mês). No diário o gráfico de 7 dias sai, porque ele é da semana.
   const colunas = colunasEscolhidas;
-  // No diário, o gráfico é da semana e o dia escolhido fica em destaque (o resto em cinza).
-  const indiceDia = (new Date(`${d.data}T12:00:00Z`).getUTCDay() + 6) % 7; // 0 = segunda
+  // No diário, o gráfico é da semana e os dias do relatório ficam em destaque (o resto em cinza).
+  const indiceDia = d.diasDestaque.length ? d.diasDestaque : [(new Date(`${d.data}T12:00:00Z`).getUTCDay() + 6) % 7]; // 0 = segunda
   const rotulosGrafico = d.rotulosDias;
   // Observação do setor no dia (chave "AAAA-MM-DD|setor"), mostrada embaixo de cada cartão no diário.
   const chaveSetor: Record<string, string> = { 'Estaleiro de solda': 'estaleiro', 'Geração de trilho': 'geracao', 'Recolhimento serra': 'serra' };
@@ -384,7 +388,7 @@ function montarPaginasUsina(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 
   p.retangulo(0, H - 5, L * 0.35, 5, AZUL);
 
   // Sem cabeçalho repetido aqui (a capa já traz o título e a logo): só uma faixa separadora com o período.
-  const semana = mensal ? `Mês até ${mesAte(d.data).split(' a ')[1]}` : diario ? rotuloPeriodo(d.data, 'diario').valor : faixaSemanaSegSex(d.data);
+  const semana = mensal ? `Mês até ${mesAte(d.data).split(' a ')[1]}` : diario ? rotuloPeriodo(d.data, 'diario', d.desde).valor : faixaSemanaSegSex(d.data);
   // Marca no topo à esquerda: CONTROLE DE TRILHOS – logo Rumo, com um traço separando.
   const larguraMarca = larguraTexto('CONTROLE DE TRILHOS', 7, 'negrito');
   const altLogo = 10.5;
@@ -407,10 +411,14 @@ function montarPaginasUsina(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 
     p.arredondado(x + 1, topoRes - altRes - 1.2, wRes, altRes, 9, SOMBRA);
     p.arredondado(x, topoRes - altRes, wRes, altRes, 9, BRANCO, LINHA);
     p.arredondado(x + 8, topoRes - 15, 6, 6, 3, hex(r.cor));
-    p.texto(r.rotulo.toUpperCase(), x + 18, topoRes - 14, 7, 'negrito', TINTA);
+    // Com mais cartões (ex.: três caminhões) o título diminui até caber, em vez de passar da borda ou da legenda.
+    const titulo = r.rotulo.toUpperCase();
+    const espaco = wRes - 26 - (r.legenda ? larguraTexto(r.legenda, 6, 'negrito') + 6 : 0);
+    const tamTitulo = Math.max(5, Math.min(7, (7 * espaco) / Math.max(1, larguraTexto(titulo, 7, 'negrito'))));
+    p.texto(titulo, x + 18, topoRes - 14, tamTitulo, 'negrito', TINTA);
     if (r.legenda) textoDireita(p, r.legenda, x + wRes - 8, topoRes - 14, 6, 'negrito', CINZA);
     if (mensal && r.linhas?.length) {
-      desenharLinhasResumo(p, r, x, topoRes, wRes, colunas, diario ? 'Do dia' : d.rotuloDia);
+      desenharLinhasResumo(p, r, x, topoRes, wRes, colunas, diario ? d.rotuloValorDia : d.rotuloDia);
       return;
     }
     if (mensal) {
@@ -419,7 +427,7 @@ function montarPaginasUsina(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 
       return;
     }
     // Três linhas iguais: rótulo à esquerda, valor à direita, mesmo tamanho e a mesma ordem em todos os cartões.
-    desenharLinhasResumo(p, r, x, topoRes, wRes, colunas, diario ? 'Do dia' : d.rotuloDia);
+    desenharLinhasResumo(p, r, x, topoRes, wRes, colunas, diario ? d.rotuloValorDia : d.rotuloDia);
   });
 
   // Linha 1: Estaleiro, Geração e Recolhimento serra, lado a lado.
@@ -444,7 +452,7 @@ function montarPaginasUsina(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 
   const topoLinha2 = H - 46; // mesmo topo da primeira página (sem faixa em branco no começo da segunda)
   const caminhao = porTitulo('Caminhão de solda');
   // Caminhão no mesmo formato da tabela de trilheiros (sem gráfico, como no trilheiro).
-  if (caminhao?.caminhoes) desenharCaminhoes(p2, caminhao.caminhoes, caminhao.cor, M, topoLinha2, larguraTotal, altCaminhao, mensal ? 'mensal' : 'semanal', colunas);
+  if (caminhao?.caminhoes) desenharCaminhoes(p2, caminhao.caminhoes, caminhao.cor, M, topoLinha2, larguraTotal, altCaminhao, mensal ? 'mensal' : 'semanal', colunas, caminhao.rotuloColunaDia);
   // Trilheiros: a mesma tabela do PDF por setor, em versão compacta.
   const altTrilheiros = Math.max(90, 46 + Math.max(1, tril.equipes.length) * 28 + 6);
   const topoTrilheiros = topoLinha2 - altCaminhao - gapLinha;
@@ -459,7 +467,7 @@ const ALTURA_RODAPE = 40;
 function desenharRodape(pg: PaginaPdf, d: DadosRelatorio, modo: 'semanal' | 'mensal' | 'diario', yBase: number) {
   const emitido = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
   pg.linha(M, yBase + 30, L - M, yBase + 30, LINHA, 0.6);
-  pg.texto(`Período: ${rotuloPeriodo(d.data, modo).valor}  ·  Emitido em ${emitido}`, M, yBase + 18, 6.5, 'normal', CINZA);
+  pg.texto(`Período: ${rotuloPeriodo(d.data, modo, d.desde).valor}  ·  Emitido em ${emitido}`, M, yBase + 18, 6.5, 'normal', CINZA);
   textoDireita(pg, 'Controle de Trilhos · Usina', L - M, yBase + 18, 6.5, 'negrito', CINZA);
 }
 

@@ -24,9 +24,9 @@ function ValorComCores({ valor, cores, corPadrao }: { valor: string; cores?: str
 }
 
 /** Tabela da serra: W61 e W62 nas linhas, com Dia, Semana e Mês em barras e metros, cada composição na sua cor. */
-function TabelaSerra({ serra, colunas = TODAS }: { serra: SerraRelatorio; colunas?: Coluna[] }) {
+function TabelaSerra({ serra, colunas = TODAS, rotuloDia = 'Dia' }: { serra: SerraRelatorio; colunas?: Coluna[]; rotuloDia?: string }) {
   const grupos = [
-    { rotulo: 'Dia', chave: 'dia' as const },
+    { rotulo: rotuloDia, chave: 'dia' as const },
     { rotulo: 'Semana', chave: 'semana' as const },
     { rotulo: 'No mês', chave: 'mes' as const },
   ].filter((g) => colunas.includes(g.chave));
@@ -73,7 +73,7 @@ function TabelaSerra({ serra, colunas = TODAS }: { serra: SerraRelatorio; coluna
   );
 }
 
-export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas = TODAS, rodape, diaDestaque }: { s: SetorRelatorio; rotulosDias: string[]; largo?: boolean; mensal?: boolean; colunas?: Coluna[]; rodape?: ReactNode; /** Índice do dia escolhido (0 = segunda). Quando existe, o gráfico destaca esse dia e deixa o resto da semana em cinza. */ diaDestaque?: number }) {
+export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas = TODAS, rodape, diaDestaque }: { s: SetorRelatorio; rotulosDias: string[]; largo?: boolean; mensal?: boolean; colunas?: Coluna[]; rodape?: ReactNode; /** Índice do dia escolhido (0 = segunda), ou dos dias quando o relatório junta vários. Quando existe, o gráfico destaca esses dias e deixa o resto da semana em cinza. */ diaDestaque?: number | number[] }) {
   const mostraDia = !mensal && colunas.includes('dia');
   const mostraSem = !mensal && colunas.includes('semana');
   const mostraMes = colunas.includes('mes');
@@ -84,7 +84,7 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
           <span className="text-sm font-bold">{s.titulo}</span>
         </header>
         <div className={largo ? 'grid items-start gap-6 p-4 lg:grid-cols-2' : 'space-y-3 p-4'}>
-          <TabelaSerra serra={s.serra} colunas={mensal ? ['mes'] : colunas} />
+          <TabelaSerra serra={s.serra} colunas={mensal ? ['mes'] : colunas} rotuloDia={s.rotuloColunaDia ? 'Período' : 'Dia'} />
           {/* No mensal o gráfico seria da semana e contradiria o mês: fica só a tabela. */}
           {s.grafico && !mensal && (
             <GraficoBarras
@@ -104,7 +104,7 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
       <thead>
         <tr className="text-[11px] uppercase tracking-wide text-slate-500">
           <th className="pb-1 text-left font-semibold"> </th>
-          {mostraDia && <th className="pb-1 text-center font-semibold">Dia</th>}
+          {mostraDia && <th className="pb-1 text-center font-semibold">{s.rotuloColunaDia ? 'Período' : 'Dia'}</th>}
           {mostraSem && <th className="pb-1 text-center font-semibold">Semana</th>}
           {mostraMes && <th className="pb-1 text-center font-semibold">No mês</th>}
         </tr>
@@ -299,7 +299,7 @@ export function CaminhoesBloco({ s, modo, colunas = TODAS }: { s: SetorRelatorio
     <div className="rounded-lg bg-slate-50 p-2">
       <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">{rotulo}</p>
       <dl className="mt-1 space-y-0.5 text-sm tabular-nums">
-        {mostraDia && <div className="flex justify-between gap-2"><dt className="text-[11px] text-slate-500">Dia</dt><dd className="font-bold text-slate-900">{valores.dia}</dd></div>}
+        {mostraDia && <div className="flex justify-between gap-2"><dt className="text-[11px] text-slate-500">{s.rotuloColunaDia ? 'Período' : 'Dia'}</dt><dd className="font-bold text-slate-900">{valores.dia}</dd></div>}
         {mostraSem && <div className="flex justify-between gap-2"><dt className="text-[11px] text-slate-500">Semana</dt><dd className="font-bold text-slate-900">{valores.semana}</dd></div>}
         {mostraMes && <div className="flex justify-between gap-2"><dt className="text-[11px] text-slate-500">No mês</dt><dd className="font-bold" style={{ color: cor }}>{valores.mes}</dd></div>}
       </dl>

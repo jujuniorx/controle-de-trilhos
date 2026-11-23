@@ -3,7 +3,7 @@ import { totaisDoAnoAte } from '@/lib/services/usina';
 import { fmtMetros } from '@/lib/format';
 import { Setor, Resumo, TrilheirosBloco, CaminhoesBloco } from '@/components/usina/RelatorioSetores';
 import { CampoObservacao, CHAVE_SETOR } from '@/components/usina/ObservacoesSetorRelatorio';
-import { ehIsoValido, modoValido, linksModo, rotuloPeriodo, colunasValidas, TODAS_COLUNAS, type Coluna } from '@/lib/usina/periodo';
+import { ehIsoValido, modoValido, linksModo, rotuloPeriodo, colunasValidas, desdeValido, ultimoFimDeSemana, rotuloFaixaCurta, TODAS_COLUNAS, type Coluna } from '@/lib/usina/periodo';
 import { BotaoCompartilharPdf } from '@/components/usina/BotaoCompartilharPdf';
 
 export const dynamic = 'force-dynamic';
@@ -23,19 +23,25 @@ function legendaColunas(colunas: Coluna[], modo: string): string {
   return `Cada setor mostra ${lista}, com o gráfico dos dias da semana.`;
 }
 
-export default async function RelatorioGerencialUsina({ searchParams }: { searchParams: Promise<{ data?: string; modo?: string; col?: string | string[] }> }) {
+export default async function RelatorioGerencialUsina({ searchParams }: { searchParams: Promise<{ data?: string; modo?: string; col?: string | string[]; desde?: string }> }) {
   const params = await searchParams;
   const modo = modoValido(params.modo);
   const colunas = colunasValidas(params.col);
-  const data = ehIsoValido(params.data) ? params.data : new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
-  const dados = await montarDadosRelatorio(data);
-  const tril = await montarTrilheirosRelatorio(data);
+  const hoje = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
+  const data = ehIsoValido(params.data) ? params.data : hoje;
+  // Vários dias (ex.: na segunda, sexta a domingo) só no formato diário.
+  const desde = modo === 'diario' ? desdeValido(params.desde, data) : data;
+  const varios = desde < data;
+  const fds = ultimoFimDeSemana(hoje);
+  const dados = await montarDadosRelatorio(data, desde);
+  const tril = await montarTrilheirosRelatorio(data, desde);
+  const qsDesde = varios ? `&desde=${desde}` : '';
   const anual = await totaisDoAnoAte(data);
   // O estoque de TLS fica fora do relatório por enquanto: tira as linhas dele do cartão do estaleiro.
   const estaleiro = dados.setores.find((s) => s.titulo === 'Estaleiro de solda');
   const iTls = estaleiro ? estaleiro.linhas.findIndex((l) => l.secao?.startsWith('Estoque TLS')) : -1;
   const setoresTela = dados.setores.map((s) => (s.titulo === 'Estaleiro de solda' && iTls >= 0 ? { ...s, linhas: s.linhas.slice(0, iTls) } : s));
-  const periodo = rotuloPeriodo(data, modo);
+  const periodo = rotuloPeriodo(data, modo, desde);
 
   return (
     <main className="mx-auto w-full max-w-7xl space-y-8">
@@ -46,7 +52,7 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
         </div>
         <div className="usina-acoes">
           <a className="btn btn-ghost h-11" href={`/admin/usina?data=${data}`}>Voltar</a>
-          <BotaoCompartilharPdf url={`/api/usina/relatorio-gerencial/pdf?data=${data}&modo=${modo}&pagina=tudo&col=${colunas.join(',')}`} nomeArquivo={`relatorio-gerencial-usina-${data}.png`} titulo={`Relatório da usina ${br(data)}`} rotulo="Imagem do relatório" png />
+          <BotaoCompartilharPdf url={`/api/usina/relatorio-gerencial/pdf?data=${data}&modo=${modo}&pagina=tudo&col=${colunas.join(',')}${qsDesde}`} nomeArquivo={varios ? `relatorio-gerencial-usina-${desde}-a-${data}.png` : `relatorio-gerencial-usina-${data}.png`} titulo={varios ? `Relatório da usina ${br(desde)} a ${br(data)}` : `Relatório da usina ${br(data)}`} rotulo="Imagem do relatório" png />
         </div>
       </header>
 
@@ -55,7 +61,7 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
           <div className="space-y-1">
             <p className="kv-label">Formato</p>
             <div className="flex flex-wrap gap-2" role="group" aria-label="Formato do relatório">
-              {linksModo('/admin/usina/relatorio-gerencial', modo, { data }, true).map((l) => (
+              {linksModo('/admin/usina/relatorio-gerencial', modo, varios ? { data, desde } : { data }, true).map((l) => (
                 <a key={l.modo} href={l.href} aria-current={l.ativo ? 'true' : undefined} className={`btn h-11 ${l.ativo ? 'btn-secondary' : 'btn-ghost'}`}>{l.rotulo}</a>
               ))}
             </div>
@@ -64,6 +70,7 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
           <form action="" method="get" className="space-y-1" aria-label="Colunas do relatório">
             <input type="hidden" name="data" value={data} />
             <input type="hidden" name="modo" value={modo} />
+            {varios && <input type="hidden" name="desde" value={desde} />}
             <p className="kv-label">Colunas</p>
             <div className="flex flex-wrap items-center gap-2">
               {TODAS_COLUNAS.map((c) => (
@@ -77,12 +84,37 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
           </form>
 
           <form action="" className="space-y-1">
-            <label className="kv-label" htmlFor="data">Dia</label>
-            <div className="flex items-center gap-2">
-              <input id="data" name="data" type="date" defaultValue={data} className="h-11" />
+            <input type="hidden" name="modo" value={modo} />
+            {colunas.length < TODAS_COLUNAS.length && colunas.map((c) => <input key={c} type="hidden" name="col" value={c} />)}
+            <div className="flex flex-wrap items-end gap-2">
+              {modo === 'diario' && (
+                <div className="space-y-1">
+                  <label className="kv-label" htmlFor="desde">De (opcional)</label>
+                  <input id="desde" name="desde" type="date" defaultValue={varios ? desde : ''} max={data} className="h-11" />
+                </div>
+              )}
+              <div className="space-y-1">
+                <label className="kv-label" htmlFor="data">{modo === 'diario' ? 'Até o dia' : 'Dia'}</label>
+                <input id="data" name="data" type="date" defaultValue={data} className="h-11" />
+              </div>
               <button className="btn btn-ghost h-11" type="submit">Ver</button>
             </div>
+            {modo === 'diario' && (
+              <p className="text-xs text-ink-muted">Deixe &quot;De&quot; vazio para um dia só. Com &quot;De&quot;, o relatório soma os dias e mostra a observação de cada um.</p>
+            )}
           </form>
+
+          {modo === 'diario' && (
+            <div className="space-y-1">
+              <p className="kv-label">Atalho</p>
+              <a
+                className={`btn h-11 ${varios && desde === fds.desde && data === fds.data ? 'btn-secondary' : 'btn-ghost'}`}
+                href={`/admin/usina/relatorio-gerencial?modo=diario&desde=${fds.desde}&data=${fds.data}${colunas.length < TODAS_COLUNAS.length ? colunas.map((c) => `&col=${c}`).join('') : ''}`}
+              >
+                Fim de semana ({rotuloFaixaCurta(fds.desde, fds.data)})
+              </a>
+            </div>
+          )}
         </div>
       </section>
 
@@ -90,7 +122,7 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
         <h2 id="resumo-relatorio" className="section-title scroll-mt-24">Resumo</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {dados.resumo.map((r) => (
-            <Resumo key={r.rotulo} rotulo={r.rotulo} cor={r.cor} dia={r.dia} semana={r.semana} mes={r.mes} mensal={modo === 'mensal'} linhas={r.linhas} legenda={r.legenda} colunas={colunas} rotuloDia={modo === 'diario' ? 'Do dia' : dados.rotuloDia} />
+            <Resumo key={r.rotulo} rotulo={r.rotulo} cor={r.cor} dia={r.dia} semana={r.semana} mes={r.mes} mensal={modo === 'mensal'} linhas={r.linhas} legenda={r.legenda} colunas={colunas} rotuloDia={modo === 'diario' ? dados.rotuloValorDia : dados.rotuloDia} />
           ))}
         </div>
       </section>
@@ -129,7 +161,7 @@ export default async function RelatorioGerencialUsina({ searchParams }: { search
                   largo
                   mensal={modo === 'mensal'}
                   colunas={colunas}
-                  diaDestaque={modo === 'diario' ? (new Date(`${data}T12:00:00Z`).getUTCDay() + 6) % 7 : undefined}
+                  diaDestaque={modo === 'diario' ? dados.diasDestaque : undefined}
                   rodape={modo === 'diario' ? <CampoObservacao texto={s.observacao ?? dados.observacoes[`${data}|${CHAVE_SETOR[s.titulo] ?? ''}`] ?? ''} /> : undefined}
                 />
               )}

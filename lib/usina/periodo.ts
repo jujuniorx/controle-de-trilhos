@@ -21,7 +21,11 @@ export function inicioDaSemana(iso: string): string {
   return somarDias(iso, deslocamento);
 }
 
-export function intervaloDoPeriodo(periodo: Periodo, data: string): { inicio: string; fim: string } {
+/** Faixa de dias escolhida à mão (ex.: sexta a domingo, para o relatório de segunda). */
+export interface Faixa { inicio: string; fim: string }
+
+export function intervaloDoPeriodo(periodo: Periodo | Faixa, data: string): { inicio: string; fim: string } {
+  if (typeof periodo === 'object') return { inicio: periodo.inicio, fim: periodo.fim };
   if (periodo === 'dia') return { inicio: data, fim: data };
   if (periodo === 'semana') {
     const inicio = inicioDaSemana(data);
@@ -72,8 +76,9 @@ export function rotuloDoDia(data: string): string {
   return `Do dia (${nome}, ${data.split('-').reverse().slice(0, 2).join('/')})`;
 }
 
-export function rotuloPeriodo(data: string, modo: ModoRelatorio): { titulo: string; valor: string } {
+export function rotuloPeriodo(data: string, modo: ModoRelatorio, desde: string = data): { titulo: string; valor: string } {
   if (modo === 'mensal') return { titulo: 'Mês', valor: mesAte(data) };
+  if (modo === 'diario' && desde < data) return { titulo: 'Período', valor: rotuloFaixaLonga(desde, data) };
   if (modo === 'diario') {
     const nome = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][new Date(`${data}T12:00:00Z`).getUTCDay()];
     return { titulo: 'Dia', valor: `${nome}, ${data.split('-').reverse().join('/')}` };
@@ -89,4 +94,78 @@ export function linksModo(base: string, modoAtual: ModoRelatorio, params: Record
     const qs = new URLSearchParams({ ...params, modo }).toString();
     return { modo, rotulo: rotulos[modo], href: `${base}?${qs}`, ativo: modo === modoAtual };
   });
+}
+
+// ─── Relatório de vários dias (ex.: segunda-feira mostrando sexta, sábado e domingo) ───────────────
+
+/** No máximo uma semana de dias num relatório diário. */
+export const MAX_DIAS_FAIXA = 7;
+
+/** Primeiro dia do relatório: o "desde" pedido, se for válido e anterior à data; senão a própria data (um dia só). */
+export function desdeValido(desde: string | undefined | null, data: string): string {
+  if (!ehIsoValido(desde ?? undefined) || desde! >= data) return data;
+  const limite = somarDias(data, -(MAX_DIAS_FAIXA - 1));
+  return desde! < limite ? limite : desde!;
+}
+
+/** Todos os dias de inicio a fim, inclusive. */
+export function diasDaFaixa(inicio: string, fim: string): string[] {
+  const dias: string[] = [];
+  for (let d = inicio; d <= fim && dias.length < 62; d = somarDias(d, 1)) dias.push(d);
+  return dias;
+}
+
+const NOME_CURTO = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const NOME_LONGO = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+const diaSemana = (iso: string) => new Date(`${iso}T12:00:00Z`).getUTCDay();
+const ddmm = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
+
+/** "Sex 20/11". */
+export function rotuloDiaCurto(iso: string): string {
+  return `${NOME_CURTO[diaSemana(iso)]} ${ddmm(iso)}`;
+}
+
+/** "Sex 20/11" (um dia), "Sex 20 a Dom 22/11" (mesmo mês) ou "Sex 30/10 a Dom 01/11". */
+export function rotuloFaixaCurta(inicio: string, fim: string): string {
+  if (inicio === fim) return rotuloDiaCurto(inicio);
+  const mesmoMes = inicio.slice(0, 7) === fim.slice(0, 7);
+  const ini = mesmoMes ? `${NOME_CURTO[diaSemana(inicio)]} ${inicio.slice(8, 10)}` : rotuloDiaCurto(inicio);
+  return `${ini} a ${rotuloDiaCurto(fim)}`;
+}
+
+/** "Sexta, 20/11 a domingo, 22/11/2026", para o topo e o rodapé do relatório. */
+export function rotuloFaixaLonga(inicio: string, fim: string): string {
+  const nome = NOME_LONGO[diaSemana(inicio)]!;
+  return `${nome[0]!.toUpperCase()}${nome.slice(1)}, ${ddmm(inicio)} a ${NOME_LONGO[diaSemana(fim)]}, ${fim.split('-').reverse().join('/')}`;
+}
+
+/** Sexta a domingo do último fim de semana antes de hoje (na segunda, é o que acabou ontem). */
+export function ultimoFimDeSemana(hoje: string): { desde: string; data: string } {
+  const domingo = somarDias(hoje, -(diaSemana(hoje) || 7));
+  return { desde: somarDias(domingo, -2), data: domingo };
+}
+
+/**
+ * Observações de vários dias numa lista curta: cada linha começa pelo dia ("Sex 20/11 · texto"). Quando o mesmo item
+ * (a mesma equipe, composição ou caminhão) repete o mesmo texto em dias seguidos, os dias viram uma faixa só
+ * ("Sex 20 a Dom 22/11 · texto"), para a caixa de observação não encher com a mesma frase três vezes.
+ */
+export function linhasPorDia(entradas: { data: string; chave: string; texto: string }[], dias: string[]): string[] {
+  const posicao = new Map(dias.map((d, i) => [d, i]));
+  const grupos: { chave: string; texto: string; ini: string; fim: string; ultimo: number }[] = [];
+  const ordenadas = entradas
+    .filter((e) => posicao.has(e.data) && e.texto.trim())
+    .sort((a, b) => (a.data === b.data ? 0 : a.data < b.data ? -1 : 1));
+  for (const e of ordenadas) {
+    const i = posicao.get(e.data)!;
+    const texto = e.texto.trim();
+    const g = grupos.find((x) => x.chave === e.chave && x.texto === texto && x.ultimo === i - 1);
+    if (g) {
+      g.fim = e.data;
+      g.ultimo = i;
+    } else {
+      grupos.push({ chave: e.chave, texto, ini: e.data, fim: e.data, ultimo: i });
+    }
+  }
+  return grupos.map((g) => `${rotuloFaixaCurta(g.ini, g.fim)} · ${g.texto}`);
 }
