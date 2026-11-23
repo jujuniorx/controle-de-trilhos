@@ -67,7 +67,7 @@ export async function seriesDaSemana(data: string) {
     if (g.tipoMaterial === 'NOVO') envioTrilhoNovo[i] += m;
   }
 
-  const camProducao: Record<string, number[]> = { CW01: zeros(), CW02: zeros() };
+  const camProducao: Record<string, number[]> = { CW01: zeros(), CW02: zeros(), CW03: zeros() };
   for (const c of caminhao) {
     const k = String(c.caminhao);
     if (!camProducao[k]) camProducao[k] = zeros();

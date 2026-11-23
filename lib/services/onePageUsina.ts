@@ -2,6 +2,7 @@ import {
   estaleiroDoPeriodo,
   geracaoDoPeriodo,
   caminhoesDoPeriodo,
+  CAMINHOES_ATIVOS,
   TRILHEIROS,
   BARRAS_POR_TRILHEIRO,
   COMPOSICOES,
@@ -78,7 +79,10 @@ export interface DadosRelatorio {
 export const CORES_SETOR = { estaleiro: '#2563eb', geracao: '#059669', serra: '#be123c', caminhao: '#ea580c', trilheiros: '#0891b2' };
 
 /** Nome de cada caminhão de solda no relatório: equipe / caminhão, como na escala. */
-export const ROTULO_CAMINHAO: Record<string, string> = { CW01: 'E17 / CW01', CW02: 'E18 / CW02' };
+export const ROTULO_CAMINHAO: Record<string, string> = { CW01: 'E17 / CW01', CW02: 'E18 / CW02', CW03: 'CW03' };
+
+/** Cor de cada caminhão nos gráficos e nas linhas do relatório. */
+export const COR_CAMINHAO: Record<string, string> = { CW01: '#ea580c', CW02: '#84cc16', CW03: '#0891b2' };
 
 /** Mesmos números do relatório gerencial da usina, em forma simples para a tela e para o PDF. */
 export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio> {
@@ -200,9 +204,9 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         mes: fmtMetros(serraTotalMes),
         grupo: 'Recolhimento serra',
       },
-      ...['CW01', 'CW02'].map((cw, i) => ({
+      ...CAMINHOES_ATIVOS.map((cw) => ({
         rotulo: `${ROTULO_CAMINHAO[cw] ?? cw} (und)`,
-        cor: i === 0 ? CORES_SETOR.caminhao : '#84cc16',
+        cor: cw === 'CW01' ? CORES_SETOR.caminhao : COR_CAMINHAO[cw],
         dia: `${camD.find((c) => c.caminhao === cw)?.periodo.producao ?? 0}`,
         semana: `${camS.find((c) => c.caminhao === cw)?.periodo.producao ?? 0}`,
         mes: `${camS.find((c) => c.caminhao === cw)?.mes.producao ?? 0}`,
@@ -328,17 +332,11 @@ export async function montarDadosRelatorio(data: string): Promise<DadosRelatorio
         }),
         grade: {
           colunas: serie.rotulos,
-          linhas: [
-            { rotulo: ROTULO_CAMINHAO.CW01, valores: serie.caminhao.CW01 ?? [] },
-            { rotulo: ROTULO_CAMINHAO.CW02, valores: serie.caminhao.CW02 ?? [] },
-          ],
+          linhas: CAMINHOES_ATIVOS.map((cw) => ({ rotulo: ROTULO_CAMINHAO[cw], valores: serie.caminhao[cw] ?? [] })),
         },
         grafico: {
           titulo: 'Solda por dia',
-          series: [
-            { nome: ROTULO_CAMINHAO.CW01, cor: '#ea580c', valores: serie.caminhao.CW01 ?? [] },
-            { nome: ROTULO_CAMINHAO.CW02, cor: '#84cc16', valores: serie.caminhao.CW02 ?? [] },
-          ],
+          series: CAMINHOES_ATIVOS.map((cw) => ({ nome: ROTULO_CAMINHAO[cw], cor: COR_CAMINHAO[cw], valores: serie.caminhao[cw] ?? [] })),
         },
       },
       {

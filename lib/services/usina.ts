@@ -365,8 +365,8 @@ export async function salvarComposicoesDias(
   );
 }
 
-// ─── Caminhão de solda (CW01 e CW02; CW03 entra depois) ───────────────────────
-export const CAMINHOES_ATIVOS = ['CW01', 'CW02'] as const;
+// ─── Caminhão de solda (CW01, CW02 e CW03) ─────────────────────────────────────
+export const CAMINHOES_ATIVOS = ['CW01', 'CW02', 'CW03'] as const;
 
 export async function caminhoesDoPeriodo(periodo: Periodo, data: string) {
   const { inicio, fim } = intervaloDoPeriodo(periodo, data);
