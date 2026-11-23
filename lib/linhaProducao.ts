@@ -1,7 +1,6 @@
 /**
- * Estações da linha de produção do estaleiro, na ordem em que o trilho passa, para o passeio da tela inicial:
- * rolando a página, a câmera da cena (components/ui/CenaFerrovia.tsx) anda de estação em estação e a legenda
- * (components/LinhaTour.tsx) mostra o nome e o que cada uma faz.
+ * Estações da linha de produção do estaleiro, na ordem em que o trilho passa. A cena (components/ui/CenaFerrovia.tsx)
+ * usa as posições para desenhar a linha; o passeio rolando a página saiu, e a entrada mostra só a Schlatter e a régua.
  *
  * metros: onde a estação fica, em metros a partir da Schlatter (positivo = antes dela, do lado da preparação; o
  *   trilho anda para a esquerda). A barra para a cada 12 m, então as máquinas que trabalham com ela parada ficam em

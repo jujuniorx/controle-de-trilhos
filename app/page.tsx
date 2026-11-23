@@ -5,8 +5,6 @@ import { BotaoInstalar } from '@/components/InstalarApp';
 import { FundoTrilhos } from '@/components/ui/FundoTrilhos';
 import { LogoAnimada } from '@/components/ui/LogoAnimada';
 import { AlternarTema } from '@/components/ui/AlternarTema';
-import { LinhaTour } from '@/components/LinhaTour';
-import { IconeSeta } from '@/components/icones/Icones';
 
 const atraso = (n: number) => ({ '--i': n }) as CSSProperties;
 
@@ -83,13 +81,8 @@ export default function Home() {
           <Link href="/privacidade" className="home-privacidade">
             Privacidade e cookies
           </Link>
-          <a href="#linha" className="home-linha-dica">
-            Conheça a linha de produção
-            <IconeSeta size={18} />
-          </a>
         </div>
       </main>
-      <LinhaTour />
     </>
   );
 }
