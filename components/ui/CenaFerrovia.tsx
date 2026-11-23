@@ -92,12 +92,15 @@ function laco(
 
   const medir = () => {
     const dpr = Math.min(window.devicePixelRatio || 1, dprMax);
+    if (cv.clientWidth === W && cv.clientHeight === H && cv.width === Math.max(1, Math.round(W * dpr))) return;
     W = cv.clientWidth;
     H = cv.clientHeight;
     cv.width = Math.max(1, Math.round(W * dpr));
     cv.height = Math.max(1, Math.round(H * dpr));
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // mudar o tamanho do canvas apaga o desenho: redesenha na hora, sem esperar o próximo quadro (senão a cena pisca)
     if (parado) desenharUma();
+    else if (W > 0 && H > 0) quadro(ctx, W, H, (ultimo - inicio) / 1000, 0);
   };
   const passo = (agora: number) => {
     pedido = 0;
@@ -682,15 +685,38 @@ function desenharFrenteSchlatter(c: CanvasRenderingContext2D, g: GeoMaquina) {
   c.strokeRect(wL, wT, wR - wL, wB - wT);
   linha(wL, wB + 1, wR, wB + 1, luzAresta);
 
-  // estrutura azul de tubos à direita, que segura o tubo de exaustão
-  if (!g.estreito) {
-    c.fillStyle = cor(mq(SCH.AZUL));
-    for (const px of [mR + 0.3 * M, mR + 1.25 * M]) c.fillRect(px - 0.035 * M, mT - 1.6 * M, 0.07 * M, piso - mT + 1.6 * M);
-    c.fillRect(mR + 0.3 * M, mT - 1.63 * M, 0.95 * M, 0.07 * M);
-    c.strokeStyle = cor(mq(SCH.AZUL)); c.lineWidth = 0.05 * M;
-    c.beginPath(); c.moveTo(mR + 0.3 * M, mT - 1.0 * M); c.lineTo(mR + 1.25 * M, mT - 1.56 * M); c.stroke();
-    c.fillStyle = 'rgba(255,255,255,.18)';
-    for (const px of [mR + 0.3 * M, mR + 1.25 * M]) c.fillRect(px - 0.035 * M, mT - 1.6 * M, 0.015 * M, piso - mT + 1.6 * M);
+  // pórtico de tubo azul-claro por cima da Schlatter (como nas fotos): dois quadros, um atrás do outro, com as
+  // pernas dos dois lados da máquina; o duto de exaustão fica pendurado nele
+  {
+    const azulT = mq([110, 162, 210]);
+    const yV = mT - 1.75 * M, e = Math.max(2.5, 0.095 * M);
+    const tuboV = (x: number, y0: number, y1: number, k = 0) => {
+      const gp = c.createLinearGradient(x - e / 2, 0, x + e / 2, 0);
+      gp.addColorStop(0, cor(misturar(azulT, [255, 255, 255], 0.25 - k))); gp.addColorStop(1, cor(misturar(azulT, [0, 0, 0], 0.25 + k)));
+      c.fillStyle = gp; c.fillRect(x - e / 2, y0, e, y1 - y0);
+    };
+    const tuboH = (x0: number, x1: number, y: number, k = 0) => {
+      const gp = c.createLinearGradient(0, y - e / 2, 0, y + e / 2);
+      gp.addColorStop(0, cor(misturar(azulT, [255, 255, 255], 0.25 - k))); gp.addColorStop(1, cor(misturar(azulT, [0, 0, 0], 0.25 + k)));
+      c.fillStyle = gp; c.fillRect(x0, y - e / 2, x1 - x0, e);
+    };
+    // quadro de trás (mais alto e deslocado, um pouco mais escuro): só a viga e a perna da direita aparecem
+    const dx = 0.35 * M, dy = 0.3 * M;
+    tuboH(mL - 0.25 * M + dx, mR + 0.35 * M + dx, yV - dy, 0.12);
+    tuboV(mR + 0.35 * M + dx, yV - dy, piso, 0.12);
+    // quadro da frente
+    tuboV(mL - 0.25 * M, yV, piso);
+    tuboV(mR + 0.35 * M, yV, piso);
+    tuboH(mL - 0.25 * M - e / 2, mR + 0.35 * M + e / 2, yV);
+    // ligações entre os dois quadros, em cima
+    c.strokeStyle = cor(misturar(azulT, [0, 0, 0], 0.15)); c.lineWidth = e * 0.8;
+    c.beginPath();
+    c.moveTo(mL - 0.25 * M, yV); c.lineTo(mL - 0.25 * M + dx, yV - dy);
+    c.moveTo(mR + 0.35 * M, yV); c.lineTo(mR + 0.35 * M + dx, yV - dy);
+    c.stroke();
+    // sapatas das pernas
+    c.fillStyle = cor(misturar(azulT, [0, 0, 0], 0.35));
+    for (const x of [mL - 0.25 * M, mR + 0.35 * M]) c.fillRect(x - 0.1 * M, piso - 0.04 * M, 0.2 * M, 0.04 * M);
   }
 }
 
@@ -2100,6 +2126,26 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
       if (gx0 < gx1) {
         if (yTopo < yTileG) { ctx.fillStyle = cor(tom([46, 48, 52], 0.5)); ctx.fillRect(gx0, yTopo, gx1 - gx0, yTileG - yTopo + 1); }
         const c0 = Math.floor((gx0 - xm) / vao) - 1, c1 = Math.ceil((gx1 - xm) / vao) + 1;
+        // atrás da Schlatter e da régua o galpão é fechado até o chão (como nas fotos): telha escura com as terças, a
+        // eletrocalha e uma mureta de concreto embaixo. O capim só aparece onde o galpão é aberto.
+        {
+          const fL = Math.max(gx0, xm - 3 * vao + 0.4 * M), fR = Math.min(gx1, xm + vao + 0.4 * M);
+          if (fL < fR) {
+            const yM = piso - 0.6 * M; // mureta
+            const gW = ctx.createLinearGradient(0, yAbre, 0, yM);
+            gW.addColorStop(0, cor(tom([78, 68, 60], 0.5))); gW.addColorStop(1, cor(tom([92, 82, 72], 0.5)));
+            ctx.fillStyle = gW; ctx.fillRect(fL, yAbre - 1, fR - fL, yM - yAbre + 1);
+            const onda = Math.max(4, 0.16 * M);
+            ctx.fillStyle = cor(tom([46, 40, 36], 0.5), 0.55);
+            for (let x = Math.floor(fL / onda) * onda; x < fR; x += onda) ctx.fillRect(Math.max(x, fL), yAbre, Math.max(1, onda * 0.3), yM - yAbre);
+            ctx.fillStyle = cor(tom([130, 116, 100], 0.5), 0.3);
+            for (let x = Math.floor(fL / onda) * onda + onda * 0.55; x < fR; x += onda) ctx.fillRect(x, yAbre, 1, yM - yAbre);
+            ctx.fillStyle = cor(tom([30, 28, 26], 0.5), 0.8);
+            for (const y of [piso - 1.6 * M, piso - 2.8 * M]) ctx.fillRect(fL, y, fR - fL, Math.max(1.5, 0.05 * M));
+            ctx.fillStyle = cor(tom([150, 150, 146], 0.5)); ctx.fillRect(fL, yM, fR - fL, piso - yM);
+            ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(fL, yM, fR - fL, Math.max(1, 0.04 * M));
+          }
+        }
         ctx.save();
         ctx.beginPath(); ctx.rect(gx0, yTopo, gx1 - gx0, piso - yTopo); ctx.clip();
         for (let c = c0; c <= c1; c++) ctx.drawImage(fc.galpao, xm + c * vao, yTileG, vao, piso - yTileG);
@@ -2169,6 +2215,21 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.fillStyle = cor(tom([158, 78, 54]), 0.85); ctx.fillRect(gx0, piso, vx1 - gx0, hc * 0.42);
         ctx.fillStyle = cor(tom([226, 182, 44]), 0.9); ctx.fillRect(gx0, piso + hc * 0.42, vx1 - gx0, Math.max(2, hc * 0.05));
         ctx.fillStyle = cor(tom([84, 104, 120]), 0.85); ctx.fillRect(gx0, piso + hc * 0.47, vx1 - gx0, hc * 0.53);
+        // na Schlatter (como nas fotos): a área da máquina pintada de azul e o corredor da frente verde, com a faixa
+        // amarela e preta separando os dois
+        const sL = Math.max(gx0, xm - 9 * M), sR = Math.min(vx1, xm + 8 * M);
+        if (sL < sR) {
+          ctx.fillStyle = cor(tom([64, 92, 132]), 0.95); ctx.fillRect(sL, piso + hc * 0.47, sR - sL, hc * 0.22);
+          const yZ = piso + hc * 0.69, hZ = Math.max(2, hc * 0.035);
+          ctx.fillStyle = cor(tom([226, 182, 44])); ctx.fillRect(sL, yZ, sR - sL, hZ);
+          ctx.fillStyle = 'rgba(20,20,22,.9)';
+          const pz = Math.max(6, 0.22 * M);
+          for (let x = Math.floor(sL / pz) * pz; x < sR; x += pz) {
+            ctx.beginPath(); ctx.moveTo(Math.max(sL, x), yZ + hZ); ctx.lineTo(Math.max(sL, x + pz * 0.35), yZ); ctx.lineTo(Math.min(sR, x + pz * 0.6), yZ); ctx.lineTo(Math.min(sR, x + pz * 0.25), yZ + hZ); ctx.closePath(); ctx.fill();
+          }
+          ctx.fillStyle = cor(tom([62, 148, 110]), 0.95); ctx.fillRect(sL, yZ + hZ, sR - sL, piso + hc - yZ - hZ);
+          ctx.fillStyle = cor(tom([226, 182, 44]), 0.9); ctx.fillRect(sL, piso + hc * 0.86, sR - sL, Math.max(2, hc * 0.025));
+        }
       }
     }
     {
@@ -3652,7 +3713,37 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.fillRect(pn.botao[0] - 0.02 * M, pn.botao[1] - 0.015 * M, 0.04 * M, 0.03 * M);
       }
 
-      // tubo de exaustão azul saindo da saia de lona
+      // coletor de pó cinza à direita da Schlatter (como nas fotos): caixa alta de chapa rebitada, funil embaixo e
+      // pernas; o duto de exaustão entra pelo lado dele
+      if (!estreito) {
+        const kL = mR + 1.05 * M, kR = mR + 3.0 * M, kT = mT - 2.5 * M, kB = mT - 0.1 * M, kFunil = piso - 1.25 * M;
+        const cinzaK = mq([128, 136, 144]);
+        ctx.fillStyle = cor(misturar(cinzaK, [0, 0, 0], 0.3));
+        for (const x of [kL + 0.12 * M, kR - 0.2 * M]) ctx.fillRect(x, kB, 0.08 * M, piso - kB);
+        ctx.strokeStyle = cor(misturar(cinzaK, [0, 0, 0], 0.3)); ctx.lineWidth = Math.max(1.5, 0.04 * M);
+        ctx.beginPath(); ctx.moveTo(kL + 0.16 * M, piso - 0.3 * M); ctx.lineTo(kR - 0.16 * M, kB + 0.2 * M); ctx.stroke();
+        const gF = ctx.createLinearGradient(kL, 0, kR, 0);
+        gF.addColorStop(0, cor(misturar(cinzaK, [0, 0, 0], 0.15))); gF.addColorStop(1, cor(misturar(cinzaK, [0, 0, 0], 0.35)));
+        ctx.fillStyle = gF;
+        ctx.beginPath(); ctx.moveTo(kL + 0.1 * M, kB); ctx.lineTo(kR - 0.1 * M, kB); ctx.lineTo((kL + kR) / 2 + 0.18 * M, kFunil); ctx.lineTo((kL + kR) / 2 - 0.18 * M, kFunil); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = cor(misturar(cinzaK, [0, 0, 0], 0.4)); ctx.fillRect((kL + kR) / 2 - 0.14 * M, kFunil, 0.28 * M, 0.18 * M);
+        const gK = ctx.createLinearGradient(kL, 0, kR, 0);
+        gK.addColorStop(0, cor(misturar(cinzaK, [255, 255, 255], 0.12))); gK.addColorStop(1, cor(misturar(cinzaK, [0, 0, 0], 0.18)));
+        ctx.fillStyle = gK; ctx.fillRect(kL, kT, kR - kL, kB - kT);
+        ctx.strokeStyle = 'rgba(0,0,0,.22)'; ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let y = kT + 0.55 * M; y < kB; y += 0.55 * M) { ctx.moveTo(kL, y); ctx.lineTo(kR, y); }
+        ctx.moveTo((kL + kR) / 2, kT); ctx.lineTo((kL + kR) / 2, kB);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(0,0,0,.35)';
+        for (let y = kT + 0.08 * M; y < kB; y += 0.18 * M) for (const x of [kL + 0.06 * M, (kL + kR) / 2 - 0.05 * M, (kL + kR) / 2 + 0.05 * M, kR - 0.06 * M]) { ctx.beginPath(); ctx.arc(x, y, Math.max(0.8, 0.012 * M), 0, 6.283); ctx.fill(); }
+        ctx.fillStyle = 'rgba(255,255,255,.14)'; ctx.fillRect(kL, kT, kR - kL, Math.max(1, 0.03 * M));
+        // aba de içamento e a portinhola de inspeção
+        ctx.fillStyle = cor(misturar(cinzaK, [0, 0, 0], 0.25));
+        ctx.beginPath(); ctx.moveTo(kR - 0.5 * M, kT); ctx.lineTo(kR - 0.38 * M, kT - 0.18 * M); ctx.lineTo(kR - 0.26 * M, kT); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = 'rgba(20,20,22,.6)'; ctx.beginPath(); ctx.arc(kR - 0.35 * M, kT + 0.75 * M, 0.06 * M, 0, 6.283); ctx.fill();
+      }
+      // duto de exaustão cinza-azulado saindo da saia de lona e entrando no coletor
       ctx.lineCap = 'round';
       const tubo = (largura: number, c: string) => {
         ctx.strokeStyle = c;
@@ -3664,16 +3755,17 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
           ctx.quadraticCurveTo(mL + M * 0.55, mT - M * 0.68, mL + M * 0.8, mT - M * 0.68);
           ctx.lineTo(W + M, mT - M * 0.68);
         } else {
+          // sobe, faz a curva, passa por baixo da viga do pórtico, dá uma volta para cima e desce de lado no coletor
           ctx.lineTo(mL + M * 0.55, mT - M * 1.05);
           ctx.quadraticCurveTo(mL + M * 0.55, mT - M * 1.45, mL + M * 1.0, mT - M * 1.45);
-          ctx.lineTo(mR + M * 0.55, mT - M * 1.45);
-          ctx.quadraticCurveTo(mR + M * 0.95, mT - M * 1.45, mR + M * 0.95, mT - M * 1.85);
-          ctx.lineTo(mR + M * 0.95, -M);
+          ctx.lineTo(mR - M * 0.2, mT - M * 1.45);
+          ctx.bezierCurveTo(mR + M * 0.5, mT - M * 1.45, mR + M * 0.2, mT - M * 2.25, mR + M * 0.75, mT - M * 2.25);
+          ctx.quadraticCurveTo(mR + M * 1.05, mT - M * 2.25, mR + M * 1.25, mT - M * 1.9);
         }
         ctx.stroke();
       };
-      tubo(M * 0.3, cor(mq(SCH.TUBO)));
-      tubo(M * 0.1, cor(mq(misturar(SCH.TUBO, [255, 255, 255], 0.4)), 0.65));
+      tubo(M * 0.3, cor(mq([118, 138, 160])));
+      tubo(M * 0.1, cor(mq([160, 176, 194]), 0.55));
       tubo(M * 0.02, 'rgba(255,255,255,.5)');
 
       // fumaça da solda subindo e sendo puxada pelo tubo de exaustão
@@ -3739,18 +3831,45 @@ function iniciarInicio(cv: HTMLCanvasElement, intro: 'auto' | 'completa') {
         ctx.lineTo(cacX0 + cacW - 0.06 * M, cacTopo + 0.02 * M); ctx.closePath(); ctx.fill();
         ctx.fillStyle = 'rgba(255,255,255,.08)';
         for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.arc(cacX0 + (0.2 + i * 0.12) * cacW, cacTopo - monte * 0.5 * Math.sin((0.2 + i * 0.12) * Math.PI), 0.025 * M, 0, 6.283); ctx.fill(); }
-        const gc = ctx.createLinearGradient(cacX0, 0, cacX0 + cacW, 0);
-        gc.addColorStop(0, amarelo(AM_L)); gc.addColorStop(0.5, amarelo(AM)); gc.addColorStop(1, amarelo(AM_S));
+        // caixa de borra basculante (como na foto): traseira reta, frente inclinada com o fundo arredondado, reforços
+        // laterais, borda grossa em cima, base de chapa com os encaixes da empilhadeira e os olhais de içamento
+        const yBase = piso - 0.16 * M; // em cima da base
+        const tras = cacX0 + 0.06 * M, frente = cacX0 + cacW, fundoF = cacX0 + cacW * 0.62;
+        const gc = ctx.createLinearGradient(cacX0, cacTopo, cacX0 + cacW, piso);
+        gc.addColorStop(0, amarelo(AM_L)); gc.addColorStop(0.55, amarelo(AM)); gc.addColorStop(1, amarelo(AM_S));
         ctx.fillStyle = gc;
-        ctx.beginPath(); ctx.moveTo(cacX0, cacTopo); ctx.lineTo(cacX0 + cacW, cacTopo); ctx.lineTo(cacX0 + cacW - 0.07 * M, piso - 0.05 * M); ctx.lineTo(cacX0 + 0.07 * M, piso - 0.05 * M); ctx.closePath(); ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(tras, cacTopo);
+        ctx.lineTo(frente, cacTopo);
+        ctx.lineTo(fundoF + 0.12 * M, yBase - 0.2 * M);
+        ctx.quadraticCurveTo(fundoF, yBase, fundoF - 0.2 * M, yBase);
+        ctx.lineTo(tras, yBase);
+        ctx.closePath(); ctx.fill();
+        // sombra na frente inclinada e o brilho da traseira
+        ctx.fillStyle = 'rgba(0,0,0,.14)';
+        ctx.beginPath(); ctx.moveTo(frente - 0.12 * M, cacTopo + 0.05 * M); ctx.lineTo(frente, cacTopo); ctx.lineTo(fundoF + 0.12 * M, yBase - 0.2 * M); ctx.lineTo(fundoF + 0.02 * M, yBase - 0.22 * M); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(tras, cacTopo + 0.04 * M, Math.max(1, 0.03 * M), yBase - cacTopo - 0.04 * M);
+        // borda reforçada em cima, com a aba que se apoia na frente
         ctx.fillStyle = amarelo(AM_S);
-        ctx.fillRect(cacX0 - 0.03 * M, cacTopo - 0.03 * M, cacW + 0.06 * M, 0.06 * M); // borda reforçada
-        for (const f of [0.3, 0.7]) ctx.fillRect(cacX0 + f * cacW - 0.025 * M, cacTopo + 0.03 * M, 0.05 * M, piso - cacTopo - 0.1 * M); // nervuras
-        ctx.fillStyle = 'rgb(40,40,44)';
-        ctx.fillRect(cacX0 + 0.04 * M, piso - 0.06 * M, cacW - 0.08 * M, 0.06 * M); // sapatas
-        for (const x of [cacX0 - 0.05 * M, cacX0 + cacW + 0.01 * M]) ctx.fillRect(x, cacTopo + 0.12 * M, 0.04 * M, 0.1 * M); // olhais
-        ctx.fillStyle = 'rgba(0,0,0,.18)';
-        ctx.fillRect(cacX0 + 0.1 * M, cacTopo + 0.3 * M, cacW - 0.2 * M, 0.02 * M);
+        ctx.fillRect(tras - 0.03 * M, cacTopo - 0.04 * M, frente - tras + 0.06 * M, 0.07 * M);
+        // reforços laterais (perfis dobrados)
+        for (const f of [0.28, 0.55]) {
+          const x = tras + f * (frente - tras);
+          ctx.fillRect(x - 0.025 * M, cacTopo + 0.03 * M, 0.05 * M, yBase - cacTopo - 0.06 * M - (f > 0.5 ? 0.02 * M : 0));
+          ctx.fillStyle = 'rgba(255,255,255,.2)'; ctx.fillRect(x - 0.025 * M, cacTopo + 0.03 * M, Math.max(1, 0.012 * M), yBase - cacTopo - 0.08 * M);
+          ctx.fillStyle = amarelo(AM_S);
+        }
+        // olhais de içamento nos dois lados, perto da borda
+        ctx.strokeStyle = amarelo(AM_S); ctx.lineWidth = Math.max(1.5, 0.03 * M);
+        for (const x of [tras + 0.12 * M, frente - 0.2 * M]) { ctx.beginPath(); ctx.arc(x, cacTopo + 0.12 * M, 0.045 * M, 0, 6.283); ctx.stroke(); }
+        // trava da báscula na frente (alavanca preta)
+        ctx.strokeStyle = 'rgb(36,36,40)'; ctx.lineWidth = Math.max(1.5, 0.03 * M);
+        ctx.beginPath(); ctx.moveTo(fundoF + 0.05 * M, yBase - 0.1 * M); ctx.lineTo(fundoF + 0.25 * M, yBase - 0.32 * M); ctx.stroke();
+        // base de chapa com os dois encaixes da empilhadeira
+        ctx.fillStyle = amarelo(AM_S); ctx.fillRect(cacX0, yBase, cacW * 0.82, piso - yBase);
+        ctx.fillStyle = 'rgb(34,34,38)';
+        for (const f of [0.14, 0.52]) ctx.fillRect(cacX0 + f * cacW, yBase + 0.035 * M, 0.2 * cacW, piso - yBase - 0.07 * M);
+        ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(cacX0, piso - 0.02 * M, cacW * 0.82, 0.02 * M);
       }
 
       // posição do soldador: no ciclo normal, entre o painel e a portinhola; na limpeza, os passos da pá
