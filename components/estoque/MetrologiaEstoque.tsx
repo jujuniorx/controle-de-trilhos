@@ -19,6 +19,12 @@ import { LixeiraArea } from './LixeiraArea';
 export const GRUPO_MEDICAO = 'Instrumentos de medição';
 export const GRUPO_FERRAMENTAS = 'Ferramentas e máquinas';
 
+/** O que cada grupo do painel quer dizer, para quem registra e para quem consulta. */
+const DESCRICAO_GRUPO: Record<string, string> = {
+  [GRUPO_MEDICAO]: 'Réguas, paquímetros, trenas, níveis e termômetros. Têm calibração: a validade fica à vista.',
+  [GRUPO_FERRAMENTAS]: 'Esmerilhadeira, retífica e outras ferramentas e máquinas. Não têm calibração.',
+};
+
 /** Desenho do instrumento pelo nome. Nome que não casa com nenhum fica com a chave. */
 const ICONES: [RegExp, ComponentType<{ size?: number; strokeWidth?: number }>][] = [
   [/r[eé]gua/i, IconeRegua],
@@ -65,7 +71,7 @@ export async function MetrologiaEstoque({ areaId, nomeArea, filtro = '' }: { are
     <div className="est-pagina">
       <TopoArea
         titulo={nomeArea}
-        texto="Instrumentos de medição e ferramentas no painel. Quem mede a solda precisa de instrumento calibrado: a validade de cada um fica à vista."
+        texto="Aqui ficam os instrumentos de medição, que precisam de calibração em dia, e as ferramentas e máquinas da sala. O registro desta sala é feito pelo Félix."
         areaId={areaId}
         rotuloNovo="Novo instrumento"
       />
@@ -95,7 +101,10 @@ export async function MetrologiaEstoque({ areaId, nomeArea, filtro = '' }: { are
             {lista.length === 0 && <p className="text-sm text-ink-muted">Nada aqui com esse filtro.</p>}
             {nomesGrupos.map((g) => (
               <div key={g} className="flex flex-col gap-2.5">
-                <h3 className="text-xs font-bold uppercase tracking-[.1em] text-ink-muted">{g}</h3>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-[.1em] text-ink-muted">{g}</h3>
+                  {DESCRICAO_GRUPO[g] && <p className="text-xs text-ink-muted">{DESCRICAO_GRUPO[g]}</p>}
+                </div>
                 <div className="est-ferramentas">
                   {lista.filter((m) => (m.grupo ?? GRUPO_MEDICAO) === g).map((m) => {
                     const s = cal.get(m.id) ?? 'nenhuma';
