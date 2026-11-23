@@ -140,6 +140,13 @@ export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yB
     const cx = x + i * gw + gw / 2;
     const dest = Array.isArray(destaque) ? destaque.includes(i) : destaque === i;
     p.texto(r, cx - larguraTexto(r, 6) / 2, yRotulo, 6, dest ? 'negrito' : 'normal', destaque === undefined || dest ? CINZA : hex('#aaaaaa'));
+    // Motivo do dia sem produção (Feriado, Folga) numa etiqueta logo abaixo do nome do dia, no lugar da barra vazia.
+    const etiqueta = g.etiquetas?.[i];
+    if (etiqueta) {
+      const lt = larguraTexto(etiqueta, 5);
+      p.arredondado(cx - lt / 2 - 3, yRotulo - 9, lt + 6, 7, 3, hex('#eef2f6'));
+      p.texto(etiqueta, cx - lt / 2, yRotulo - 7, 5, 'normal', hex('#64748b'));
+    }
   });
 }
 
@@ -148,6 +155,9 @@ function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, 
   if (!s.grafico) return;
   // Campo de observação: caixa com o rótulo OBSERVAÇÃO, igual às caixas de colunas, em todos os setores.
   const texto = s.observacao?.trim() ?? '';
+  // Quando o gráfico já mostra o motivo de cada dia parado e não sobra observação, a caixa sai e o gráfico fica maior.
+  const temEtiqueta = !!s.grafico.etiquetas?.some(Boolean);
+  const semCaixa = !texto && temEtiqueta;
   const trechos = texto ? (texto.includes('\n') ? texto.split('\n') : [texto]) : [s.rotuloColunaDia ? 'Sem observação registrada no período.' : 'Sem observação registrada neste dia.'];
   const todas = trechos.flatMap((t) => quebrarLinhas(t, 7, w - 28));
   // Com vários dias a observação pode crescer: a caixa para antes de empurrar o gráfico para cima da tabela.
@@ -156,12 +166,14 @@ function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, 
   const linhas = todas.length > maxLinhas ? [...todas.slice(0, maxLinhas - 1), `${todas[maxLinhas - 1]!.replace(/\s+\S*$/, '')}…`] : todas;
   const caixaBase = base + 4;
   const textoBase = caixaBase + 5;
-  const alturaCaixa = 8 + linhas.length * 8 + 6;
+  const alturaCaixa = semCaixa ? 0 : 8 + linhas.length * 8 + 6;
   const caixaTopo = caixaBase + alturaCaixa;
-  p.arredondado(x + 6, caixaBase, w - 12, alturaCaixa, 4, hex('#f8fafc'), LINHA);
-  p.texto('OBSERVAÇÃO', x + 12, caixaTopo - 8, 5.5, 'negrito', CINZA);
-  // A primeira linha fica em cima; o texto não tem "Obs:" na frente.
-  linhas.forEach((linha, i) => p.texto(linha, x + 12, textoBase + (linhas.length - 1 - i) * 8, 7, 'normal', texto ? TINTA : CINZA));
+  if (!semCaixa) {
+    p.arredondado(x + 6, caixaBase, w - 12, alturaCaixa, 4, hex('#f8fafc'), LINHA);
+    p.texto('OBSERVAÇÃO', x + 12, caixaTopo - 8, 5.5, 'negrito', CINZA);
+    // A primeira linha fica em cima; o texto não tem "Obs:" na frente.
+    linhas.forEach((linha, i) => p.texto(linha, x + 12, textoBase + (linhas.length - 1 - i) * 8, 7, 'normal', texto ? TINTA : CINZA));
+  }
   const yLegenda = caixaTopo + 8;
   let lx = x + 8;
   for (const serie of s.grafico.series) {
@@ -171,8 +183,10 @@ function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, 
   }
   // O gráfico começa logo acima da legenda; a barra mais alta termina antes da última linha da tabela (limiteTopo).
   // Os nomes dos dias ficam logo abaixo do gráfico: o gráfico começa acima deles, sem encostar na legenda.
-  const yGrafico = yLegenda + 24;
-  const alturaGrafico = limiteTopo === undefined ? 26 : Math.max(12, limiteTopo - 10 - yGrafico);
+  // Com etiquetas embaixo dos dias, o gráfico sobe um pouco para elas não encostarem na legenda.
+  const yGrafico = yLegenda + 24 + (temEtiqueta ? 7 : 0);
+  // Sem limite (serra), a altura que a caixa ocuparia passa para o gráfico, para não sobrar um vão em cima.
+  const alturaGrafico = limiteTopo === undefined ? (semCaixa ? 26 + 22 - 7 : 26) : Math.max(12, limiteTopo - 10 - yGrafico);
   desenharGrafico(p, s.grafico, x + 8, yGrafico, w - 16, alturaGrafico, rotulos, 4, destaque);
 }
 

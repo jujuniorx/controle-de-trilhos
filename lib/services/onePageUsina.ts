@@ -12,7 +12,7 @@ import {
 } from '@/lib/services/usina';
 import { seriesDaSemana } from '@/lib/services/usinaGraficos';
 import { prisma } from '@/lib/db';
-import { intervaloDoPeriodo, rotuloDoDia, desdeValido, diasDaFaixa, linhasPorDia, rotuloFaixaCurta } from '@/lib/usina/periodo';
+import { intervaloDoPeriodo, rotuloDoDia, desdeValido, diasDaFaixa, linhasPorDia, rotuloFaixaCurta, separarObservacoes, type EntradaObservacao } from '@/lib/usina/periodo';
 import { observacoesDoPeriodo } from '@/lib/services/observacaoSetor';
 import { somarDias } from '@/lib/usina/diasUteis';
 import { METROS_POR_BARRA } from '@/lib/domain/informativo';
@@ -35,7 +35,8 @@ const iso = (d: Date) => d.toISOString().slice(0, 10);
 /** cores: uma cor por parte do valor separada por ' / ' (ex.: W61 e W62), para cada parte aparecer na cor da sua composição. */
 /** Linha de um setor. `secao` marca o início de um bloco com título próprio (ex.: Estoque TLS). */
 export interface LinhaRelatorio { rotulo: string; dia: string; semana: string; mes: string; porDia?: string[]; cores?: string[]; secao?: string; perfil?: string; malhas?: [string, string, string]; curtaMalhas?: [string, string, string]; curtaTotal?: string }
-export interface GraficoRelatorio { titulo: string; series: { nome: string; cor: string; valores: number[] }[] }
+/** etiquetas: motivo de cada dia sem produção (segunda a domingo), escrito embaixo do dia no gráfico ("Feriado", "Folga"). */
+export interface GraficoRelatorio { titulo: string; series: { nome: string; cor: string; valores: number[] }[]; etiquetas?: (string | null)[] }
 /** Grade de produção por dia (um valor por dia da semana), para setores em que o número do dia importa mais que o gráfico. */
 export interface GradeRelatorio { colunas: string[]; linhas: { rotulo: string; valores: number[] }[] }
 /** Barras e metros de uma medida (dia, semana ou mês). */
@@ -114,11 +115,17 @@ export async function montarDadosRelatorio(data: string, desdePedido?: string | 
   };
   const temInfoEquipe = (e: (typeof equipesDia)[number]) => !!e.local?.trim() || !!e.observacao?.trim();
   const ordemLider = (lider: string) => LIDERES.findIndex((l) => l.valor === lider);
+  // Vários dias: cada equipe com o local é o rótulo e a observação é o texto, para os motivos (Feriado, Folga) irem
+  // para o gráfico e o mesmo texto de várias equipes virar uma linha só (separarObservacoes, mais abaixo).
+  const entradasGeracao: EntradaObservacao[] = [...equipesDia]
+    .filter(temInfoEquipe)
+    .sort((a, b) => ordemLider(a.lider) - ordemLider(b.lider))
+    .map((e) => {
+      const local = e.local?.trim();
+      return { data: iso(e.data), rotulo: `${rotuloEquipe[e.lider] ?? e.lider}${local ? ` (${local})` : ''}`, texto: e.observacao?.trim() || 'Sem observação.' };
+    });
   const observacoesGeracao = varios
-    ? linhasPorDia(
-        [...equipesDia].filter(temInfoEquipe).sort((a, b) => ordemLider(a.lider) - ordemLider(b.lider)).map((e) => ({ data: iso(e.data), chave: e.lider, texto: textoEquipe(e) })),
-        diasFaixa,
-      )
+    ? []
     : LIDERES.map((l) => equipesDia.find((e) => e.lider === l.valor && iso(e.data) === data))
         .filter((e): e is NonNullable<typeof e> => !!e && temInfoEquipe(e))
         .map(textoEquipe);
@@ -170,8 +177,9 @@ export async function montarDadosRelatorio(data: string, desdePedido?: string | 
   // Serra (modelo do informativo): barras de W61 e W62 × 10,5 m, estimativa em metros.
   // Observação de cada composição no dia (W61 e W62), digitada no formulário da serra.
   const obsSerraDoDia = serraSem.filter((r) => naFaixa(iso(r.data)) && r.observacao && r.observacao.trim());
+  const entradasSerra: EntradaObservacao[] = obsSerraDoDia.map((r) => ({ data: iso(r.data), rotulo: r.ativo, texto: r.observacao!.trim() }));
   const observacoesSerra = varios
-    ? linhasPorDia(obsSerraDoDia.map((r) => ({ data: iso(r.data), chave: r.ativo, texto: `${r.ativo}: ${r.observacao!.trim()}` })), diasFaixa)
+    ? []
     : obsSerraDoDia.map((r) => `${r.ativo}: ${r.observacao!.trim()}`);
   const barrasDia = (ativo: string) => serraSem.filter((r) => r.ativo === ativo && naFaixa(iso(r.data))).reduce((t, r) => t + (r.barras ?? 0), 0);
   const naSemana = (d: string) => d >= inicio && d <= fim;
@@ -196,22 +204,38 @@ export async function montarDadosRelatorio(data: string, desdePedido?: string | 
   const geraSem = (f: (l: (typeof gerS.porLider)[number]) => number) => soma(gerS.porLider, f);
 
   const observacoes = await observacoesDoPeriodo(desde < inicio ? desde : inicio, somarDias(inicio, 6));
-  // Observação geral do setor (a da tela do relatório), de cada dia da faixa, com o dia na frente.
-  const obsSetorFaixa = (setor: string) =>
-    linhasPorDia(diasFaixa.map((d) => ({ data: d, chave: setor, texto: observacoes[`${d}|${setor}`] ?? '' })), diasFaixa);
   // Estaleiro sem solda e sem corte (fim de semana, feriado): diz que ficou parado, em vez de só mostrar zeros.
   const estaleiroParado = estD.totais.soldas === 0 && estD.totais.cortes === 0;
   const avisoParado = estaleiroParado ? (varios ? `Sem produção no período (${rotuloFaixaCurta(desde, data)}).` : 'Sem produção no dia.') : null;
-  const obsEstaleiro = varios ? obsSetorFaixa('estaleiro') : [];
+  // Vários dias: o motivo de cada dia sem produção (Feriado, Folga) vai para o gráfico, embaixo do dia; a caixa de
+  // observação fica só com o que é informação. Sem observação própria (equipes, composições), vale a do setor.
+  const posSemana = (d: string) => Math.round((Date.parse(`${d}T00:00:00Z`) - Date.parse(`${inicio}T00:00:00Z`)) / 86400000);
+  // Dia fora da semana do gráfico não tem barra para mostrar o motivo: fica como "com produção" e o motivo na lista.
+  const zerado = (series: number[][]) => (d: string) => {
+    const i = posSemana(d);
+    return i >= 0 && i < dias && series.every((v) => !(v[i] ?? 0));
+  };
+  const doSetor = (setor: string): EntradaObservacao[] => diasFaixa.map((d) => ({ data: d, texto: observacoes[`${d}|${setor}`] ?? '' }));
+  const etiquetasDe = (motivos: Record<string, string>) => {
+    const lista = new Array<string | null>(dias).fill(null);
+    for (const [d, m] of Object.entries(motivos)) if (posSemana(d) >= 0 && posSemana(d) < dias) lista[posSemana(d)] = m;
+    return lista.some(Boolean) ? lista : undefined;
+  };
+  const sepEstaleiro = separarObservacoes(doSetor('estaleiro'), diasFaixa, zerado([serie.estaleiro.soldas, serie.estaleiro.cortes]));
+  const sepGeracao = separarObservacoes(entradasGeracao.length ? entradasGeracao : doSetor('geracao'), diasFaixa, zerado([serie.geracao.carregado, serie.geracao.deixado]));
+  const sepSerra = separarObservacoes(entradasSerra.length ? entradasSerra : doSetor('serra'), diasFaixa, zerado(COMPOSICOES.map((a) => serraDiaSerie(a))));
+  const etiquetasEstaleiro = varios ? etiquetasDe(sepEstaleiro.motivos) : undefined;
+  const etiquetasGeracao = varios ? etiquetasDe(sepGeracao.motivos) : undefined;
+  const etiquetasSerra = varios ? etiquetasDe(sepSerra.motivos) : undefined;
   const temObsEstaleiroDia = !varios && !!observacoes[`${data}|estaleiro`]?.trim();
+  // "Sem produção no período" só quando nenhum dia tem o motivo no gráfico: com as etiquetas, a frase repetiria o gráfico.
   const observacaoEstaleiro = varios
-    ? [...(avisoParado ? [avisoParado] : []), ...obsEstaleiro].join('\n') || undefined
+    ? [...(avisoParado && !Object.keys(sepEstaleiro.motivos).length ? [avisoParado] : []), ...sepEstaleiro.linhas].join('\n') || undefined
     : !temObsEstaleiroDia && avisoParado
       ? avisoParado
       : undefined;
-  const ouSetor = (proprias: string[], setor: string) => (proprias.length ? proprias : varios ? obsSetorFaixa(setor) : []);
-  const obsGeracaoFinal = ouSetor(observacoesGeracao, 'geracao');
-  const obsSerraFinal = ouSetor(observacoesSerra, 'serra');
+  const obsGeracaoFinal = varios ? sepGeracao.linhas : observacoesGeracao;
+  const obsSerraFinal = varios ? sepSerra.linhas : observacoesSerra;
   // Dias do relatório dentro da semana do gráfico (0 = segunda), para o destaque.
   const diasDestaque = diasFaixa
     .map((d) => Math.round((Date.parse(`${d}T00:00:00Z`) - Date.parse(`${inicio}T00:00:00Z`)) / 86400000))
@@ -296,6 +320,7 @@ export async function montarDadosRelatorio(data: string, desdePedido?: string | 
         ],
         grafico: {
           titulo: 'Soldas e cortes por dia',
+          etiquetas: etiquetasEstaleiro,
           series: [
             { nome: 'Soldas', cor: '#2563eb', valores: serie.estaleiro.soldas },
             { nome: 'Cortes', cor: '#f59e0b', valores: serie.estaleiro.cortes },
@@ -313,6 +338,7 @@ export async function montarDadosRelatorio(data: string, desdePedido?: string | 
         ],
         grafico: {
           titulo: 'Metros por dia',
+          etiquetas: etiquetasGeracao,
           series: [
             { nome: 'Carregado', cor: '#059669', valores: serie.geracao.carregado },
             { nome: 'Deixado na via', cor: '#db2777', valores: serie.geracao.deixado },
@@ -345,6 +371,7 @@ export async function montarDadosRelatorio(data: string, desdePedido?: string | 
         ],
         grafico: {
           titulo: 'Metros por dia: W61 e W62 (barras × 10,5 m)',
+          etiquetas: etiquetasSerra,
           series: COMPOSICOES.map((a, i) => ({
             nome: a,
             cor: i === 0 ? '#7c3aed' : '#0d9488',

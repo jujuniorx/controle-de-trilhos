@@ -169,3 +169,99 @@ export function linhasPorDia(entradas: { data: string; chave: string; texto: str
   }
   return grupos.map((g) => `${rotuloFaixaCurta(g.ini, g.fim)} · ${g.texto}`);
 }
+
+/**
+ * Motivo de um dia sem produção, quando a observação é só isso ("Feriado", "sábado", "Folga."). Sábado, domingo e
+ * fim de semana viram "Folga": o nome do dia já aparece no gráfico. Qualquer texto além da palavra não é motivo.
+ */
+const MOTIVOS: Record<string, string> = {
+  feriado: 'Feriado',
+  folga: 'Folga',
+  sabado: 'Folga',
+  domingo: 'Folga',
+  'fim de semana': 'Folga',
+  parado: 'Parado',
+  recesso: 'Recesso',
+};
+export function motivoDoDia(texto: string): string | null {
+  const t = texto
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[.!;,]+$/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return MOTIVOS[t] ?? null;
+}
+
+/** "Equipe 2" e "Equipe 3" viram "Equipes 2 e 3"; nomes diferentes ficam como estão ("W61 e W62"). */
+function juntarRotulos(rotulos: string[]): string {
+  if (rotulos.length <= 1) return rotulos[0] ?? '';
+  const e = (lista: string[]) => `${lista.slice(0, -1).join(', ')} e ${lista[lista.length - 1]}`;
+  const partes = rotulos.map((r) => /^(Equipe) (\S.*)$/.exec(r));
+  if (partes.every((p) => p)) return `Equipes ${e(partes.map((p) => p![2]!))}`;
+  return e(rotulos);
+}
+
+/** Uma observação de um dia, de uma equipe, composição ou do setor (sem rótulo). */
+export interface EntradaObservacao { data: string; rotulo?: string; texto: string }
+
+/**
+ * Observações de vários dias separadas em duas partes:
+ * - `motivos`: o motivo de cada dia sem produção ("Feriado", "Folga"), para aparecer no próprio gráfico, embaixo do dia;
+ * - `linhas`: o resto, que é informação de verdade, com o dia na frente. O mesmo texto em dias seguidos vira uma faixa
+ *   ("Sáb 21 a Dom 22/11 · ...") e o mesmo texto de várias equipes no mesmo dia vira uma linha ("Equipes 2 e 3: ...").
+ * Um motivo só sai da lista quando o dia não teve produção e bate com o motivo escolhido para o dia; o resto continua na
+ * lista, para nada sumir.
+ */
+export function separarObservacoes(
+  entradas: EntradaObservacao[],
+  dias: string[],
+  semProducao: (dia: string) => boolean,
+): { motivos: Record<string, string>; linhas: string[] } {
+  const posicao = new Map(dias.map((d, i) => [d, i]));
+  const validas = entradas
+    .filter((e) => posicao.has(e.data) && e.texto.trim())
+    .map((e) => ({ data: e.data, rotulo: e.rotulo?.trim() ?? '', texto: e.texto.trim() }));
+
+  const motivos: Record<string, string> = {};
+  for (const d of dias) {
+    if (!semProducao(d)) continue;
+    const contagem = new Map<string, number>();
+    for (const e of validas) {
+      if (e.data !== d) continue;
+      const m = motivoDoDia(e.texto);
+      if (m) contagem.set(m, (contagem.get(m) ?? 0) + 1);
+    }
+    let melhor: string | null = null;
+    for (const [m, n] of contagem) if (melhor === null || n > contagem.get(melhor)!) melhor = m;
+    if (melhor) motivos[d] = melhor;
+  }
+
+  const resto = validas
+    .filter((e) => !(motivos[e.data] && motivoDoDia(e.texto) === motivos[e.data]))
+    .sort((a, b) => (a.data === b.data ? 0 : a.data < b.data ? -1 : 1));
+
+  // 1) Mesmo rótulo e mesmo texto em dias seguidos: uma faixa de dias.
+  const faixas: { rotulo: string; texto: string; ini: string; fim: string; ultimo: number }[] = [];
+  for (const e of resto) {
+    const i = posicao.get(e.data)!;
+    const f = faixas.find((x) => x.rotulo === e.rotulo && x.texto === e.texto && x.ultimo === i - 1);
+    if (f) {
+      f.fim = e.data;
+      f.ultimo = i;
+    } else faixas.push({ rotulo: e.rotulo, texto: e.texto, ini: e.data, fim: e.data, ultimo: i });
+  }
+  // 2) Mesma faixa de dias e mesmo texto em rótulos diferentes: uma linha só.
+  const grupos: { ini: string; fim: string; texto: string; rotulos: string[] }[] = [];
+  for (const f of faixas) {
+    const g = grupos.find((x) => x.ini === f.ini && x.fim === f.fim && x.texto === f.texto);
+    if (g) {
+      if (f.rotulo && !g.rotulos.includes(f.rotulo)) g.rotulos.push(f.rotulo);
+    } else grupos.push({ ini: f.ini, fim: f.fim, texto: f.texto, rotulos: f.rotulo ? [f.rotulo] : [] });
+  }
+  grupos.sort((a, b) => (a.ini === b.ini ? 0 : a.ini < b.ini ? -1 : 1));
+  const linhas = grupos.map((g) => `${rotuloFaixaCurta(g.ini, g.fim)} · ${g.rotulos.length ? `${juntarRotulos(g.rotulos)}: ` : ''}${g.texto}`);
+  return { motivos, linhas };
+}
