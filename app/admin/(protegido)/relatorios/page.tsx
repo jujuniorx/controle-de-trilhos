@@ -152,6 +152,7 @@ export default async function RelatoriosPage({
           <h1 className="page-title">Relatório de movimentação</h1>
           <p className="page-sub">Recebimentos e remetidos com filtros, gráficos e exportação para PDF e Excel.</p>
         </div>
+        <Link href="/admin/relatorios/serra" className="btn btn-secondary">Relatório da serra</Link>
       </div>
 
       <details className="card" open={Object.values(filtros).some(Boolean)}>

@@ -20,6 +20,7 @@ const SECOES: Record<string, string> = {
 
 const SUBPAGINAS: Record<string, string> = {
   'relatorio-gerencial': 'Relatório gerencial',
+  serra: 'Relatório da serra',
   imprimir: 'Imprimir',
   romaneio: 'Romaneio',
   editar: 'Editar',
