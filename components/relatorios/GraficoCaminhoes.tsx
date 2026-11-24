@@ -189,7 +189,6 @@ export function GraficoCaminhoes({ r, id }: { r: RelatorioSetor; id: string }) {
       </text>
 
       <text x={MARGEM} y={yMapaTitulo} fontSize={28} fontWeight={700} fill={COR_TEXTO}>Taxa de perda por mês</text>
-      <text x={MARGEM + 370} y={yMapaTitulo} fontSize={19} fill={COR_SUAVE}>perdas dividido pela produção do mês</text>
       {linhas.map((l, i) => (
         <text key={l.chave} x={MARGEM + colunaRotulo + i * larguraCelula + larguraCelula / 2} y={yMesesMapa} fontSize={17} fontWeight={600} textAnchor="middle" fill={COR_SUAVE}>
           {nomeCurto(l)}
