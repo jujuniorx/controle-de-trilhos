@@ -18,7 +18,8 @@ export function BaixarImagemSerra({ svgId, nomeArquivo }: { svgId: string; nomeA
       const copia = svg.cloneNode(true) as SVGElement;
       copia.removeAttribute('style');
       const texto = new XMLSerializer().serializeToString(copia);
-      const url = URL.createObjectURL(new Blob([texto], { type: 'image/svg+xml;charset=utf-8' }));
+      // data: e não blob: — a política de segurança do site só libera imagens de data: e do próprio domínio.
+      const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(texto)}`;
       const img = new Image();
       await new Promise<void>((ok, falha) => {
         img.onload = () => ok();
@@ -34,7 +35,6 @@ export function BaixarImagemSerra({ svgId, nomeArquivo }: { svgId: string; nomeA
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      URL.revokeObjectURL(url);
       const png = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, 'image/png'));
       if (!png) throw new Error('png');
       const link = document.createElement('a');
