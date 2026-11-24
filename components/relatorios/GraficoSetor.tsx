@@ -88,12 +88,13 @@ export function GraficoSetor({ r, id }: { r: RelatorioSetor; id: string }) {
       viewBox={`0 0 ${LARGURA} ${altura}`}
       role="img"
       aria-label={`Relatório ${r.titulo}, ${r.periodo.rotulo}`}
-      style={{ display: 'block', width: '100%', height: 'auto', fontFamily: FONTE }}
+      fontFamily={FONTE}
+      style={{ display: 'block', width: '100%', height: 'auto' }}
     >
       <rect x={0} y={0} width={LARGURA} height={altura} fill="#ffffff" />
 
       <text x={MARGEM} y={60} fontSize={36} fontWeight={700} fill={COR_TEXTO}>{r.titulo}</text>
-      <text x={MARGEM} y={94} fontSize={20} fill={COR_SUAVE}>{r.periodo.rotulo}</text>
+      <text x={MARGEM} y={94} fontSize={20} fill={COR_SUAVE}>{r.periodo.rotulo.replace(/ \(até .*\)$/, '')}</text>
 
       {destaques.map((d, i) => {
         const x = MARGEM + i * (larguraDestaque + 16);
