@@ -63,6 +63,8 @@ export interface RelatorioSetor {
   colunas: ColunaRelatorio[];
   totais: number[];
   linhas: LinhaRelatorio[];
+  /** Colunas que compõem a primeira (total) e aparecem empilhadas no gráfico. Vazio = barra simples. */
+  empilhar: number[];
 }
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -96,6 +98,7 @@ type Registro = { data: Date; valores: number[] };
 interface DefinicaoSetor {
   colunas: ColunaRelatorio[];
   coletar: (inicio: string, fim: string) => Promise<Registro[]>;
+  empilhar?: number[];
 }
 
 const faixa = (inicio: string, fim: string) => ({
@@ -167,6 +170,7 @@ const DEFINICOES: Record<SetorSlug, DefinicaoSetor> = {
   },
 
   caminhoes: {
+    empilhar: [1, 2, 3],
     colunas: [
       { rotulo: 'Produção total', casas: 0, unidade: 'und' },
       ...CAMINHOES_ATIVOS.map((c) => ({ rotulo: c, casas: 0, unidade: 'und' })),
@@ -244,6 +248,7 @@ export async function montarRelatorioSetor(slug: SetorSlug, periodo: PeriodoRela
   return {
     slug,
     titulo: nomeSetor(slug),
+    empilhar: def.empilhar ?? [],
     periodo,
     colunas: def.colunas,
     totais: totais.map((v, c) => arredondar(v, def.colunas[c].casas)),
