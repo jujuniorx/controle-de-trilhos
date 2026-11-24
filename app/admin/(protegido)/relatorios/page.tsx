@@ -3,6 +3,7 @@ import { nfsEmTexto, rotuloNfs } from '@/lib/nf';
 import Link from 'next/link';
 import { fmtMetros, fmtToneladas } from '@/lib/format';
 import { normalizarLocal } from '@/lib/domain/local';
+import { SETORES, hojeSP } from '@/lib/services/relatorioSetor';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { filtrosRelatorioSchema, MATERIAIS_RELATORIO, CLASSIFICACOES_RELATORIO, STATUS_RELATORIO } from '@/lib/validation/relatorio';
 import { EstadoVazio } from '@/components/ui/EstadoVazio';
@@ -152,8 +153,25 @@ export default async function RelatoriosPage({
           <h1 className="page-title">Relatório de movimentação</h1>
           <p className="page-sub">Recebimentos e remetidos com filtros, gráficos e exportação para PDF e Excel.</p>
         </div>
-        <Link href="/admin/relatorios/serra" className="btn btn-secondary">Relatório da serra</Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href={`/admin/relatorios?dataInicio=${hojeSP().slice(0, 4)}-01-01&dataFim=${hojeSP()}`} className="btn btn-secondary">
+            Ano de {hojeSP().slice(0, 4)}
+          </Link>
+          <Link href="/admin/relatorios/serra" className="btn btn-secondary">Relatório da serra</Link>
+        </div>
       </div>
+
+      <section className="card space-y-3" aria-labelledby="setores-relatorio">
+        <h2 id="setores-relatorio" className="card-title">Relatórios por setor</h2>
+        <p className="text-sm text-ink-muted">Cada setor sai como imagem (PNG), por ano inteiro ou por mês.</p>
+        <div className="flex flex-wrap gap-2">
+          {SETORES.map((s) => (
+            <Link key={s.slug} href={`/admin/relatorios/setor/${s.slug}`} className="btn btn-ghost">
+              {s.titulo}
+            </Link>
+          ))}
+        </div>
+      </section>
 
       <details className="card" open={Object.values(filtros).some(Boolean)}>
         <summary className="cursor-pointer font-semibold">Filtrar relatório</summary>
