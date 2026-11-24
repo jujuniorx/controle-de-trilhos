@@ -195,7 +195,9 @@ function montarRecebidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
       // Peso (t) = total de metros da linha x fator do perfil (kg/m / 1000), como na planilha da Paula.
       const kgmPerfil = KG_POR_METRO[grupos[0].perfil];
       if (kgmPerfil) {
-        linha.getCell(13).value = { formula: `X${r}*${kgmPerfil / 1000}`, result: Number(valores[12]) };
+        // O resultado guardado precisa ser o mesmo que a fórmula calcula (X x kg/m), senão o relatório
+        // mostra um peso (pesoCalculado, por medições) e a planilha recalculada mostra outro.
+        linha.getCell(13).value = { formula: `X${r}*${kgmPerfil / 1000}`, result: Math.round(totalMetros * kgmPerfil) / 1000 };
         linha.getCell(13).numFmt = '#,##0.000';
       }
     }
