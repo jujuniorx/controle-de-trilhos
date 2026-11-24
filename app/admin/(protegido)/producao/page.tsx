@@ -160,19 +160,28 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
 
   return (
     <main className="planilha-producao mx-auto w-full max-w-5xl space-y-6 px-4 py-6">
-      <div className="no-print flex flex-wrap items-end justify-between gap-3">
-        <form action="/admin/producao" className="flex flex-wrap items-end gap-2">
-          <div className="field"><label htmlFor="data-producao">Dia</label><input id="data-producao" name="data" type="date" defaultValue={dataTexto} className="h-11" /></div>
-          <button type="submit" className="btn btn-ghost h-11">Ver dia</button>
+      <div className="no-print grid gap-3 sm:grid-cols-2">
+        <form action="/admin/producao" className="card flex flex-col gap-3 p-4">
+          <p className="kv-label">Ver um dia</p>
+          <div className="flex flex-wrap items-end gap-2">
+            <div className="field"><label htmlFor="data-producao">Dia</label><input id="data-producao" name="data" type="date" defaultValue={dataTexto} className="h-11" /></div>
+            <button type="submit" className="btn btn-ghost h-11">Ver dia</button>
+          </div>
         </form>
-        <form action="/admin/producao" className="flex flex-wrap items-end gap-2">
-          <div className="field"><label htmlFor="periodo-de-dia">Desde</label><input id="periodo-de-dia" name="de" type="date" defaultValue={dataTexto} className="h-11" /></div>
-          <div className="field"><label htmlFor="periodo-ate-dia">Até</label><input id="periodo-ate-dia" name="ate" type="date" defaultValue={hojeSP()} className="h-11" /></div>
-          <button type="submit" className="btn btn-ghost h-11">Ver período</button>
+        <form action="/admin/producao" className="card flex flex-col gap-3 p-4">
+          <p className="kv-label">Ver um período</p>
+          <div className="flex flex-wrap items-end gap-2">
+            <div className="field"><label htmlFor="periodo-de-dia">De</label><input id="periodo-de-dia" name="de" type="date" defaultValue={dataTexto} className="h-11" /></div>
+            <div className="field"><label htmlFor="periodo-ate-dia">Até</label><input id="periodo-ate-dia" name="ate" type="date" defaultValue={hojeSP()} className="h-11" /></div>
+            <button type="submit" className="btn btn-ghost h-11">Ver período</button>
+          </div>
         </form>
-        <div className="flex flex-wrap items-center gap-2">
-          <BotaoBaixarImagem dados={dadosImagem} />
-          <BotaoImprimirPagina />
+        <div className="card flex flex-col gap-3 p-4 sm:col-span-2">
+          <p className="kv-label">Gerar arquivo do dia mostrado</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <BotaoBaixarImagem dados={dadosImagem} />
+            <BotaoImprimirPagina />
+          </div>
         </div>
       </div>
 
