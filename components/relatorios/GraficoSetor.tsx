@@ -1,4 +1,5 @@
 import type { RelatorioSetor } from '@/lib/services/relatorioSetor';
+import { GraficoCaminhoes } from '@/components/relatorios/GraficoCaminhoes';
 
 /** Imagem do relatório por setor: fundo claro, pensada para WhatsApp e impressão. */
 const LARGURA = 1200;
@@ -24,6 +25,7 @@ export function formatarNumero(valor: number, casas: number): string {
  * e tabela. A mesma imagem vai para a tela e para o PNG baixado.
  */
 export function GraficoSetor({ r, id }: { r: RelatorioSetor; id: string }) {
+  if (r.slug === 'caminhoes') return <GraficoCaminhoes r={r} id={id} />;
   const n = r.colunas.length;
   const empilhado = r.empilhar.length > 0;
   const cores = (idx: number) => {
@@ -71,8 +73,10 @@ export function GraficoSetor({ r, id }: { r: RelatorioSetor; id: string }) {
   const colTabela = larguraTotal / n;
   const xColuna = (c: number) => MARGEM + 200 + (c + 1) * colTabela - 14;
   const linhasTab = r.linhas.length;
-  const yRodape = yTabela + 40 + linhasTab * alturaLinha;
-  const altura = yRodape + 60;
+  // Fim da última linha da tabela; o total fica logo abaixo dela, com a linha separadora entre os dois.
+  const yFimTabela = yTabela + 40 + linhasTab * alturaLinha;
+  const yRodape = yFimTabela + 24;
+  const altura = yRodape + 40;
 
   return (
     <svg
@@ -159,7 +163,7 @@ export function GraficoSetor({ r, id }: { r: RelatorioSetor; id: string }) {
       ))}
 
       {r.linhas.map((l, i) => {
-        const y = yTabela + 12 + (i + 1) * alturaLinha + 18;
+        const y = yTabela + 40 + i * alturaLinha + 18;
         return (
           <g key={l.chave}>
             <line x1={MARGEM} x2={LARGURA - MARGEM} y1={y + 9} y2={y + 9} stroke={COR_GRADE} strokeWidth={1} />
@@ -173,7 +177,7 @@ export function GraficoSetor({ r, id }: { r: RelatorioSetor; id: string }) {
         );
       })}
 
-      <line x1={MARGEM} x2={LARGURA - MARGEM} y1={yRodape - 22} y2={yRodape - 22} stroke={COR_TEXTO} strokeWidth={1.5} />
+      <line x1={MARGEM} x2={LARGURA - MARGEM} y1={yFimTabela} y2={yFimTabela} stroke={COR_TEXTO} strokeWidth={1.5} />
       <text x={MARGEM + 16} y={yRodape} fontSize={16} fontWeight={700} fill={COR_TEXTO}>Total do período</text>
       {r.totais.map((v, c) => (
         <text key={c} x={xColuna(c)} y={yRodape} fontSize={16} fontWeight={700} textAnchor="end" fill={COR_TEXTO}>

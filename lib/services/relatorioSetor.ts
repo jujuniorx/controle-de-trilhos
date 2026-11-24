@@ -174,7 +174,8 @@ const DEFINICOES: Record<SetorSlug, DefinicaoSetor> = {
     colunas: [
       { rotulo: 'Produção total', casas: 0, unidade: 'und' },
       ...CAMINHOES_ATIVOS.map((c) => ({ rotulo: c, casas: 0, unidade: 'und' })),
-      { rotulo: 'Perdas', casas: 0, unidade: 'und' },
+      ...CAMINHOES_ATIVOS.map((c) => ({ rotulo: `Perdas ${c}`, casas: 0, unidade: 'und' })),
+      { rotulo: 'Perdas total', casas: 0, unidade: 'und' },
     ],
     coletar: async (inicio, fim) => {
       const linhas = await prisma.caminhaoSoldaDia.findMany({
@@ -183,8 +184,10 @@ const DEFINICOES: Record<SetorSlug, DefinicaoSetor> = {
       });
       return linhas.map((l) => {
         const producao = l.producaoDiaria ?? 0;
+        const perda = l.perdaDiaria ?? 0;
         const porCaminhao = CAMINHOES_ATIVOS.map((c) => (l.caminhao === c ? producao : 0));
-        return { data: l.data, valores: [producao, ...porCaminhao, l.perdaDiaria ?? 0] };
+        const perdaPorCaminhao = CAMINHOES_ATIVOS.map((c) => (l.caminhao === c ? perda : 0));
+        return { data: l.data, valores: [producao, ...porCaminhao, ...perdaPorCaminhao, perda] };
       });
     },
   },
