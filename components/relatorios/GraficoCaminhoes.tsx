@@ -6,10 +6,11 @@ function formatarNumero(valor: number, casas: number): string {
 
 /**
  * Relatório do setor caminhões de solda, como SVG, feito para ler bem numa foto no celular:
- * - destaques grandes no topo;
- * - um painel por caminhão, cada um com a própria escala, com a produção (azul) e as perdas (vermelho);
- * - um mapa de calor com a taxa de perda (perdas / produção do mês), com legenda;
- * - a tabela completa no fim, com o grupo de produção e o de perdas.
+ * - destaques grandes no topo, somando só CW01 e CW02 (o CW03 fica numa linha à parte);
+ * - um gráfico mensal com as soldas (azul) e as perdas (vermelho, em cima da barra);
+ * - um mapa de calor com a taxa de perda por caminhão, com legenda;
+ * - a curva S do ano (produção acumulada contra meta acumulada), sem perdas;
+ * - observações do período.
  * Colunas (ver lib/services/relatorioSetor.ts): 0 produção total, 1-3 produção por CW, 4-6 perdas por CW, 7 perdas total.
  */
 const LARGURA = 1200;
@@ -22,14 +23,27 @@ const COR_GRADE = '#dfe6f1';
 const COR_CARTAO = '#f3f6fb';
 const COR_PRODUCAO = '#2d74c7';
 const COR_PERDA = '#d64541';
+const COR_META = '#f5b800';
+const COR_REAL = '#17a77c';
+const COR_OBS = '#2d9be0';
 // Arial/Helvetica: a imagem não carrega a Barlow, e a fonte padrão do navegador sai serifada.
 const FONTE = 'Arial, Helvetica, sans-serif';
 const MESES_LONGOS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ];
-const ROTULOS_PRODUCAO = ['Total', 'CW01', 'CW02', 'CW03'];
-const ROTULOS_PERDA = ['CW01', 'CW02', 'CW03', 'Total'];
+const MESES_CURTOS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+// Meta do ano (CW01 + CW02), informada pela diretoria.
+const META_FIM_ANO = 518;
+// Peso de cada mês na meta, vindo da coluna Meta das planilhas (520 por caminhão no ano). Só define o formato da curva.
+const META_PESO_MES = [48, 40, 42, 44, 44, 40, 44, 42, 42, 47, 42, 45];
+// Período em que o CW02 ficou em FMT (sem produção). Os dias do período ficam em cinza na curva.
+const FMT_INICIO = [3, 26] as const;
+const FMT_FIM = [8, 17] as const;
+const OBSERVACOES_FIXAS = [
+  'CW02 sem produção em abril, maio, junho e julho, por estar em FMT (26/03 a 17/08).',
+];
 
 /** Mistura o branco com o vermelho conforme a taxa; 25% ou mais fica no vermelho cheio. */
 function corTaxa(taxa: number): string {
@@ -48,20 +62,24 @@ export function GraficoCaminhoes({ r, id }: { r: RelatorioSetor; id: string }) {
   const linhas = r.linhas;
   const meses = linhas.length;
   const mensal = !r.periodo.mes;
+  const ano = r.periodo.ano;
   // Nas linhas de um mês escolhido, cada linha é um dia: o rótulo é o número do dia.
   const nomeCompleto = (l: (typeof linhas)[number]) => (mensal ? MESES_LONGOS[Number(l.chave) - 1] : l.rotulo);
   const nomeCurto = (l: (typeof linhas)[number]) => (mensal ? l.rotulo.slice(0, 3) : l.chave);
   const producaoDe = (i: number, k: number) => linhas[i].valores[1 + k] ?? 0;
   const perdaDe = (i: number, k: number) => linhas[i].valores[4 + k] ?? 0;
-  const producaoTotal = (i: number) => linhas[i].valores[0] ?? 0;
+  // Os destaques e os gráficos somam só CW01 e CW02; o CW03 aparece à parte, embaixo.
+  const producaoTotal = (i: number) => (linhas[i].valores[1] ?? 0) + (linhas[i].valores[2] ?? 0);
+  const perdaTotal = (i: number) => (linhas[i].valores[4] ?? 0) + (linhas[i].valores[5] ?? 0);
+  const producaoCw03 = r.totais[3] ?? 0;
 
   // Destaques
-  const totalProducao = r.totais[0];
+  const totalProducao = (r.totais[1] ?? 0) + (r.totais[2] ?? 0);
   const media = meses ? totalProducao / meses : 0;
   const maiorMes = Math.max(0, ...linhas.map((_, i) => producaoTotal(i)));
   const iMelhor = linhas.findIndex((_, i) => producaoTotal(i) === maiorMes);
   const nomeMelhor = iMelhor >= 0 ? nomeCompleto(linhas[iMelhor]) : '—';
-  const totalPerda = r.totais[7];
+  const totalPerda = (r.totais[4] ?? 0) + (r.totais[5] ?? 0);
   const pctPerda = totalProducao > 0 ? (totalPerda / totalProducao) * 100 : 0;
   const destaques = [
     { rotulo: 'Produção no período', valor: formatarNumero(totalProducao, 0), unidade: 'und', detalhe: `média de ${formatarNumero(media, 0)} por ${mensal ? 'mês' : 'dia'}` },
@@ -76,29 +94,63 @@ export function GraficoCaminhoes({ r, id }: { r: RelatorioSetor; id: string }) {
   const yDestaques = 140;
   const alturaDestaques = 136;
   const yPaineisTitulo = yDestaques + alturaDestaques + 62;
-  const yPaineis = yPaineisTitulo + 22;
-  const alturaPainel = 316;
-  const yBasePainel = yPaineis + 236;
-  const alturaMaxBarra = 128;
-  const yMapaTitulo = yPaineis + alturaPainel + 70;
+  const yGrafico = yPaineisTitulo + 22;
+  const alturaGrafico = 320;
+  const yBaseGrafico = yGrafico + 270;
+  const alturaMaxBarra = 200;
+  const yMapaTitulo = yGrafico + alturaGrafico + 56;
   const yMesesMapa = yMapaTitulo + 40;
   const yMapa = yMesesMapa + 14;
   const alturaCelula = 50;
   const colunaRotulo = 110;
   const larguraCelula = (AREA - colunaRotulo) / Math.max(1, meses);
   const yLegenda = yMapa + CAMINHOES.length * alturaCelula + 26;
-  const yTabela = yLegenda + 62;
-  const yCabecalhoGrupo = yTabela;
-  const yCabecalho = yTabela + 34;
-  const yCorpo = yCabecalho + 44;
-  const alturaLinha = 38;
-  const colTabela = (AREA - 220) / 8;
-  const xColuna = (c: number) => MARGEM + 220 + (c + 1) * colTabela - 14;
-  const yFimTabela = yCorpo + meses * alturaLinha;
-  const altura = yFimTabela + 90;
+
+  // Curva S (só no relatório do ano)
+  const yCurvaTitulo = yLegenda + 100;
+  const yCurva = yCurvaTitulo + 20;
+  const alturaCurva = 300;
+  const yBaseCurva = yCurva + 60 + alturaCurva;
+  const xCurva0 = MARGEM + 90;
+  const xCurva1 = LARGURA - MARGEM - 30;
+  const larguraCurva = xCurva1 - xCurva0;
+  const diasAno = (Date.UTC(ano + 1, 0, 1) - Date.UTC(ano, 0, 1)) / 86400000;
+  const diaDoAno = (mes: number, dia: number) => (Date.UTC(ano, mes - 1, dia) - Date.UTC(ano, 0, 1)) / 86400000 + 1;
+  const fimDoMes = (mes: number) => diaDoAno(mes, new Date(Date.UTC(ano, mes, 0)).getUTCDate());
+  const xDia = (dia: number) => xCurva0 + (dia / diasAno) * larguraCurva;
+  const yValor = (v: number) => yBaseCurva - (v / META_FIM_ANO) * alturaCurva;
+
+  // Pontos da curva: produção acumulada até o último mês com lançamento; meta acumulada o ano todo.
+  let acumReal = 0;
+  const pontosReal = mensal
+    ? linhas.map((l, i) => {
+        acumReal += producaoTotal(i);
+        const mes = Number(l.chave);
+        return { x: xDia(fimDoMes(mes)), y: yValor(acumReal), valor: acumReal };
+      })
+    : [];
+  const pesoTotal = META_PESO_MES.reduce((t, v) => t + v, 0);
+  let acumPeso = 0;
+  const pontosMeta = META_PESO_MES.map((peso, i) => {
+    acumPeso += peso;
+    const valor = (META_FIM_ANO * acumPeso) / pesoTotal;
+    return { x: xDia(fimDoMes(i + 1)), y: yValor(valor), valor };
+  });
+  const caminho = (pts: { x: number; y: number }[]) =>
+    pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+  const ultimoReal = pontosReal.length ? pontosReal[pontosReal.length - 1] : null;
+  const alturaObs = 40 + OBSERVACOES_FIXAS.length * 30 + 30;
+  const yObs = yBaseCurva + 110;
+
+  // Escala única do gráfico mensal: a barra mais alta (soldas + perdas) ocupa a altura máxima.
+  const maiorBarra = Math.max(1, ...linhas.map((_, i) => producaoTotal(i) + perdaTotal(i)));
+  const largSlot = (AREA - 32) / Math.max(1, meses);
+  const largBarra = Math.min(70, Math.max(14, largSlot * 0.56));
 
   // Legenda do mapa de calor: 0% até 25% ou mais
   const tonsLegenda = [0, 0.05, 0.1, 0.15, 0.2, 0.25];
+
+  const altura = mensal ? yObs + alturaObs + 40 : yLegenda + 90;
 
   return (
     <svg
@@ -132,62 +184,50 @@ export function GraficoCaminhoes({ r, id }: { r: RelatorioSetor; id: string }) {
         );
       })}
 
-      <text x={MARGEM} y={yPaineisTitulo} fontSize={28} fontWeight={700} fill={COR_TEXTO}>Produção e perdas por caminhão</text>
-      <rect x={MARGEM + 560} y={yPaineisTitulo - 19} width={18} height={18} rx={4} fill={COR_PRODUCAO} />
-      <text x={MARGEM + 588} y={yPaineisTitulo - 3} fontSize={19} fill={COR_SUAVE}>Produção</text>
-      <rect x={MARGEM + 700} y={yPaineisTitulo - 19} width={18} height={18} rx={4} fill={COR_PERDA} />
-      <text x={MARGEM + 728} y={yPaineisTitulo - 3} fontSize={19} fill={COR_SUAVE}>Perdas</text>
+      <text x={MARGEM} y={yDestaques + alturaDestaques + 30} fontSize={19} fill={COR_SUAVE}>
+        (CW03 fora do total acima: {formatarNumero(producaoCw03, 0)} und no período)
+      </text>
 
-      {CAMINHOES.map((cw, k) => {
-        const x = MARGEM + k * (larguraCard + 16);
-        const producaoCw = r.totais[1 + k] ?? 0;
-        const perdaCw = r.totais[4 + k] ?? 0;
-        // Escala própria de cada caminhão: as barras de CW01 e CW03 não somem perto do CW02.
-        const maiorCw = Math.max(1, ...linhas.map((_, i) => producaoDe(i, k)));
-        const largSlot = (larguraCard - 32) / Math.max(1, meses);
-        const largBarra = Math.max(10, largSlot * 0.4);
+      <text x={MARGEM} y={yPaineisTitulo} fontSize={28} fontWeight={700} fill={COR_TEXTO}>Soldas e perdas por mês</text>
+      <rect x={MARGEM + 470} y={yPaineisTitulo - 19} width={18} height={18} rx={4} fill={COR_PRODUCAO} />
+      <text x={MARGEM + 498} y={yPaineisTitulo - 3} fontSize={19} fill={COR_SUAVE}>Soldas</text>
+      <rect x={MARGEM + 600} y={yPaineisTitulo - 19} width={18} height={18} rx={4} fill={COR_PERDA} />
+      <text x={MARGEM + 628} y={yPaineisTitulo - 3} fontSize={19} fill={COR_SUAVE}>Perdas</text>
+
+      <rect x={MARGEM} y={yGrafico} width={AREA} height={alturaGrafico} rx={14} fill={COR_CARTAO} />
+      <line x1={MARGEM + 16} x2={LARGURA - MARGEM - 16} y1={yBaseGrafico} y2={yBaseGrafico} stroke={COR_GRADE} strokeWidth={2} />
+      {linhas.map((l, i) => {
+        const s = producaoTotal(i);
+        const p = perdaTotal(i);
+        const cx = MARGEM + 16 + i * largSlot + largSlot / 2;
+        const hs = (s / maiorBarra) * alturaMaxBarra;
+        const hp = (p / maiorBarra) * alturaMaxBarra;
+        const topoSoldas = yBaseGrafico - hs;
         return (
-          <g key={cw}>
-            <rect x={x} y={yPaineis} width={larguraCard} height={alturaPainel} rx={14} fill={COR_CARTAO} />
-            <text x={x + 20} y={yPaineis + 46} fontSize={34} fontWeight={700} fill={COR_TEXTO}>{cw}</text>
-            <text x={x + 20} y={yPaineis + 76} fontSize={19} fill={COR_SUAVE}>
-              {formatarNumero(producaoCw, 0)} und · perdas {formatarNumero(perdaCw, 0)}
-            </text>
-            <line x1={x + 16} x2={x + larguraCard - 16} y1={yBasePainel} y2={yBasePainel} stroke={COR_GRADE} strokeWidth={2} />
-            {linhas.map((l, i) => {
-              const cx = x + 16 + i * largSlot + largSlot / 2;
-              const xBarraProd = cx - largBarra / 2 - 1;
-              const xBarraPerda = cx + largBarra / 2 + 1;
-              const prod = producaoDe(i, k);
-              const perd = perdaDe(i, k);
-              const hp = (prod / maiorCw) * alturaMaxBarra;
-              const hl = (perd / maiorCw) * alturaMaxBarra;
-              return (
-                <g key={l.chave}>
-                  <rect x={xBarraProd} y={yBasePainel - hp} width={largBarra} height={Math.max(0, hp)} rx={2} fill={COR_PRODUCAO} />
-                  <rect x={xBarraPerda} y={yBasePainel - hl} width={largBarra} height={Math.max(0, hl)} rx={2} fill={COR_PERDA} />
-                  {prod > 0 && (
-                    <text x={xBarraProd + largBarra / 2} y={yBasePainel - hp - 6} fontSize={15} fontWeight={700} textAnchor="middle" fill={COR_TEXTO}>
-                      {formatarNumero(prod, 0)}
-                    </text>
-                  )}
-                  {(mensal || i % 5 === 0) && (
-                    <text x={cx} y={yBasePainel + 26} fontSize={16} textAnchor="middle" fill={COR_SUAVE}>{nomeCurto(l)}</text>
-                  )}
-                  {(mensal || i % 5 === 0) && (
-                    <text x={cx} y={yBasePainel + 54} fontSize={16} fontWeight={700} textAnchor="middle" fill={perd > 0 ? COR_PERDA : COR_SUAVE}>
-                      {formatarNumero(perd, 0)}
-                    </text>
-                  )}
-                </g>
-              );
-            })}
+          <g key={l.chave}>
+            <rect x={cx - largBarra / 2} y={topoSoldas} width={largBarra} height={Math.max(0, hs)} rx={3} fill={COR_PRODUCAO} />
+            <rect x={cx - largBarra / 2} y={topoSoldas - hp} width={largBarra} height={Math.max(0, hp)} rx={3} fill={COR_PERDA} />
+            {s > 0 && hs >= 26 && (
+              <text x={cx} y={topoSoldas + hs / 2 + 6} fontSize={17} fontWeight={700} textAnchor="middle" fill="#ffffff">
+                {formatarNumero(s, 0)}
+              </text>
+            )}
+            {s > 0 && hs < 26 && (
+              <text x={cx} y={topoSoldas - 6} fontSize={16} fontWeight={700} textAnchor="middle" fill={COR_TEXTO}>
+                {formatarNumero(s, 0)}
+              </text>
+            )}
+            {p > 0 && (
+              <text x={cx} y={topoSoldas - hp - 6} fontSize={17} fontWeight={700} textAnchor="middle" fill={COR_PERDA}>
+                {formatarNumero(p, 0)}
+              </text>
+            )}
+            {(mensal || i % 5 === 0) && (
+              <text x={cx} y={yBaseGrafico + 28} fontSize={17} textAnchor="middle" fill={COR_SUAVE}>{nomeCurto(l)}</text>
+            )}
           </g>
         );
       })}
-      <text x={MARGEM} y={yPaineis + alturaPainel + 30} fontSize={17} fill={COR_SUAVE}>
-        Cada caminhão tem sua própria escala. Embaixo de cada mês, o número de perdas em vermelho.
-      </text>
 
       <text x={MARGEM} y={yMapaTitulo} fontSize={28} fontWeight={700} fill={COR_TEXTO}>Taxa de perda por mês</text>
       {linhas.map((l, i) => (
@@ -237,41 +277,66 @@ export function GraficoCaminhoes({ r, id }: { r: RelatorioSetor; id: string }) {
         quanto mais vermelho, pior a taxa
       </text>
 
-      {/* Tabela: grupos acima das colunas */}
-      <rect x={MARGEM} y={yCabecalhoGrupo} width={AREA} height={30} rx={8} fill={COR_CARTAO} />
-      <text x={MARGEM + 220 + (4 * colTabela) / 2 - 14} y={yCabecalhoGrupo + 21} fontSize={18} fontWeight={700} textAnchor="middle" fill={COR_TEXTO}>Produção</text>
-      <text x={MARGEM + 220 + (4 * colTabela) + (4 * colTabela) / 2 - 14} y={yCabecalhoGrupo + 21} fontSize={18} fontWeight={700} textAnchor="middle" fill={COR_PERDA}>Perdas</text>
+      {mensal && (
+        <g>
+          <text x={MARGEM} y={yCurvaTitulo} fontSize={28} fontWeight={700} fill={COR_TEXTO}>Curva S: produção acumulada</text>
+          <text x={MARGEM} y={yCurvaTitulo + 36} fontSize={21} fill={COR_SUAVE}>
+            Meta até o fim do ano: {formatarNumero(META_FIM_ANO, 0)} und · Real acumulado: {formatarNumero(ultimoReal?.valor ?? 0, 0)} und
+          </text>
 
-      <rect x={MARGEM} y={yCabecalho} width={AREA} height={36} fill="#ffffff" />
-      <text x={MARGEM + 16} y={yCabecalho + 25} fontSize={17} fontWeight={700} fill={COR_SUAVE}>{mensal ? 'MÊS' : 'DIA'}</text>
-      {[...ROTULOS_PRODUCAO, ...ROTULOS_PERDA].map((rotulo, c) => (
-        <text key={c} x={xColuna(c)} y={yCabecalho + 25} fontSize={17} fontWeight={700} textAnchor="end" fill={c >= 4 ? COR_PERDA : COR_SUAVE}>
-          {rotulo}
-        </text>
-      ))}
+          <rect x={MARGEM} y={yCurva} width={AREA} height={alturaCurva + 130} rx={14} fill={COR_CARTAO} />
 
-      {linhas.map((l, i) => {
-        const y = yCorpo + i * alturaLinha;
-        return (
-          <g key={l.chave}>
-            {i % 2 === 1 && <rect x={MARGEM} y={y} width={AREA} height={alturaLinha} fill={COR_CARTAO} />}
-            <text x={MARGEM + 16} y={y + 26} fontSize={21} fill={COR_TEXTO}>{nomeCompleto(l)}</text>
-            {l.valores.map((v, c) => (
-              <text key={c} x={xColuna(c)} y={y + 26} fontSize={21} textAnchor="end" fill={c >= 4 ? COR_PERDA : COR_TEXTO}>
-                {formatarNumero(v, r.colunas[c].casas)}
+          {[0, 100, 200, 300, 400, 500].map((v) => (
+            <g key={v}>
+              <line x1={xCurva0} x2={xCurva1} y1={yValor(v)} y2={yValor(v)} stroke={COR_GRADE} strokeWidth={1.5} />
+              <text x={xCurva0 - 12} y={yValor(v) + 6} fontSize={16} textAnchor="end" fill={COR_SUAVE}>{v}</text>
+            </g>
+          ))}
+          <rect
+            x={xDia(diaDoAno(FMT_INICIO[0], FMT_INICIO[1]))}
+            y={yValor(META_FIM_ANO)}
+            width={xDia(diaDoAno(FMT_FIM[0], FMT_FIM[1])) - xDia(diaDoAno(FMT_INICIO[0], FMT_INICIO[1]))}
+            height={alturaCurva}
+            fill="#e3e8f1"
+          />
+          <text
+            x={(xDia(diaDoAno(FMT_INICIO[0], FMT_INICIO[1])) + xDia(diaDoAno(FMT_FIM[0], FMT_FIM[1]))) / 2}
+            y={yValor(META_FIM_ANO) + 26}
+            fontSize={16}
+            textAnchor="middle"
+            fill={COR_SUAVE}
+          >
+            CW02 em FMT
+          </text>
+
+          {MESES_CURTOS.map((nome, i) => (
+            <text key={nome} x={xDia(diaDoAno(i + 1, 1))} y={yBaseCurva + 26} fontSize={16} fill={COR_SUAVE}>{nome}</text>
+          ))}
+
+          <path d={caminho(pontosMeta)} fill="none" stroke={COR_META} strokeWidth={4} />
+          {pontosReal.length > 0 && <path d={caminho(pontosReal)} fill="none" stroke={COR_REAL} strokeWidth={4} />}
+
+          {ultimoReal && (
+            <g>
+              <rect x={ultimoReal.x - 38} y={ultimoReal.y - 46} width={76} height={32} rx={6} fill={COR_REAL} />
+              <text x={ultimoReal.x} y={ultimoReal.y - 24} fontSize={19} fontWeight={700} textAnchor="middle" fill="#ffffff">
+                {formatarNumero(ultimoReal.valor, 0)}
               </text>
-            ))}
-          </g>
-        );
-      })}
+            </g>
+          )}
 
-      <line x1={MARGEM} x2={LARGURA - MARGEM} y1={yFimTabela + 4} y2={yFimTabela + 4} stroke={COR_TEXTO} strokeWidth={2} />
-      <text x={MARGEM + 16} y={yFimTabela + 40} fontSize={21} fontWeight={700} fill={COR_TEXTO}>Total do período</text>
-      {r.totais.map((v, c) => (
-        <text key={c} x={xColuna(c)} y={yFimTabela + 40} fontSize={21} fontWeight={700} textAnchor="end" fill={c >= 4 ? COR_PERDA : COR_TEXTO}>
-          {formatarNumero(v, r.colunas[c].casas)}
-        </text>
-      ))}
+          <rect x={MARGEM + 300} y={yBaseCurva + 50} width={18} height={18} rx={4} fill={COR_REAL} />
+          <text x={MARGEM + 328} y={yBaseCurva + 66} fontSize={19} fill={COR_SUAVE}>Produção acumulada</text>
+          <rect x={MARGEM + 580} y={yBaseCurva + 50} width={18} height={18} rx={4} fill={COR_META} />
+          <text x={MARGEM + 608} y={yBaseCurva + 66} fontSize={19} fill={COR_SUAVE}>Meta acumulada</text>
+
+          <rect x={MARGEM} y={yObs} width={AREA} height={alturaObs} rx={10} fill={COR_OBS} />
+          <text x={MARGEM + 24} y={yObs + 40} fontSize={22} fontWeight={700} fill="#ffffff">Observações:</text>
+          {OBSERVACOES_FIXAS.map((texto, i) => (
+            <text key={texto} x={MARGEM + 24} y={yObs + 74 + i * 30} fontSize={20} fill="#ffffff">• {texto}</text>
+          ))}
+        </g>
+      )}
     </svg>
   );
 }
