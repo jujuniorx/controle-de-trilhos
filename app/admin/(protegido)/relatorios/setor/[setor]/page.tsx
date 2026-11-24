@@ -11,6 +11,7 @@ import {
 } from '@/lib/services/relatorioSetor';
 import { GraficoSetor, formatarNumero } from '@/components/relatorios/GraficoSetor';
 import { BaixarImagemSerra } from '@/components/relatorios/BaixarImagemSerra';
+import { alertasDoSetor } from '@/lib/services/alertasSetor';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,6 +31,7 @@ export default async function RelatorioSetorPage({
   const hoje = hojeSP();
   const periodo = periodoDoRelatorio(anoPedido, mesPedido, hoje);
   const r = await montarRelatorioSetor(setor, periodo);
+  const alertas = await alertasDoSetor(r, hoje);
   const anoAtual = Number(hoje.slice(0, 4));
   const anos = [anoAtual, anoAtual - 1, anoAtual - 2];
   const sufixoMes = periodo.mes ? `-${String(periodo.mes).padStart(2, '0')}` : '';
@@ -73,6 +75,22 @@ export default async function RelatorioSetorPage({
         {periodo.rotulo}
         {periodo.parcial && ' · período em andamento, ainda não fechado'}
       </p>
+
+      {alertas.length > 0 && (
+        <section className="card space-y-3" aria-label="Conferir antes de gerar">
+          <h2 className="card-title">Conferir antes de gerar</h2>
+          {alertas.map((a) => (
+            <div
+              key={a.titulo}
+              className="rounded-lg px-3 py-2"
+              style={{ borderLeft: `4px solid ${a.nivel === 'forte' ? '#e5484d' : '#e8b923'}`, background: 'var(--card, #141c36)' }}
+            >
+              <p className="font-semibold">{a.titulo}</p>
+              <p className="text-sm text-ink-muted">{a.detalhe}</p>
+            </div>
+          ))}
+        </section>
+      )}
 
       {r.linhas.length === 0 ? (
         <div className="card">Período ainda não começou.</div>

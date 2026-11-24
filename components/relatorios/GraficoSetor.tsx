@@ -10,7 +10,8 @@ const COR_SUAVE = '#5b6b86';
 const COR_GRADE = '#dfe6f1';
 const COR_CARTAO = '#f3f6fb';
 const COR_SEGMENTOS = ['#2d74c7', '#7fb3f0', '#e8b923', '#9aa8c2'];
-const FONTE = 'Barlow, Arial, sans-serif';
+// Arial/Helvetica: a imagem não carrega a Barlow, e a fonte padrão do navegador sai serifada.
+const FONTE = 'Arial, Helvetica, sans-serif';
 const MESES_LONGOS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
