@@ -16,6 +16,7 @@ import { LinhaMedicao } from './LinhaMedicao';
 import { HistoricoMovimentacao } from '@/components/admin/HistoricoMovimentacao';
 import { informarNumeroDocumentoRecebimentoAction } from './actions';
 import { EditarDadosRecebimentoPainel } from './EditarDadosRecebimentoPainel';
+import { ConverterTipoPainel } from '@/components/admin/ConverterTipoPainel';
 
 function fmtData(d: Date | null): string {
   return d ? d.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
@@ -285,6 +286,8 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
         pesoSucataReal={resumo.pesoSucataReal}
         pesoSucataEstimado={resumo.pesoSucataEstimado}
       />
+
+      <ConverterTipoPainel movimentacaoId={mov.id} tipoAtual={mov.tipo as 'RECEBIMENTO' | 'REMETIDO'} />
 
       {/* 7. Histórico */}
       <section className="card">

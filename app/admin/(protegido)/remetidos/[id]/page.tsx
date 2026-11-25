@@ -14,6 +14,7 @@ import { informarNumeroDocumentoAction } from './actions';
 import { rotuloNfs } from '@/lib/nf';
 import { PesoGrupoPainel } from './PesoGrupoPainel';
 import { TipoRemetidoPainel } from './TipoRemetidoPainel';
+import { ConverterTipoPainel } from '@/components/admin/ConverterTipoPainel';
 import { HistoricoMovimentacao } from '@/components/admin/HistoricoMovimentacao';
 import { IconeImprimir } from '@/components/icones/Icones';
 
@@ -297,6 +298,8 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
           <ConferenciaPainel movimentacaoId={mov.id} status={mov.status as 'PENDENTE_CONFERENCIA' | 'CONFERIDO'} temSucata={false} pesoSucataReal={null} />
         </>
       )}
+
+      <ConverterTipoPainel movimentacaoId={mov.id} tipoAtual={mov.tipo as 'RECEBIMENTO' | 'REMETIDO'} />
 
       {/* 6. Histórico */}
       <section className="card">
