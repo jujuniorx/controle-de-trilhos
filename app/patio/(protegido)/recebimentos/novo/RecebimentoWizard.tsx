@@ -682,7 +682,7 @@ export function RecebimentoWizard({
       )}
 
       {step === 2 && (
-        <section className="space-y-4">
+        <section className="space-y-4 etapa-sem-abas">
           <h2 className="card-title !mb-0">Grupos</h2>
           {grupos.map((g, i) => (
             <div key={g.clientId} className="grupo-card !mb-0 p-3">
@@ -763,7 +763,6 @@ export function RecebimentoWizard({
           ))}
 
           <div className="card">
-            <p className="card-title !mb-2">Adicionar grupo</p>
             <NovoGrupoForm onAdd={adicionarGrupo} />
           </div>
 
@@ -787,7 +786,7 @@ export function RecebimentoWizard({
       )}
 
       {step === 3 && grupoAtivo && (
-        <section className="space-y-4">
+        <section className="space-y-4 etapa-sem-abas">
           <button className="back-link" onClick={() => irPara(2)}>
             ← Voltar aos grupos
           </button>
@@ -810,7 +809,7 @@ export function RecebimentoWizard({
           <div className="flex flex-wrap gap-2">
             {modoDraft === 'QTD_COMPRIMENTO' && (
               <div className="field w-28 shrink-0">
-                <label htmlFor="f-qtd">Quantidade de barras</label>
+                <label htmlFor="f-qtd">Barras</label>
               <input
                 id="f-qtd"
                 className="h-11 w-full"
@@ -833,7 +832,7 @@ export function RecebimentoWizard({
               id="f-comprimento"
               ref={campoComprimento}
               className="h-11 w-full"
-              placeholder="digite só números: 980 = 9,80 m"
+              placeholder="ex.: 9,80"
               inputMode="numeric"
               value={draft.comprimento}
               onChange={(e) => {
@@ -902,19 +901,19 @@ export function RecebimentoWizard({
                 <p className="hint">{draft.scManual ? 'Escolhida por você.' : 'Sugerida pelo comprimento; dá para trocar.'}</p>
               </div>
             )}
-            <button className="btn btn-primary h-11" onClick={adicionarMedicao}>
-              Adicionar
-            </button>
           </div>
+          <button className="btn btn-primary h-11 w-full" onClick={adicionarMedicao}>
+            Adicionar
+          </button>
           {draft.erro && <p className="erro-campo" role="alert"><IconeAlerta size={18} aria-hidden="true" />{draft.erro}</p>}
 
           <div className="grupo-card !mb-0">
             {grupoAtivo.medicoes.map((m, i) => (
               <div key={m.clientId} className="medicao-row px-3">
                 <span>
-                  {i + 1}. {m.classificacaoSC === 'JACARE'
+                  {m.classificacaoSC === 'JACARE'
                     ? `Jacaré (4 medidas) · ${fmtMetros(m.comprimento)} · 1 unidade`
-                    : m.quantidade > 1 ? `${m.quantidade} × ${fmtMetros(m.comprimento)}` : fmtMetros(m.comprimento)}
+                    : `${m.quantidade} ${m.quantidade === 1 ? 'barra' : 'barras'} de ${fmtMetros(m.comprimento)}`}
                   {m.classificacaoSC && m.classificacaoSC !== 'JACARE' ? ` — ${m.classificacaoSC}` : ''}
                 </span>
                 <button className="text-bad" aria-label={`Remover a medida ${i + 1}`} onClick={() => removerMedicao(grupoAtivo.clientId, m.clientId)}>
@@ -926,9 +925,12 @@ export function RecebimentoWizard({
             {grupoAtivo.medicoes.length === 0 && <p className="px-3 py-4 text-sm text-ink-dim">Nenhuma medida ainda.</p>}
           </div>
 
-          <p className="text-right font-medium text-ink">Total do grupo: {fmtMetros(metrosDoGrupo(grupoAtivo))}</p>
-          <button className="btn btn-primary btn-lg h-12" onClick={() => irPara(2)}>
-            Voltar aos grupos
+          <div className="card flex items-center justify-between !mb-0">
+            <span className="text-ink-muted">Total do grupo</span>
+            <b className="text-xl text-ink">{fmtMetros(metrosDoGrupo(grupoAtivo))}</b>
+          </div>
+          <button className="btn btn-primary btn-lg h-12 w-full" onClick={() => irPara(2)}>
+            Concluir grupo
           </button>
         </section>
       )}
@@ -1031,7 +1033,7 @@ function NovoGrupoForm({ onAdd }: { onAdd: (perfil: string, tipoMaterial: TipoMa
         <label>Perfil</label>
         <select aria-label="Perfil do novo grupo" className="h-10" value={perfil} onChange={(e) => setPerfil(e.target.value)}>
           <option value="" disabled>
-            Escolha
+            Selecione o perfil
           </option>
           {PERFIS.map((p) => (
             <option key={p}>{p}</option>
@@ -1062,6 +1064,7 @@ function NovoGrupoForm({ onAdd }: { onAdd: (perfil: string, tipoMaterial: TipoMa
       >
         Adicionar grupo
       </button>
+      {!perfil && <p className="hint w-full">Escolha o perfil para liberar o botão.</p>}
     </div>
   );
 }

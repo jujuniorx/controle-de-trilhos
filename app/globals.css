@@ -1680,6 +1680,10 @@ html[data-tema="claro"] .patio-shell .btn-primary { background: #0F5FCC; color: 
   .patio-shell.com-abas { padding-bottom: 0; }
 }
 
+/* Pátio, cadastro de grupos e medidas: sem a barra de abas, para o botão de avançar não ficar escondido. */
+.patio-shell:has(.etapa-sem-abas) .barra-abas { display: none !important; }
+.patio-shell.com-abas:has(.etapa-sem-abas) { padding-bottom: 0 !important; }
+
 /* Cards de atalho do Início: três colunas quando cabe, sem buraco na grade. */
 @media (min-width: 900px) { .acoes-patio { grid-template-columns: repeat(3, 1fr); } }
 .acao-patio span { color: var(--ink-muted); }
