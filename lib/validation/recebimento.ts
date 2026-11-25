@@ -60,7 +60,9 @@ const MSG_PELO_MENOS_UMA_PLACA =
 
 export const dadosCarregamentoSchema = z
   .object({
-    data: z.string().min(1, 'Informe a data do recebimento.'),
+    data: z.string().min(1, 'Informe a data de chegada.'),
+    // Data em que a carga saiu da origem: obrigatória no recebimento.
+    dataCarregamento: z.string().min(1, 'Informe a data de carregamento.'),
     // Recebimento: a NF é obrigatória (o Pátio tem a nota em mãos). Remetido continua opcional.
     numeroDocumento: z.string().trim().min(1, 'Informe a nota fiscal.').regex(NF_REGEX, MSG_NF_INVALIDA),
     origem: z.string().trim().min(1, 'Informe a origem do material.').transform((v) => v.replace(/\s+/g, ' ').toLocaleUpperCase('pt-BR')),
@@ -76,6 +78,10 @@ export const dadosCarregamentoSchema = z
   .refine((d) => Boolean(d.placaCavalo) || Boolean(d.placaCarreta) || Boolean(d.placaCarreta2), {
     message: MSG_PELO_MENOS_UMA_PLACA,
     path: ['placaCavalo'],
+  })
+  .refine((d) => d.dataCarregamento <= d.data, {
+    message: 'A data de carregamento não pode ser depois da chegada.',
+    path: ['dataCarregamento'],
   });
 
 // Metragem sem limite máximo; normalizada para 2 casas decimais (convenção já usada no protótipo).

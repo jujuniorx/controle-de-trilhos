@@ -43,6 +43,7 @@ function CabecalhoMovimentacoes() {
       <tr>
         <th>Tipo</th>
         <th>Data</th>
+        <th>Carregamento</th>
         <th>NF</th>
         <th>Origem/Destino</th>
         <th>Caminhão</th>
@@ -67,6 +68,13 @@ function LinhaTabela({ mov }: { mov: MovimentacaoRelatorio }) {
           {fmtData(mov.dataMovimentacao)}
           <small>{fmtHora(mov.createdAt)}</small>
         </span>
+      </td>
+      <td data-label="Carregamento">
+        {mov.tipo === 'RECEBIMENTO' ? (
+          mov.dataCarregamento ? fmtData(mov.dataCarregamento) : <span className="text-ink-muted">Não informada</span>
+        ) : (
+          fmtData(mov.dataMovimentacao)
+        )}
       </td>
       <td data-label="NF">{nfsEmTexto(mov) || <span className="badge badge-muted">Em aberto</span>}</td>
       <td data-label="Origem/Destino" className="celula-nome">{normalizarLocal(mov.tipo === 'RECEBIMENTO' ? mov.origem : mov.destino)}</td>
@@ -336,7 +344,7 @@ export default async function RelatoriosPage({
                 ))}
                 {movimentacoes.length === 0 && (
                   <tr>
-                    <td colSpan={8}>
+                    <td colSpan={9}>
                       <EstadoVazio titulo="Nada encontrado" texto="Nenhuma movimentação com esses filtros." />
                     </td>
                   </tr>

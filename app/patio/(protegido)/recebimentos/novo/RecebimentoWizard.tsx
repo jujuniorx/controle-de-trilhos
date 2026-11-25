@@ -54,7 +54,10 @@ interface GrupoLocal {
 }
 
 interface Dados {
+  /** Data de chegada aqui. */
   data: string;
+  /** Data em que a carga saiu da origem. Rascunhos antigos não têm o campo. */
+  dataCarregamento: string;
   numeroDocumento: string;
   origem: string;
   placaCavalo: string;
@@ -161,7 +164,9 @@ const MSG_PELO_MENOS_UMA_PLACA =
 
 function validarDados(d: Dados) {
   const erros: Partial<Record<keyof Dados, string>> = {};
-  if (!d.data) erros.data = 'Informe a data da descarga.';
+  if (!d.data) erros.data = 'Informe a data de chegada.';
+  if (!d.dataCarregamento) erros.dataCarregamento = 'Informe a data de carregamento.';
+  else if (d.data && d.dataCarregamento > d.data) erros.dataCarregamento = 'A data de carregamento não pode ser depois da chegada.';
   if (!d.numeroDocumento.trim()) erros.numeroDocumento = 'Informe a nota fiscal.';
   else if (!NF_REGEX.test(d.numeroDocumento.trim())) erros.numeroDocumento = MSG_NF_INVALIDA;
   if (!d.origem.trim()) erros.origem = 'Informe a origem do material.';
@@ -230,6 +235,7 @@ export function RecebimentoWizard({
   // se ele limpar o campo (a validação então cobra a data, como antes).
   const [dadosBrutos, setDados] = useState<Dados>({
     data: '',
+    dataCarregamento: '',
     numeroDocumento: '',
     origem: '',
     placaCavalo: '',
@@ -268,7 +274,7 @@ export function RecebimentoWizard({
         const r = registro.rascunho;
         setClientId(registro.clientId);
         setStep(r.step);
-        setDados(r.dadosBrutos);
+        setDados({ ...r.dadosBrutos, dataCarregamento: r.dadosBrutos.dataCarregamento ?? '' });
         setDataTocada(r.dataTocada);
         setGrupos(r.grupos);
         setActiveGrupoId(r.activeGrupoId);
@@ -351,7 +357,7 @@ export function RecebimentoWizard({
     setGrupos([]);
     setActiveGrupoId(null);
     setStep(1);
-    setDados({ data: '', numeroDocumento: '', origem: chegada?.origem ?? '', placaCavalo: chegada?.placaCavalo ?? '', placaCarreta: chegada?.placaCarreta ?? '', placaCarreta2: '', transportadora: chegada?.transportadora ?? '', responsavelPatio: '', observacao: '' });
+    setDados({ data: '', dataCarregamento: '', numeroDocumento: '', origem: chegada?.origem ?? '', placaCavalo: chegada?.placaCavalo ?? '', placaCarreta: chegada?.placaCarreta ?? '', placaCarreta2: '', transportadora: chegada?.transportadora ?? '', responsavelPatio: '', observacao: '' });
     setDataTocada(false);
   }
 
@@ -362,7 +368,7 @@ export function RecebimentoWizard({
     if (campos.length > 0) {
       // Num formulário longo o botão fica no rodapé e os erros acima, fora da tela:
       // leva a pessoa até o primeiro campo com problema em vez de só pintar o texto.
-      const id = { data: 'f-data', numeroDocumento: 'f-nf', origem: 'f-origem', placaCavalo: 'f-cavalo', placaCarreta: 'f-carreta', placaCarreta2: 'f-carreta2', responsavelPatio: 'f-resp' }[campos[0]];
+      const id = { dataCarregamento: 'f-data-carregamento', data: 'f-data', numeroDocumento: 'f-nf', origem: 'f-origem', placaCavalo: 'f-cavalo', placaCarreta: 'f-carreta', placaCarreta2: 'f-carreta2', responsavelPatio: 'f-resp' }[campos[0]];
       const alvo = id ? document.getElementById(id) : null;
       alvo?.scrollIntoView({ block: 'center', behavior: 'smooth' });
       (alvo as HTMLInputElement | null)?.focus({ preventScroll: true });
@@ -558,7 +564,19 @@ export function RecebimentoWizard({
       {step === 1 && (
         <section className="space-y-4">
           <div className="field">
-            <label htmlFor="f-data">Data *</label>
+            <label htmlFor="f-data-carregamento">Data de carregamento *</label>
+            <input
+              id="f-data-carregamento"
+              aria-invalid={Boolean(errosDados.dataCarregamento)}
+              type="date"
+              className="h-11"
+              value={dados.dataCarregamento}
+              onChange={(e) => setDados({ ...dados, dataCarregamento: e.target.value })}
+            />
+            {errosDados.dataCarregamento && <p className="erro-campo" role="alert"><IconeAlerta size={18} aria-hidden="true" />{errosDados.dataCarregamento}</p>}
+          </div>
+          <div className="field">
+            <label htmlFor="f-data">Data de chegada *</label>
             <input
               id="f-data"
               aria-invalid={Boolean(errosDados.data)}

@@ -149,6 +149,8 @@ model Movimentacao {
   reservaPedido    String?
   responsavelPatio String?
   dataMovimentacao DateTime?
+  // Recebimento: data em que a carga saiu da origem (a dataMovimentacao é a data de chegada aqui).
+  dataCarregamento DateTime?
   status           StatusMovimentacao @default(PENDENTE_CONFERENCIA)
   createdAt        DateTime           @default(now())
   conferidoPorId   String?

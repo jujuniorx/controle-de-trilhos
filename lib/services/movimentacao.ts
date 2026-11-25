@@ -116,6 +116,7 @@ export async function criarRecebimentoCaminhao(input: RecebimentoCaminhaoInput) 
         responsavelPatio: input.dados.responsavelPatio,
         observacao: input.dados.observacao ?? null,
         dataMovimentacao: new Date(`${input.dados.data}T00:00:00`),
+        dataCarregamento: new Date(`${input.dados.dataCarregamento}T00:00:00`),
       },
     });
 
