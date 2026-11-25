@@ -39,12 +39,17 @@ export interface SituacaoTls {
 }
 
 /**
- * Tira da conta do TLS as barras soldadas a mais (cortadas depois), a partir da última hora com solda.
- * As soldas do dia não mudam; só a contagem do TLS.
+ * Ajuste de barras do Administrativo, só na contagem do TLS (as soldas do dia não mudam):
+ * positivo = barras soldadas a mais (cortadas depois), tiradas a partir da última hora com solda;
+ * negativo = barras soldadas a menos (não contadas), somadas na última hora.
  */
 export function descontarBarras(horas: HoraTls[], barras: number): HoraTls[] {
-  let falta = Math.max(0, Math.floor(barras));
   const copia = horas.map((h) => ({ ...h }));
+  if (barras < 0) {
+    if (copia.length > 0) copia[copia.length - 1].soldas += Math.trunc(-barras);
+    return copia;
+  }
+  let falta = Math.max(0, Math.floor(barras));
   for (let i = copia.length - 1; i >= 0 && falta > 0; i--) {
     const tira = Math.min(copia[i].soldas, falta);
     copia[i].soldas -= tira;
@@ -84,7 +89,7 @@ export interface ConfigTlsForm {
   data?: string;
   horas: string[];
   sobraEntrada: number;
-  /** Barras soldadas a mais neste dia (ajuste do Administrativo), fora da conta do TLS. */
+  /** Ajuste de barras do dia (ajuste do Administrativo): positivo = a mais, negativo = a menos. */
   ajusteTls?: number;
   /** Perfil e fabricante salvos no dia e em cada hora já salva (igual ao que o servidor usa ao gravar). */
   perfilSalvo?: string;

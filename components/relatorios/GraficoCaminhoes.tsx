@@ -81,8 +81,20 @@ export function GraficoCaminhoes({ r, id }: { r: RelatorioSetor; id: string }) {
   const nomeMelhor = iMelhor >= 0 ? nomeCompleto(linhas[iMelhor]) : '—';
   const totalPerda = (r.totais[4] ?? 0) + (r.totais[5] ?? 0);
   const pctPerda = totalProducao > 0 ? (totalPerda / totalProducao) * 100 : 0;
+  // Meta de hoje: a meta de ontem mais 2 soldas por dia (interpolada pelos dias do mês).
+  const hoje = new Date();
+  const pesoAnual = META_PESO_MES.reduce((t, v) => t + v, 0);
+  const metaAte = (data: Date) => {
+    const mes = data.getMonth() + 1;
+    const antes = META_PESO_MES.slice(0, mes - 1).reduce((t, v) => t + v, 0);
+    const fracao = data.getDate() / new Date(Date.UTC(ano, mes, 0)).getUTCDate();
+    return (META_FIM_ANO * (antes + META_PESO_MES[mes - 1] * fracao)) / pesoAnual;
+  };
+  const ontem = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 1);
+  const metaHoje = metaAte(ontem) + 2;
+
   const destaques = [
-    { rotulo: 'Produção no período', valor: `${formatarNumero(totalProducao, 0)} / ${formatarNumero(META_FIM_ANO, 0)}`, unidade: 'und', detalhe: `meta ${formatarNumero(META_FIM_ANO, 0)} · média de ${formatarNumero(media, 0)} por ${mensal ? 'mês' : 'dia'}` },
+    { rotulo: 'Produção no período', valor: `${formatarNumero(totalProducao, 0)} / ${formatarNumero(META_FIM_ANO, 0)}`, unidade: 'und', detalhe: `meta hoje ${formatarNumero(metaHoje, 0)} · média ${formatarNumero(media, 0)} por ${mensal ? 'mês' : 'dia'}` },
     { rotulo: 'Melhor período', valor: nomeMelhor, unidade: '', detalhe: `${formatarNumero(maiorMes, 0)} und` },
     { rotulo: 'Perdas no período', valor: formatarNumero(totalPerda, 0), unidade: 'und', detalhe: `${formatarNumero(pctPerda, 1)}% da produção` },
   ];
@@ -139,17 +151,6 @@ export function GraficoCaminhoes({ r, id }: { r: RelatorioSetor; id: string }) {
     pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
   const ultimoReal = pontosReal.length ? pontosReal[pontosReal.length - 1] : null;
 
-  // Meta acumulada até hoje: interpolada dentro do mês pelos dias corridos.
-  const hoje = new Date();
-  const hojeNoAno = mensal && hoje.getFullYear() === ano;
-  const metaAteHoje = (() => {
-    const mes = hoje.getMonth() + 1;
-    const antes = META_PESO_MES.slice(0, mes - 1).reduce((t, v) => t + v, 0);
-    const fracao = hoje.getDate() / new Date(Date.UTC(ano, mes, 0)).getUTCDate();
-    return (META_FIM_ANO * (antes + META_PESO_MES[mes - 1] * fracao)) / pesoTotal;
-  })();
-  const rotuloHoje = `${String(hoje.getDate()).padStart(2, '0')}/${String(hoje.getMonth() + 1).padStart(2, '0')}`;
-  const xHoje = xDia(diaDoAno(hoje.getMonth() + 1, hoje.getDate()));
 
 
   // Legenda do mapa de calor: 0% até 25% ou mais
@@ -338,28 +339,25 @@ export function GraficoCaminhoes({ r, id }: { r: RelatorioSetor; id: string }) {
 
           {ultimoReal && (
             <g>
-              <rect x={ultimoReal.x - 38} y={ultimoReal.y - 46} width={76} height={32} rx={6} fill={COR_REAL} />
-              <text x={ultimoReal.x} y={ultimoReal.y - 24} fontSize={19} fontWeight={700} textAnchor="middle" fill="#ffffff">
+              <circle cx={ultimoReal.x} cy={ultimoReal.y} r={7} fill={COR_REAL} stroke="#ffffff" strokeWidth={2} />
+              <text x={ultimoReal.x - 16} y={ultimoReal.y - 12} fontSize={18} fontWeight={700} textAnchor="end" fill={COR_REAL}>
                 {formatarNumero(ultimoReal.valor, 0)}
               </text>
             </g>
           )}
 
           {pontosMeta.length > 0 && (
-            <text x={pontosMeta[pontosMeta.length - 1].x} y={pontosMeta[pontosMeta.length - 1].y + 34} fontSize={17} fontWeight={700} textAnchor="end" fill="#b38600">
+            <text x={pontosMeta[pontosMeta.length - 1].x} y={pontosMeta[pontosMeta.length - 1].y - 14} fontSize={17} fontWeight={700} textAnchor="end" fill="#b38600">
               Meta {formatarNumero(META_FIM_ANO, 0)}
             </text>
           )}
 
-          {hojeNoAno && (
-            <g>
-              <circle cx={xHoje} cy={yValor(metaAteHoje)} r={7} fill={COR_META} stroke="#ffffff" strokeWidth={2} />
-              <circle cx={xCurva0 + 14} cy={yValor(520) - 6} r={7} fill={COR_META} />
-              <text x={xCurva0 + 30} y={yValor(520)} fontSize={17} fontWeight={700} fill="#b38600">
-                Meta até {rotuloHoje}: {formatarNumero(metaAteHoje, 0)}
-              </text>
-            </g>
-          )}
+          <g>
+            <circle cx={xCurva0 + 14} cy={yValor(520) - 6} r={7} fill={COR_REAL} />
+            <text x={xCurva0 + 30} y={yValor(520)} fontSize={17} fontWeight={700} fill={COR_REAL}>Real</text>
+            <circle cx={xCurva0 + 90} cy={yValor(520) - 6} r={7} fill={COR_META} />
+            <text x={xCurva0 + 106} y={yValor(520)} fontSize={17} fontWeight={700} fill="#b38600">Meta até {`${String(hoje.getDate()).padStart(2, '0')}/${String(hoje.getMonth() + 1).padStart(2, '0')}`}: {formatarNumero(metaHoje, 0)}</text>
+          </g>
         </g>
       )}
     </svg>

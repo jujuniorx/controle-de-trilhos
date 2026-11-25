@@ -284,18 +284,22 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
 
       {dia && (
         <section className="card so-tela space-y-2">
-          <p className="text-sm font-semibold">Barra soldada a mais</p>
-          <p className="text-xs text-ink-muted">Quando soldam uma barra a mais e ela é cortada depois, informe aqui. Ela sai da conta do TLS; as soldas do dia continuam as mesmas.</p>
+          <p className="text-sm font-semibold">Ajuste de barras</p>
+          <p className="text-xs text-ink-muted">Barra a mais: soldaram e ela foi cortada depois; sai da conta do TLS. Barra a menos: soldada e não contada; entra na conta do TLS. As soldas do dia continuam as mesmas.</p>
           <FormularioUsina acao={ajustarBarrasAction} rotuloBotao="Salvar ajuste">
             <input type="hidden" name="data" value={dataTexto} />
-            <div className="grid gap-3 sm:grid-cols-[8rem_1fr]">
+            <div className="grid gap-3 sm:grid-cols-[8rem_8rem_1fr]">
               <label className="space-y-1 text-sm">
                 <span className="text-ink-muted">Barras a mais</span>
-                <input name="barras" inputMode="numeric" defaultValue={dia.ajusteTls || ''} placeholder="0" className="h-11 w-full" />
+                <input name="mais" inputMode="numeric" defaultValue={dia.ajusteTls > 0 ? dia.ajusteTls : ''} placeholder="0" className="h-11 w-full" />
+              </label>
+              <label className="space-y-1 text-sm">
+                <span className="text-ink-muted">Barras a menos</span>
+                <input name="menos" inputMode="numeric" defaultValue={dia.ajusteTls < 0 ? -dia.ajusteTls : ''} placeholder="0" className="h-11 w-full" />
               </label>
               <label className="space-y-1 text-sm">
                 <span className="text-ink-muted">Motivo</span>
-                <input name="motivo" defaultValue={dia.ajusteTlsMotivo ?? ''} maxLength={200} placeholder="Ex.: soldaram 1 barra a mais, cortada depois" className="h-11 w-full" />
+                <input name="motivo" defaultValue={dia.ajusteTlsMotivo ?? ''} maxLength={200} placeholder="Ex.: soldaram 1 barra a menos, não contada" className="h-11 w-full" />
               </label>
             </div>
           </FormularioUsina>
