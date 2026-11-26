@@ -69,14 +69,14 @@ describe('conferenciaSap', () => {
     expect(b.diferenca).toBeCloseTo(2014.829, 2);
   });
   it('sem valor do SAP fica "sem SAP"', () => {
-    expect(conferenciaSap(saldos, {}).find((x) => x.item === 'TLS_UIC60')).toMatchObject({ situacao: 'sem-sap' });
+    expect(conferenciaSap(saldos, {}).find((x) => x.item === 'TLS_TR60')).toMatchObject({ situacao: 'sem-sap' });
   });
   it('barras do UIC60 entram no total de barras do TR60, como na planilha', () => {
     const uic: Saldo = { secao: 'NOVO', perfil: 'UIC60', tipo: 'BARRA', fabricante: null, classe: 'NORMAL', metros: 796.47, unidades: null };
     const antes = conferenciaSap(saldos, sap).find((x) => x.item === 'BARRAS_TR60')!.sistemaMetros;
     const b = conferenciaSap([...saldos, uic], sap).find((x) => x.item === 'BARRAS_TR60')!;
     expect(b.sistemaMetros).toBeCloseTo(antes + 796.47, 2);
-    expect(conferenciaSap([...saldos, uic], sap).some((x) => (x.item as string) === 'BARRAS_UIC60')).toBe(false);
+    expect(conferenciaSap([...saldos, uic], sap).some((x) => (x.item as string) === 'BARRAS_UIC60' || (x.item as string) === 'TLS_UIC60')).toBe(false);
   });
 });
 

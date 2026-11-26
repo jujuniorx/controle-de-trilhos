@@ -5,7 +5,7 @@ import { CORTE_SALDO_INICIAL, somarSaldos, type Lancamento, type OrigemTipo, typ
 import { respostaTlsDaLinha } from '@/lib/services/producao';
 
 /** Itens da conferência com o SAP (toneladas, somando as malhas MP + MN + FIPS). */
-export const ITENS_SAP = ['TLS_TR60', 'TLS_TR68', 'TLS_UIC60', 'BARRAS_TR60', 'BARRAS_TR68'] as const;
+export const ITENS_SAP = ['TLS_TR60', 'TLS_TR68', 'BARRAS_TR60', 'BARRAS_TR68'] as const;
 export type ItemSap = (typeof ITENS_SAP)[number];
 
 export interface EstoqueTrilhos {

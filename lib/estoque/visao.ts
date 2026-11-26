@@ -153,7 +153,6 @@ export interface LinhaSap {
 const ITENS: { item: ItemSap; perfil: string; tipo: 'TLS' | 'BARRAS' }[] = [
   { item: 'TLS_TR60', perfil: 'TR60', tipo: 'TLS' },
   { item: 'TLS_TR68', perfil: 'TR68', tipo: 'TLS' },
-  { item: 'TLS_UIC60', perfil: 'UIC60', tipo: 'TLS' },
   { item: 'BARRAS_TR60', perfil: 'TR60', tipo: 'BARRAS' },
   { item: 'BARRAS_TR68', perfil: 'TR68', tipo: 'BARRAS' },
 ];
