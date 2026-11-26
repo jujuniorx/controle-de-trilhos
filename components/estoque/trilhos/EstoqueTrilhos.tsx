@@ -3,7 +3,7 @@ import { FormularioUsina } from '@/components/usina/FormularioUsina';
 import { IconeBaixar } from '@/components/icones/Icones';
 import { ajustarSaldoTrilhoAction, carregarSaldoInicialAction } from '@/app/admin/(protegido)/estoque/trilhos-actions';
 import { montarEstoqueTrilhos } from '@/lib/services/estoqueTrilhos';
-import { ORDEM_PERFIS } from '@/lib/estoque/trilhos';
+import { ORDEM_PERFIS, saldosAte } from '@/lib/estoque/trilhos';
 import { conferenciaSap } from '@/lib/estoque/visao';
 import { ChaveVista } from './ChaveVista';
 import { DetalhadoTrilhos, type AbaDetalhado, type ModoTabela } from './DetalhadoTrilhos';
@@ -184,7 +184,7 @@ export async function EstoqueTrilhos({ params }: { params: ParamsTrilhos }) {
       {vista === 'resumo' ? (
         <ResumoTrilhos saldos={estoque.saldos} lancamentos={estoque.lancamentos} />
       ) : (
-        <DetalhadoTrilhos saldos={estoque.saldos} lancamentos={estoque.lancamentos} sap={estoque.sap} aba={aba} modo={modo} de={ini} ate={fim} href={href} />
+        <DetalhadoTrilhos saldos={saldosAte(estoque.lancamentos, fim)} lancamentos={estoque.lancamentos} sap={estoque.sap} aba={aba} modo={modo} de={ini} ate={fim} href={href} />
       )}
     </div>
   );

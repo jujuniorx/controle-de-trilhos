@@ -129,6 +129,11 @@ function compararPosicao(a: Posicao, b: Posicao): number {
 
 const arred = (n: number) => Math.round(n * 1000) / 1000;
 
+/** Saldo de cada linha no fim do dia `ate` (yyyy-mm-dd). */
+export function saldosAte(lancamentos: Lancamento[], ate: string): Saldo[] {
+  return somarSaldos(lancamentos.filter((l) => l.data <= ate));
+}
+
 export function somarSaldos(lancamentos: Lancamento[]): Saldo[] {
   const porChave = new Map<string, Saldo>();
   for (const l of lancamentos) {

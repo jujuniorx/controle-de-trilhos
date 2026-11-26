@@ -57,11 +57,11 @@ function CelulasNovo({ c }: { c: ColunasNovo }) {
   );
 }
 
-function ChaveModo({ modo, href }: { modo: ModoTabela; href: Props['href'] }) {
+function ChaveModo({ modo, href, ate }: { modo: ModoTabela; href: Props['href']; ate: string }) {
   return (
     <nav className="etr-modo" aria-label="Saldo ou movimento do período">
       <a href={href({ modo: 'saldo' })} aria-current={modo === 'saldo' ? 'page' : undefined}>
-        Saldo
+        Saldo em {dataBr(ate).slice(0, 5)}
       </a>
       <a href={href({ modo: 'movimento' })} aria-current={modo === 'movimento' ? 'page' : undefined}>
         Movimento do período
@@ -135,7 +135,7 @@ function AbaNovoReemprego({ saldos, lancamentos, modo, de, ate, href }: Props) {
             <div className="etr-card-tit">Trilhos longos soldados (TLS) e barras curtas · novo</div>
             <div className="etr-card-ex">Como as linhas 3 a 19 da aba &quot;Estoque Novo e Reemprego&quot;. Metros.</div>
           </div>
-          <ChaveModo modo={modo} href={href} />
+          <ChaveModo modo={modo} href={href} ate={ate} />
         </div>
         {modo === 'movimento' ? (
           <TabelaMovimento saldos={saldos} lancamentos={lancamentos} secoes={['NOVO']} de={de} ate={ate} />
@@ -198,7 +198,7 @@ function AbaNovoReemprego({ saldos, lancamentos, modo, de, ate, href }: Props) {
             <div className="etr-card-tit">Reemprego</div>
             <div className="etr-card-ex">Como as linhas 29 a 43. Metros. O TLS de reemprego usa só o G1 (312 m).</div>
           </div>
-          <ChaveModo modo={modo} href={href} />
+          <ChaveModo modo={modo} href={href} ate={ate} />
         </div>
         {modo === 'movimento' ? (
           <TabelaMovimento saldos={saldos} lancamentos={lancamentos} secoes={['REEMPREGO']} de={de} ate={ate} />
@@ -259,7 +259,7 @@ function AbaSucata({ saldos, lancamentos, modo, de, ate, href }: Props) {
           <div className="etr-card-tit">Sucata</div>
           <div className="etr-card-ex">Como a aba &quot;Estoque sucata&quot;. Toneladas já com 5% de desgaste.</div>
         </div>
-        <ChaveModo modo={modo} href={href} />
+        <ChaveModo modo={modo} href={href} ate={ate} />
       </div>
       <div className="etr-resumos">
         {resumo.map((r) => (

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   chavePosicao,
   movimentoDoPeriodo,
+  saldosAte,
   normalizarFabricante,
   somarSaldos,
   tlsPossiveisPorFabricante,
@@ -92,5 +93,16 @@ describe('tlsPossiveisPorFabricante', () => {
       'TR60',
     );
     expect(r).toHaveLength(0);
+  });
+});
+
+describe('saldosAte', () => {
+  it('conta só os lançamentos até a data: com Até 25/11, a produção de 26/11 fica de fora', () => {
+    const l = [
+      { ...lanc(LISA_TR60_PANGANG, '2026-11-25', 1000), origemTipo: 'SALDO_INICIAL' as const },
+      lanc(LISA_TR60_PANGANG, '2026-11-26', -264),
+    ];
+    expect(saldosAte(l, '2026-11-25')[0]?.metros).toBe(1000);
+    expect(saldosAte(l, '2026-11-26')[0]?.metros).toBe(736);
   });
 });
