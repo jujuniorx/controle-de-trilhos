@@ -340,7 +340,11 @@ export async function salvarTrilheirosSemanaAction(_: ResultadoUsina | undefined
   const lancamentos: { data: string; trilheiro: (typeof TRILHEIROS)[number]; v: { boEm: string | null; partidaEm: string | null; local: string | null; descarregadas: number | null; total: number | null; programacao: string | null; observacao: string | null } }[] = [];
   for (const d of dias) {
     for (const t of TRILHEIROS) {
-      const descarregadas = inteiro(formData.get(`desc_${t}_${d.data}`));
+      const lida = inteiro(formData.get(`desc_${t}_${d.data}`));
+      // Número que só veio do dia anterior e não foi mexido não vira lançamento do dia: o relatório já usa o último
+      // número do giro, e assim uma troca de B.O. (giro novo) não leva as barras do giro antigo junto.
+      const herdada = d.trilheiros[t];
+      const descarregadas = herdada.descarregadasHerdada && lida === herdada.descarregadas ? null : lida;
       const total = inteiro(formData.get(`total_${t}_${d.data}`));
       if (total === 'invalido' || descarregadas === 'invalido') return { ok: false, erro: 'Use só números inteiros nas barras.' };
       if (total !== null && descarregadas !== null && descarregadas > total) {

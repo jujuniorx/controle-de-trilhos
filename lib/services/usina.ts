@@ -560,25 +560,54 @@ export const BARRAS_POR_TRILHEIRO = 40;
 export async function trilheirosDaSemana(semana: string) {
   const fim = somarDias(semana, 6);
   const linhas = await prisma.trilheiroDia.findMany({ where: { data: { gte: dataBanco(semana), lte: dataBanco(fim) } } });
-  // Último lançamento de cada trilheiro antes da semana: o dia a dia continua a partir dele (B.O., partida, local, barras).
-  const anteriores = await Promise.all(
-    TRILHEIROS.map((t) => prisma.trilheiroDia.findFirst({ where: { trilheiro: t, data: { lt: dataBanco(semana) } }, orderBy: { data: 'desc' } })),
-  );
-  const anteriorDe = Object.fromEntries(TRILHEIROS.map((t, i) => [t, anteriores[i] ?? null]));
+  // Último lançamento de cada trilheiro antes da semana (B.O., partida, local, total) e o último com barras descarregadas.
+  const [anteriores, anterioresComBarras] = await Promise.all([
+    Promise.all(TRILHEIROS.map((t) => prisma.trilheiroDia.findFirst({ where: { trilheiro: t, data: { lt: dataBanco(semana) } }, orderBy: { data: 'desc' } }))),
+    Promise.all(
+      TRILHEIROS.map((t) =>
+        prisma.trilheiroDia.findFirst({ where: { trilheiro: t, data: { lt: dataBanco(semana) }, descarregadas: { not: null } }, orderBy: { data: 'desc' } }),
+      ),
+    ),
+  ]);
+  // Estado que corre dia a dia: o último lançamento até o dia e as últimas barras descarregadas (com o B.O. do giro delas).
+  const ultimo = Object.fromEntries(TRILHEIROS.map((t, i) => [t, anteriores[i] ?? null]));
+  const ultimasBarras = Object.fromEntries(
+    TRILHEIROS.map((t, i) => {
+      const r = anterioresComBarras[i];
+      return [t, r ? { valor: r.descarregadas as number, bo: iso(r.boEm) } : null];
+    }),
+  ) as Record<(typeof TRILHEIROS)[number], { valor: number; bo: string | null } | null>;
   return [0, 1, 2, 3, 4, 5, 6].map((i) => {
     const d = somarDias(semana, i);
     const trilheiros = Object.fromEntries(
       TRILHEIROS.map((t) => {
         const r = linhas.find((x) => iso(x.data) === d && x.trilheiro === t);
-        // Dia sem lançamento: mostra o que valia na última semana, para só preencher o que mudou.
-        const base = r ?? anteriorDe[t];
+        // Dia sem lançamento: mostra o que valia no último dia lançado, para só preencher o que mudou.
+        const base = r ?? ultimo[t];
+        if (r) ultimo[t] = r;
+        // Barras descarregadas são o acumulado do giro: o dia sem número próprio abre com o último número do mesmo giro
+        // (mesmo B.O.). Giro novo (B.O. diferente) abre vazio.
+        let descarregadas: number | null = null;
+        let descarregadasHerdada = false;
+        if (r?.descarregadas != null) {
+          descarregadas = r.descarregadas;
+          ultimasBarras[t] = { valor: r.descarregadas, bo: iso(r.boEm) };
+        } else {
+          const ult = ultimasBarras[t];
+          if (ult && ult.bo === iso(base?.boEm)) {
+            descarregadas = ult.valor;
+            descarregadasHerdada = true;
+          }
+        }
         return [
           t,
           {
             boEm: iso(base?.boEm),
             partidaEm: iso(base?.partidaEm),
             local: base?.local ?? null,
-            descarregadas: r?.descarregadas ?? null,
+            descarregadas,
+            /** true quando o número veio de um dia anterior (o dia não tem lançamento próprio de barras). */
+            descarregadasHerdada,
             total: base?.total ?? null,
             programacao: base?.programacao ?? null,
             // A observação é só do dia: nunca herda do registro anterior (senão a semana inteira regrava o mesmo texto).
