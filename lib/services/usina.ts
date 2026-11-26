@@ -709,3 +709,55 @@ export async function totaisDoAnoAte(data: string) {
     caminhoes: CAMINHOES_ATIVOS.map((c) => ({ caminhao: c, soldas: producaoCaminhao(c) })),
   };
 }
+
+// ---------- TLS carregados no B.O. do trilheiro (saem do estoque de TLS) ----------
+
+export interface CargaTrilheiro {
+  id: string;
+  trilheiro: string;
+  boEm: string;
+  perfil: string;
+  reemprego: boolean;
+  fabricante: string | null;
+  quantidade: number;
+}
+
+/** TLS carregados no B.O. de um trilheiro, por perfil e fabricante. */
+export async function listarCargasDoBo(trilheiro: (typeof TRILHEIROS)[number], boEm: string): Promise<CargaTrilheiro[]> {
+  const linhas = await prisma.trilheiroCarga.findMany({
+    where: { trilheiro, boEm: new Date(`${boEm}T00:00:00Z`) },
+    orderBy: { criadoEm: 'asc' },
+  });
+  return linhas.map((l) => ({ id: l.id, trilheiro: l.trilheiro, boEm, perfil: l.perfil, reemprego: l.reemprego, fabricante: l.fabricante, quantidade: l.quantidade }));
+}
+
+/** Substitui os TLS carregados do B.O. pelo que veio do formulário. */
+export async function salvarCargasDoBo(
+  trilheiro: (typeof TRILHEIROS)[number],
+  boEm: string,
+  linhas: { perfil: string; reemprego: boolean; fabricante: string | null; quantidade: number }[],
+): Promise<void> {
+  const data = new Date(`${boEm}T00:00:00Z`);
+  await prisma.$transaction([
+    prisma.trilheiroCarga.deleteMany({ where: { trilheiro, boEm: data } }),
+    prisma.trilheiroCarga.createMany({
+      data: linhas.map((l) => ({ trilheiro, boEm: data, perfil: l.perfil, reemprego: l.reemprego, fabricante: l.reemprego ? null : l.fabricante, quantidade: l.quantidade })),
+    }),
+  ]);
+}
+
+/** Cargas de vários B.O.s de uma vez (para a tela da semana). Chave: "<trilheiro>|<boEm>". */
+export async function cargasDosBos(pares: { trilheiro: (typeof TRILHEIROS)[number]; boEm: string }[]): Promise<Record<string, CargaTrilheiro[]>> {
+  const validos = pares.filter((p) => /^\d{4}-\d{2}-\d{2}$/.test(p.boEm));
+  if (validos.length === 0) return {};
+  const linhas = await prisma.trilheiroCarga.findMany({
+    where: { OR: validos.map((p) => ({ trilheiro: p.trilheiro, boEm: new Date(`${p.boEm}T00:00:00Z`) })) },
+    orderBy: { criadoEm: 'asc' },
+  });
+  const porChave: Record<string, CargaTrilheiro[]> = {};
+  for (const l of linhas) {
+    const boEm = l.boEm.toISOString().slice(0, 10);
+    (porChave[`${l.trilheiro}|${boEm}`] ??= []).push({ id: l.id, trilheiro: l.trilheiro, boEm, perfil: l.perfil, reemprego: l.reemprego, fabricante: l.fabricante, quantidade: l.quantidade });
+  }
+  return porChave;
+}

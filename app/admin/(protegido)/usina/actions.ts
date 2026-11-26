@@ -4,8 +4,9 @@ import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { salvarEstaleiroDia, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, geracaoDaSemana, salvarGeracaoDia, salvarEstoqueTlsMalhas, salvarBarrasCurtasMalhas, salvarManutencaoSemana, salvarEscalaSemana, TIPOS_TLS, MALHAS_TLS, type TipoTlsValor, type MalhaTlsValor } from '@/lib/services/usina';
 import { ITENS_ESCALA, escalaVazia, gravarEscala, statusValido, cfgDeObjeto } from '@/lib/usina/escala';
-import { salvarComposicao, salvarComposicoesDias, salvarCaminhao, salvarGiro, trilheirosDaSemana, salvarTrilheirosDias, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, salvarNomeEquipe, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
+import { salvarComposicao, salvarComposicoesDias, salvarCaminhao, salvarGiro, trilheirosDaSemana, salvarTrilheirosDias, salvarManutencaoTrilheiro, apagarGiroTrilheiro, apagarManutencaoTrilheiro, zerarTrilheiro, salvarCargasDoBo, LIDERES, COMPOSICOES, CAMINHOES_ATIVOS, salvarNomeEquipe, TRILHEIROS, type LiderValor, type CarretaGeracaoValor } from '@/lib/services/usina';
 import { PERFIS } from '@/lib/validation/recebimento';
+import { lerCargasTrilheiro, type LinhaCarga } from '@/lib/estoque/cargasTrilheiro';
 import { ehIsoValido } from '@/lib/usina/periodo';
 import { salvarObservacaoSetor } from '@/lib/services/observacaoSetor';
 import { somarDias } from '@/lib/usina/diasUteis';
@@ -336,6 +337,20 @@ export async function salvarTrilheirosSemanaAction(_: ResultadoUsina | undefined
     };
   }
 
+  // TLS carregados no B.O. (por perfil e fabricante): saem do estoque de TLS.
+  const cargas: { trilheiro: (typeof TRILHEIROS)[number]; bo: string; linhas: LinhaCarga[] }[] = [];
+  for (const t of TRILHEIROS) {
+    if (formData.get(`cargas_${t}_n`) == null) continue;
+    const lidas = lerCargasTrilheiro(formData, t);
+    if (!lidas.ok) return { ok: false, erro: lidas.erro };
+    const bo = porTrilheiro[t].bo;
+    if (!bo) {
+      if (lidas.linhas.length > 0) return { ok: false, erro: `${t}: preencha a data do B.O. antes dos TLS carregados.` };
+      continue;
+    }
+    cargas.push({ trilheiro: t, bo, linhas: lidas.linhas });
+  }
+
   // Valida tudo antes de gravar.
   const lancamentos: { data: string; trilheiro: (typeof TRILHEIROS)[number]; v: { boEm: string | null; partidaEm: string | null; local: string | null; descarregadas: number | null; total: number | null; programacao: string | null; observacao: string | null } }[] = [];
   for (const d of dias) {
@@ -368,7 +383,9 @@ export async function salvarTrilheirosSemanaAction(_: ResultadoUsina | undefined
     }
   }
   await salvarTrilheirosDias(lancamentos);
+  for (const c of cargas) await salvarCargasDoBo(c.trilheiro, c.bo, c.linhas);
   atualizar();
+  revalidatePath('/admin/estoque');
   return { ok: true };
 }
 
