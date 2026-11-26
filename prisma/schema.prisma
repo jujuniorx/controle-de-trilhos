@@ -62,6 +62,11 @@ enum TipoMaterial {
   SUCATA
 }
 
+enum FormaNovo {
+  LISA
+  TALA
+}
+
 enum ClassificacaoReemprego {
   G1
   G2
@@ -216,6 +221,8 @@ model Grupo {
   pesoCalculado  Decimal?
   pesoInformado  Decimal?
   tampao         Boolean                 @default(false)
+  // Trilho novo: barra lisa ou tala (com furos). Obrigatória no envio de novo e na chegada de vagão.
+  formaNovo      FormaNovo?
 
   medicoes Medicao[]
   anexos   Anexo[]
@@ -743,4 +750,47 @@ model EstoqueMovimento {
   criadoEm    DateTime        @default(now())
 
   @@index([materialId, criadoEm])
+}
+
+// Estoque de trilhos: só o saldo inicial (planilha de 25/11/2026) e os ajustes do admin ficam gravados.
+// Recebimentos, envios, Produção e cargas dos trilheiros entram calculados na hora (lib/estoque/derivacoes.ts).
+model EstoqueTrilhoLancamento {
+  id          String   @id @default(cuid())
+  data        DateTime @db.Date
+  secao       String // NOVO | REEMPREGO | SUCATA
+  perfil      String
+  tipo        String // TLS | LISA | TALA | CURTA12 | MENOR12 | BARRA
+  fabricante  String?
+  classe      String // NORMAL | 21M | TORCIDO | TESTE | G1 | G2 | G3 | TLS | SC1 | SC2 | SC3
+  metros      Decimal  @db.Decimal(14, 3)
+  unidades    Int?
+  origemTipo  String // SALDO_INICIAL | AJUSTE
+  motivo      String?
+  responsavel String
+  criadoEm    DateTime @default(now())
+
+  @@index([origemTipo])
+}
+
+// TLS que o trilheiro levou num B.O., por perfil e marca (reemprego sem marca).
+model TrilheiroCarga {
+  id           String       @id @default(cuid())
+  trilheiro    TrilheiroCod
+  boEm         DateTime     @db.Date
+  perfil       String
+  reemprego    Boolean      @default(false)
+  fabricante   String?
+  quantidade   Int
+  criadoEm     DateTime     @default(now())
+  atualizadoEm DateTime     @updatedAt
+
+  @@index([trilheiro, boEm])
+}
+
+// Valores do SAP digitados para conferir o estoque de trilhos (toneladas, total das malhas MP + MN + FIPS).
+model EstoqueSapValor {
+  item         String   @id // TLS_TR60 | TLS_TR68 | TLS_UIC60 | BARRAS_TR60 | BARRAS_TR68 | BARRAS_UIC60
+  toneladas    Decimal  @db.Decimal(12, 3)
+  responsavel  String
+  atualizadoEm DateTime @updatedAt
 }
