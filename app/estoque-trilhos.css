@@ -135,3 +135,21 @@
 .etr-parado { margin-top: 10px; padding-top: 4px; border-top: 1px solid var(--line); }
 .etr-parado p:not(.etr-fabs-tit) { margin: 4px 0 0; font-size: 13px; color: var(--ink-muted); }
 .etr-parado b { display: inline-block; min-width: 44px; color: var(--ink); font-weight: 700; }
+/* Movimentos por dia */
+.etr-mv { display: grid; gap: 14px; }
+.etr-mv-dia h3 { margin: 0 0 6px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-muted); }
+.etr-mv-dia ul { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line-2); border-radius: 12px; overflow: hidden; }
+.etr-mv-dia li + li { border-top: 1px solid var(--line); }
+.etr-mv-dia li > a, .etr-mv-dia li > div { display: grid; grid-template-columns: minmax(130px, 240px) minmax(0, 1fr) minmax(0, 1fr) 16px; gap: 6px 16px; align-items: baseline; padding: 11px 16px; color: inherit; text-decoration: none; font-size: 13.5px; }
+.etr-mv-dia li > a:hover { background: var(--surface-2); }
+.etr-mv-tipo { font-weight: 700; color: var(--ink); background: none; }
+.etr-mv-tipo.etr-ic-PRODUCAO, .etr-mv-tipo.etr-ic-RECEBIMENTO, .etr-mv-tipo.etr-ic-REMETIDO, .etr-mv-tipo.etr-ic-TRILHEIRO, .etr-mv-tipo.etr-ic-AJUSTE { color: var(--ink); }
+.etr-mv-principal small { display: block; margin-top: 2px; font-size: 12px; font-weight: 500; color: var(--ink-dim); }
+.etr-mv-consumo { text-align: right; }
+.etr-mv-discreto { font-weight: 600; opacity: .85; }
+.etr-mv-seta { color: var(--ink-dim); font-size: 18px; line-height: 1; text-align: right; }
+@media (max-width: 720px) {
+  .etr-mv-dia li > a, .etr-mv-dia li > div { grid-template-columns: minmax(0, 1fr) 16px; }
+  .etr-mv-tipo, .etr-mv-principal, .etr-mv-consumo { grid-column: 1; text-align: left; }
+  .etr-mv-seta { grid-column: 2; grid-row: 1; }
+}
