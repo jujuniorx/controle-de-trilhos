@@ -174,7 +174,7 @@ export async function EstoqueTrilhos({ params }: { params: ParamsTrilhos }) {
         </div>
         <div className="etr-acoes">
           <ChaveVista vista={vista} />
-          <a href={`/api/estoque/trilhos/pdf?de=${ini}&ate=${fim}`} className="btn btn-ghost h-11 inline-flex items-center gap-2">
+          <a href="/api/estoque/trilhos/pdf" className="btn btn-ghost h-11 inline-flex items-center gap-2">
             <IconeBaixar size={16} />
             Baixar PDF
           </a>
