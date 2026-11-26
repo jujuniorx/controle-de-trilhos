@@ -156,13 +156,16 @@ const ITENS: { item: ItemSap; perfil: string; tipo: 'TLS' | 'BARRAS' }[] = [
   { item: 'TLS_UIC60', perfil: 'UIC60', tipo: 'TLS' },
   { item: 'BARRAS_TR60', perfil: 'TR60', tipo: 'BARRAS' },
   { item: 'BARRAS_TR68', perfil: 'TR68', tipo: 'BARRAS' },
-  { item: 'BARRAS_UIC60', perfil: 'UIC60', tipo: 'BARRAS' },
 ];
+
+/** Como na planilha, as barras do UIC60 entram no total de barras do TR60 (linha "Total TR60"). */
+const PERFIS_NAS_BARRAS: Record<string, string[]> = { TR60: ['TR60', 'UIC60'] };
 
 /** Conferência com o SAP, como as linhas 22 a 26 da planilha (total das malhas). */
 export function conferenciaSap(saldos: Saldo[], sap: Partial<Record<ItemSap, number>>): LinhaSap[] {
   return ITENS.map(({ item, perfil, tipo }) => {
-    const novo = saldos.filter((s) => s.secao === 'NOVO' && s.perfil === perfil && (tipo === 'TLS' ? s.tipo === 'TLS' : s.tipo !== 'TLS'));
+    const perfis = tipo === 'BARRAS' ? (PERFIS_NAS_BARRAS[perfil] ?? [perfil]) : [perfil];
+    const novo = saldos.filter((s) => s.secao === 'NOVO' && perfis.includes(s.perfil) && (tipo === 'TLS' ? s.tipo === 'TLS' : s.tipo !== 'TLS'));
     const metros = arred(novo.reduce((t, s) => t + s.metros, 0));
     const unidades = tipo === 'TLS' ? novo.reduce((t, s) => t + (s.unidades ?? 0), 0) : null;
     const fator = fatorPerfil(perfil);
