@@ -65,6 +65,11 @@ describe('movimentoDoPeriodo', () => {
     ];
     expect(movimentoDoPeriodo(l, chavePosicao(LISA_TR60_PANGANG), '2026-11-26', '2026-11-27')).toEqual({ anterior: 100, entradas: 50, saidas: 20, saldo: 130 });
   });
+
+  it('o saldo inicial da planilha é sempre saldo anterior, nunca entrada', () => {
+    const l = [{ ...lanc(LISA_TR60_PANGANG, '2026-11-25', 100), origemTipo: 'SALDO_INICIAL' as const }, lanc(LISA_TR60_PANGANG, '2026-11-26', -10)];
+    expect(movimentoDoPeriodo(l, chavePosicao(LISA_TR60_PANGANG), '2026-11-01', '2026-11-26')).toEqual({ anterior: 100, entradas: 0, saidas: 10, saldo: 90 });
+  });
 });
 
 describe('tlsPossiveisPorFabricante', () => {

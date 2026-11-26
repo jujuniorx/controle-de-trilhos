@@ -7,6 +7,7 @@ import { COR_APP, TEMA_COOKIE, TEMA_PADRAO, iconesDoTema, temaValido } from "@/l
 import "./globals.css";
 // Camada final dos temas (referencias visuais): precisa vir depois do globals.css.
 import "./temas.css";
+import "./estoque-trilhos.css";
 
 const barlow = Barlow({
   variable: "--font-barlow",

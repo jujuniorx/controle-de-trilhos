@@ -167,7 +167,7 @@ export function movimentoDoPeriodo(lancamentos: Lancamento[], chave: string, de:
   for (const l of lancamentos) {
     if (chavePosicao(l) !== chave || l.data > ate) continue;
     const v = l.tipo === 'TLS' ? l.unidades ?? 0 : l.metros;
-    if (l.data < de) anterior += v;
+    if (l.data < de || l.origemTipo === 'SALDO_INICIAL') anterior += v;
     else if (v >= 0) entradas += v;
     else saidas += -v;
   }

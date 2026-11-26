@@ -1,6 +1,6 @@
 import { AbasEstoque } from '@/components/estoque/AbasEstoque';
 import { ResumoEstoque } from '@/components/estoque/ResumoEstoque';
-import { TrilhosEstoque } from '@/components/estoque/TrilhosEstoque';
+import { EstoqueTrilhos } from '@/components/estoque/trilhos/EstoqueTrilhos';
 import { AlmoxarifadoEstoque } from '@/components/estoque/AlmoxarifadoEstoque';
 import { MetrologiaEstoque } from '@/components/estoque/MetrologiaEstoque';
 import { OleoEstoque } from '@/components/estoque/OleoEstoque';
@@ -17,11 +17,12 @@ const CURTO_AREA: Record<string, string> = {
   [AREA_OLEO]: 'Óleo',
 };
 
-type Busca = { area?: string; q?: string; cat?: string; prateleira?: string; filtro?: string };
+type Busca = { area?: string; q?: string; cat?: string; prateleira?: string; filtro?: string; vista?: string; aba?: string; modo?: string; de?: string; ate?: string };
 
 /** Estoque com abas: Resumo e as áreas (Trilhos, Almoxarifado, Metrologia e Materiais, Sala de Óleo). */
 export default async function EstoquePage({ searchParams }: { searchParams: Promise<Busca> }) {
-  const { area, q = '', cat = '', prateleira = '', filtro = '' } = await searchParams;
+  const busca = await searchParams;
+  const { area, q = '', prateleira = '', filtro = '' } = busca;
   const areas = await listarAreasEstoque();
   // "trilhos" é o endereço antigo da aba de Trilhos.
   const idArea = area === 'trilhos' ? AREA_TRILHOS : area;
@@ -29,7 +30,7 @@ export default async function EstoquePage({ searchParams }: { searchParams: Prom
 
   let conteudo;
   if (!areaAtual) conteudo = <ResumoEstoque />;
-  else if (areaAtual.id === AREA_TRILHOS) conteudo = <TrilhosEstoque busca={q} cat={cat} />;
+  else if (areaAtual.id === AREA_TRILHOS) conteudo = <EstoqueTrilhos params={{ vista: busca.vista, aba: busca.aba, modo: busca.modo, de: busca.de, ate: busca.ate }} />;
   else if (areaAtual.id === AREA_METROLOGIA) conteudo = <MetrologiaEstoque areaId={areaAtual.id} nomeArea={areaAtual.nome} filtro={filtro} />;
   else if (areaAtual.id === AREA_OLEO) conteudo = <OleoEstoque areaId={areaAtual.id} nomeArea={areaAtual.nome} />;
   else conteudo = <AlmoxarifadoEstoque areaId={areaAtual.id} nomeArea={areaAtual.nome} busca={q} prateleira={prateleira} />;

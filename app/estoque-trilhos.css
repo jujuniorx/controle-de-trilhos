@@ -1,0 +1,128 @@
+/* Estoque de trilhos (aba Trilhos do Estoque): resumo e detalhado. Usa os tokens do tema (claro e escuro). */
+.etr { display: flex; flex-direction: column; gap: 22px; }
+.etr-cab { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.etr-titulo { font-family: var(--font-condensed, "Barlow Condensed"), "Arial Narrow", sans-serif; font-size: 32px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; line-height: 1.05; margin: 0; }
+.etr-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 6px; font-size: 14px; color: var(--ink-muted); }
+.etr-atual { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; color: var(--ink); font-weight: 600; }
+.etr-atual::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ok) 18%, transparent); }
+.etr-selo { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 12.5px; font-weight: 700; padding: 5px 11px; border-radius: 999px; }
+.etr-selo-ok { background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--ok); }
+.etr-selo-av { background: color-mix(in srgb, var(--warn) 15%, transparent); color: var(--warn); }
+.etr-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.etr-chave { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--line-2); border-radius: 11px; background: var(--surface); }
+.etr-chave a { white-space: nowrap; padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 13px; color: var(--ink-muted); text-decoration: none; }
+.etr-chave a[aria-current="page"] { background: var(--ink); color: var(--background); }
+.etr-h2 { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-muted); }
+.etr-secao { display: flex; flex-direction: column; gap: 12px; }
+
+/* Resumo: cartões de solda */
+.etr-solda { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 18px; }
+.etr-perfil { background: var(--surface); border: 1px solid var(--line-2); border-radius: 16px; padding: 20px 22px; }
+.etr-perfil-topo { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.etr-perfil-topo b { font-family: var(--font-condensed, "Barlow Condensed"), "Arial Narrow", sans-serif; font-size: 30px; letter-spacing: .03em; }
+.etr-perfil-topo span { color: var(--ink-muted); font-size: 13px; }
+.etr-grandes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+.etr-grande { background: var(--surface-2); border-radius: 12px; padding: 14px 16px; }
+.etr-grande b { display: block; font-size: 44px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.etr-grande span { display: block; margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--ink-muted); }
+.etr-grande-forma b { color: var(--primary); }
+.etr-trava { display: flex; align-items: flex-start; gap: 8px; margin-top: 12px; font-size: 13px; font-weight: 600; color: var(--warn); }
+.etr-trava svg { flex: none; margin-top: 1px; }
+.etr-fabs { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.etr-fab { display: grid; grid-template-columns: minmax(96px, 120px) minmax(0, 1fr) 64px; gap: 4px 12px; align-items: center; }
+.etr-fab-nome { font-weight: 700; font-size: 14px; }
+.etr-fab-nome small { display: block; font-weight: 500; font-size: 11.5px; color: var(--ink-muted); }
+.etr-barra { height: 12px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.etr-barra i { display: block; height: 100%; border-radius: 99px; background: var(--primary); }
+.etr-fab-num { text-align: right; font-weight: 800; font-size: 16px; font-variant-numeric: tabular-nums; }
+.etr-fab-num small { display: block; font-size: 11px; font-weight: 600; color: var(--ink-muted); }
+.etr-fab-zero .etr-fab-num { color: var(--ink-dim); }
+.etr-fab-nota { grid-column: 2 / 4; font-size: 11.5px; color: var(--ink-muted); }
+.etr-fab-nota b { color: var(--warn); font-weight: 700; }
+.etr-outros { display: flex; flex-wrap: wrap; gap: 8px 22px; padding: 12px 16px; border: 1px dashed var(--line-2); border-radius: 12px; font-size: 13px; color: var(--ink-muted); }
+.etr-outros b { color: var(--ink); }
+
+/* Resumo: reemprego e sucata em barras */
+.etr-duas { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 18px; align-items: start; }
+.etr-caixa { background: var(--surface); border: 1px solid var(--line-2); border-radius: 16px; padding: 18px 20px; }
+.etr-caixa-cab { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+.etr-caixa-cab .etr-tot { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.etr-caixa-cab .etr-tot small { font-size: 14px; font-weight: 600; color: var(--ink-muted); }
+.etr-legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 10px 0 12px; font-size: 12px; color: var(--ink-muted); }
+.etr-legenda span { display: inline-flex; align-items: center; gap: 6px; }
+.etr-legenda i { width: 10px; height: 10px; border-radius: 3px; }
+.etr-lin { display: grid; grid-template-columns: 52px minmax(0, 1fr) 104px; gap: 12px; align-items: center; padding: 6px 0; }
+.etr-lin b { font-family: var(--font-condensed, "Barlow Condensed"), "Arial Narrow", sans-serif; font-size: 17px; }
+.etr-pilha { display: flex; height: 16px; border-radius: 5px; overflow: hidden; background: var(--surface-2); min-width: 3px; }
+.etr-pilha i { display: block; height: 100%; }
+.etr-lin-num { text-align: right; font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
+.etr-lin-num small { display: block; font-size: 11px; font-weight: 600; color: var(--ink-muted); }
+.etr-dica { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); font-size: 12.5px; color: var(--ink-muted); }
+.etr-dica b { color: var(--ok); }
+.etr-c-G1 { background: color-mix(in srgb, var(--ok) 95%, white 5%); }
+.etr-c-G2 { background: color-mix(in srgb, var(--ok) 62%, var(--surface-2)); }
+.etr-c-G3 { background: color-mix(in srgb, var(--ok) 32%, var(--surface-2)); }
+.etr-c-SC1 { background: var(--warn); }
+.etr-c-SC2 { background: color-mix(in srgb, var(--warn) 66%, var(--surface-2)); }
+.etr-c-SC3 { background: color-mix(in srgb, var(--warn) 36%, var(--surface-2)); }
+
+/* Últimas movimentações */
+.etr-feed { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 10px; }
+.etr-feed li { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line-2); border-radius: 12px; }
+.etr-ic { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-weight: 800; font-size: 13px; background: var(--surface-2); color: var(--ink); }
+.etr-ic-RECEBIMENTO { color: var(--ok); } .etr-ic-REMETIDO { color: var(--err); } .etr-ic-PRODUCAO { color: var(--warn); }
+.etr-ic-TRILHEIRO, .etr-ic-AJUSTE { color: var(--primary); }
+.etr-feed b { display: block; font-size: 13px; }
+.etr-feed span { font-size: 12px; color: var(--ink-muted); }
+.etr-mais { color: var(--ok); font-weight: 700; } .etr-menos { color: var(--err); font-weight: 700; }
+.etr-alerta { color: var(--warn); font-weight: 700; }
+
+/* Detalhado */
+.etr-abas { display: flex; flex-wrap: wrap; gap: 8px; }
+.etr-abas a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 999px; border: 1px solid var(--line-2); font-weight: 700; font-size: 13px; color: var(--ink-muted); text-decoration: none; }
+.etr-abas a[aria-current="page"] { background: var(--surface-2); color: var(--ink); }
+.etr-card { background: var(--surface); border: 1px solid var(--line-2); border-radius: 14px; overflow: hidden; }
+.etr-card-cab { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; padding: 14px 18px; border-bottom: 1px solid var(--line-2); }
+.etr-card-cab .etr-card-tit { font-size: 16px; font-weight: 700; }
+.etr-card-cab .etr-card-ex { font-size: 12.5px; color: var(--ink-muted); }
+.etr-card-cab .etr-modo { margin-left: auto; }
+.etr-modo { display: inline-flex; padding: 3px; border: 1px solid var(--line-2); border-radius: 9px; background: var(--background); }
+.etr-modo a { padding: 5px 11px; border-radius: 7px; font-size: 12px; font-weight: 700; color: var(--ink-muted); text-decoration: none; }
+.etr-modo a[aria-current="page"] { background: var(--surface-2); color: var(--ink); }
+.etr-tab { overflow-x: auto; }
+.etr-tab table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.etr-tab th { padding: 10px 8px; border-bottom: 1px solid var(--line-2); text-align: right; vertical-align: bottom; font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); white-space: normal; min-width: 64px; line-height: 1.25; }
+.etr-tab th small { display: block; font-size: 9.5px; letter-spacing: .03em; text-transform: none; color: var(--ink-dim); font-weight: 600; }
+.etr-tab th:first-child, .etr-tab td:first-child, .etr-tab td.etr-esq, .etr-tab th.etr-esq { text-align: left; }
+.etr-tab td { padding: 8px 8px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.etr-tab tr.etr-subtotal td { background: var(--surface-2); font-weight: 700; border-top: 1px solid var(--line-2); }
+.etr-tab tr.etr-subtotal td:first-child { font-family: var(--font-condensed, "Barlow Condensed"), "Arial Narrow", sans-serif; font-size: 17px; letter-spacing: .03em; }
+.etr-tab .etr-z { color: var(--ink-dim); }
+.etr-tab .etr-t { color: var(--primary); font-weight: 700; }
+.etr-tab td small { display: block; font-size: 11px; color: var(--ink-muted); }
+.etr-neg { color: var(--err) !important; font-weight: 700; }
+.etr-leg { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 12px 18px; border-top: 1px solid var(--line-2); font-size: 12px; color: var(--ink-muted); }
+.etr-resumos { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line-2); }
+.etr-resumos div { background: var(--surface-2); border-radius: 10px; padding: 10px 12px; }
+.etr-resumos span { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-muted); }
+.etr-resumos b { display: block; margin-top: 3px; font-size: 17px; font-variant-numeric: tabular-nums; }
+.etr-resumos em { font-style: normal; font-size: 12px; color: var(--ink-muted); }
+.etr-badge { display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+.etr-badge-ok { background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--ok); }
+.etr-badge-dif { background: color-mix(in srgb, var(--err) 14%, transparent); color: var(--err); }
+.etr-periodo { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
+.etr-periodo .field { margin: 0; }
+.etr-ajuste summary { cursor: pointer; list-style: none; }
+.etr-ajuste summary::-webkit-details-marker { display: none; }
+.etr-ajuste[open] .etr-ajuste-corpo { margin-top: 12px; }
+.etr-ajuste-corpo { background: var(--surface); border: 1px solid var(--line-2); border-radius: 14px; padding: 16px 18px; }
+.etr-grade-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px 14px; }
+
+@media (max-width: 640px) {
+  .etr-titulo { font-size: 26px; }
+  .etr-grande b { font-size: 36px; }
+  .etr-fab { grid-template-columns: 88px minmax(0, 1fr) 52px; }
+  .etr-lin { grid-template-columns: 44px minmax(0, 1fr) 92px; }
+}
+.etr-feed a { color: inherit; text-decoration: none; }
+.etr-feed a:hover { text-decoration: underline; }
