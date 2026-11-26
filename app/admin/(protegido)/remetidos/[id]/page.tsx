@@ -188,6 +188,7 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
                       </span>
                       <span className="grupo-meta">
                         {g.tipoMaterial === 'NOVO' && g.fabricante && <>Fabricante: {g.fabricante} · </>}
+                        {g.tipoMaterial === 'NOVO' && <>{g.formaNovo === 'TALA' ? 'Tala (com furos)' : g.formaNovo === 'LISA' ? 'Barra lisa' : 'Lisa ou tala não informado'} · </>}
                         {g.tipoMaterial === 'REEMPREGO' && <>Classificação: {g.classificacao} · </>}
                         {g.tipoMaterial === 'SUCATA' && (
                           <>Classificações: {[...new Set(g.medicoes.map((m) => m.classificacaoSC).filter(Boolean))].join(', ')} · </>

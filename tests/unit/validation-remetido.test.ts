@@ -32,6 +32,7 @@ function grupoValido(overrides: Record<string, unknown> = {}) {
     // não declaram esse campo e o Zod descarta chaves desconhecidas por padrão,
     // então este default não interfere nos overrides que trocam tipoMaterial.
     marca: 'NIPPON',
+    formaNovo: 'LISA',
     pesoInformado: 12.5,
     medicoes: [{ clientId: uuid(), modo: 'INDIVIDUAL', quantidade: 1, comprimento: 8.73 }],
     ...overrides,
@@ -136,6 +137,35 @@ describe('confirmacaoRemetidoSchema', () => {
       grupos: [grupo],
     });
     expect(resultado.success).toBe(false);
+  });
+
+  it('rejeita grupo NOVO sem dizer se é barra lisa ou tala', () => {
+    const grupo = grupoValido();
+    delete (grupo as Record<string, unknown>).formaNovo;
+    const resultado = confirmacaoRemetidoSchema.safeParse({ dados: dadosConfirmacaoValidos(), grupos: [grupo] });
+    expect(resultado.success).toBe(false);
+    if (!resultado.success) {
+      expect(resultado.error.issues.map((i) => i.message)).toContain('Escolha se é barra lisa ou tala.');
+    }
+  });
+
+  it('aceita grupo NOVO de tala e guarda a escolha', () => {
+    const resultado = confirmacaoRemetidoSchema.safeParse({ dados: dadosConfirmacaoValidos(), grupos: [grupoValido({ formaNovo: 'TALA' })] });
+    expect(resultado.success).toBe(true);
+    if (resultado.success && resultado.data.grupos[0].tipoMaterial === 'NOVO') {
+      expect(resultado.data.grupos[0].formaNovo).toBe('TALA');
+    }
+  });
+
+  it('grupo REEMPREGO ignora formaNovo (não se aplica)', () => {
+    const resultado = confirmacaoRemetidoSchema.safeParse({
+      dados: dadosConfirmacaoValidos(),
+      grupos: [grupoValido({ tipoMaterial: 'REEMPREGO', classificacao: 'G1', formaNovo: 'TALA' })],
+    });
+    expect(resultado.success).toBe(true);
+    if (resultado.success) {
+      expect((resultado.data.grupos[0] as Record<string, unknown>).formaNovo).toBeUndefined();
+    }
   });
 
   it('rejeita pesoInformado zero ou negativo', () => {

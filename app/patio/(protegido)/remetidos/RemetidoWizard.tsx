@@ -48,6 +48,8 @@ interface GrupoLocal {
   tampao: boolean;
   marca?: Marca;
   fabricanteOutro?: string;
+  /** Envio de novo: barra lisa ou tala (com furos). Obrigatório. */
+  formaNovo?: 'LISA' | 'TALA';
   medicoes: MedicaoLocal[];
 }
 
@@ -376,6 +378,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
     (g.perfil !== PERFIL_TOCO && g.medicoes.length === 0) ||
     (g.tipoMaterial === 'REEMPREGO' && !g.classificacao) ||
     (g.tipoMaterial === 'NOVO' && !g.marca) ||
+    (g.tipoMaterial === 'NOVO' && !g.formaNovo) ||
     (g.tipoMaterial === 'NOVO' && g.marca === 'OUTROS' && !g.fabricanteOutro?.trim());
 
   const podeConfirmar = grupos.length > 0 && grupos.every((g) => !grupoIncompleto(g));
@@ -386,7 +389,11 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
     if (Object.keys(validarDados(dados, props.modo !== 'confirmar')).length > 0) return;
     if (temIdentificacao && Object.keys(validarIdentificacao(identificacao)).length > 0) return;
     if (!podeConfirmar) {
-      setErroFinal('Complete todos os grupos (medições e classificação) antes de confirmar.');
+      setErroFinal(
+        grupos.some((g) => g.tipoMaterial === 'NOVO' && !g.formaNovo)
+          ? 'Escolha se é barra lisa ou tala em cada grupo de trilho novo.'
+          : 'Complete todos os grupos (medições e classificação) antes de confirmar.',
+      );
       return;
     }
 
@@ -408,6 +415,7 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
         ? {
             ...(g.marca ? { marca: g.marca } : {}),
             ...(g.marca === 'OUTROS' ? { fabricanteOutro: g.fabricanteOutro || undefined } : {}),
+            ...(g.formaNovo ? { formaNovo: g.formaNovo } : {}),
           }
         : {}),
       medicoes: g.medicoes.map((m) => ({
@@ -660,6 +668,29 @@ function RemetidoWizardInterno({ props, rascunhoInicial }: { props: Props; rascu
                     onChange={(e) => atualizarGrupo(g.clientId, { fabricanteOutro: e.target.value })}
                   />
                 )}
+              </div>
+            )}
+            {g.tipoMaterial === 'NOVO' && (
+              <div className="mt-2" role="group" aria-label={`Barra lisa ou tala do Grupo ${i + 1}`}>
+                <div className="grid grid-cols-2 gap-2">
+                  {(
+                    [
+                      ['LISA', 'Barra lisa'],
+                      ['TALA', 'Tala (com furos)'],
+                    ] as const
+                  ).map(([valor, rotulo]) => (
+                    <button
+                      key={valor}
+                      type="button"
+                      aria-pressed={g.formaNovo === valor}
+                      className={`h-12 rounded-lg border text-base font-semibold ${g.formaNovo === valor ? 'border-primary bg-primary text-white' : 'border-line bg-surface'}`}
+                      onClick={() => atualizarGrupo(g.clientId, { formaNovo: valor })}
+                    >
+                      {rotulo}
+                    </button>
+                  ))}
+                </div>
+                {attemptSubmit && !g.formaNovo && <p className="mt-1 text-sm text-bad">Escolha se é barra lisa ou tala.</p>}
               </div>
             )}
 

@@ -51,6 +51,7 @@ export default async function EditarRemetidoPage({ params }: { params: Promise<{
         tampao: g.tampao,
         marca,
         fabricanteOutro,
+        formaNovo: g.formaNovo ?? undefined,
         medicoes: g.medicoes.map((m) => ({
           clientId: m.clientId,
           modo: m.modo,

@@ -32,6 +32,8 @@ export interface GrupoRomaneio {
   /** G1, G2 ou G3 — só no Reemprego. */
   classificacao?: string | null;
   tampao?: boolean | null;
+  /** Novo: barra lisa ou tala (com furos). */
+  formaNovo?: string | null;
   metrosTotal: unknown;
   pesoCalculado?: unknown;
   pesoInformado?: unknown;
@@ -104,7 +106,9 @@ function renderGrupos(grupos: GrupoRomaneio[], remetido: boolean): string {
       const material =
         g.tipoMaterial === 'REEMPREGO' && g.classificacao
           ? `${texto(g.tipoMaterial)} ${escaparHtml(g.classificacao)}`
-          : texto(g.tipoMaterial);
+          : g.tipoMaterial === 'NOVO' && g.formaNovo
+            ? `${texto(g.tipoMaterial)} ${g.formaNovo === 'TALA' ? 'TALA' : 'LISA'}`
+            : texto(g.tipoMaterial);
       // Diversos (TOCO): sem medição — só o peso, informado depois da pesagem.
       const diversos = g.perfil === 'TOCO';
       return `

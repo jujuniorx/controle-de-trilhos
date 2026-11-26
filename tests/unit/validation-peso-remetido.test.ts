@@ -9,6 +9,7 @@ function grupoNovo(pesoInformado?: number) {
     tipoMaterial: 'NOVO' as const,
     perfil: 'TR57' as const,
     marca: MARCAS[0],
+    formaNovo: 'LISA' as const,
     pesoInformado,
     medicoes: [{ clientId: randomUUID(), modo: 'INDIVIDUAL' as const, quantidade: 1, comprimento: 11.5 }],
   };

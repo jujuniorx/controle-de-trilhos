@@ -121,6 +121,13 @@ describe('romaneio — HTML imprimível', () => {
     expect(htmlRomaneioRemetido(mov, null)).toContain('REEMPREGO G2');
   });
 
+  it('novo mostra se é barra lisa ou tala ao lado do material', () => {
+    const mov = movBase();
+    mov.grupos[0].tipoMaterial = 'NOVO';
+    mov.grupos[0].formaNovo = 'TALA';
+    expect(htmlRomaneioRemetido(mov, null)).toContain('NOVO TALA');
+  });
+
   it('Diversos (TOCO) não tem medição: mostra "-" em barras e metros', () => {
     const mov = movBase();
     mov.grupos[0] = { ...mov.grupos[0], perfil: 'TOCO', tipoMaterial: 'SUCATA', medicoes: [], metrosTotal: new Decimal('0') };

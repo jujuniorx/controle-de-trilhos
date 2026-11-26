@@ -14,6 +14,8 @@ export const TIPOS_REMETIDO = ['VENDA', 'TRANS', 'INDUS'] as const;
  * Administrativo informa (PesoGrupoPainel). Na planilha: Peças e Metros ficam "-".
  */
 export const PERFIL_TOCO = 'TOCO' as const;
+export const FORMAS_NOVO = ['LISA', 'TALA'] as const;
+export type FormaNovoInput = (typeof FORMAS_NOVO)[number];
 export const CLASSIFICACOES_REEMPREGO_REMETIDO = ['G1', 'G2', 'G3'] as const;
 
 export const preCadastroRemetidoSchema = z.object({
@@ -100,6 +102,8 @@ const grupoRemetidoNovoSchema = grupoRemetidoBaseSchema
     // Obrigatória só para NOVO (Bloco 1.5) — Reemprego e Sucata não têm marca.
     marca: z.enum(MARCAS, { message: 'Selecione a marca/fabricante.' }),
     fabricanteOutro: z.string().trim().max(120).optional(),
+    // Obrigatória no envio de novo por caminhão: o estoque desconta de barras lisas ou de talas.
+    formaNovo: z.enum(FORMAS_NOVO, { message: 'Escolha se é barra lisa ou tala.' }),
   })
   .refine((g) => g.marca !== 'OUTROS' || Boolean(g.fabricanteOutro), {
     message: 'Informe o nome do fabricante quando a marca for "Outros".',
