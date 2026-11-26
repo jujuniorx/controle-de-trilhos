@@ -253,7 +253,7 @@ export function layoutDiario(setores: SetorRelatorio[], topo: number, h: number,
 }
 
 /** Gráfico da semana (dia escolhido em destaque) com a observação do setor embaixo. Só no diário. */
-function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, base: number, w: number, rotulos: string[], destaque: number | number[] | undefined, layout: LayoutDiario) {
+function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, base: number, w: number, rotulos: string[], destaque: number | number[] | undefined, layout: LayoutDiario) {
   if (!s.grafico) return;
   const { linhas: todas, temTexto } = linhasObservacao(s, w);
   const maxLinhas = Math.max(1, Math.floor((layout.alturaCaixa - 14) / 8));
@@ -271,7 +271,10 @@ function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, 
     p.texto(serie.nome, lx + 9, yLegenda, 6.5, 'normal', CINZA);
     lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
   }
-  desenharGrafico(p, s.grafico, x + 8, layout.yGrafico, w - 16, layout.alturaGrafico, rotulos, 12, destaque, true);
+  // O eixo fica na mesma altura nos três cartões, mas o gráfico sobe até perto da própria tabela:
+  // cartão com tabela mais curta (Geração, Serra) ganha um gráfico mais alto, sem espaço vazio no meio.
+  const alturaPropria = Math.max(layout.alturaGrafico, fundoTabela(s, topo) - 10 - layout.yGrafico);
+  desenharGrafico(p, s.grafico, x + 8, layout.yGrafico, w - 16, alturaPropria, rotulos, 12, destaque, true);
 }
 
 export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = [], mensal = false, colunas: Coluna[] = ['dia', 'semana', 'mes'], comGrafico = true, destaque?: number | number[], layout?: LayoutDiario) {
@@ -289,7 +292,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   if (s.serra) {
     desenharTabelaSerra(p, s.serra, x, topo, w, mensal ? ['mes'] : colunas, s.rotuloColunaDia);
     if (s.grafico && comGrafico) {
-      if (diarioSetor) desenharObservacaoEGrafico(p, s, x, base, w, rotulos, destaque, medidas);
+      if (diarioSetor) desenharObservacaoEGrafico(p, s, x, topo, base, w, rotulos, destaque, medidas);
       else desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 22, rotulos);
     }
     return;
@@ -345,7 +348,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   // No mensal o gráfico diário sai: o cartão mostra só os totais do mês.
   if (!s.grafico || mensal || !comGrafico) return;
   if (diarioSetor && !largo) {
-    desenharObservacaoEGrafico(p, s, x, base, w, rotulos, destaque, medidas);
+    desenharObservacaoEGrafico(p, s, x, topo, base, w, rotulos, destaque, medidas);
     return;
   }
   if (largo) {
