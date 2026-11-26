@@ -118,15 +118,14 @@ o que a planilha já inclui.
 - Unitários das regras: TLS novo (264 + 48 m), TLS reemprego (312 m de G1), sucata com 5%, vagão (n × 24 m).
 - Integração: conferir recebimento gera movimento; editar refaz; converter troca sinal; excluir apaga.
 
-## Minhas decisões (para o usuário conferir)
+## Decisões fechadas
 
-- Fabricante "Pangang 4" e "Pangang 5" da Produção contam como Pangang no estoque.
-- O perfil e o fabricante do TLS são os da hora em que ele fechou.
+- O fabricante do TLS é a marca que o soldador escolhe na Produção, na hora em que o TLS fecha.
+- TR60 e UIC60 são trilhos diferentes: cada um tem seu bloco no Novo (a linha UIC60 da planilha sai do bloco TR60).
+- "Pangang 4" e "Pangang 5" da Produção contam como um só Pangang no estoque (a separação é só física).
+- Os TLS carregados no giro do trilheiro são lançados por perfil, fabricante e quantidade; reemprego leva perfil e
+  quantidade.
 - Envio de "Diversos" (tocos sem medição) não mexe no saldo em metros; aparece no histórico com o peso.
-- UIC60 aparece no bloco do TR60, como na planilha.
 - Curtas 12 m e menores de 12 m não têm fluxo próprio: vêm do saldo inicial e só mudam por ajuste.
-
-## Em aberto (do usuário)
-
-1. TR60 e UIC60: para o estoque, é o mesmo trilho? A Produção lança os dois separados.
-2. Trilheiro: os TLS carregados precisam do fabricante, ou basta perfil e novo/reemprego?
+- Saldo que ficar negativo (ex.: Produção consumindo lisa que não estava na planilha) é mostrado em vermelho com
+  "confira o saldo", sem bloquear o lançamento de quem está no turno.
