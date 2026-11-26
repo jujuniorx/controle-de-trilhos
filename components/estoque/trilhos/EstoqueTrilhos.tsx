@@ -124,12 +124,12 @@ export async function EstoqueTrilhos({ params }: { params: ParamsTrilhos }) {
         <div className="etr-caixa space-y-3">
           <p className="font-semibold">O saldo inicial ainda não foi carregado.</p>
           <p className="text-sm text-ink-muted">
-            Ele vem da planilha &quot;Controle de Estoque - 2026&quot; de 25/11/2026 (abas Estoque Novo e Reemprego e Estoque sucata). Depois disso, o estoque anda
+            Ele vem da planilha &quot;Controle de Estoque - 2026&quot; fechada em 24/11/2026 (abas Estoque Novo e Reemprego e Estoque sucata). Depois disso, o estoque anda
             sozinho com vagões, caminhões, envios, Produção e trilheiros.
           </p>
           <form action={carregarSaldoInicialAction}>
             <button type="submit" className="btn btn-primary h-11">
-              Carregar saldo da planilha de 25/11/2026
+              Carregar saldo da planilha (até 24/11/2026)
             </button>
           </form>
         </div>

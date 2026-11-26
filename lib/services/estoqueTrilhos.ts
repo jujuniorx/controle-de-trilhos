@@ -21,7 +21,7 @@ export interface EstoqueTrilhos {
 const iso = (d: Date | null | undefined) => (d ? d.toISOString().slice(0, 10) : '');
 const corte = () => new Date(`${CORTE_SALDO_INICIAL}T00:00:00Z`);
 
-/** Grava o saldo da planilha de 25/11/2026. Não faz nada se já estiver gravado. */
+/** Grava o saldo da planilha (fechada em 24/11/2026). Não faz nada se já estiver gravado. */
 export async function carregarSaldoInicial(responsavel: string): Promise<{ criados: number }> {
   const ja = await prisma.estoqueTrilhoLancamento.count({ where: { origemTipo: 'SALDO_INICIAL' } });
   if (ja > 0) return { criados: 0 };
@@ -56,7 +56,8 @@ export async function montarEstoqueTrilhos(): Promise<EstoqueTrilhos> {
       where: { status: 'CONFERIDO', dataMovimentacao: depoisDoCorte },
       include: { grupos: { include: { medicoes: { select: { metros: true, classificacaoSC: true } } } } },
     }),
-    prisma.producaoDia.findMany({ where: { data: depoisDoCorte }, include: { linhas: true } }),
+    // Inclui os dias antes do corte para saber quando começou o TLS que vinha aberto.
+    prisma.producaoDia.findMany({ where: { data: { gt: new Date(corte().getTime() - 60 * 86_400_000) } }, include: { linhas: true }, orderBy: { data: 'asc' } }),
     prisma.trilheiroCarga.findMany({ where: { boEm: depoisDoCorte } }),
     prisma.estoqueSapValor.findMany(),
   ]);
@@ -67,12 +68,13 @@ export async function montarEstoqueTrilhos(): Promise<EstoqueTrilhos> {
     tipo: g.tipo as Posicao['tipo'],
     fabricante: g.fabricante as Posicao['fabricante'],
     classe: g.classe,
-    data: iso(g.data),
+    // O saldo inicial vale no fim do dia de corte (linhas gravadas antes guardaram 25/11).
+    data: g.origemTipo === 'SALDO_INICIAL' ? CORTE_SALDO_INICIAL : iso(g.data),
     metros: Number(g.metros),
     unidades: g.unidades,
     origemTipo: g.origemTipo as OrigemTipo,
     origemId: g.id,
-    descricao: g.origemTipo === 'SALDO_INICIAL' ? 'Saldo inicial (planilha de 25/11/2026)' : `Ajuste · ${g.responsavel}${g.motivo ? ` · ${g.motivo}` : ''}`,
+    descricao: g.origemTipo === 'SALDO_INICIAL' ? 'Saldo inicial (planilha fechada em 24/11/2026)' : `Ajuste · ${g.responsavel}${g.motivo ? ` · ${g.motivo}` : ''}`,
   }));
 
   for (const m of movs) {
@@ -95,11 +97,13 @@ export async function montarEstoqueTrilhos(): Promise<EstoqueTrilhos> {
     lancamentos.push(...lancamentosDeMovimentacao(fonte));
   }
 
-  for (const d of dias) {
+  for (const [i, d] of dias.entries()) {
+    if (d.data <= corte()) continue;
+    const anterior = dias[i - 1];
     const horas = [...d.linhas]
       .sort((a, b) => a.hora.localeCompare(b.hora))
       .map((l) => ({ hora: l.hora, soldas: l.soldas, fabricante: l.fabricante, perfil: l.perfil, resposta: respostaTlsDaLinha(l.paradas) }));
-    lancamentos.push(...lancamentosDeProducao({ data: iso(d.data), sobraEntrada: d.sobraEntrada, ajusteTls: d.ajusteTls, horas }));
+    lancamentos.push(...lancamentosDeProducao({ data: iso(d.data), sobraEntrada: d.sobraEntrada, ajusteTls: d.ajusteTls, horas, inicioTlsAberto: anterior?.inicioSobra ? iso(anterior.inicioSobra) : null }));
   }
 
   for (const c of cargas) {
@@ -114,7 +118,7 @@ export async function montarEstoqueTrilhos(): Promise<EstoqueTrilhos> {
   const datas = [
     ...gravados.map((g) => g.criadoEm),
     ...movs.map((m) => m.conferidoEm ?? m.dataMovimentacao),
-    ...dias.map((d) => d.atualizadoEm),
+    ...dias.filter((d) => d.data > corte()).map((d) => d.atualizadoEm),
     ...cargas.map((c) => c.atualizadoEm),
   ].filter((d): d is Date => !!d);
   const atualizadoEm = datas.length ? new Date(Math.max(...datas.map((d) => d.getTime()))).toISOString() : null;

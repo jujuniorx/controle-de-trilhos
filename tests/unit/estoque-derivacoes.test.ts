@@ -141,3 +141,30 @@ describe('lancamentosDeCarga', () => {
     expect(l[0]).toMatchObject({ secao: 'NOVO', tipo: 'TLS', fabricante: 'PANGANG', classe: 'NORMAL', unidades: -32, metros: -9984, origemTipo: 'TRILHEIRO' });
   });
 });
+
+describe('lancamentosDeProducao: TLS que começou num dia e fechou no outro', () => {
+  const horas = [{ hora: '07:00', soldas: 20, fabricante: 'Pangang 4', perfil: 'TR68' }];
+
+  it('o primeiro TLS fechado conta no dia em que começou (como o relatório da Produção)', () => {
+    const l = lancamentosDeProducao({ data: '2026-11-28', sobraEntrada: 8, ajusteTls: 0, horas, inicioTlsAberto: '2026-11-27' });
+    const tls = l.filter((x) => x.tipo === 'TLS').map((x) => [x.data, x.unidades]);
+    expect(tls).toEqual([['2026-11-27', 1], ['2026-11-28', 1]]);
+  });
+
+  it('começou até 24/11: já está no saldo da planilha e não conta de novo', () => {
+    const l = lancamentosDeProducao({ data: '2026-11-25', sobraEntrada: 8, ajusteTls: 0, horas, inicioTlsAberto: '2026-11-24' });
+    const tls = l.filter((x) => x.tipo === 'TLS').map((x) => [x.data, x.unidades]);
+    expect(tls).toEqual([['2026-11-25', 1]]);
+    expect(l.filter((x) => x.tipo === 'LISA').map((x) => x.metros)).toEqual([-264]);
+  });
+
+  it('a planilha vai até 24/11: TLS começado em 25/11 entra no estoque', () => {
+    const l = lancamentosDeProducao({ data: '2026-11-26', sobraEntrada: 8, ajusteTls: 0, horas, inicioTlsAberto: '2026-11-25' });
+    expect(l.filter((x) => x.tipo === 'TLS').map((x) => [x.data, x.unidades])).toEqual([['2026-11-25', 1], ['2026-11-26', 1]]);
+  });
+
+  it('sem TLS aberto de antes: tudo no próprio dia', () => {
+    const l = lancamentosDeProducao({ data: '2026-11-28', sobraEntrada: 0, ajusteTls: 0, horas: [{ hora: '07:00', soldas: 24, fabricante: 'Pangang 4', perfil: 'TR68' }], inicioTlsAberto: null });
+    expect(l.filter((x) => x.tipo === 'TLS').map((x) => [x.data, x.unidades])).toEqual([['2026-11-28', 2]]);
+  });
+});

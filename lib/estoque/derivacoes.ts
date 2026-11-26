@@ -4,7 +4,7 @@
  * restaurar uma movimentação muda o saldo sozinho, sem nada gravado à parte.
  */
 import { descontarBarras, tlsFechadosPorHora, type HoraTls } from '@/lib/producaoTls';
-import { LISAS_POR_TLS, METROS_BARRA, METROS_TLS, TALAS_POR_TLS, normalizarFabricante, type Lancamento, type Posicao } from '@/lib/estoque/trilhos';
+import { CORTE_SALDO_INICIAL, LISAS_POR_TLS, METROS_BARRA, METROS_TLS, TALAS_POR_TLS, normalizarFabricante, type Lancamento, type Posicao } from '@/lib/estoque/trilhos';
 
 export interface MedicaoFonte {
   metros: number;
@@ -84,6 +84,11 @@ export interface DiaProducaoFonte {
   sobraEntrada: number;
   ajusteTls: number;
   horas: (HoraTls & { hora: string })[];
+  /**
+   * Dia em que começou o TLS que já vinha aberto (inicioSobra do dia de produção anterior).
+   * O primeiro TLS fechado no dia conta nesse dia, como no relatório da Produção.
+   */
+  inicioTlsAberto?: string | null;
 }
 
 /**
@@ -93,8 +98,20 @@ export interface DiaProducaoFonte {
 export function lancamentosDeProducao(d: DiaProducaoFonte): Lancamento[] {
   const horas = descontarBarras(d.horas, d.ajusteTls) as (HoraTls & { hora: string })[];
   const lista: Lancamento[] = [];
+  // O primeiro TLS fechado hoje, se já vinha aberto de antes, é do dia em que começou.
+  const partes: (ReturnType<typeof tlsFechadosPorHora>[number] & { data: string })[] = [];
+  let deAntes = d.sobraEntrada > 0 && !!d.inicioTlsAberto;
   for (const f of tlsFechadosPorHora(d.sobraEntrada, horas)) {
-    const base = { data: d.data, origemTipo: 'PRODUCAO' as const, origemId: d.data, descricao: `Produção ${f.hora} · ${f.quantidade} TLS ${f.perfil}` };
+    if (deAntes && f.quantidade > 0) {
+      partes.push({ ...f, quantidade: 1, data: d.inicioTlsAberto! });
+      if (f.quantidade > 1) partes.push({ ...f, quantidade: f.quantidade - 1, data: d.data });
+      deAntes = false;
+    } else partes.push({ ...f, data: d.data });
+  }
+  for (const f of partes) {
+    // Até o dia do saldo inicial, o TLS já está na planilha.
+    if (f.data <= CORTE_SALDO_INICIAL) continue;
+    const base = { data: f.data, origemTipo: 'PRODUCAO' as const, origemId: d.data, descricao: `Produção ${f.hora}${f.data !== d.data ? ` de ${d.data.split('-').reverse().join('/')}` : ''} · ${f.quantidade} TLS ${f.perfil}` };
     const q = f.quantidade;
     if (f.reemprego) {
       lista.push(lancamento({ secao: 'REEMPREGO', perfil: f.perfil, tipo: 'TLS', fabricante: null, classe: 'TLS' }, base, q * METROS_TLS, q));

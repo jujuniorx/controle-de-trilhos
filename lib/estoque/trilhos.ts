@@ -4,7 +4,7 @@
  */
 
 /** Data do saldo inicial (planilha). Só fatos depois desta data mexem no saldo. */
-export const CORTE_SALDO_INICIAL = '2026-11-25';
+export const CORTE_SALDO_INICIAL = '2026-11-24';
 export const METROS_BARRA = 24;
 export const METROS_TLS = 312;
 /** 1 TLS novo = 11 barras lisas + 2 talas (barras com furos), todas de 24 m. */

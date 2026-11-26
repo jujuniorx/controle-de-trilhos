@@ -1,5 +1,5 @@
 // Saldo inicial do estoque de trilhos: planilha "Controle de Estoque - 2026", abas "Estoque Novo e Reemprego"
-// (linhas 4 a 18 e 30 a 43) e "Estoque sucata" (A3:B34), em 25/11/2026. Gerado da planilha; não editar à mão.
+// (linhas 4 a 18 e 30 a 43) e "Estoque sucata" (A3:B34), fechada em 24/11/2026. Gerado da planilha; não editar à mão.
 import type { Lancamento } from '@/lib/estoque/trilhos';
 
 export const SALDO_INICIAL_2026: Omit<Lancamento, 'origemTipo' | 'origemId' | 'data' | 'descricao'>[] = [
