@@ -168,23 +168,33 @@ export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yB
     w -= larguraEixo;
   }
   const gw = w / n;
-  // Com valores, série sem nenhum lançamento na semana não ocupa lugar: as barras ficam mais largas.
-  // A legenda continua mostrando todas as séries.
-  const comLancamento = g.series.filter((s) => s.valores.some((v) => v > 0));
-  const series = comValores && comLancamento.length > 0 ? comLancamento : g.series;
+  // Largura fixa: cada série guarda o seu lugar no dia, mesmo sem lançamento na semana.
+  const series = g.series;
   const bw = Math.max(0.6, Math.min(bwMax, (gw * 0.75) / series.length));
   const larguraBarra = bw * 0.9;
   const semDados = g.series.every((s) => s.valores.every((v) => v <= 0));
-  series.forEach((s, si) => {
-    s.valores.forEach((v, i) => {
+  for (let i = 0; i < n; i++) {
+    // Números do mesmo dia: se um encostar no anterior, sobe um degrau para não sobrepor.
+    let fimAnterior = -Infinity;
+    let yAnterior = -Infinity;
+    series.forEach((s, si) => {
+      const v = s.valores[i] ?? 0;
       const h = (Math.max(0, v) / topo) * alturaBarras;
       if (h <= 0) return;
       const bx = x + i * gw + gw / 2 - (series.length * bw) / 2 + si * bw;
       // Todos os dias mantêm a cor da série; o dia escolhido se destaca pelo nome em negrito.
       p.retangulo(bx, yBase, larguraBarra, h, hex(s.cor));
-      if (comValores) textoCentro(p, fmtValorBarra(v), bx + larguraBarra / 2, yBase + h + 2.5, 5.5, 'negrito', TINTA);
+      if (!comValores) return;
+      const texto = fmtValorBarra(v);
+      const cx = bx + larguraBarra / 2;
+      const meia = larguraTexto(texto, 5.5, 'negrito') / 2;
+      let y = yBase + h + 2.5;
+      if (cx - meia < fimAnterior + 1.5 && Math.abs(y - yAnterior) < 6.5) y = yAnterior + 6.5;
+      textoCentro(p, texto, cx, y, 5.5, 'negrito', TINTA);
+      fimAnterior = cx + meia;
+      yAnterior = y;
     });
-  });
+  }
   p.linha(x, yBase, x + w, yBase, LINHA, 0.6);
   // Semana sem nenhum lançamento: um aviso no lugar do gráfico vazio.
   if (comValores && semDados) textoCentro(p, 'Sem lançamentos nesta semana', x + w / 2, yBase + altura / 2 - 2, 7, 'normal', CINZA);
@@ -261,7 +271,7 @@ function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, 
     p.texto(serie.nome, lx + 9, yLegenda, 6.5, 'normal', CINZA);
     lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
   }
-  desenharGrafico(p, s.grafico, x + 8, layout.yGrafico, w - 16, layout.alturaGrafico, rotulos, 20, destaque, true);
+  desenharGrafico(p, s.grafico, x + 8, layout.yGrafico, w - 16, layout.alturaGrafico, rotulos, 12, destaque, true);
 }
 
 export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = [], mensal = false, colunas: Coluna[] = ['dia', 'semana', 'mes'], comGrafico = true, destaque?: number | number[], layout?: LayoutDiario) {
