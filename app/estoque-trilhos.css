@@ -29,7 +29,7 @@
 .etr-trava { display: flex; align-items: flex-start; gap: 8px; margin-top: 12px; font-size: 13px; font-weight: 600; color: var(--warn); }
 .etr-trava svg { flex: none; margin-top: 1px; }
 .etr-fabs { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
-.etr-fab { display: grid; grid-template-columns: minmax(96px, 120px) minmax(0, 1fr) 64px; gap: 4px 12px; align-items: center; }
+.etr-fab { display: grid; grid-template-columns: minmax(150px, 190px) 1fr 52px; gap: 4px 12px; align-items: center; }
 .etr-fab-nome { font-weight: 700; font-size: 14px; }
 .etr-fab-nome small { display: block; font-weight: 500; font-size: 11.5px; color: var(--ink-muted); }
 .etr-barra { height: 12px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
@@ -129,3 +129,9 @@
 .etr-periodo-resumo { margin: 4px 0 18px; }
 .etr-aviso-data { flex-basis: 100%; margin: 4px 0 0; padding: 8px 12px; border-radius: 10px; background: color-mix(in srgb, var(--warn) 12%, transparent); color: var(--warn); font-size: 13px; font-weight: 600; }
 .etr-aviso-data a { color: inherit; text-decoration: underline; text-underline-offset: 3px; margin-left: 6px; }
+.etr-grande small { display: block; margin-top: 4px; font-size: 11.5px; color: var(--ink-dim); }
+.etr-fabs-tit { margin: 16px 0 6px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-muted); }
+.etr-fabs-tit span { text-transform: none; letter-spacing: 0; font-weight: 500; color: var(--ink-dim); }
+.etr-parado { margin-top: 10px; padding-top: 4px; border-top: 1px solid var(--line); }
+.etr-parado p:not(.etr-fabs-tit) { margin: 4px 0 0; font-size: 13px; color: var(--ink-muted); }
+.etr-parado b { display: inline-block; min-width: 44px; color: var(--ink); font-weight: 700; }

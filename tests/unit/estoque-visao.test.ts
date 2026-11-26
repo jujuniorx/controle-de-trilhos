@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { SALDO_INICIAL_2026 } from '@/lib/estoque/saldoInicial2026';
 import { somarSaldos } from '@/lib/estoque/trilhos';
-import { barrasPorClasse, cartaoPerfil, conferenciaSap, outrosNovo, tabelaNovo } from '@/lib/estoque/visao';
+import { barrasPorClasse, cartaoPerfil,
+  materialParado, conferenciaSap, outrosNovo, tabelaNovo } from '@/lib/estoque/visao';
 
 const saldos = somarSaldos(SALDO_INICIAL_2026.map((l) => ({ ...l, data: '2026-11-25', origemTipo: 'SALDO_INICIAL' as const, origemId: null, descricao: '' })));
 
@@ -76,5 +77,22 @@ describe('tabelaNovo (detalhado)', () => {
     const tr60 = tabelaNovo(saldos).find((g) => g.perfil === 'TR60')!;
     expect(tr60.total).toMatchObject({ tlsUn: 52, tlsM: 16224, lisa: 96032, tala: 48192, curta12: 12, menor12: 0, curtos: 144236, geral: 160460 });
     expect(tr60.linhas.map((l) => [l.fabricante, l.classe])).toContainEqual(['NIPPON', '21M']);
+  });
+});
+
+describe('materialParado', () => {
+  it('TR68 da planilha: as sobras de cada marca, maior primeiro', () => {
+    const m = materialParado(cartaoPerfil(saldos, 'TR68').possiveis);
+    expect(m.talas).toEqual([
+      { fabricante: 'PANGANG', barras: 476 },
+      { fabricante: 'NIPPON', barras: 337 },
+      { fabricante: 'EVRAZ', barras: 49 },
+    ]);
+    expect(m.lisas).toEqual([
+      { fabricante: 'ARCELORMITTAL', barras: 83 },
+      { fabricante: 'UHCX', barras: 27 },
+      { fabricante: 'PANGANG', barras: 7 },
+      { fabricante: 'EVRAZ', barras: 2 },
+    ]);
   });
 });

@@ -1,6 +1,5 @@
-import { IconeAlerta } from '@/components/icones/Icones';
 import { ROTULO_FABRICANTE, type Lancamento, type Saldo } from '@/lib/estoque/trilhos';
-import { barrasPorClasse, cartaoPerfil, outrosNovo, perfisDeSolda, type LinhaClasses } from '@/lib/estoque/visao';
+import { barrasPorClasse, cartaoPerfil, materialParado, outrosNovo, perfisDeSolda, type LinhaClasses } from '@/lib/estoque/visao';
 import { UltimasMovimentacoes } from './UltimasMovimentacoes';
 import { fmt, fmtM, fmtT } from './formato';
 
@@ -8,7 +7,17 @@ const PERFIS_SOLDADOS = ['TR60', 'TR68', 'UIC60'];
 
 function CartaoSolda({ saldos, perfil }: { saldos: Saldo[]; perfil: string }) {
   const c = cartaoPerfil(saldos, perfil);
-  const maior = Math.max(1, ...c.possiveis.map((p) => p.tls));
+  const formam = c.possiveis.filter((p) => p.tls > 0);
+  const maior = Math.max(1, ...formam.map((p) => p.tls));
+  const parado = materialParado(c.possiveis);
+  const prontosPorMarca = (['NIPPON', 'EVRAZ', 'PANGANG', 'ARCELORMITTAL', 'UHCX', 'DIVERSOS'] as const)
+    .map((f) => ({
+      f,
+      n: saldos.filter((s) => s.secao === 'NOVO' && s.perfil === perfil && s.tipo === 'TLS' && s.fabricante === f).reduce((t, s) => t + (s.unidades ?? 0), 0),
+    }))
+    .filter((x) => x.n !== 0);
+  const lista = (itens: { fabricante: keyof typeof ROTULO_FABRICANTE; barras: number }[]) =>
+    itens.map((i) => `${ROTULO_FABRICANTE[i.fabricante]} ${fmt(i.barras)}`).join(' · ');
   return (
     <section className="etr-perfil" aria-label={`Trilho novo ${perfil}`}>
       <div className="etr-perfil-topo">
@@ -21,47 +30,53 @@ function CartaoSolda({ saldos, perfil }: { saldos: Saldo[]; perfil: string }) {
         <div className="etr-grande">
           <b className={c.tlsProntos < 0 ? 'etr-neg' : undefined}>{fmt(c.tlsProntos)}</b>
           <span>TLS prontos</span>
+          {prontosPorMarca.length > 0 && <small>{prontosPorMarca.map((x) => `${ROTULO_FABRICANTE[x.f]} ${fmt(x.n)}`).join(' · ')}</small>}
         </div>
         <div className="etr-grande etr-grande-forma">
           <b>+{fmt(c.totalPossiveis)}</b>
           <span>TLS que dá para formar</span>
+          <small>com as lisas e talas em estoque</small>
         </div>
       </div>
-      {c.trava && (
-        <p className="etr-trava">
-          <IconeAlerta size={16} />
-          <span>O que trava: {c.trava}.</span>
-        </p>
-      )}
-      <div className="etr-fabs">
-        {c.possiveis.map((p) => {
-          const nota = c.notas[p.fabricante];
-          const prontos = saldos
-            .filter((s) => s.secao === 'NOVO' && s.perfil === perfil && s.tipo === 'TLS' && s.fabricante === p.fabricante)
-            .reduce((t, s) => t + (s.unidades ?? 0), 0);
-          return (
-            <div key={p.fabricante} className={`etr-fab ${p.tls === 0 ? 'etr-fab-zero' : ''}`}>
+      {formam.length > 0 ? (
+        <div className="etr-fabs">
+          <p className="etr-fabs-tit">Dá para formar por marca</p>
+          {formam.map((p) => (
+            <div key={p.fabricante} className="etr-fab">
               <div className="etr-fab-nome">
                 {ROTULO_FABRICANTE[p.fabricante]}
-                <small>{prontos ? `${fmt(prontos)} TLS prontos` : `${fmt(p.lisasBarras)} lisas · ${fmt(p.talasBarras)} talas`}</small>
+                <small>
+                  {fmt(p.lisasBarras)} lisas · {fmt(p.talasBarras)} talas
+                </small>
               </div>
               <div className="etr-barra" aria-hidden="true">
-                {p.tls > 0 && <i style={{ width: `${Math.max(2, (p.tls / maior) * 100)}%` }} />}
+                <i style={{ width: `${Math.max(2, (p.tls / maior) * 100)}%` }} />
               </div>
               <div className="etr-fab-num">
                 {fmt(p.tls)}
                 <small>TLS</small>
               </div>
-              {nota && (
-                <div className="etr-fab-nota">
-                  <b>{nota.split(/(?<=[.:])\s/)[0]}</b> {nota.split(/(?<=[.:])\s/).slice(1).join(' ')}
-                </div>
-              )}
             </div>
-          );
-        })}
-        {c.possiveis.length === 0 && <p className="etr-fab-nota">Sem barras lisas nem talas deste perfil.</p>}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <p className="etr-fabs-tit">Nenhuma marca tem lisa e tala para formar um TLS agora.</p>
+      )}
+      {(parado.lisas.length > 0 || parado.talas.length > 0) && (
+        <div className="etr-parado">
+          <p className="etr-fabs-tit">Material parado <span>· não fecha TLS sem a outra peça da mesma marca</span></p>
+          {parado.talas.length > 0 && (
+            <p>
+              <b>Talas</b> {lista(parado.talas)}
+            </p>
+          )}
+          {parado.lisas.length > 0 && (
+            <p>
+              <b>Lisas</b> {lista(parado.lisas)}
+            </p>
+          )}
+        </div>
+      )}
     </section>
   );
 }

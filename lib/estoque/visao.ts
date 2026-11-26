@@ -250,3 +250,18 @@ export function resumoSucata(saldos: Saldo[]): { classe: 'SC1' | 'SC2' | 'SC3' |
     { classe: 'TOTAL', ...por(() => true) },
   ];
 }
+
+export interface ItemParado {
+  fabricante: Fabricante;
+  barras: number;
+}
+
+/** Lisas e talas que sobram em cada marca depois de formar todos os TLS possíveis (não fecham TLS sozinhas). */
+export function materialParado(possiveis: TlsPossiveis[]): { lisas: ItemParado[]; talas: ItemParado[] } {
+  const lista = (f: (p: TlsPossiveis) => number) =>
+    possiveis
+      .map((p) => ({ fabricante: p.fabricante, barras: f(p) }))
+      .filter((i) => i.barras > 0)
+      .sort((a, b) => b.barras - a.barras);
+  return { lisas: lista((p) => p.sobraLisas), talas: lista((p) => p.sobraTalas) };
+}
