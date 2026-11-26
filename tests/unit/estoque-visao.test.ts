@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { SALDO_INICIAL_2026 } from '@/lib/estoque/saldoInicial2026';
 import { somarSaldos } from '@/lib/estoque/trilhos';
 import { barrasPorClasse, cartaoPerfil,
-  materialParado, conferenciaSap, outrosNovo, tabelaNovo } from '@/lib/estoque/visao';
+  materialParado,
+  resumoPatio, conferenciaSap, outrosNovo, tabelaNovo } from '@/lib/estoque/visao';
 
 const saldos = somarSaldos(SALDO_INICIAL_2026.map((l) => ({ ...l, data: '2026-11-25', origemTipo: 'SALDO_INICIAL' as const, origemId: null, descricao: '' })));
 
@@ -94,5 +95,17 @@ describe('materialParado', () => {
       { fabricante: 'PANGANG', barras: 7 },
       { fabricante: 'EVRAZ', barras: 2 },
     ]);
+  });
+});
+
+describe('resumoPatio', () => {
+  it('planilha: TR68 95 prontos +185, TR60 52 prontos +268, reemprego e sucata', () => {
+    const r = resumoPatio(saldos);
+    expect(r.perfis).toEqual([
+      { perfil: 'TR68', prontos: 95, formar: 185 },
+      { perfil: 'TR60', prontos: 52, formar: 268 },
+    ]);
+    expect(r.reempregoMetros).toBeCloseTo(32298.05, 2);
+    expect(r.sucataToneladas).toBeCloseTo(3595.355, 2);
   });
 });

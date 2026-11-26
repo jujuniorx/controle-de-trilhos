@@ -265,3 +265,14 @@ export function materialParado(possiveis: TlsPossiveis[]): { lisas: ItemParado[]
       .sort((a, b) => b.barras - a.barras);
   return { lisas: lista((p) => p.sobraLisas), talas: lista((p) => p.sobraTalas) };
 }
+
+/** O essencial do pátio para o Resumo geral do Estoque: TLS por perfil de solda, reemprego e sucata. */
+export function resumoPatio(saldos: Saldo[]): { perfis: { perfil: string; prontos: number; formar: number }[]; reempregoMetros: number; sucataToneladas: number } {
+  const perfis = perfisDeSolda(saldos).map((perfil) => {
+    const c = cartaoPerfil(saldos, perfil);
+    return { perfil, prontos: c.tlsProntos, formar: c.totalPossiveis };
+  });
+  const reempregoMetros = arred(barrasPorClasse(saldos, 'REEMPREGO').reduce((t, l) => t + l.metros, 0));
+  const sucataToneladas = resumoSucata(saldos).find((r) => r.classe === 'TOTAL')?.toneladas ?? 0;
+  return { perfis, reempregoMetros, sucataToneladas };
+}

@@ -12,6 +12,31 @@ import {
   situacaoNivel,
 } from '@/lib/domain/estoque';
 import { Kpi, ListaMovimentos } from './comum';
+import { montarEstoqueTrilhos } from '@/lib/services/estoqueTrilhos';
+import { resumoPatio } from '@/lib/estoque/visao';
+import { dataHoraBr } from './trilhos/formato';
+
+type Patio = ReturnType<typeof resumoPatio> & { atualizadoEm: string | null; carregado: boolean };
+
+/** Quadro do pátio na planta: o essencial do estoque de trilhos (o detalhe fica na aba Trilhos). */
+function PatioTrilhos({ p }: { p: Patio }) {
+  if (!p.carregado) return <p className="text-sm text-ink-muted">Saldo dos trilhos ainda não carregado. Abra Trilhos para carregar.</p>;
+  return (
+    <div className="flex flex-1 flex-col justify-center gap-2.5">
+      {p.perfis.map((x) => (
+        <div key={x.perfil} className="grid grid-cols-[64px_minmax(0,1fr)] items-baseline gap-3">
+          <span className="est-patio-perfil !text-lg">{x.perfil}</span>
+          <span className="text-sm text-ink-muted">
+            <b className="est-num text-xl text-ink">{fmtNum(x.prontos)}</b> TLS prontos · <b className="est-num text-ink">+{fmtNum(x.formar)}</b> para formar
+          </span>
+        </div>
+      ))}
+      <p className="mt-1 text-sm text-ink-muted">
+        Reemprego <b className="est-num text-ink">{fmtNum(Math.round(p.reempregoMetros))} m</b> · Sucata <b className="est-num text-ink">{t1(p.sucataToneladas)} t</b>
+      </p>
+    </div>
+  );
+}
 
 const t1 = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -87,7 +112,8 @@ function MiniVisual({ area }: { area: ResumoAreaEstoque }) {
 
 /** Resumo do estoque: a planta do depósito com as quatro áreas, o que precisa de atenção e a semana. */
 export async function ResumoEstoque() {
-  const r = await resumoGeralEstoque();
+  const [r, trilhos] = await Promise.all([resumoGeralEstoque(), montarEstoqueTrilhos()]);
+  const patio: Patio = { ...resumoPatio(trilhos.saldos), atualizadoEm: trilhos.atualizadoEm, carregado: trilhos.temSaldoInicial };
   const maior = Math.max(1, ...r.semana.flatMap((d) => [d.entradas, d.baixas]));
   const ultimoDia = r.semana[r.semana.length - 1]?.dia;
 
@@ -122,7 +148,9 @@ export async function ResumoEstoque() {
             const classe = a.id === AREA_TRILHOS ? 'est-sala-patio' : a.id === AREA_ALMOXARIFADO ? 'est-sala-larga' : '';
             const nota =
               a.id === AREA_TRILHOS
-                ? `${a.materiais.length} itens · ${t1(r.trilhos.toneladas)} t · ${fmtNum(Math.round(r.trilhos.metros))} m`
+                ? patio.atualizadoEm
+                  ? `Atualizado em ${dataHoraBr(patio.atualizadoEm)}`
+                  : 'Estoque de trilhos'
                 : `${a.materiais.length} ${a.materiais.length === 1 ? 'item' : 'itens'} · ${a.baixas7d} baixa${a.baixas7d === 1 ? '' : 's'} na semana`;
             return (
               <Link key={a.id} href={`/admin/estoque?area=${encodeURIComponent(a.id)}`} className={`est-sala ${classe}`}>
@@ -131,9 +159,9 @@ export async function ResumoEstoque() {
                     <div className="est-sala-nome">{a.id === AREA_TRILHOS ? 'Pátio de trilhos' : a.nome}</div>
                     <div className="mt-1 text-sm text-ink-muted">{nota}</div>
                   </div>
-                  <Pilula area={a} />
+                  {a.id !== AREA_TRILHOS && <Pilula area={a} />}
                 </div>
-                <MiniVisual area={a} />
+                {a.id === AREA_TRILHOS ? <PatioTrilhos p={patio} /> : <MiniVisual area={a} />}
                 {a.id === AREA_TRILHOS && <span className="text-sm font-semibold">Abrir Trilhos →</span>}
               </Link>
             );
