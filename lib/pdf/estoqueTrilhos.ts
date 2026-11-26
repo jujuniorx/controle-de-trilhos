@@ -91,11 +91,13 @@ export interface DadosPdfEstoqueTrilhos {
   saldos: Saldo[];
   sap: Partial<Record<ItemSap, number>>;
   atualizadoEm: string | null;
+  /** yyyy-mm-dd quando o PDF é do estoque num dia passado. */
+  ate?: string | null;
 }
 
 /** PDF do detalhado (A4 paisagem): novo, reemprego, sucata e conferência com o SAP, como a planilha. */
-export function gerarEstoqueTrilhosPdf({ saldos, sap, atualizadoEm }: DadosPdfEstoqueTrilhos): Buffer {
-  const f = new Folhas(atualizadoEm ? `Atualizado em ${dataHora(atualizadoEm)}` : '');
+export function gerarEstoqueTrilhosPdf({ saldos, sap, atualizadoEm, ate }: DadosPdfEstoqueTrilhos): Buffer {
+  const f = new Folhas(ate ? `Estoque no fim de ${ate.split('-').reverse().join('/')}` : atualizadoEm ? `Atualizado em ${dataHora(atualizadoEm)}` : '');
 
   tabela(
     f,

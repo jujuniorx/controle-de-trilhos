@@ -126,3 +126,6 @@
 }
 .etr-feed a { color: inherit; text-decoration: none; }
 .etr-feed a:hover { text-decoration: underline; }
+.etr-periodo-resumo { margin: 4px 0 18px; }
+.etr-aviso-data { flex-basis: 100%; margin: 4px 0 0; padding: 8px 12px; border-radius: 10px; background: color-mix(in srgb, var(--warn) 12%, transparent); color: var(--warn); font-size: 13px; font-weight: 600; }
+.etr-aviso-data a { color: inherit; text-decoration: underline; text-underline-offset: 3px; margin-left: 6px; }

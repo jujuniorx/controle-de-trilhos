@@ -8,7 +8,7 @@ import { conferenciaSap } from '@/lib/estoque/visao';
 import { ChaveVista } from './ChaveVista';
 import { DetalhadoTrilhos, type AbaDetalhado, type ModoTabela } from './DetalhadoTrilhos';
 import { ResumoTrilhos } from './ResumoTrilhos';
-import { COOKIE_VISTA_TRILHOS, dataHoraBr, fmt, hojeSP } from './formato';
+import { COOKIE_VISTA_TRILHOS, dataBr, dataHoraBr, fmt, hojeSP } from './formato';
 
 const ehData = (v?: string) => /^\d{4}-\d{2}-\d{2}$/.test(v ?? '');
 
@@ -148,7 +148,7 @@ export async function EstoqueTrilhos({ params }: { params: ParamsTrilhos }) {
     return `/admin/estoque?${p.toString()}`;
   };
 
-  const sap = conferenciaSap(estoque.saldos, estoque.sap);
+  const sap = conferenciaSap(saldosAte(estoque.lancamentos, fim), estoque.sap);
   const tlsSap = sap.filter((l) => l.tipo === 'TLS' && l.situacao !== 'sem-sap');
   const barrasDif = sap.filter((l) => l.tipo === 'BARRAS' && l.situacao === 'diferenca');
 
@@ -174,7 +174,7 @@ export async function EstoqueTrilhos({ params }: { params: ParamsTrilhos }) {
         </div>
         <div className="etr-acoes">
           <ChaveVista vista={vista} />
-          <a href="/api/estoque/trilhos/pdf" className="btn btn-ghost h-11 inline-flex items-center gap-2">
+          <a href={`/api/estoque/trilhos/pdf?ate=${fim}`} className="btn btn-ghost h-11 inline-flex items-center gap-2">
             <IconeBaixar size={16} />
             Baixar PDF
           </a>
@@ -182,7 +182,25 @@ export async function EstoqueTrilhos({ params }: { params: ParamsTrilhos }) {
       </div>
       <FormAjuste />
       {vista === 'resumo' ? (
-        <ResumoTrilhos saldos={estoque.saldos} lancamentos={estoque.lancamentos} />
+        <>
+          <form className="etr-periodo etr-periodo-resumo" action="/admin/estoque">
+            <input type="hidden" name="area" value="area-trilhos" />
+            <input type="hidden" name="vista" value="resumo" />
+            <div className="field">
+              <label htmlFor="etr-em">Estoque em</label>
+              <input id="etr-em" type="date" name="ate" defaultValue={fim} max={hoje} className="h-10" />
+            </div>
+            <button type="submit" className="btn btn-ghost h-10">
+              Ver
+            </button>
+            {fim !== hoje ? (
+              <p className="etr-aviso-data">
+                Mostrando o estoque no fim de {dataBr(fim)}. <a href="/admin/estoque?area=area-trilhos&vista=resumo&ate=">Voltar para hoje</a>
+              </p>
+            ) : null}
+          </form>
+          <ResumoTrilhos saldos={saldosAte(estoque.lancamentos, fim)} lancamentos={estoque.lancamentos.filter((l) => l.data <= fim)} />
+        </>
       ) : (
         <DetalhadoTrilhos saldos={saldosAte(estoque.lancamentos, fim)} lancamentos={estoque.lancamentos} sap={estoque.sap} aba={aba} modo={modo} de={ini} ate={fim} href={href} />
       )}
