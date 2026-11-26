@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { IconeMais } from '@/components/icones/Icones';
-import { FAB_REEMPREGO, FABRICANTES_CARGA, MAX_TLS_POR_LINHA } from '@/lib/estoque/cargasTrilheiro';
+import { FAB_REEMPREGO, FABRICANTES_CARGA, MAX_TLS_POR_LINHA, linhasDoBo } from '@/lib/estoque/cargasTrilheiro';
 import { ORDEM_PERFIS, ROTULO_FABRICANTE } from '@/lib/estoque/trilhos';
 
 export interface LinhaCargaInicial {
@@ -21,23 +21,31 @@ interface Linha {
 
 const PERFIS_TLS = [...ORDEM_PERFIS].reverse();
 
+const paraLinhas = (salvas: LinhaCargaInicial[]): Linha[] =>
+  salvas.length > 0
+    ? salvas.map((l, i) => ({ id: i + 1, perfil: l.perfil, fab: l.reemprego ? FAB_REEMPREGO : l.fabricante ?? '', qtd: String(l.quantidade) }))
+    : [{ id: 1, perfil: 'TR68', fab: '', qtd: '' }];
+
 /**
  * "TLS carregados neste B.O.": uma linha por perfil + fabricante (ou Reemprego) + quantidade.
  * Fica dentro do formulário da semana; os campos vão junto no "Salvar a semana".
  */
-export function CargasTrilheiro({ trilheiro, inicial }: { trilheiro: string; inicial: LinhaCargaInicial[] }) {
-  const [linhas, setLinhas] = useState<Linha[]>(() =>
-    inicial.length > 0
-      ? inicial.map((l, i) => ({ id: i + 1, perfil: l.perfil, fab: l.reemprego ? FAB_REEMPREGO : l.fabricante ?? '', qtd: String(l.quantidade) }))
-      : [{ id: 1, perfil: 'TR68', fab: '', qtd: '' }],
-  );
+export function CargasTrilheiro({ trilheiro, boSalvo, inicial }: { trilheiro: string; boSalvo: string; inicial: LinhaCargaInicial[] }) {
+  const [linhas, setLinhas] = useState<Linha[]>(() => paraLinhas(inicial));
   const [temBo, setTemBo] = useState(true);
 
   // O bloco só vale com a data do B.O. preenchida (os TLS saem do estoque nessa data).
   useEffect(() => {
     const campo = document.getElementById(`bo_${trilheiro}`) as HTMLInputElement | null;
     if (!campo) return;
-    const ver = () => setTemBo(campo.value.trim() !== '');
+    let anterior = campo.value.trim();
+    const ver = () => {
+      const bo = campo.value.trim();
+      setTemBo(bo !== '');
+      // Trocou o B.O. (giro novo): as linhas do giro antigo não vêm junto.
+      if (bo !== anterior) setLinhas(paraLinhas(linhasDoBo(bo, boSalvo, inicial)));
+      anterior = bo;
+    };
     ver();
     campo.addEventListener('input', ver);
     campo.addEventListener('change', ver);
@@ -45,7 +53,7 @@ export function CargasTrilheiro({ trilheiro, inicial }: { trilheiro: string; ini
       campo.removeEventListener('input', ver);
       campo.removeEventListener('change', ver);
     };
-  }, [trilheiro]);
+  }, [trilheiro, boSalvo, inicial]);
 
   const mudar = (id: number, patch: Partial<Linha>) => setLinhas((ls) => ls.map((l) => (l.id === id ? { ...l, ...patch } : l)));
   const total = linhas.reduce((a, l) => a + (/^\d+$/.test(l.qtd) ? parseInt(l.qtd, 10) : 0), 0);

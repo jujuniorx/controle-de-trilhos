@@ -500,7 +500,7 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                     <input id={`local_${t}`} name={`local_${t}`} defaultValue={localSemana[t] ?? ''} className="h-11" placeholder="Ex.: EFH" />
                   </div>
                 </div>
-                <CargasTrilheiro trilheiro={t} inicial={cargasBo[`${t}|${boSemana[t]}`] ?? []} />
+                <CargasTrilheiro trilheiro={t} boSalvo={boSemana[t] ?? ''} inicial={cargasBo[`${t}|${boSemana[t]}`] ?? []} />
                 <div className="tbl-wrap">
                   <table className="w-full text-sm">
                     <thead>

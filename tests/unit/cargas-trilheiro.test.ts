@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { lerCargasTrilheiro } from '@/lib/estoque/cargasTrilheiro';
+import { lerCargasTrilheiro, linhasDoBo } from '@/lib/estoque/cargasTrilheiro';
 
 const form = (campos: Record<string, string>) => ({ get: (k: string) => campos[k] ?? null });
 
@@ -36,5 +36,15 @@ describe('lerCargasTrilheiro', () => {
   it('perfil desconhecido: erro', () => {
     const r = lerCargasTrilheiro(form({ cargas_E40_n: '1', carga_E40_0_perfil: 'XX', carga_E40_0_fab: 'NIPPON', carga_E40_0_qtd: '5' }), 'E40');
     expect(r.ok).toBe(false);
+  });
+});
+
+describe('linhasDoBo', () => {
+  const salvas = [{ perfil: 'TR68', reemprego: false, fabricante: 'PANGANG', quantidade: 40 }];
+  it('mesmo B.O. em que foram salvas: mostra as linhas', () => {
+    expect(linhasDoBo('2026-11-20', '2026-11-20', salvas)).toEqual(salvas);
+  });
+  it('B.O. novo (giro novo): começa vazio, para não descontar os mesmos TLS duas vezes', () => {
+    expect(linhasDoBo('2026-11-27', '2026-11-20', salvas)).toEqual([]);
   });
 });

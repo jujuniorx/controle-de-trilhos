@@ -44,3 +44,11 @@ export function lerCargasTrilheiro(f: CamposForm, trilheiro: string): { ok: true
   }
   return { ok: true, linhas };
 }
+
+/**
+ * Linhas que o bloco mostra para o B.O. digitado: as salvas só valem para o B.O. em que foram
+ * salvas. Com B.O. novo (giro novo) começa vazio — senão os mesmos TLS sairiam do estoque duas vezes.
+ */
+export function linhasDoBo<T>(boAtual: string, boSalvo: string, salvas: T[]): T[] {
+  return boAtual !== '' && boAtual === boSalvo ? salvas : [];
+}
