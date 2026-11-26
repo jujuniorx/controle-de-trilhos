@@ -9,7 +9,7 @@ const bannerRelatorio = criarImagemPdf(BANNER_RELATORIO.largura, BANNER_RELATORI
 import type { DadosRelatorio, GraficoRelatorio, LinhaRelatorio, SerraRelatorio, SetorRelatorio, TrilheirosRelatorio } from '@/lib/services/onePageUsina';
 import { faixaSemanaSegSex, mesAte, rotuloPeriodo, type Coluna, TODAS_COLUNAS } from '@/lib/usina/periodo';
 import { desenharTrilheiros } from '@/lib/pdf/tabelaTrilheiros';
-import { desenharCaminhoes } from '@/lib/pdf/tabelaCaminhoes';
+import { desenharCaminhoes, alturaCaminhoes } from '@/lib/pdf/tabelaCaminhoes';
 
 type Cor = [number, number, number];
 
@@ -33,12 +33,18 @@ export const M = 36;
 
 /** Texto alinhado à direita, com a borda direita em `xDireita`. */
 export function textoDireita(p: PaginaPdf, texto: string, xDireita: number, y: number, tamanho: number, fonte: 'normal' | 'negrito', c: Cor) {
-  p.texto(texto, xDireita - larguraTexto(texto, tamanho, fonte), y, tamanho, fonte, c);
+  p.texto(texto, xDireita, y, tamanho, fonte, c, 'fim');
 }
 
 /** Texto centralizado em xCentro. */
 function textoCentro(p: PaginaPdf, texto: string, xCentro: number, y: number, tamanho: number, fonte: 'normal' | 'negrito', c: Cor) {
-  p.texto(texto, xCentro - larguraTexto(texto, tamanho, fonte) / 2, y, tamanho, fonte, c);
+  p.texto(texto, xCentro, y, tamanho, fonte, c, 'meio');
+}
+
+/** Valor em cima da barra: inteiro sem casas; com fração, duas casas (como nas tabelas). */
+function fmtValorBarra(v: number): string {
+  const inteiro = Number.isInteger(v);
+  return v.toLocaleString('pt-BR', { minimumFractionDigits: inteiro ? 0 : 2, maximumFractionDigits: inteiro ? 0 : 2 });
 }
 
 /** Valor centralizado em xCentro com partes separadas por ' / ', cada parte na sua cor. */
@@ -66,40 +72,41 @@ function valorCentroComCores(p: PaginaPdf, valor: string, cores: string[] | unde
 
 /** Tabela da serra: W61 e W62 nas linhas; Dia, Semana e Mês com barras e metros, cada composição na sua cor. */
 function desenharTabelaSerra(p: PaginaPdf, serra: SerraRelatorio, x: number, topo: number, w: number, colunas: Coluna[] = TODAS_COLUNAS, rotuloDia = 'DIA') {
-  const colunaRotulo = 42;
-  const colW = (w - colunaRotulo - 12) / 6;
-  // Borda direita de cada coluna (barras e metros de Dia, Semana e Mês), encostadas à direita.
   const todosGrupos: { rotulo: string; chave: 'dia' | 'semana' | 'mes' }[] = [
     { rotulo: rotuloDia, chave: 'dia' },
     { rotulo: 'SEMANA', chave: 'semana' },
     { rotulo: 'NO MÊS', chave: 'mes' },
   ];
   const grupos = todosGrupos.filter((g) => colunas.includes(g.chave));
-  const fim = (c: number) => x + colunaRotulo + (c + 1) * colW - 4;
-  const fimG = (gi: number, sub: 0 | 1) => fim(6 - 2 * grupos.length + gi * 2 + sub);
-  // Caixa por coluna (Dia, Semana, No mês), igual aos cartões de estaleiro e geração: cobre o cabeçalho até a última linha.
+  // Uma caixa por grupo (Dia, Semana, No mês), com Barras e Metros dentro. A última caixa termina na mesma
+  // borda direita dos outros cartões (8pt antes da borda), e as caixas têm o mesmo espaço entre elas.
+  const larguraCaixa = 62;
+  const passo = 68;
+  const direita = x + w - 8;
+  const x0De = (gi: number) => direita - (grupos.length - gi) * passo + (passo - larguraCaixa);
+  const centroBarras = (gi: number) => x0De(gi) + larguraCaixa * 0.27;
+  const centroMetros = (gi: number) => x0De(gi) + larguraCaixa * 0.72;
   // A caixa desce até logo abaixo da linha do Total (a linha do Total fica em topo - 55 - 11 x (linhas + 1)).
   const baseCaixa = topo - 55 - 11 * (serra.linhas.length + 1) - 4;
+  const yLinha = topo - 55;
+  // A linha do cabeçalho vem antes das caixas: elas a cobrem, e a linha não corta as colunas.
+  p.linha(x + 8, yLinha, direita, yLinha, LINHA, 0.6);
   grupos.forEach((g, gi) => {
-    // Caixas com folga entre elas: cada grupo ocupa duas colunas, e a caixa seguinte começa depois de 6pt.
-    const x0 = fimG(gi, 0) - colW + 6;
-    const x1 = fimG(gi, 1) + 3;
-    p.arredondado(x0, baseCaixa, x1 - x0, topo - 26 - baseCaixa, 4, g.chave === 'mes' ? hex('#f1f5f9') : BRANCO, LINHA);
+    p.arredondado(x0De(gi), baseCaixa, larguraCaixa, topo - 26 - baseCaixa, 4, g.chave === 'mes' ? hex('#f1f5f9') : BRANCO, LINHA);
   });
-  let y = topo - 32;
-  grupos.forEach((g, gi) => textoCentro(p, g.rotulo, (fimG(gi, 0) + fimG(gi, 1)) / 2 - colW / 2, y, 6.5, 'negrito', CINZA));
-  y -= 9;
+  let y = topo - 34;
+  grupos.forEach((g, gi) => textoCentro(p, g.rotulo, x0De(gi) + larguraCaixa / 2, y, 6.5, 'negrito', CINZA));
+  y -= 8;
   grupos.forEach((_, gi) => {
-    textoCentro(p, 'Barras', fimG(gi, 0) - colW / 2, y, 6, 'negrito', CINZA);
+    textoCentro(p, 'Barras', centroBarras(gi), y, 6, 'negrito', CINZA);
     // "Metros" e "est." em duas linhas, para não encostar em "Barras".
-    textoCentro(p, 'Metros', fimG(gi, 1) - colW / 2, y, 6, 'negrito', CINZA);
-    textoCentro(p, '(est.)', fimG(gi, 1) - colW / 2, y - 7, 6, 'negrito', CINZA);
+    textoCentro(p, 'Metros', centroMetros(gi), y, 6, 'negrito', CINZA);
+    textoCentro(p, '(est.)', centroMetros(gi), y - 6.5, 6, 'negrito', CINZA);
   });
-  y -= 14;
-  p.linha(x + 8, y, x + w - 8, y, LINHA, 0.6);
+  y = yLinha;
   const medidas = (m: { barras: number; metros: number }, gi: number, cor: Cor) => {
-    textoCentro(p, String(m.barras), fimG(gi, 0) - colW / 2, y, 8.5, 'negrito', cor);
-    textoCentro(p, fmtMetrosPdf(m.metros), fimG(gi, 1) - colW / 2, y, 8.5, 'negrito', cor);
+    textoCentro(p, String(m.barras), centroBarras(gi), y, 8.5, 'negrito', cor);
+    textoCentro(p, fmtMetrosPdf(m.metros), centroMetros(gi), y, 8.5, 'negrito', cor);
   };
   serra.linhas.forEach((l, i) => {
     y -= 11;
@@ -119,61 +126,93 @@ function fmtMetrosPdf(v: number): string {
 }
 
 /** Gráfico de barras por dia: uma barra por série e por dia, na área (x, yBase) até (x+w, yBase+altura). */
-export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yBase: number, w: number, altura: number, rotulos: string[] = [], bwMax = 4, destaque?: number | number[]) {
+export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yBase: number, w: number, altura: number, rotulos: string[] = [], bwMax = 4, destaque?: number | number[], comValores = false) {
   const n = Math.max(1, ...g.series.map((s) => s.valores.length));
   const topo = Math.max(1, ...g.series.flatMap((s) => s.valores));
   const gw = w / n;
   const bw = Math.max(0.6, Math.min(bwMax, (gw * 0.75) / g.series.length));
+  // Com o valor em cima da barra, a barra mais alta para antes do topo, deixando lugar para o número.
+  const alturaBarras = comValores ? Math.max(6, altura - 9) : altura;
+  const semDados = g.series.every((s) => s.valores.every((v) => v <= 0));
   g.series.forEach((s, si) => {
     s.valores.forEach((v, i) => {
-      const h = (Math.max(0, v) / topo) * altura;
+      const h = (Math.max(0, v) / topo) * alturaBarras;
       if (h <= 0) return;
       const bx = x + i * gw + gw / 2 - (g.series.length * bw) / 2 + si * bw;
       // Todos os dias mantêm a cor da série; o dia escolhido se destaca pelo nome em negrito.
       p.retangulo(bx, yBase, bw * 0.9, h, hex(s.cor));
+      if (comValores) textoCentro(p, fmtValorBarra(v), bx + (bw * 0.9) / 2, yBase + h + 2.5, 5.5, 'negrito', TINTA);
     });
   });
   p.linha(x, yBase, x + w, yBase, LINHA, 0.6);
+  // Semana sem nenhum lançamento: um aviso no lugar do gráfico vazio.
+  if (comValores && semDados) textoCentro(p, 'Sem lançamentos nesta semana', x + w / 2, yBase + altura / 2 - 2, 7, 'normal', CINZA);
   // Nome do dia (Seg 19, Ter 20...) embaixo de cada grupo de barras.
   const yRotulo = yBase - 9;
   rotulos.forEach((r, i) => {
     const cx = x + i * gw + gw / 2;
     const dest = Array.isArray(destaque) ? destaque.includes(i) : destaque === i;
-    p.texto(r, cx - larguraTexto(r, 6) / 2, yRotulo, 6, dest ? 'negrito' : 'normal', destaque === undefined || dest ? CINZA : hex('#aaaaaa'));
+    textoCentro(p, r, cx, yRotulo, 6, dest ? 'negrito' : 'normal', destaque === undefined || dest ? CINZA : hex('#aaaaaa'));
     // Motivo do dia sem produção (Feriado, Folga) numa etiqueta logo abaixo do nome do dia, no lugar da barra vazia.
     const etiqueta = g.etiquetas?.[i];
     if (etiqueta) {
       const lt = larguraTexto(etiqueta, 5);
       p.arredondado(cx - lt / 2 - 3, yRotulo - 9, lt + 6, 7, 3, hex('#eef2f6'));
-      p.texto(etiqueta, cx - lt / 2, yRotulo - 7, 5, 'normal', hex('#64748b'));
+      textoCentro(p, etiqueta, cx, yRotulo - 7, 5, 'normal', hex('#64748b'));
     }
   });
 }
 
-/** Gráfico do dia (uma barra por série) com a observação do setor logo acima. Só no PDF diário. */
-function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, base: number, w: number, rotulos: string[], destaque?: number | number[], limiteTopo?: number) {
-  if (!s.grafico) return;
-  // Campo de observação: caixa com o rótulo OBSERVAÇÃO, igual às caixas de colunas, em todos os setores.
+/**
+ * Medidas comuns aos cartões do diário (estaleiro, geração e serra): a caixa de observação, a legenda, o eixo do
+ * gráfico e o topo das barras ficam na mesma altura em todos, mesmo quando um cartão tem mais texto que o outro.
+ */
+export interface LayoutDiario { alturaCaixa: number; yGrafico: number; alturaGrafico: number }
+
+/** Máximo de linhas da observação no cartão; o que passar termina em reticências. */
+const MAX_LINHAS_OBS = 6;
+
+/** Linhas da observação de um setor, já quebradas na largura da caixa. */
+function linhasObservacao(s: SetorRelatorio, w: number): { linhas: string[]; temTexto: boolean } {
   const texto = s.observacao?.trim() ?? '';
-  // Quando o gráfico já mostra o motivo de cada dia parado e não sobra observação, a caixa sai e o gráfico fica maior.
-  const temEtiqueta = !!s.grafico.etiquetas?.some(Boolean);
-  const semCaixa = !texto && temEtiqueta;
-  const trechos = texto ? (texto.includes('\n') ? texto.split('\n') : [texto]) : [s.rotuloColunaDia ? 'Sem observação registrada no período.' : 'Sem observação registrada neste dia.'];
-  const todas = trechos.flatMap((t) => quebrarLinhas(t, 7, w - 28));
-  // Com vários dias a observação pode crescer: a caixa para antes de empurrar o gráfico para cima da tabela.
-  // Sobra sempre lugar para a legenda e um gráfico baixo; o que não couber termina em reticências.
-  const maxLinhas = limiteTopo === undefined ? 6 : Math.max(2, Math.floor((limiteTopo - 10 - 12 - 24 - 8 - (base + 4) - 14) / 8));
+  const trechos = texto ? texto.split('\n') : [s.rotuloColunaDia ? 'Sem observação registrada no período.' : 'Sem observação registrada neste dia.'];
+  return { linhas: trechos.flatMap((t) => quebrarLinhas(t, 7, w - 24)), temTexto: !!texto };
+}
+
+/** Onde termina a tabela do cartão (y da borda de baixo das caixas de coluna). */
+function fundoTabela(s: SetorRelatorio, topo: number): number {
+  if (s.serra) return topo - 55 - 11 * (s.serra.linhas.length + 1) - 4;
+  const slots = s.linhas.length + s.linhas.filter((l) => l.secao).length;
+  return topo - 38 - slots * 13 - 13;
+}
+
+/** Calcula as medidas comuns para cartões com topo e altura dados. */
+export function layoutDiario(setores: SetorRelatorio[], topo: number, h: number, w: number): LayoutDiario {
+  const base = topo - h;
+  const comGrafico = setores.filter((s) => s.grafico);
+  const nLinhas = Math.min(MAX_LINHAS_OBS, Math.max(1, ...comGrafico.map((s) => linhasObservacao(s, w).linhas.length)));
+  const alturaCaixa = 14 + nLinhas * 8;
+  const yLegenda = base + 6 + alturaCaixa + 8;
+  // Com etiquetas embaixo dos dias (Feriado, Folga), o eixo sobe um pouco para elas não encostarem na legenda.
+  const temEtiqueta = comGrafico.some((s) => s.grafico!.etiquetas?.some(Boolean));
+  const yGrafico = yLegenda + 24 + (temEtiqueta ? 7 : 0);
+  // As barras terminam 10pt abaixo da tabela mais baixa entre os cartões.
+  const limite = Math.min(...setores.map((s) => fundoTabela(s, topo))) - 10;
+  return { alturaCaixa, yGrafico, alturaGrafico: Math.max(16, limite - yGrafico) };
+}
+
+/** Gráfico da semana (dia escolhido em destaque) com a observação do setor embaixo. Só no diário. */
+function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, base: number, w: number, rotulos: string[], destaque: number | number[] | undefined, layout: LayoutDiario) {
+  if (!s.grafico) return;
+  const { linhas: todas, temTexto } = linhasObservacao(s, w);
+  const maxLinhas = Math.max(1, Math.floor((layout.alturaCaixa - 14) / 8));
   const linhas = todas.length > maxLinhas ? [...todas.slice(0, maxLinhas - 1), `${todas[maxLinhas - 1]!.replace(/\s+\S*$/, '')}…`] : todas;
-  const caixaBase = base + 4;
-  const textoBase = caixaBase + 5;
-  const alturaCaixa = semCaixa ? 0 : 8 + linhas.length * 8 + 6;
-  const caixaTopo = caixaBase + alturaCaixa;
-  if (!semCaixa) {
-    p.arredondado(x + 6, caixaBase, w - 12, alturaCaixa, 4, hex('#f8fafc'), LINHA);
-    p.texto('OBSERVAÇÃO', x + 12, caixaTopo - 8, 5.5, 'negrito', CINZA);
-    // A primeira linha fica em cima; o texto não tem "Obs:" na frente.
-    linhas.forEach((linha, i) => p.texto(linha, x + 12, textoBase + (linhas.length - 1 - i) * 8, 7, 'normal', texto ? TINTA : CINZA));
-  }
+  // Caixa com a mesma altura nos três cartões; o texto começa em cima, logo abaixo do rótulo.
+  const caixaBase = base + 6;
+  const caixaTopo = caixaBase + layout.alturaCaixa;
+  p.arredondado(x + 6, caixaBase, w - 12, layout.alturaCaixa, 4, hex('#f8fafc'), LINHA);
+  p.texto('OBSERVAÇÃO', x + 12, caixaTopo - 8, 5.5, 'negrito', CINZA);
+  linhas.forEach((linha, i) => p.texto(linha, x + 12, caixaTopo - 17 - i * 8, 7, 'normal', temTexto ? TINTA : CINZA));
   const yLegenda = caixaTopo + 8;
   let lx = x + 8;
   for (const serie of s.grafico.series) {
@@ -181,19 +220,15 @@ function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, 
     p.texto(serie.nome, lx + 9, yLegenda, 6.5, 'normal', CINZA);
     lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
   }
-  // O gráfico começa logo acima da legenda; a barra mais alta termina antes da última linha da tabela (limiteTopo).
-  // Os nomes dos dias ficam logo abaixo do gráfico: o gráfico começa acima deles, sem encostar na legenda.
-  // Com etiquetas embaixo dos dias, o gráfico sobe um pouco para elas não encostarem na legenda.
-  const yGrafico = yLegenda + 24 + (temEtiqueta ? 7 : 0);
-  // Sem limite (serra), a altura que a caixa ocuparia passa para o gráfico, para não sobrar um vão em cima.
-  const alturaGrafico = limiteTopo === undefined ? (semCaixa ? 26 + 22 - 7 : 26) : Math.max(12, limiteTopo - 10 - yGrafico);
-  desenharGrafico(p, s.grafico, x + 8, yGrafico, w - 16, alturaGrafico, rotulos, 4, destaque);
+  desenharGrafico(p, s.grafico, x + 8, layout.yGrafico, w - 16, layout.alturaGrafico, rotulos, 12, destaque, true);
 }
 
-export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = [], mensal = false, colunas: Coluna[] = ['dia', 'semana', 'mes'], comGrafico = true, destaque?: number | number[]) {
+export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = [], mensal = false, colunas: Coluna[] = ['dia', 'semana', 'mes'], comGrafico = true, destaque?: number | number[], layout?: LayoutDiario) {
   const base = topo - h;
   // No diário o gráfico é da semana, com o dia escolhido em destaque; a observação fica embaixo da tabela.
   const diarioSetor = destaque !== undefined;
+  // Sem medidas comuns (cartão sozinho), o cartão calcula as próprias.
+  const medidas = layout ?? layoutDiario([s], topo, h, w);
   p.arredondado(x + 1.2, base - 1.4, w, h, 9, SOMBRA);
   p.arredondado(x, base, w, h, 9, BRANCO, LINHA);
   p.arredondado(x, topo - 22, w, 22, 9, hex(s.cor));
@@ -203,7 +238,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   if (s.serra) {
     desenharTabelaSerra(p, s.serra, x, topo, w, mensal ? ['mes'] : colunas, s.rotuloColunaDia);
     if (s.grafico && comGrafico) {
-      if (diarioSetor) desenharObservacaoEGrafico(p, s, x, base, w, rotulos, destaque);
+      if (diarioSetor) desenharObservacaoEGrafico(p, s, x, base, w, rotulos, destaque, medidas);
       else desenharGrafico(p, s.grafico, x + 8, base + 30, w - 16, 22, rotulos);
     }
     return;
@@ -220,12 +255,13 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   const nomeDe: Record<Coluna, string> = { dia: s.rotuloColunaDia ?? 'DIA', semana: 'SEMANA', mes: 'NO MÊS' };
   // Linhas no padrão da tabela de trilheiros: mais altas no cartão largo; mais compactas no gerencial.
   const altLinhaSetor = largo ? 16 : 13;
-  const yCabecalho = topo - 32;
   const yPrimeiraLinha = topo - 38;
+  // Nome da coluna (DIA, NO MÊS) no meio, entre o topo da caixa (topo - 26) e a linha do cabeçalho (yPrimeiraLinha - 6).
+  const yCabecalho = (topo - 26 + yPrimeiraLinha - 6) / 2 - 2.3;
   // A caixa desce abaixo da última linha de texto: sem essa folga, os números da última linha passavam da borda.
   // Cada bloco com título (ex.: Soldas e cortes) ocupa uma linha a mais, além das linhas de dados.
   const slots = s.linhas.length + s.linhas.filter((l) => l.secao).length;
-  const fimLinhas = yPrimeiraLinha - slots * altLinhaSetor - 9;
+  const fimLinhas = yPrimeiraLinha - slots * altLinhaSetor - 13;
   // Faixas zebradas primeiro; depois as caixas das colunas, por cima; por fim os textos.
   // Com as caixas das colunas, a zebra some: ela aparecia cortada nas bordas das caixas e deixava o cartão quebrado.
   if (ativas.length === 0) {
@@ -233,17 +269,19 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
       if (i % 2 === 1) p.retangulo(x + 4, yPrimeiraLinha - (i + 1) * altLinhaSetor - 4, w - 8, altLinhaSetor, ZEBRA);
     });
   }
+  // A linha do cabeçalho vem antes das caixas: elas a cobrem, e a linha não corta as colunas.
+  p.linha(x + 8, yPrimeiraLinha - 6, xMes + 2, yPrimeiraLinha - 6, LINHA, 0.6);
   ativas.forEach((c) => {
     const xr = xDe(c);
     p.arredondado(xr - 52, fimLinhas, 60, topo - 26 - fimLinhas, 4, c === 'mes' ? hex('#f1f5f9') : BRANCO, LINHA);
   });
   ativas.forEach((c) => textoCentro(p, nomeDe[c], xDe(c) - 22, yCabecalho, 6.5, 'negrito', CINZA));
-  p.linha(x + 8, yPrimeiraLinha - 6, xMes + 2, yPrimeiraLinha - 6, LINHA, 0.6);
   let y = yPrimeiraLinha - 6;
   s.linhas.forEach((linha) => {
     if (linha.secao) {
       y -= altLinhaSetor;
-      p.texto(linha.secao.toUpperCase(), x + 8, y + 3, 6, 'negrito', CINZA);
+      // O título do bloco fica mais perto das linhas dele do que da linha de cima.
+      p.texto(linha.secao.toUpperCase(), x + 8, y - 1, 6, 'negrito', CINZA);
     }
     y -= altLinhaSetor;
     p.texto(linha.rotulo, x + 8, y, 8, 'normal', TINTA);
@@ -256,7 +294,7 @@ export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: 
   // No mensal o gráfico diário sai: o cartão mostra só os totais do mês.
   if (!s.grafico || mensal || !comGrafico) return;
   if (diarioSetor && !largo) {
-    desenharObservacaoEGrafico(p, s, x, base, w, rotulos, destaque, fimLinhas);
+    desenharObservacaoEGrafico(p, s, x, base, w, rotulos, destaque, medidas);
     return;
   }
   if (largo) {
@@ -403,15 +441,17 @@ function montarPaginasUsina(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 
 
   // Sem cabeçalho repetido aqui (a capa já traz o título e a logo): só uma faixa separadora com o período.
   const semana = mensal ? `Mês até ${mesAte(d.data).split(' a ')[1]}` : diario ? rotuloPeriodo(d.data, 'diario', d.desde).valor : faixaSemanaSegSex(d.data);
-  // Marca no topo à esquerda: CONTROLE DE TRILHOS – logo Rumo, com um traço separando.
+  // Marca no topo à esquerda: CONTROLE DE TRILHOS | logo Rumo. O separador é uma barra fina no meio das maiúsculas,
+  // com o mesmo espaço dos dois lados; a logo fica centrada na mesma altura do texto.
   const larguraMarca = larguraTexto('CONTROLE DE TRILHOS', 7, 'negrito');
-  const altLogo = 10.5;
+  const altLogo = 10;
   const larguraLogo = (altLogo * LOGO_RUMO.largura) / LOGO_RUMO.altura;
-  const centroTexto = H - 24 + 2.6; // meio das maiusculas do texto
+  const centroTexto = H - 24 + 2.55; // meio das maiúsculas do texto (altura das maiúsculas da Helvetica = 0,72 em)
+  const espacoMarca = 7;
+  const xSeparador = M + larguraMarca + espacoMarca;
   p.texto('CONTROLE DE TRILHOS', M, H - 24, 7, 'negrito', AZUL);
-  // Traço desenhado como linha, no meio exato das maiúsculas (o glifo "-" ficava baixo).
-  p.linha(M + larguraMarca + 9, centroTexto, M + larguraMarca + 13, centroTexto, CINZA, 0.9);
-  p.imagem(logoRumo, M + larguraMarca + 20, centroTexto - altLogo / 2, larguraLogo, altLogo);
+  p.linha(xSeparador, centroTexto - 4, xSeparador, centroTexto + 4, LINHA, 0.9);
+  p.imagem(logoRumo, xSeparador + espacoMarca, centroTexto - altLogo / 2, larguraLogo, altLogo);
   textoDireita(p, semana, L - M, H - 24, 9, 'negrito', NAVY);
   p.linha(M, H - 32, L - M, H - 32, LINHA, 0.8);
 
@@ -420,17 +460,27 @@ function montarPaginasUsina(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 
   const wRes = (L - 2 * M - (d.resumo.length - 1) * gap) / d.resumo.length;
   const topoRes = H - 46;
   const altRes = 64;
+  // Título de cada cartão sem a unidade; a unidade (und, m) vai à direita, pequena, como a legenda dos trilheiros.
+  const cabecalhos = d.resumo.map((r) => {
+    const m = r.rotulo.match(/^(.*?)\s*\((und|m)\)$/i);
+    return { titulo: (m ? m[1]! : r.rotulo).toUpperCase(), legenda: r.legenda ?? (m ? m[2]!.toLowerCase() : '') };
+  });
+  // Todos os títulos no mesmo tamanho: o do título mais longo, para nenhum passar da borda (no máximo 7pt).
+  const tamTitulo = Math.max(5, Math.min(7, ...cabecalhos.map((c) => {
+    const espaco = wRes - 26 - (c.legenda ? larguraTexto(c.legenda, 6, 'negrito') + 6 : 0);
+    return (7 * espaco) / Math.max(1, larguraTexto(c.titulo, 7, 'negrito'));
+  })));
   d.resumo.forEach((r, i) => {
     const x = M + i * (wRes + gap);
     p.arredondado(x + 1, topoRes - altRes - 1.2, wRes, altRes, 9, SOMBRA);
     p.arredondado(x, topoRes - altRes, wRes, altRes, 9, BRANCO, LINHA);
-    p.arredondado(x + 8, topoRes - 15, 6, 6, 3, hex(r.cor));
-    // Com mais cartões (ex.: três caminhões) o título diminui até caber, em vez de passar da borda ou da legenda.
-    const titulo = r.rotulo.toUpperCase();
-    const espaco = wRes - 26 - (r.legenda ? larguraTexto(r.legenda, 6, 'negrito') + 6 : 0);
-    const tamTitulo = Math.max(5, Math.min(7, (7 * espaco) / Math.max(1, larguraTexto(titulo, 7, 'negrito'))));
-    p.texto(titulo, x + 18, topoRes - 14, tamTitulo, 'negrito', TINTA);
-    if (r.legenda) textoDireita(p, r.legenda, x + wRes - 8, topoRes - 14, 6, 'negrito', CINZA);
+    // Bolinha centrada na altura das maiúsculas do título.
+    const yTitulo = topoRes - 14;
+    const centroTitulo = yTitulo + tamTitulo * 0.36;
+    p.arredondado(x + 8, centroTitulo - 3, 6, 6, 3, hex(r.cor));
+    const { titulo, legenda } = cabecalhos[i]!;
+    p.texto(titulo, x + 18, yTitulo, tamTitulo, 'negrito', TINTA);
+    if (legenda) textoDireita(p, legenda, x + wRes - 8, yTitulo, 6, 'negrito', CINZA);
     if (mensal && r.linhas?.length) {
       desenharLinhasResumo(p, r, x, topoRes, wRes, colunas, diario ? d.rotuloValorDia : d.rotuloDia);
       return;
@@ -448,19 +498,30 @@ function montarPaginasUsina(d: DadosRelatorio, tril: TrilheirosRelatorio, modo: 
   const nSetores = 3;
   const gapC = 12;
   const wSet = (L - 2 * M - (nSetores - 1) * gapC) / nSetores;
-  const altSet = 250;
   const topoGrade = topoRes - altRes - 16;
   const porTitulo = (t: string) => setores.find((s) => s.titulo === t);
-  const linha1 = setores.filter((s) => s.titulo !== 'Caminhão de solda' && s.titulo !== 'Trilheiros');
-  linha1.slice(0, nSetores).forEach((s, i) => {
-    desenharSetor(p, s, M + i * (wSet + gapC), topoGrade, wSet, altSet, false, rotulosGrafico, mensal, colunas, true, diario ? indiceDia : undefined);
+  const linha1 = setores.filter((s) => s.titulo !== 'Caminhão de solda' && s.titulo !== 'Trilheiros').slice(0, nSetores);
+  // No diário os três cartões usam as mesmas medidas (observação, legenda e gráfico na mesma altura).
+  // Quando uma observação é longa, o cartão cresce em vez de espremer o gráfico.
+  let altSet = 250;
+  let layout: LayoutDiario | undefined;
+  if (diario && !mensal) {
+    const ALTURA_GRAFICO = 64;
+    layout = layoutDiario(linha1, topoGrade, altSet, wSet);
+    if (layout.alturaGrafico < ALTURA_GRAFICO) {
+      altSet = Math.min(330, altSet + ALTURA_GRAFICO - layout.alturaGrafico);
+      layout = layoutDiario(linha1, topoGrade, altSet, wSet);
+    }
+  }
+  linha1.forEach((s, i) => {
+    desenharSetor(p, s, M + i * (wSet + gapC), topoGrade, wSet, altSet, false, rotulosGrafico, mensal, colunas, true, diario ? indiceDia : undefined, layout);
   });
 
   // Linhas 2 e 3: Caminhão de solda e Trilheiros, um embaixo do outro, cada um na largura toda.
   const larguraTotal = L - 2 * M;
   // Altura do cartão do caminhão cresce com o número de linhas (Solda e Corte de cada caminhão), para nada passar por baixo.
   const linhasCaminhao = porTitulo('Caminhão de solda')?.caminhoes?.length ?? 0;
-  const altCaminhao = Math.max(90, 50 + linhasCaminhao * 40);
+  const altCaminhao = alturaCaminhoes(linhasCaminhao);
   const gapLinha = 12; // mesmo espaço entre cartões da página, em toda a folha
   // Página 2: caminhão, trilheiros e observações. Página 1: setores e estoque TLS.
   const topoLinha2 = H - 46; // mesmo topo da primeira página (sem faixa em branco no começo da segunda)
@@ -516,8 +577,9 @@ export function gerarOnePageUsinaSvg(
     const { p, p2 } = montarPaginasUsina(d, tril, modo, colunasEscolhidas, observacoes);
     const altP = p.alturaUtil(H);
     const altP2 = p2.alturaUtil(H);
-    // A segunda página começa logo depois da primeira (sem a margem de topo dela no meio): há um espaço de cerca de 40 entre o fim da primeira e o começo da segunda.
-    const topoP2 = alturaFoto + altP - 20;
+    // A segunda página começa logo depois da primeira, com o mesmo espaço (16pt) que separa os cartões do topo dos
+    // cartões de setor. alturaUtil soma 14pt de folga embaixo, e o primeiro cartão da segunda página fica a 46pt do topo dela.
+    const topoP2 = alturaFoto + (altP - 14) + 16 - 46;
     const total = topoP2 + altP2 + ALTURA_RODAPE;
     const rodape = new PaginaPdf().retangulo(0, 0, L, ALTURA_RODAPE, BRANCO);
     desenharRodape(rodape, d, modo, 0);

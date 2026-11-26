@@ -14,15 +14,36 @@ type Desenho =
   | { t: 'img'; img: ImagemPdf; x: number; y: number; l: number; a: number }
   | { t: 'ret'; x: number; y: number; l: number; a: number; r: number; cor: Cor; borda?: Cor }
   | { t: 'lin'; x1: number; y1: number; x2: number; y2: number; cor: Cor; esp: number }
-  | { t: 'txt'; texto: string; x: number; y: number; tam: number; fonte: Fonte; cor: Cor };
+  | { t: 'txt'; texto: string; x: number; y: number; tam: number; fonte: Fonte; cor: Cor; ancora: Ancora };
 
 type Fonte = 'normal' | 'negrito';
 type Cor = [number, number, number]; // 0–1
+/** Onde fica o x do texto: no começo, no meio ou no fim (alinhado à direita). */
+export type Ancora = 'inicio' | 'meio' | 'fim';
 
 const NOME_FONTE: Record<Fonte, string> = { normal: 'F1', negrito: 'F2' };
 
-// Largura média aproximada (em "em") da Helvetica — suficiente para quebrar linhas com folga.
-const LARGURA_MEDIA: Record<Fonte, number> = { normal: 0.52, negrito: 0.57 };
+// Larguras reais da Helvetica (métricas AFM, em milésimos de "em"), do espaço (32) ao til (126).
+// Arial e Liberation Sans usam as mesmas larguras: o alinhamento bate no PDF e na imagem.
+// prettier-ignore
+const LARG_NORMAL = [278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584];
+// prettier-ignore
+const LARG_NEGRITO = [278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584];
+// Caracteres fora do ASCII usados no relatório: [normal, negrito].
+const LARG_ESPECIAL: Record<string, [number, number]> = {
+  '—': [1000, 1000], '–': [556, 556], '·': [278, 278], '…': [1000, 1000], '“': [333, 500], '”': [333, 500],
+  '‘': [222, 278], '’': [222, 278], '•': [350, 350], 'º': [365, 365], 'ª': [370, 370], '°': [400, 400], '×': [584, 584], '€': [556, 556],
+};
+
+function larguraCaractere(ch: string, fonte: Fonte): number {
+  const especial = LARG_ESPECIAL[ch];
+  if (especial) return especial[fonte === 'negrito' ? 1 : 0];
+  let codigo = ch.codePointAt(0) ?? 63;
+  // Letra acentuada (ã, ç, É...) tem a largura da letra sem acento.
+  if (codigo > 126) codigo = ch.normalize('NFD').codePointAt(0) ?? 63;
+  const tabela = fonte === 'negrito' ? LARG_NEGRITO : LARG_NORMAL;
+  return codigo >= 32 && codigo <= 126 ? tabela[codigo - 32]! : 556;
+}
 
 // Caracteres comuns que o Latin-1 não tem, mas a codificação WinAnsi (cp1252) tem.
 const CP1252: Record<string, string> = {
@@ -109,12 +130,18 @@ export class PaginaPdf {
     return this;
   }
 
-  /** (x, y) é o canto inferior esquerdo da linha de texto; y cresce para cima, como no PDF. */
-  texto(texto: string, x: number, y: number, tamanho: number, fonte: Fonte = 'normal', cinza: Cor = [0.1, 0.12, 0.16]): this {
+  /**
+   * (x, y) é a linha de base do texto; y cresce para cima, como no PDF. Com `ancora` 'meio' ou 'fim', x é o centro
+   * ou a borda direita: no SVG quem alinha é o próprio navegador (text-anchor), então o texto fica no lugar certo
+   * mesmo quando a fonte do aparelho tem larguras um pouco diferentes.
+   */
+  texto(texto: string, x: number, y: number, tamanho: number, fonte: Fonte = 'normal', cinza: Cor = [0.1, 0.12, 0.16], ancora: Ancora = 'inicio'): this {
+    const largura = ancora === 'inicio' ? 0 : larguraTexto(texto, tamanho, fonte);
+    const xPdf = ancora === 'fim' ? x - largura : ancora === 'meio' ? x - largura / 2 : x;
     this.operacoes.push(
-      `BT ${cor(cinza)} rg /${NOME_FONTE[fonte]} ${num(tamanho)} Tf ${num(x)} ${num(y)} Td (${escaparTexto(texto)}) Tj ET`,
+      `BT ${cor(cinza)} rg /${NOME_FONTE[fonte]} ${num(tamanho)} Tf ${num(xPdf)} ${num(y)} Td (${escaparTexto(texto)}) Tj ET`,
     );
-    this.desenhos.push({ t: 'txt', texto, x, y, tam: tamanho, fonte, cor: cinza });
+    this.desenhos.push({ t: 'txt', texto, x, y, tam: tamanho, fonte, cor: cinza, ancora });
     return this;
   }
 
@@ -157,8 +184,9 @@ export class PaginaPdf {
         partes.push(`<line x1="${num(d.x1)}" y1="${num(altura - d.y1)}" x2="${num(d.x2)}" y2="${num(altura - d.y2)}" stroke="${rgbCss(d.cor)}" stroke-width="${num(d.esp)}"/>`);
       } else {
         const peso = d.fonte === 'negrito' ? ' font-weight="700"' : '';
+        const ancora = d.ancora === 'meio' ? ' text-anchor="middle"' : d.ancora === 'fim' ? ' text-anchor="end"' : '';
         partes.push(
-          `<text x="${num(d.x)}" y="${num(altura - d.y)}" font-family="Helvetica, Arial, sans-serif" font-size="${num(d.tam)}"${peso} fill="${rgbCss(d.cor)}">${escaparXml(d.texto)}</text>`,
+          `<text x="${num(d.x)}" y="${num(altura - d.y)}" font-family="Helvetica, Arial, 'Liberation Sans', Arimo, sans-serif" font-size="${num(d.tam)}"${peso}${ancora} fill="${rgbCss(d.cor)}">${escaparXml(d.texto)}</text>`,
         );
       }
     }
@@ -223,22 +251,25 @@ function pngRgb(largura: number, altura: number, dados: Buffer): string {
 
 /** Quebra o texto em linhas que cabem em `larguraMax` (pontos), por palavras. */
 export function quebrarLinhas(texto: string, tamanho: number, larguraMax: number, fonte: Fonte = 'normal'): string[] {
-  const porLinha = Math.max(1, Math.floor(larguraMax / (tamanho * LARGURA_MEDIA[fonte])));
+  // Medida real de cada linha, com 2% de folga para a fonte do aparelho.
+  const cabe = (t: string) => larguraTexto(t, tamanho, fonte) * 1.02 <= larguraMax;
   const linhas: string[] = [];
   let atual = '';
   for (const palavra of texto.split(/\s+/).filter(Boolean)) {
-    // palavra maior que a linha: corta
+    // Palavra maior que a linha: corta no último caractere que cabe.
     let resto = palavra;
-    while (resto.length > porLinha) {
+    while (!cabe(resto)) {
       if (atual) {
         linhas.push(atual);
         atual = '';
       }
-      linhas.push(resto.slice(0, porLinha));
-      resto = resto.slice(porLinha);
+      let n = Math.max(1, resto.length - 1);
+      while (n > 1 && !cabe(resto.slice(0, n))) n--;
+      linhas.push(resto.slice(0, n));
+      resto = resto.slice(n);
     }
     const candidata = atual ? `${atual} ${resto}` : resto;
-    if (candidata.length > porLinha) {
+    if (!cabe(candidata)) {
       linhas.push(atual);
       atual = resto;
     } else atual = candidata;
@@ -281,9 +312,11 @@ export function montarPdf(pagina: PaginaPdf, titulo: string): Buffer {
 
 export const A4_PAISAGEM = { largura: 842, altura: 595 } as const;
 
-/** Largura aproximada de um texto (pontos), para alinhar à direita. */
+/** Largura de um texto (pontos), pela métrica real da Helvetica. */
 export function larguraTexto(texto: string, tamanho: number, fonte: Fonte = 'normal'): number {
-  return texto.length * tamanho * LARGURA_MEDIA[fonte];
+  let total = 0;
+  for (const ch of texto) total += larguraCaractere(ch, fonte);
+  return (total * tamanho) / 1000;
 }
 
 /**
