@@ -125,23 +125,64 @@ function fmtMetrosPdf(v: number): string {
   return v.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
 }
 
+/** Linhas de grade do gráfico: mais claras que as linhas dos cartões, para ficarem atrás das barras. */
+const GRADE: Cor = [0.91, 0.92, 0.94];
+
+/** Escala do eixo: 4 ou 5 passos redondos (1, 2, 2,5 ou 5 vezes 10^k) cobrindo o maior valor. */
+function passosDaEscala(maior: number): { topo: number; marcas: number[] } {
+  if (maior <= 0) return { topo: 10, marcas: [0, 5, 10] };
+  const bruto = maior / 4;
+  const ordem = 10 ** Math.floor(Math.log10(bruto));
+  const passo = [1, 2, 2.5, 5, 10].map((f) => f * ordem).find((c) => c >= bruto) ?? 10 * ordem;
+  const topo = Math.ceil(maior / passo) * passo;
+  const marcas: number[] = [];
+  for (let m = 0; m <= topo + passo / 2; m += passo) marcas.push(Math.round(m * 100) / 100);
+  return { topo, marcas };
+}
+
+/** Número da escala: sem casas quando inteiro, como no Excel (0, 100, 200; 0, 2,5, 5). */
+function fmtEscala(v: number): string {
+  return v.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+}
+
 /** Gráfico de barras por dia: uma barra por série e por dia, na área (x, yBase) até (x+w, yBase+altura). */
 export function desenharGrafico(p: PaginaPdf, g: GraficoRelatorio, x: number, yBase: number, w: number, altura: number, rotulos: string[] = [], bwMax = 4, destaque?: number | number[], comValores = false) {
   const n = Math.max(1, ...g.series.map((s) => s.valores.length));
-  const topo = Math.max(1, ...g.series.flatMap((s) => s.valores));
-  const gw = w / n;
-  const bw = Math.max(0.6, Math.min(bwMax, (gw * 0.75) / g.series.length));
-  // Com o valor em cima da barra, a barra mais alta para antes do topo, deixando lugar para o número.
+  const maior = Math.max(0, ...g.series.flatMap((s) => s.valores));
+  // Com valores: escala à esquerda e linhas de grade atrás das barras, como no Excel.
+  // O topo da escala é o primeiro número redondo acima do maior valor da semana.
+  // Semana sem lançamento fica sem escala: só o aviso, sem grade cortando o texto.
+  const escala = comValores && maior > 0 ? passosDaEscala(maior) : null;
+  const topo = escala ? escala.topo : Math.max(1, maior);
+  // O número em cima da barra mais alta precisa de lugar: a barra para 9 pt antes do topo.
   const alturaBarras = comValores ? Math.max(6, altura - 9) : altura;
+  if (escala) {
+    const textos = escala.marcas.map(fmtEscala);
+    const larguraEixo = Math.max(...textos.map((t) => larguraTexto(t, 5.5, 'normal'))) + 5;
+    escala.marcas.forEach((m, k) => {
+      const y = yBase + (m / topo) * alturaBarras;
+      if (m > 0) p.linha(x + larguraEixo, y, x + w, y, GRADE, 0.4);
+      textoDireita(p, textos[k]!, x + larguraEixo - 3, y - 2, 5.5, 'normal', CINZA);
+    });
+    x += larguraEixo;
+    w -= larguraEixo;
+  }
+  const gw = w / n;
+  // Com valores, série sem nenhum lançamento na semana não ocupa lugar: as barras ficam mais largas.
+  // A legenda continua mostrando todas as séries.
+  const comLancamento = g.series.filter((s) => s.valores.some((v) => v > 0));
+  const series = comValores && comLancamento.length > 0 ? comLancamento : g.series;
+  const bw = Math.max(0.6, Math.min(bwMax, (gw * 0.75) / series.length));
+  const larguraBarra = bw * 0.9;
   const semDados = g.series.every((s) => s.valores.every((v) => v <= 0));
-  g.series.forEach((s, si) => {
+  series.forEach((s, si) => {
     s.valores.forEach((v, i) => {
       const h = (Math.max(0, v) / topo) * alturaBarras;
       if (h <= 0) return;
-      const bx = x + i * gw + gw / 2 - (g.series.length * bw) / 2 + si * bw;
+      const bx = x + i * gw + gw / 2 - (series.length * bw) / 2 + si * bw;
       // Todos os dias mantêm a cor da série; o dia escolhido se destaca pelo nome em negrito.
-      p.retangulo(bx, yBase, bw * 0.9, h, hex(s.cor));
-      if (comValores) textoCentro(p, fmtValorBarra(v), bx + (bw * 0.9) / 2, yBase + h + 2.5, 5.5, 'negrito', TINTA);
+      p.retangulo(bx, yBase, larguraBarra, h, hex(s.cor));
+      if (comValores) textoCentro(p, fmtValorBarra(v), bx + larguraBarra / 2, yBase + h + 2.5, 5.5, 'negrito', TINTA);
     });
   });
   p.linha(x, yBase, x + w, yBase, LINHA, 0.6);
@@ -220,7 +261,7 @@ function desenharObservacaoEGrafico(p: PaginaPdf, s: SetorRelatorio, x: number, 
     p.texto(serie.nome, lx + 9, yLegenda, 6.5, 'normal', CINZA);
     lx += 9 + larguraTexto(serie.nome, 6.5) + 14;
   }
-  desenharGrafico(p, s.grafico, x + 8, layout.yGrafico, w - 16, layout.alturaGrafico, rotulos, 12, destaque, true);
+  desenharGrafico(p, s.grafico, x + 8, layout.yGrafico, w - 16, layout.alturaGrafico, rotulos, 20, destaque, true);
 }
 
 export function desenharSetor(p: PaginaPdf, s: SetorRelatorio, x: number, topo: number, w: number, h: number, largo = false, rotulos: string[] = [], mensal = false, colunas: Coluna[] = ['dia', 'semana', 'mes'], comGrafico = true, destaque?: number | number[], layout?: LayoutDiario) {
