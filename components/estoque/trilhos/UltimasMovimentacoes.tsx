@@ -1,10 +1,12 @@
 import Link from 'next/link';
-import { ROTULO_FABRICANTE, type Lancamento } from '@/lib/estoque/trilhos';
+import { ORDEM_PERFIS, ROTULO_FABRICANTE, type Lancamento } from '@/lib/estoque/trilhos';
 import { dataBr, fmt, fmtM } from './formato';
 
 export interface Quantidade {
   texto: string;
   sinal: number;
+  /** Detalhe por perfil, quando o total junta várias linhas (ex.: reemprego de dois perfis). */
+  detalhe?: string;
 }
 
 export interface MovimentoLinha {
@@ -77,6 +79,37 @@ function somar(lista: Lancamento[], curto: boolean): Quantidade[] {
   return saida;
 }
 
+/** Barras de reemprego ou sucata de várias linhas: um total por material, com o detalhe por perfil. */
+function porMaterial(lista: Lancamento[]): Quantidade[] {
+  const saida: Quantidade[] = [];
+  const barras = lista.filter((l) => l.tipo === 'BARRA');
+  const resto = lista.filter((l) => l.tipo !== 'BARRA');
+  for (const [secao, nome] of [['REEMPREGO', 'reemprego'], ['SUCATA', 'sucata']] as const) {
+    const da = barras.filter((l) => l.secao === secao);
+    const linhas = somar(da, false);
+    if (linhas.length <= 1) {
+      saida.push(...linhas);
+      continue;
+    }
+    const total = da.reduce((t, l) => t + l.metros, 0);
+    const perfis = [...new Set(da.map((l) => l.perfil))].sort((a, b) => ORDEM_PERFIS.indexOf(a) - ORDEM_PERFIS.indexOf(b));
+    const detalhe = perfis
+      .map((perfil) => {
+        const doPerfil = da.filter((l) => l.perfil === perfil);
+        const classes = [...new Set(doPerfil.map((l) => l.classe))].sort();
+        const partes = classes
+          .map((c) => ({ c, m: doPerfil.filter((l) => l.classe === c).reduce((t, l) => t + l.metros, 0) }))
+          .filter((x) => Math.abs(x.m) >= 0.005)
+          .map((x) => `${x.c.replace('SC', 'SC-')} ${fmt(Math.abs(x.m), 2)}`);
+        return `${perfil}: ${partes.join(' · ')}`;
+      })
+      .join(' — ');
+    saida.push({ texto: `${total < 0 ? '−' : '+'}${fmt(Math.abs(total), 2)} m de ${nome}`, sinal: Math.sign(total), detalhe });
+  }
+  saida.push(...somar(resto, false));
+  return saida;
+}
+
 /**
  * Movimentos por dia, do mais novo para o mais antigo. Cada fato é uma linha: a Produção do dia vira
  * uma linha só (TLS formados e o consumo de lisa e tala somados). `limite` conta linhas.
@@ -120,7 +153,7 @@ export function agruparMovimentos(lancamentos: Lancamento[], de?: string, ate?: 
         data: f.data,
         origemTipo: f.origemTipo,
         titulo: primeiro.descricao || ROTULO_ORIGEM[f.origemTipo],
-        principal: somar(f.lista, false),
+        principal: porMaterial(f.lista),
         consumo: [],
         nota: null,
         alerta,
@@ -140,6 +173,18 @@ export function agruparMovimentos(lancamentos: Lancamento[], de?: string, ate?: 
 }
 
 function Valores({ lista, discreto }: { lista: Quantidade[]; discreto?: boolean }) {
+  if (lista.some((q) => q.detalhe)) {
+    return (
+      <>
+        {lista.map((q) => (
+          <span key={q.texto} className="etr-mv-bloco">
+            <span className={q.sinal < 0 ? 'etr-menos' : 'etr-mais'}>{q.texto}</span>
+            {q.detalhe && <small>{q.detalhe}</small>}
+          </span>
+        ))}
+      </>
+    );
+  }
   return (
     <>
       {lista.map((q, i) => (

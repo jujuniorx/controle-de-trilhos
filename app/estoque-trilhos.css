@@ -153,3 +153,4 @@
   .etr-mv-tipo, .etr-mv-principal, .etr-mv-consumo { grid-column: 1; text-align: left; }
   .etr-mv-seta { grid-column: 2; grid-row: 1; }
 }
+.etr-mv-bloco { display: block; } .etr-mv-bloco + .etr-mv-bloco { margin-top: 6px; } .etr-mv-bloco small { display: block; margin-top: 1px; font-size: 12px; color: var(--ink-dim); }
