@@ -112,7 +112,7 @@ describe('Fluxo Portaria ↔ Pátio — Recebimento (caminhão que vai descarreg
     const input = recebimentoCaminhaoSchema.parse({
       clientId: uuid(),
       chegadaId,
-      dados: { data: '2026-10-15', numeroDocumento: '123456', origem: MARCADOR, placaCarreta: 'XYZ9E88', responsavelPatio: 'Pátio Teste' },
+      dados: { data: '2026-10-15', dataCarregamento: '2026-10-15', numeroDocumento: '123456', origem: MARCADOR, placaCarreta: 'XYZ9E88', responsavelPatio: 'Pátio Teste' },
       grupos: [
         {
           clientId: uuid(),

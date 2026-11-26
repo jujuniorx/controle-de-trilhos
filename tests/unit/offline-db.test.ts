@@ -9,6 +9,7 @@ function montarPayload(overrides?: Partial<RecebimentoCaminhaoInput>): Recebimen
     clientId: randomUUID(),
     dados: {
       data: '2026-09-22',
+      dataCarregamento: '2026-09-22',
       numeroDocumento: '12345',
       origem: 'Pátio Central',
       placaCavalo: 'ABC1D23',

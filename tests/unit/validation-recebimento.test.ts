@@ -6,6 +6,7 @@ const uuid = () => crypto.randomUUID();
 function dadosValidos() {
   return {
     data: '2026-09-20',
+    dataCarregamento: '2026-09-20',
     numeroDocumento: '123456',
     origem: 'Rondonópolis',
     placaCavalo: 'ABC1D23',
