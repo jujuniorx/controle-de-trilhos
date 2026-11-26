@@ -176,3 +176,30 @@ export function resumoTlsDoForm(form: HTMLFormElement, cfg: ConfigTlsForm): Resu
     reemprego: ultima?.fabricante === FABRICANTE_REEMPREGO,
   };
 }
+
+export interface TlsFechado {
+  hora: string;
+  perfil: string;
+  fabricante: string;
+  reemprego: boolean;
+  quantidade: number;
+}
+
+/**
+ * TLS fechados em cada hora do dia, com o perfil e a marca da hora em que fecharam
+ * (é a marca que o soldador escolheu; o estoque usa para saber de onde saíram as barras).
+ * Usa a mesma contagem de `contarTls`, hora a hora.
+ */
+export function tlsFechadosPorHora(sobraEntrada: number, horas: (HoraTls & { hora: string })[]): TlsFechado[] {
+  const fechados: TlsFechado[] = [];
+  let antes = 0;
+  horas.forEach((h, i) => {
+    const total = contarTls(sobraEntrada, horas.slice(0, i + 1)).tls;
+    const quantidade = total - antes;
+    antes = total;
+    if (quantidade > 0) {
+      fechados.push({ hora: h.hora, perfil: h.perfil ?? '', fabricante: h.fabricante, reemprego: h.fabricante === FABRICANTE_REEMPREGO, quantidade });
+    }
+  });
+  return fechados;
+}
