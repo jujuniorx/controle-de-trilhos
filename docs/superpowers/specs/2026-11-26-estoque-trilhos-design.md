@@ -102,10 +102,28 @@ EstoqueTrilhoMovimento
 
 ## Tela (aba Trilhos do Estoque)
 
-Como a prévia: quatro totais no topo (TLS prontos, Novo em barras, Reemprego, Sucata), botões Novo / Reemprego /
-Sucata / Histórico, tabelas por perfil com subtotal, últimas movimentações e o quadro do SAP. Botões: Baixar PDF,
-Ajustar saldo. A chegada de vagão fica no Pátio, não aqui. Responsiva no celular (tabelas viram cartões, como o
-resto do sistema). Ícones SVG do sistema, sem emojis.
+Uma chave no topo, "Ver resumo" e "Ver detalhado" (lembra a última escolha de cada pessoa). Prévias aprovadas:
+`estoque_simples.png` e `estoque_detalhado.png`.
+
+**Ver resumo** (abre primeiro):
+- Selos do SAP no topo: "TLS bate com o SAP" ou a diferença; diferença das barras em âmbar.
+- "Trilho novo para solda": um cartão por perfil soldado (TR68, TR60; UIC60 quando tiver material) com TLS prontos,
+  "TLS que dá para formar" (por fabricante: mínimo entre lisas ÷ 11 e talas ÷ 2, em barras de 24 m), o que trava e o
+  que sobra parado.
+- Linha "Também no estoque de novo": UIC60, barras de 21 m, torcido, curtas 12 m, menores de 12 m.
+- Reemprego e sucata em barras horizontais por perfil, cor por classe, total em metros e toneladas. Dica de quantos
+  TLS de reemprego o G1 forma.
+- Últimas movimentações.
+
+**Ver detalhado** (mesmos números da planilha):
+- Período; abas Novo e reemprego / Sucata / Conferir com o SAP / Movimentos.
+- Tabela do novo com as colunas da planilha (quantidade de TLS, tamanho, total de TLS, lisas, com furos, curtas 12 m,
+  menores de 12 m, total de trilhos curtos, total geral, toneladas), subtotal por perfil.
+- Reemprego G1/G2/G3; sucata SC-1/2/3 com os resumos em metros e toneladas.
+- Conferir com o SAP: o admin digita o total do SAP por item; o sistema mostra o equivalente e a diferença.
+- Cada tabela troca entre "Saldo" e "Movimento do período" (saldo anterior, entradas, saídas, saldo).
+
+Botões: Baixar PDF, Ajustar saldo. Responsiva no celular. Ícones SVG do sistema, sem emojis.
 
 ## Saldo inicial
 
