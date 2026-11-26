@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { TrilhoTls } from '@/components/producao/TrilhoTls';
 import { conjuntoFeriados, quandoProximoDiaUtil } from '@/lib/usina/diasUteis';
 import { contarTls } from '@/lib/producaoTls';
@@ -176,6 +177,13 @@ export default async function ProducaoAdminPage({ searchParams }: { searchParams
             <button type="submit" className="btn btn-ghost h-11">Ver período</button>
           </div>
         </form>
+        <div className="card flex flex-col gap-3 p-4 sm:col-span-2">
+          <p className="kv-label">Lançar ou corrigir o dia mostrado</p>
+          <p className="text-sm text-ink-muted">Abre o mesmo lançamento da Produção para este dia: dá para incluir cortes, paradas e TLS, ou editar o que já foi registrado.</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href={`/producao?data=${dataTexto}`} className="btn btn-primary h-11">Lançar ou corrigir {dataBr}</Link>
+          </div>
+        </div>
         <div className="card flex flex-col gap-3 p-4 sm:col-span-2">
           <p className="kv-label">Gerar arquivo do dia mostrado</p>
           <div className="flex flex-wrap items-center gap-2">

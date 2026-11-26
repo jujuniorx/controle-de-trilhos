@@ -1,9 +1,8 @@
 'use server';
 
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { COOKIE_PRODUCAO, cookieProducaoValido } from '@/lib/services/producaoAcesso';
+import { podeLancarProducao } from '@/lib/services/producaoAcessoServidor';
 import { FABRICANTES_PRODUCAO, MAX_PARADAS_HORA, PERFIS_PRODUCAO, buscarDia, horasDoDia, minutosDaParada, salvarDiaProducao, type LinhaProducao } from '@/lib/services/producao';
 
 /** Valor de uma hora: antes da troca fica o que ja estava registrado; a partir da troca, o novo valor. */
@@ -89,7 +88,7 @@ async function gravarDia(formData: FormData): Promise<string | null> {
 }
 
 export async function salvarProducaoAction(formData: FormData): Promise<void> {
-  if (!cookieProducaoValido((await cookies()).get(COOKIE_PRODUCAO)?.value)) redirect('/producao/login');
+  if (!(await podeLancarProducao())) redirect('/producao/login');
   const data = await gravarDia(formData);
   if (!data) redirect('/producao');
   revalidatePath('/producao');
@@ -104,7 +103,7 @@ export type ResultadoSincronizacao = { ok: true } | { ok: false; motivo: 'sessao
 
 /** Envio automático da tela: diz ao aparelho se o dia chegou ao servidor, para ele não fingir que enviou. */
 export async function sincronizarProducaoAction(formData: FormData): Promise<ResultadoSincronizacao> {
-  if (!cookieProducaoValido((await cookies()).get(COOKIE_PRODUCAO)?.value)) return { ok: false, motivo: 'sessao' };
+  if (!(await podeLancarProducao())) return { ok: false, motivo: 'sessao' };
   try {
     const data = await gravarDia(formData);
     if (!data) console.error('[producao] envio automatico recusado: data invalida', formData.get('data'));

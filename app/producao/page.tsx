@@ -1,7 +1,6 @@
 import { TrilhoAoVivo } from '@/components/producao/TrilhoAoVivo';
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { COOKIE_PRODUCAO, cookieProducaoValido } from '@/lib/services/producaoAcesso';
+import { podeLancarProducao } from '@/lib/services/producaoAcessoServidor';
 import { RascunhoAutomatico } from '@/components/producao/RascunhoAutomatico';
 import { MotivosParada } from '@/components/producao/MotivosParada';
 import { REUNIAO_DDS } from '@/components/producao/motivos';
@@ -22,7 +21,7 @@ function hojeSP(): string {
 }
 
 export default async function ProducaoPage({ searchParams }: { searchParams: Promise<{ data?: string; ok?: string }> }) {
-  if (!cookieProducaoValido((await cookies()).get(COOKIE_PRODUCAO)?.value)) redirect('/producao/login');
+  if (!(await podeLancarProducao())) redirect('/producao/login');
   const params = await searchParams;
   const dataTexto = /^\d{4}-\d{2}-\d{2}$/.test(params.data ?? '') ? (params.data as string) : hojeSP();
   const data = new Date(`${dataTexto}T00:00:00Z`);
