@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SALDO_INICIAL_2026 } from '@/lib/estoque/saldoInicial2026';
-import { somarSaldos } from '@/lib/estoque/trilhos';
+import { somarSaldos, type Saldo } from '@/lib/estoque/trilhos';
 import { barrasPorClasse, cartaoPerfil,
   materialParado,
   resumoPatio, conferenciaSap, outrosNovo, tabelaNovo } from '@/lib/estoque/visao';
@@ -76,7 +76,7 @@ describe('conferenciaSap', () => {
     const antes = conferenciaSap(saldos, sap).find((x) => x.item === 'BARRAS_TR60')!.sistemaMetros;
     const b = conferenciaSap([...saldos, uic], sap).find((x) => x.item === 'BARRAS_TR60')!;
     expect(b.sistemaMetros).toBeCloseTo(antes + 796.47, 2);
-    expect(conferenciaSap([...saldos, uic], sap).some((x) => x.item === 'BARRAS_UIC60')).toBe(false);
+    expect(conferenciaSap([...saldos, uic], sap).some((x) => (x.item as string) === 'BARRAS_UIC60')).toBe(false);
   });
 });
 
