@@ -5,7 +5,9 @@ import { normalizarLocal } from '@/lib/domain/local';
 import { calcularMetros, calcularPeso, calcularPesoEstimado } from '@/lib/services/calculo';
 import { arredondar3 } from '@/lib/domain/regras';
 import { registrarHistorico } from '@/lib/services/historico';
+import { randomUUID } from 'node:crypto';
 import { MARCA_LABEL, type RecebimentoCaminhaoInput } from '@/lib/validation/recebimento';
+import { METROS_BARRA_VAGAO, type ChegadaVagaoInput } from '@/lib/validation/vagao';
 
 /** Deriva o texto gravado em Grupo.fabricante a partir da marca fechada (ou do texto livre quando "OUTROS"). */
 function resolverFabricante(
@@ -198,6 +200,62 @@ export async function criarRecebimentoCaminhao(input: RecebimentoCaminhaoInput) 
 export type MovimentacaoComGrupos = Prisma.MovimentacaoGetPayload<{
   include: { grupos: { include: { medicoes: true } }; anexos: true; historico: true };
 }>;
+
+/**
+ * Chegada de vagão de trilho novo: o Pátio faz o checklist (perfil, marca, lisa ou tala,
+ * número de barras de 24 m). Vira um Recebimento por vagão que segue para a conferência,
+ * e só entra no estoque de trilhos depois de conferido.
+ */
+export async function criarChegadaVagao(input: ChegadaVagaoInput): Promise<{ id: string }> {
+  const mov = await prisma.$transaction(async (tx) => {
+    const criada = await tx.movimentacao.create({
+      data: {
+        clientId: randomUUID(),
+        tipo: 'RECEBIMENTO',
+        tipoDocumento: 'NF',
+        numeroDocumento: input.numeroDocumento ?? null,
+        tipoTransporte: 'VAGAO',
+        origem: `VAGÃO ${input.vagao}`,
+        responsavelPatio: input.responsavelPatio,
+        observacao: input.observacao ?? null,
+        dataMovimentacao: new Date(`${input.data}T00:00:00`),
+        status: 'PENDENTE_CONFERENCIA',
+      },
+    });
+    for (const linha of input.linhas) {
+      const metros = linha.barras * METROS_BARRA_VAGAO;
+      const grupo = await tx.grupo.create({
+        data: {
+          clientId: randomUUID(),
+          movimentacaoId: criada.id,
+          perfil: linha.perfil,
+          tipoMaterial: 'NOVO',
+          fabricante: linha.marca === 'OUTROS' ? linha.fabricanteOutro ?? null : MARCA_LABEL[linha.marca],
+          formaNovo: linha.formaNovo,
+          metrosTotal: metros,
+          pesoCalculado: await calcularPesoEstimado(metros, linha.perfil),
+        },
+      });
+      // Medições de até 99 barras: é o limite das telas de edição.
+      const partes: number[] = [];
+      for (let resto = linha.barras; resto > 0; resto -= 99) partes.push(Math.min(99, resto));
+      await tx.medicao.createMany({
+        data: partes.map((qtd) => ({
+          clientId: randomUUID(),
+          grupoId: grupo.id,
+          modo: 'QTD_COMPRIMENTO' as const,
+          quantidade: qtd,
+          comprimento: METROS_BARRA_VAGAO,
+          metros: qtd * METROS_BARRA_VAGAO,
+        })),
+      });
+    }
+    return criada;
+  }, { timeout: 30_000, maxWait: 10_000 });
+
+  await registrarHistorico({ movimentacaoId: mov.id, usuarioNome: `${input.responsavelPatio} (pátio)`, acao: 'CRIACAO' });
+  return { id: mov.id };
+}
 
 export function listarPendentesConferencia() {
   return prisma.movimentacao.findMany({

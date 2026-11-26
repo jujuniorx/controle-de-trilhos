@@ -16,6 +16,7 @@ import { SoSemInternet } from '@/components/patio/SoSemInternet';
 import { ExcluirPatioBotao } from '@/components/patio/ExcluirPatioBotao';
 import { excluirChegadaPatioAction } from './recebimentos/actions';
 import { ICONE_CARGA, ICONE_SAIDAS } from '@/components/patio/icones';
+import { IconeVagao } from '@/components/icones/Icones';
 
 const atraso = (n: number) => ({ '--i': n }) as CSSProperties;
 
@@ -139,6 +140,11 @@ export default async function PatioHomePage() {
           {ICONE_SAIDAS(30)}
           <strong>Já saíram</strong>
           <span>Cargas e descargas que a Portaria registrou como saída.</span>
+        </Link>
+        <Link href="/patio/vagoes/novo" className="acao-patio" style={atraso(3)}>
+          <IconeVagao size={30} />
+          <strong>Chegada de vagão</strong>
+          <span>Checklist do trilho novo: perfil, marca, lisas e talas.</span>
         </Link>
       </div>
 

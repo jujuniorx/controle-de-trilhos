@@ -84,12 +84,18 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
           </div>
 
           <div className="kv-secao">
-            <h3 className="kv-secao-titulo">Caminhão</h3>
+            <h3 className="kv-secao-titulo">{mov.tipoTransporte === 'VAGAO' ? 'Vagão' : 'Caminhão'}</h3>
             <dl className="kv-grid">
-              <div className="kv-item"><div className="kv-label">Cavalo</div><div className="kv-val font-mono">{mov.placaCavalo ?? '—'}</div></div>
-              <div className="kv-item"><div className="kv-label">Carreta(s)</div><div className="kv-val font-mono">{[mov.placaCarreta, mov.placaCarreta2].filter(Boolean).join(' / ') || '—'}</div></div>
-              {mov.tipoTransporte !== 'CAMINHAO' && (
-                <div className="kv-item"><div className="kv-label">Transporte</div><div className="kv-val">{mov.tipoTransporte}</div></div>
+              {mov.tipoTransporte === 'VAGAO' ? (
+                <div className="kv-item"><div className="kv-label">Vagão</div><div className="kv-val font-mono">{mov.origem?.replace(/^VAGÃO\s*/, '') || '—'}</div></div>
+              ) : (
+                <>
+                  <div className="kv-item"><div className="kv-label">Cavalo</div><div className="kv-val font-mono">{mov.placaCavalo ?? '—'}</div></div>
+                  <div className="kv-item"><div className="kv-label">Carreta(s)</div><div className="kv-val font-mono">{[mov.placaCarreta, mov.placaCarreta2].filter(Boolean).join(' / ') || '—'}</div></div>
+                </>
+              )}
+              {mov.tipoTransporte === 'OUTRO' && (
+                <div className="kv-item"><div className="kv-label">Transporte</div><div className="kv-val">Outro</div></div>
               )}
               {portaria?.capacidadeCarga != null && (
                 <div className="kv-item"><div className="kv-label">Capacidade de carga</div><div className="kv-val">{portaria.capacidadeCarga.toLocaleString('pt-BR')} t</div></div>
@@ -163,6 +169,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
                   </span>
                   <span className="grupo-meta">
                     {g.tipoMaterial === 'NOVO' && g.fabricante && <>Fabricante: {g.fabricante} · </>}
+                    {g.tipoMaterial === 'NOVO' && g.formaNovo && <>{g.formaNovo === 'TALA' ? 'Tala (com furos)' : 'Barra lisa'} · </>}
                     {g.tipoMaterial === 'REEMPREGO' && <>Classificação: {g.classificacao} · </>}
                     {pecasDoGrupo(g.medicoes)} {pecasDoGrupo(g.medicoes) === 1 ? 'barra' : 'barras'} · {fmtMetros(g.metrosTotal)} m
                   </span>

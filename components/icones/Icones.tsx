@@ -287,3 +287,15 @@ export function IconeCalibracao(props: Props) {
     </Base>
   );
 }
+
+/** Vagão de carga visto de lado (chegada de trilho novo por ferrovia). */
+export function IconeVagao(props: Props) {
+  return (
+    <Base {...props}>
+      <rect x="3" y="6" width="18" height="9" rx="1" />
+      <path d="M3 10h18M1.5 15h21" />
+      <circle cx="7" cy="18" r="1.8" />
+      <circle cx="17" cy="18" r="1.8" />
+    </Base>
+  );
+}
