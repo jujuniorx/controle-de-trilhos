@@ -101,6 +101,8 @@ export function desenharCaminhoes(
     const meioLinha = y + 3.6;
     if (i % 2 === 1) p.retangulo(x + 4, meioLinha - (altLinha - 2) / 2, w - 8, altLinha - 2, ZEBRA);
     p.texto(c.nome, x + 10, y, 10, 'negrito', TINTA);
+    // Horário do dia (macro 1 → macro 9) embaixo do nome, fora do mensal.
+    if (modo !== 'mensal' && c.horario) p.texto(c.horario, x + 10, y - 9, 7, 'normal', CINZA);
     ordem.forEach((n) => {
       const [g, k] = n.split('-') as [Grupo, Coluna];
       const valor = c[g][k];

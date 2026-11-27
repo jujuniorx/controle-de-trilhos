@@ -317,6 +317,11 @@ export function CaminhoesBloco({ s, modo, colunas = TODAS }: { s: SetorRelatorio
               <p className="text-sm font-bold text-slate-900">{c.nome}</p>
               {c.local ? <span className="inline-block rounded-md bg-slate-900 px-2 py-0.5 text-[11px] font-bold text-white">{c.local}</span> : <span className="text-slate-400">—</span>}
             </div>
+            {!mensal && c.horario && (
+              <p className="mt-1 text-[12px] tabular-nums text-slate-600">
+                <span className="font-semibold text-slate-500">Macro 1 → 9:</span> {c.horario}
+              </p>
+            )}
             <div className="mt-2 grid grid-cols-2 gap-2">
               {bloco('Solda (UND)', c.solda)}
               {bloco('Solda reprovada (UND)', c.corte)}

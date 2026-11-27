@@ -46,10 +46,22 @@ export interface LinhaSerra { ativo: string; cor: string; dia: MedidaSerra; sema
 /** Tabela da serra: uma linha por composição e um total, com Dia, Semana e Mês (barras e metros). */
 export interface SerraRelatorio { linhas: LinhaSerra[]; total: { dia: MedidaSerra; semana: MedidaSerra; mes: MedidaSerra } }
 /** Um caminhão de solda: solda e corte do dia, da semana e do mês, no formato da tabela de trilheiros. */
+/** "07:00 → 17:00", "Início 07:00" ou "Término 17:00"; null quando nenhum dos dois foi lançado. */
+export function horarioMacros(inicio?: string | null, termino?: string | null): string | null {
+  const i = inicio?.trim();
+  const t = termino?.trim();
+  if (i && t) return `${i} → ${t}`;
+  if (i) return `Início ${i}`;
+  if (t) return `Término ${t}`;
+  return null;
+}
+
 export interface CaminhaoTabelaRelatorio {
   nome: string;
   local: string | null;
   observacao: string | null;
+  /** Horário do dia (início na macro 1 e término na macro 9); só quando o relatório é de um dia. */
+  horario: string | null;
   solda: { dia: number; semana: number; mes: number };
   corte: { dia: number; semana: number; mes: number };
 }
@@ -139,7 +151,7 @@ export async function montarDadosRelatorio(data: string, desdePedido?: string | 
   const registrosCaminhao = await prisma.caminhaoSoldaDia.findMany({
     where: { data: { lte: new Date(`${data}T00:00:00Z`) } },
     orderBy: { data: 'asc' },
-    select: { data: true, caminhao: true, local: true, observacao: true },
+    select: { data: true, caminhao: true, local: true, observacao: true, inicioMacro1: true, terminoMacro9: true },
   });
   const infoCaminhao = (cw: string) => {
     const doCaminhao = registrosCaminhao.filter((r) => r.caminhao === cw);
@@ -150,10 +162,10 @@ export async function montarDadosRelatorio(data: string, desdePedido?: string | 
         doCaminhao.filter((r) => naFaixa(iso(r.data)) && r.observacao?.trim()).map((r) => ({ data: iso(r.data), chave: cw, texto: r.observacao!.trim() })),
         diasFaixa,
       );
-      return { local: comLocal?.local ?? null, observacao: linhas.length ? linhas.join('; ') : null };
+      return { local: comLocal?.local ?? null, observacao: linhas.length ? linhas.join('; ') : null, horario: null };
     }
     const doDia = doCaminhao.find((r) => r.data.toISOString().slice(0, 10) === data);
-    return { local: comLocal?.local ?? null, observacao: doDia?.observacao ?? null };
+    return { local: comLocal?.local ?? null, observacao: doDia?.observacao ?? null, horario: horarioMacros(doDia?.inicioMacro1, doDia?.terminoMacro9) };
   };
   const [estD, estS, estM, gerD, gerS, camD, camS, serraSem, serraMesRows] = await Promise.all([
     estaleiroDoPeriodo(faixa, data),
@@ -388,6 +400,7 @@ export async function montarDadosRelatorio(data: string, desdePedido?: string | 
             nome: ROTULO_CAMINHAO[c.caminhao] ?? c.caminhao,
             local: infoCaminhao(c.caminhao).local,
             observacao: infoCaminhao(c.caminhao).observacao,
+            horario: infoCaminhao(c.caminhao).horario,
             solda: { dia: d?.periodo.producao ?? 0, semana: c.periodo.producao, mes: c.mes.producao },
             corte: { dia: d?.periodo.perda ?? 0, semana: c.periodo.perda, mes: c.mes.perda },
           };
