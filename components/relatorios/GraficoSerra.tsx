@@ -29,7 +29,7 @@ export function GraficoSerra({ r, id }: { r: RelatorioSerra; id?: string }) {
   const somaW61 = r.meses.filter((m) => m.w61 > 0).map((m) => barras(m.w61)).join(' + ');
   const somaW62 = r.meses.filter((m) => m.w62 > 0).map((m) => barras(m.w62)).join(' + ');
   const linha1 = [somaW61 && `W61 ${somaW61}`, somaW62 && `W62 ${somaW62}`].filter(Boolean).join(' · ') + ` barras${r.parcialAte ? ` (${r.parcialAte})` : ''}.`;
-  const fonte = `Fonte: Relatório da usina, recolhimento serra (W61 e W62), Controle de Trilhos${r.usouBase ? '; setembro do relatório anterior' : ''}.`;
+  const fonte = 'Fonte: Relatório da usina, recolhimento serra (W61 e W62), Controle de Trilhos.';
 
   const cartoes: { rotulo: string; valor: string; cor: string }[] = [
     { rotulo: 'META DE RECOLHIMENTO', valor: metros(r.metaM), cor: COR.tinta },
