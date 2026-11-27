@@ -86,12 +86,14 @@ export async function carregamentoCarretaDoPeriodo(inicio: string, fim: string) 
         dataMovimentacao: { gte: dataBanco(inicio), lte: dataBanco(fim) },
       },
     },
-    select: { classificacao: true, tipoMaterial: true, metrosTotal: true, pesoInformado: true, pesoCalculado: true },
+    select: { classificacao: true, tipoMaterial: true, metrosTotal: true, pesoInformado: true, pesoCalculado: true, movimentacao: { select: { tipoTransporte: true } } },
   });
   let tampoesM = 0;
   let trilhoNovoM = 0;
   let sucataT = 0;
   for (const g of grupos) {
+    // Trilheiro (remetido de vagão) não entra no envio da carreta.
+    if (g.movimentacao.tipoTransporte === 'VAGAO') continue;
     // Tampão = todo reemprego G1, G2 ou G3.
     if (g.tipoMaterial === 'REEMPREGO' && (g.classificacao === 'G1' || g.classificacao === 'G2' || g.classificacao === 'G3')) tampoesM += Number(g.metrosTotal);
     if (g.tipoMaterial === 'NOVO') trilhoNovoM += Number(g.metrosTotal);

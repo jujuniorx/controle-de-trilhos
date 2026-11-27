@@ -55,11 +55,11 @@ export async function seriesDaSemana(data: string) {
   const envioTrilhoNovo = zeros();
   const grupos = await prisma.grupo.findMany({
     where: { movimentacao: { tipo: 'REMETIDO', dataMovimentacao: { gte: dataBanco(inicio), lte: dataBanco(fim) } } },
-    select: { classificacao: true, tipoMaterial: true, metrosTotal: true, movimentacao: { select: { dataMovimentacao: true } } },
+    select: { classificacao: true, tipoMaterial: true, metrosTotal: true, movimentacao: { select: { dataMovimentacao: true, tipoTransporte: true } } },
   });
   for (const g of grupos) {
     const dm = g.movimentacao.dataMovimentacao;
-    if (!dm) continue;
+    if (!dm || g.movimentacao.tipoTransporte === 'VAGAO') continue;
     const i = indice(dm);
     if (i < 0) continue;
     const m = num(g.metrosTotal);
