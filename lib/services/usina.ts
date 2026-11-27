@@ -77,10 +77,7 @@ export function addSextaFeira(semanaInicio: string): string {
   return somarDias(semanaInicio, 4);
 }
 
-/**
- * O que saiu da usina nos remetidos do período: tampão (m), trilho novo (m) e sucata (t) por carreta,
- * e o que saiu por trilheiro (remetido de vagão): trilho novo e reemprego, em metros.
- */
+/** O que saiu da usina nos remetidos do período: tampão (m), trilho novo (m) e sucata (t). */
 export async function carregamentoCarretaDoPeriodo(inicio: string, fim: string) {
   const grupos = await prisma.grupo.findMany({
     where: {
@@ -89,32 +86,18 @@ export async function carregamentoCarretaDoPeriodo(inicio: string, fim: string) 
         dataMovimentacao: { gte: dataBanco(inicio), lte: dataBanco(fim) },
       },
     },
-    select: { classificacao: true, tipoMaterial: true, metrosTotal: true, pesoInformado: true, pesoCalculado: true, movimentacao: { select: { tipoTransporte: true } } },
+    select: { classificacao: true, tipoMaterial: true, metrosTotal: true, pesoInformado: true, pesoCalculado: true },
   });
   let tampoesM = 0;
   let trilhoNovoM = 0;
   let sucataT = 0;
-  let trilheiroNovoM = 0;
-  let trilheiroReempregoM = 0;
   for (const g of grupos) {
-    // Trilheiro = remetido de vagão (B.O. do trilheiro); conta à parte da carreta.
-    if (g.movimentacao.tipoTransporte === 'VAGAO') {
-      if (g.tipoMaterial === 'NOVO') trilheiroNovoM += Number(g.metrosTotal);
-      if (g.tipoMaterial === 'REEMPREGO') trilheiroReempregoM += Number(g.metrosTotal);
-      continue;
-    }
     // Tampão = todo reemprego G1, G2 ou G3.
     if (g.tipoMaterial === 'REEMPREGO' && (g.classificacao === 'G1' || g.classificacao === 'G2' || g.classificacao === 'G3')) tampoesM += Number(g.metrosTotal);
     if (g.tipoMaterial === 'NOVO') trilhoNovoM += Number(g.metrosTotal);
     if (g.tipoMaterial === 'SUCATA') sucataT += Number(g.pesoInformado ?? g.pesoCalculado ?? 0);
   }
-  return {
-    tampoesM: round2(tampoesM),
-    trilhoNovoM: round2(trilhoNovoM),
-    sucataT: round2(sucataT),
-    trilheiroNovoM: round2(trilheiroNovoM),
-    trilheiroReempregoM: round2(trilheiroReempregoM),
-  };
+  return { tampoesM: round2(tampoesM), trilhoNovoM: round2(trilhoNovoM), sucataT: round2(sucataT) };
 }
 
 function round2(n: number) {
