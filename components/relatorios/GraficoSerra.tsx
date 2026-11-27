@@ -28,7 +28,7 @@ export function GraficoSerra({ r, id }: { r: RelatorioSerra; id?: string }) {
 
   const somaW61 = r.meses.filter((m) => m.w61 > 0).map((m) => barras(m.w61)).join(' + ');
   const somaW62 = r.meses.filter((m) => m.w62 > 0).map((m) => barras(m.w62)).join(' + ');
-  const linha1 = [somaW61 && `W61: ${somaW61} barras`, somaW62 && `W62: ${somaW62} barras`].filter(Boolean).join(' · ') + (r.parcialAte ? ` (${r.parcialAte}).` : '.');
+  const linha1 = [somaW61 && `W61 ${somaW61}`, somaW62 && `W62 ${somaW62}`].filter(Boolean).join(' · ') + ` barras${r.parcialAte ? ` (${r.parcialAte})` : ''}.`;
   const fonte = `Fonte: Relatório da usina, recolhimento serra (W61 e W62), Controle de Trilhos${r.usouBase ? '; setembro do relatório anterior' : ''}.`;
 
   const cartoes: { rotulo: string; valor: string; cor: string }[] = [
@@ -98,7 +98,7 @@ export function GraficoSerra({ r, id }: { r: RelatorioSerra; id?: string }) {
 
       {/* rodapé */}
       <text x={96} y={883} fontSize={18} fill={COR.texto}>{linha1}</text>
-      <text x={96} y={908} fontSize={18} fill={COR.texto}>Estimativa de barras em metros = 10,5 m. Pendente = meta − recolhido.</text>
+      <text x={96} y={908} fontSize={18} fill={COR.texto}>1 barra = 10,5 m · pendente = meta − recolhido</text>
       <text x={96} y={933} fontSize={15} fill={COR.muda}>{fonte}</text>
     </svg>
   );
