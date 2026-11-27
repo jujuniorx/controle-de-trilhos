@@ -162,11 +162,12 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
       {setor === 'estaleiro' && (
       <section className="space-y-4" aria-labelledby="estaleiro">
         <h2 id="estaleiro" className="section-title scroll-mt-24">Estaleiro de solda</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <Cartao rotulo="Soldas" valor={est.totais.soldas} />
           <Cartao rotulo="Cortes" valor={est.totais.cortes} />
-          <Cartao rotulo="Tampões carregados (m)" valor={fmtMetros(est.carreta.tampoesM)} />
-          <Cartao rotulo="Trilho novo (m)" valor={fmtMetros(est.carreta.trilhoNovoM)} />
+          <Cartao rotulo="Tampões carreta (m)" valor={fmtMetros(est.carreta.tampoesM)} />
+          <Cartao rotulo="Trilho novo carreta (m)" valor={fmtMetros(est.carreta.trilhoNovoM)} />
+          <Cartao rotulo="Trilho novo trilheiro (m)" valor={fmtMetros(est.carreta.trilheiroNovoM)} />
           <Cartao rotulo="Sucata saída (t)" valor={fmtPeso(est.carreta.sucataT)} />
         </div>
 

@@ -50,16 +50,16 @@ export async function seriesDaSemana(data: string) {
     estCortes[i] += e.cortes ?? 0;
   }
 
-  // Envio de trilho por dia (m): tampões (reemprego G1 a G3) e trilho novo, dos remetidos de cada dia.
+  // Envio de trilho por carreta, por dia (m): tampões (reemprego G1 a G3) e trilho novo. Trilheiro (vagão) fica fora.
   const envioTampoes = zeros();
   const envioTrilhoNovo = zeros();
   const grupos = await prisma.grupo.findMany({
     where: { movimentacao: { tipo: 'REMETIDO', dataMovimentacao: { gte: dataBanco(inicio), lte: dataBanco(fim) } } },
-    select: { classificacao: true, tipoMaterial: true, metrosTotal: true, movimentacao: { select: { dataMovimentacao: true } } },
+    select: { classificacao: true, tipoMaterial: true, metrosTotal: true, movimentacao: { select: { dataMovimentacao: true, tipoTransporte: true } } },
   });
   for (const g of grupos) {
     const dm = g.movimentacao.dataMovimentacao;
-    if (!dm) continue;
+    if (!dm || g.movimentacao.tipoTransporte === 'VAGAO') continue;
     const i = indice(dm);
     if (i < 0) continue;
     const m = num(g.metrosTotal);
