@@ -9,12 +9,17 @@ function paraMinutos(hora: string): number | null {
   return Number(m[1]) * 60 + Number(m[2]);
 }
 
-/** Tempo entre o início e o fim, atravessando a meia-noite se preciso. */
+/**
+ * Tempo entre o início e o fim. Fim antes do início só vale na virada da noite
+ * (início a partir de 22:00 e fim até 06:00); fora isso devolve -1, que é erro de digitação.
+ */
+const INVALIDO = -1;
 function tempoEntre(inicio: string, fim: string): number | null {
   const a = paraMinutos(inicio);
   const b = paraMinutos(fim);
   if (a === null || b === null) return null;
-  return (b - a + 1440) % 1440;
+  if (b < a) return a >= 22 * 60 && b <= 6 * 60 ? b + 1440 - a : INVALIDO;
+  return b - a;
 }
 
 /** 23 vira "0:23", como se escreve na planilha. */
@@ -68,8 +73,9 @@ export function CelulasParada({ data, hora, n, inicioPadrao, minutosPadrao }: Pr
   };
 
   const calculado = tempoEntre(inicio, fim);
+  const invalido = calculado === INVALIDO;
   // Parada antiga, salva só com o tempo (sem início): mantém o tempo até alguém mexer nos horários.
-  const minutos = calculado ?? (!mexeu ? minutosPadrao : 0);
+  const minutos = invalido ? 0 : (calculado ?? (!mexeu ? minutosPadrao : 0));
   const tempo = minutos > 0 ? emHoraMin(minutos) : '';
   const faltaUm = Boolean(inicio) !== Boolean(fim);
   const iguais = Boolean(inicio) && inicio === fim;
@@ -78,6 +84,7 @@ export function CelulasParada({ data, hora, n, inicioPadrao, minutosPadrao }: Pr
   let aviso = '';
   if (faltaUm) aviso = inicio ? 'Escolha o fim' : 'Escolha o início';
   else if (iguais) aviso = 'Início e fim iguais';
+  else if (invalido) aviso = 'Fim antes do início';
 
   return (
     <>
