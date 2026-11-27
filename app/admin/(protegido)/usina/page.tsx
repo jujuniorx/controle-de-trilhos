@@ -31,8 +31,7 @@ import { observacoesDoPeriodo } from '@/lib/services/observacaoSetor';
 import { ObservacoesDoSetor } from '@/components/usina/ObservacoesDoSetor';
 import { EscalaGrade } from '@/components/usina/EscalaGrade';
 import { lerEscala, diasDaSemana } from '@/lib/usina/escala';
-import { montarEscalaDaSemana, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, geracaoDaSemana, trilheirosDaSemana, cargasDosBos } from '@/lib/services/usina';
-import { CargasTrilheiro } from '@/components/usina/CargasTrilheiro';
+import { montarEscalaDaSemana, estaleiroDiasDaSemana, composicoesDaSemana, caminhoesDaSemana, geracaoDaSemana, trilheirosDaSemana } from '@/lib/services/usina';
 import {
   salvarEstoqueTlsAction,
   salvarManutencaoAction,
@@ -115,7 +114,6 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
   const boSemana = Object.fromEntries(TRILHEIROS.map((t) => [t, primeiroDaSemana(t, 'boEm')]));
   const partidaSemana = Object.fromEntries(TRILHEIROS.map((t) => [t, primeiroDaSemana(t, 'partidaEm')]));
   const localSemana = Object.fromEntries(TRILHEIROS.map((t) => [t, primeiroDaSemana(t, 'local')]));
-  const cargasBo = await cargasDosBos(TRILHEIROS.map((t) => ({ trilheiro: t, boEm: boSemana[t] ?? '' })));
   const diasObservacao = Array.from({ length: 7 }, (_, i) => {
     const data = somarDiasPagina(est.semana, i);
     return { data, rotulo: `${['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'][i]} ${br(data)}` };
@@ -500,7 +498,6 @@ export default async function UsinaPage({ searchParams }: { searchParams: Promis
                     <input id={`local_${t}`} name={`local_${t}`} defaultValue={localSemana[t] ?? ''} className="h-11" placeholder="Ex.: EFH" />
                   </div>
                 </div>
-                <CargasTrilheiro trilheiro={t} boSalvo={boSemana[t] ?? ''} inicial={cargasBo[`${t}|${boSemana[t]}`] ?? []} />
                 <div className="tbl-wrap">
                   <table className="w-full text-sm">
                     <thead>

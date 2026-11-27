@@ -58,6 +58,8 @@ export interface MovimentacaoRomaneio {
   status: string;
   grupos: GrupoRomaneio[];
   remetidoDetalhe?: { tipoRemetido: string | null } | null;
+  /** Remetido de vagão: o trilheiro que levou (E40, E42, E46). */
+  trilheiro?: string | null;
 }
 
 const TIPO_REMETIDO_LABEL: Record<string, string> = {
@@ -310,10 +312,18 @@ export function htmlRomaneioRemetido(mov: MovimentacaoRomaneio, nonce: string | 
       ['Reserva/Pedido', mov.reservaPedido],
       ['Destino', normalizarLocal(mov.destino)],
       ['Data', fmtData(mov.dataMovimentacao)],
-      ['Responsável (Pátio)', mov.responsavelPatio],
-      ['Transportadora', mov.transportadora],
-      ['Cavalo', mov.placaCavalo],
-      ['Carreta(s)', carretas(mov)],
+      ...(mov.trilheiro
+        ? // Remetido de vagão (B.O. do trilheiro): sem caminhão, quem lançou foi o Administrativo.
+          ([
+            ['Trilheiro', mov.trilheiro],
+            ['Lançado por', mov.responsavelPatio],
+          ] as [string, unknown][])
+        : ([
+            ['Responsável (Pátio)', mov.responsavelPatio],
+            ['Transportadora', mov.transportadora],
+            ['Cavalo', mov.placaCavalo],
+            ['Carreta(s)', carretas(mov)],
+          ] as [string, unknown][])),
     ],
     observacao: mov.observacao,
     tituloMateriais: 'Materiais Remetidos',

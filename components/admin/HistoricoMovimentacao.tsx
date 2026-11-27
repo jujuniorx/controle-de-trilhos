@@ -15,6 +15,7 @@ export interface EventoHistorico {
 // Nome amigável do campo corrigido (ex.: "Origem: Pátio 2 → Pátio 3").
 const CAMPO_LABEL: Record<string, string> = {
   dataMovimentacao: 'Data',
+  movimentaEstoque: 'Estoque',
   origem: 'Origem',
   tipoTransporte: 'Transporte',
   placaCavalo: 'Cavalo',
@@ -45,6 +46,8 @@ const ACAO_INFO: Record<string, { titulo: string; setor: Setor }> = {
   PESO_NF_INFORMADO: { titulo: 'Peso da NF informado/corrigido', setor: 'Administrativo' },
   TIPO_REMETIDO_INFORMADO: { titulo: 'Tipo de remetido informado', setor: 'Administrativo' },
   EDICAO: { titulo: 'Remetido editado', setor: 'Administrativo' },
+  REMETIDO_VAGAO_LANCADO: { titulo: 'Remetido de vagão lançado', setor: 'Administrativo' },
+  ESTOQUE_ALTERADO: { titulo: 'Saída do estoque alterada', setor: 'Administrativo' },
   DADOS_EDITADOS: { titulo: 'Dados do recebimento editados', setor: 'Administrativo' },
   REABERTURA: { titulo: 'Conferência reaberta', setor: 'Administrativo' },
   CONFERENCIA: { titulo: 'Remetido conferido', setor: 'Administrativo' },

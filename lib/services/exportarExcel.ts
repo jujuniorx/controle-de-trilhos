@@ -72,7 +72,9 @@ function metrosPorSC(medicoes: Medicao[], sc: 'SC1' | 'SC2' | 'SC3' | 'DIVERSOS'
  * A planilha tem uma célula de placa só: as carretas (separadas por "/") — é a
  * informação que a operação usa — ou, sem carreta, o cavalo.
  */
-function formatarPlaca(mov: { placaCavalo: string | null; placaCarreta: string | null; placaCarreta2: string | null }): string {
+function formatarPlaca(mov: { placaCavalo: string | null; placaCarreta: string | null; placaCarreta2: string | null; trilheiro?: string | null }): string {
+  // Remetido de vagão: no lugar da placa vai o trilheiro (E40, E42, E46), como na planilha.
+  if (mov.trilheiro) return mov.trilheiro;
   const carretas = [mov.placaCarreta, mov.placaCarreta2].filter(Boolean);
   return carretas.length > 0 ? carretas.join('/') : (mov.placaCavalo ?? '');
 }
@@ -395,7 +397,8 @@ function montarRemetidos(sheet: ExcelJS.Worksheet, movimentacoes: MovimentacaoRe
       mov.tipoDocumento,
       nfsEmTexto(mov),
       upper(mov.reservaPedido),
-      mov.tipoTransporte,
+      // Na planilha de remetidos, o trilheiro aparece como "VAGÕES".
+      mov.tipoTransporte === 'VAGAO' ? 'VAGÕES' : mov.tipoTransporte,
       formatarPlaca(mov),
       destinoTransportadora,
     ];

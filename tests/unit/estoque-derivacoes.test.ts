@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { tlsFechadosPorHora } from '@/lib/producaoTls';
-import { lancamentosDeCarga, lancamentosDeMovimentacao, lancamentosDeProducao, type MovFonte } from '@/lib/estoque/derivacoes';
+import { lancamentosDeMovimentacao, lancamentosDeProducao, type MovFonte } from '@/lib/estoque/derivacoes';
 
 function mov(over: Partial<MovFonte> = {}): MovFonte {
   return {
@@ -134,11 +134,25 @@ describe('lancamentosDeProducao', () => {
   });
 });
 
-describe('lancamentosDeCarga', () => {
-  it('a carga do trilheiro tira os TLS do perfil e fabricante', () => {
-    const l = lancamentosDeCarga({ id: 'c1', trilheiro: 'E42', boEm: '2026-11-27', perfil: 'TR68', reemprego: false, fabricante: 'Pangang', quantidade: 32 });
-    expect(l).toHaveLength(1);
-    expect(l[0]).toMatchObject({ secao: 'NOVO', tipo: 'TLS', fabricante: 'PANGANG', classe: 'NORMAL', unidades: -32, metros: -9984, origemTipo: 'TRILHEIRO' });
+describe('lancamentosDeMovimentacao: remetido de vagão (B.O. do trilheiro)', () => {
+  const tlsNovo = { tipoMaterial: 'NOVO' as const, perfil: 'TR68', classificacao: null, fabricante: 'Pangang', formaNovo: null, metrosTotal: 8424, medicoes: [], tls: 27 };
+  const tlsReemprego = { tipoMaterial: 'REEMPREGO' as const, perfil: 'TR60', classificacao: null, fabricante: null, formaNovo: null, metrosTotal: 4056, medicoes: [], tls: 13 };
+
+  it('tira os TLS novos do perfil e da marca, e os de reemprego sem marca', () => {
+    const l = lancamentosDeMovimentacao(mov({ tipo: 'REMETIDO', grupos: [tlsNovo, tlsReemprego] }));
+    expect(l.map((x) => [x.secao, x.perfil, x.tipo, x.fabricante, x.classe, x.metros, x.unidades])).toEqual([
+      ['NOVO', 'TR68', 'TLS', 'PANGANG', 'NORMAL', -8424, -27],
+      ['REEMPREGO', 'TR60', 'TLS', null, 'TLS', -4056, -13],
+    ]);
+    expect(l.every((x) => x.origemTipo === 'REMETIDO' && !x.alerta)).toBe(true);
+  });
+
+  it('com "não mexe no estoque" fica registrado e não gera lançamento', () => {
+    expect(lancamentosDeMovimentacao(mov({ tipo: 'REMETIDO', movimentaEstoque: false, grupos: [tlsNovo] }))).toEqual([]);
+  });
+
+  it('sem a informação (movimentações antigas) continua mexendo no estoque', () => {
+    expect(lancamentosDeMovimentacao(mov({ tipo: 'REMETIDO' }))).toHaveLength(1);
   });
 });
 

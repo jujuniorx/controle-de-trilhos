@@ -26,7 +26,8 @@ function fmtHora(d: Date | null): string {
   return d ? d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }) : '—';
 }
 
-function detalheHref(mov: { id: string; tipo: string }): string {
+function detalheHref(mov: { id: string; tipo: string; tipoTransporte?: string }): string {
+  if (mov.tipo === 'REMETIDO' && mov.tipoTransporte === 'VAGAO') return `/admin/vagoes/${mov.id}`;
   return mov.tipo === 'RECEBIMENTO' ? `/admin/recebimentos/${mov.id}` : `/admin/remetidos/${mov.id}`;
 }
 
@@ -56,7 +57,8 @@ function CabecalhoMovimentacoes() {
 }
 
 function LinhaTabela({ mov }: { mov: MovimentacaoRelatorio }) {
-  const placas = [mov.placaCarreta, mov.placaCarreta2, mov.placaCavalo].filter(Boolean) as string[];
+  // Remetido de vagão: o trilheiro (E40, E42, E46) no lugar da placa.
+  const placas = (mov.trilheiro ? [mov.trilheiro] : [mov.placaCarreta, mov.placaCarreta2, mov.placaCavalo].filter(Boolean)) as string[];
   const status = rotuloStatusRemetido(mov.status, mov.chegadaPortariaEm);
   // Na tabela o texto fica curto para caber; o completo aparece ao passar o mouse.
   const statusCurto = status.texto === 'Pendente de conferência' ? 'Pendente' : status.texto;

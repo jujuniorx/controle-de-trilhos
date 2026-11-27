@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db';
 import { SALDO_INICIAL_2026 } from '@/lib/estoque/saldoInicial2026';
-import { lancamentosDeCarga, lancamentosDeMovimentacao, lancamentosDeProducao, type MovFonte } from '@/lib/estoque/derivacoes';
+import { lancamentosDeMovimentacao, lancamentosDeProducao, type MovFonte } from '@/lib/estoque/derivacoes';
 import { CORTE_SALDO_INICIAL, somarSaldos, type Lancamento, type OrigemTipo, type Posicao, type Saldo } from '@/lib/estoque/trilhos';
 import { respostaTlsDaLinha } from '@/lib/services/producao';
 
@@ -42,7 +42,10 @@ export async function carregarSaldoInicial(responsavel: string): Promise<{ criad
   return { criados: r.count };
 }
 
-function rotuloMovimentacao(m: { tipo: string; tipoTransporte: string; numeroDocumento: string | null; origem: string | null; destino: string | null }): string {
+function rotuloMovimentacao(m: { tipo: string; tipoTransporte: string; numeroDocumento: string | null; origem: string | null; destino: string | null; trilheiro?: string | null }): string {
+  if (m.tipoTransporte === 'VAGAO' && m.tipo === 'REMETIDO') {
+    return [`Trilheiro ${m.trilheiro ?? ''}`.trim(), m.numeroDocumento ? `NF ${m.numeroDocumento}` : null, m.destino].filter(Boolean).join(' · ');
+  }
   if (m.tipoTransporte === 'VAGAO') return `Vagão ${(m.origem ?? '').replace(/^VAGÃO\s*/i, '') || ''}`.trim();
   const nf = m.numeroDocumento ? ` NF ${m.numeroDocumento}` : '';
   return m.tipo === 'REMETIDO' ? `Envio${nf}${m.destino ? ` · ${m.destino}` : ''}` : `Recebimento${nf}${m.origem ? ` · ${m.origem}` : ''}`;
@@ -50,15 +53,14 @@ function rotuloMovimentacao(m: { tipo: string; tipoTransporte: string; numeroDoc
 
 export async function montarEstoqueTrilhos(): Promise<EstoqueTrilhos> {
   const depoisDoCorte = { gt: corte() };
-  const [gravados, movs, dias, cargas, sap] = await Promise.all([
+  const [gravados, movs, dias, sap] = await Promise.all([
     prisma.estoqueTrilhoLancamento.findMany({ orderBy: { criadoEm: 'asc' } }),
     prisma.movimentacao.findMany({
       where: { status: 'CONFERIDO', dataMovimentacao: depoisDoCorte },
-      include: { grupos: { include: { medicoes: { select: { metros: true, classificacaoSC: true } } } } },
+      include: { grupos: { include: { medicoes: { select: { metros: true, quantidade: true, classificacaoSC: true } } } } },
     }),
     // Inclui os dias antes do corte para saber quando começou o TLS que vinha aberto.
     prisma.producaoDia.findMany({ where: { data: { gt: new Date(corte().getTime() - 60 * 86_400_000) } }, include: { linhas: true }, orderBy: { data: 'asc' } }),
-    prisma.trilheiroCarga.findMany({ where: { boEm: depoisDoCorte } }),
     prisma.estoqueSapValor.findMany(),
   ]);
 
@@ -84,6 +86,7 @@ export async function montarEstoqueTrilhos(): Promise<EstoqueTrilhos> {
       status: m.status,
       data: iso(m.dataMovimentacao),
       rotulo: rotuloMovimentacao(m),
+      movimentaEstoque: m.movimentaEstoque,
       grupos: m.grupos.map((g) => ({
         tipoMaterial: g.tipoMaterial,
         perfil: g.perfil,
@@ -92,6 +95,7 @@ export async function montarEstoqueTrilhos(): Promise<EstoqueTrilhos> {
         formaNovo: g.formaNovo,
         metrosTotal: Number(g.metrosTotal),
         medicoes: g.medicoes.map((x) => ({ metros: Number(x.metros), classificacaoSC: x.classificacaoSC })),
+        tls: g.tls ? g.medicoes.reduce((t, x) => t + x.quantidade, 0) : null,
       })),
     };
     lancamentos.push(...lancamentosDeMovimentacao(fonte));
@@ -106,20 +110,13 @@ export async function montarEstoqueTrilhos(): Promise<EstoqueTrilhos> {
     lancamentos.push(...lancamentosDeProducao({ data: iso(d.data), sobraEntrada: d.sobraEntrada, ajusteTls: d.ajusteTls, horas, inicioTlsAberto: anterior?.inicioSobra ? iso(anterior.inicioSobra) : null }));
   }
 
-  for (const c of cargas) {
-    lancamentos.push(
-      ...lancamentosDeCarga({ id: c.id, trilheiro: c.trilheiro, boEm: iso(c.boEm), perfil: c.perfil, reemprego: c.reemprego, fabricante: c.fabricante, quantidade: c.quantidade }),
-    );
-  }
-
   lancamentos.sort((a, b) => a.data.localeCompare(b.data));
 
-  // "Atualizado em": o fato mais recente entre os gravados, as movimentações conferidas, a Produção e as cargas.
+  // "Atualizado em": o fato mais recente entre os gravados, as movimentações conferidas e a Produção.
   const datas = [
     ...gravados.map((g) => g.criadoEm),
     ...movs.map((m) => m.conferidoEm ?? m.dataMovimentacao),
     ...dias.filter((d) => d.data > corte()).map((d) => d.atualizadoEm),
-    ...cargas.map((c) => c.atualizadoEm),
   ].filter((d): d is Date => !!d);
   const atualizadoEm = datas.length ? new Date(Math.max(...datas.map((d) => d.getTime()))).toISOString() : null;
 

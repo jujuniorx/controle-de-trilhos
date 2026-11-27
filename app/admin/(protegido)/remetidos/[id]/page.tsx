@@ -2,7 +2,7 @@ import { rotuloStatusRemetido } from '@/lib/domain/statusRemetido';
 import Link from 'next/link';
 import { fmtMetros, fmtPeso } from '@/lib/format';
 import { normalizarLocal } from '@/lib/domain/local';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { buscarRemetidoDetalhe, resumoPesoRemetido } from '@/lib/services/remetido';
 import { requireAdmin } from '@/lib/services/requireAdmin';
 import { pecasDoGrupo } from '@/lib/domain/regras';
@@ -49,6 +49,8 @@ export default async function RemetidoDetalhePage({ params }: { params: Promise<
   const { id } = await params;
   const mov = await buscarRemetidoDetalhe(id);
   if (!mov) notFound();
+  // Remetido de vagão (B.O. do trilheiro) tem tela própria.
+  if (mov.tipoTransporte === 'VAGAO') redirect(`/admin/vagoes/${mov.id}`);
 
   // Caminho do caminhão, na ordem em que aconteceu: cadastro -> Portaria -> Pátio libera -> saída.
   const passos = [

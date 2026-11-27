@@ -12,6 +12,7 @@ const SECOES: Record<string, string> = {
   '/admin/informativo': 'Informativo',
   '/admin/portaria': 'Portaria',
   '/admin/usina': 'Usina',
+  '/admin/vagoes': 'Vagões',
   '/admin/estoque': 'Estoque',
   '/admin/usuarios': 'Usuários',
   '/admin/lixeira': 'Lixeira',
@@ -24,6 +25,7 @@ const SUBPAGINAS: Record<string, string> = {
   imprimir: 'Imprimir',
   romaneio: 'Romaneio',
   editar: 'Editar',
+  lancar: 'Lançar remetido',
 };
 
 type Passo = { rotulo: string; href?: string };

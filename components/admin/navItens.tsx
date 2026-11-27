@@ -11,6 +11,7 @@ export const NAV_ITEMS = [
   { href: '/admin/relatorios', label: 'Relatórios' },
   { href: '/admin/portaria', label: 'Portaria' },
   { href: '/admin/usina', label: 'Usina' },
+  { href: '/admin/vagoes', label: 'Vagões' },
   { href: '/admin/estoque', label: 'Estoque' },
   { href: '/admin/usuarios', label: 'Usuários' },
   { href: '/admin/lixeira', label: 'Lixeira' },
@@ -57,6 +58,11 @@ export const ICONES_NAV: Record<string, ReactNode> = {
   '/admin/producao': (
     <svg width="18" height="18" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
       <path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4" />
+    </svg>
+  ),
+  '/admin/vagoes': (
+    <svg width="18" height="18" viewBox="0 0 24 24" {...tracos} aria-hidden="true">
+      <path d="M3 7h18v9H3zM3 11h18M8 7v4M16 7v4M2 20h20M7 18.5a1.5 1.5 0 1 0 0-.01M17 18.5a1.5 1.5 0 1 0 0-.01" />
     </svg>
   ),
   '/admin/usuarios': (

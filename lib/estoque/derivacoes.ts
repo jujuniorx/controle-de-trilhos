@@ -19,6 +19,8 @@ export interface GrupoFonte {
   formaNovo: 'LISA' | 'TALA' | null;
   metrosTotal: number;
   medicoes: MedicaoFonte[];
+  /** Remetido de vagão: quantos TLS (312 m) o grupo leva. Ausente ou null: grupo de barras comum. */
+  tls?: number | null;
 }
 
 export interface MovFonte {
@@ -30,6 +32,8 @@ export interface MovFonte {
   /** Texto curto para o histórico ("Vagão 123", "Recebimento NF 456"). */
   rotulo: string;
   grupos: GrupoFonte[];
+  /** false: remetido registrado só para controle (já estava na planilha); não mexe no estoque. */
+  movimentaEstoque?: boolean;
 }
 
 const arred = (n: number) => Math.round(n * 1000) / 1000;
@@ -40,11 +44,20 @@ function lancamento(p: Posicao, base: { data: string; origemTipo: Lancamento['or
 
 /** Recebimento conferido soma; remetido conferido subtrai. Não conferido não conta. */
 export function lancamentosDeMovimentacao(m: MovFonte): Lancamento[] {
-  if (m.status !== 'CONFERIDO') return [];
+  if (m.status !== 'CONFERIDO' || m.movimentaEstoque === false) return [];
   const sinal = m.tipo === 'RECEBIMENTO' ? 1 : -1;
   const base = { data: m.data, origemTipo: m.tipo, origemId: m.id, descricao: m.rotulo } as const;
   const lista: Lancamento[] = [];
   for (const g of m.grupos) {
+    if (g.tls != null && g.tls > 0) {
+      // TLS (remetido de vagão): sai do TLS do perfil — o novo pela marca, o reemprego sem marca.
+      const p: Posicao =
+        g.tipoMaterial === 'NOVO'
+          ? { secao: 'NOVO', perfil: g.perfil, tipo: 'TLS', fabricante: normalizarFabricante(g.fabricante) ?? 'DIVERSOS', classe: 'NORMAL' }
+          : { secao: 'REEMPREGO', perfil: g.perfil, tipo: 'TLS', fabricante: null, classe: 'TLS' };
+      lista.push(lancamento(p, base, sinal * g.tls * METROS_TLS, sinal * g.tls));
+      continue;
+    }
     if (g.tipoMaterial === 'NOVO') {
       const fabricante = normalizarFabricante(g.fabricante) ?? 'DIVERSOS';
       if (!g.formaNovo) {
@@ -125,24 +138,4 @@ export function lancamentosDeProducao(d: DiaProducaoFonte): Lancamento[] {
     lista.push(lancamento({ ...p, tipo: 'TALA' }, base, -q * TALAS_POR_TLS * METROS_BARRA));
   }
   return lista;
-}
-
-export interface CargaFonte {
-  id: string;
-  trilheiro: string;
-  /** yyyy-mm-dd: data do B.O. */
-  boEm: string;
-  perfil: string;
-  reemprego: boolean;
-  fabricante: string | null;
-  quantidade: number;
-}
-
-/** O trilheiro leva TLS: sai do estoque de TLS do perfil (e da marca, no novo). */
-export function lancamentosDeCarga(c: CargaFonte): Lancamento[] {
-  const base = { data: c.boEm, origemTipo: 'TRILHEIRO' as const, origemId: c.id, descricao: `Trilheiro ${c.trilheiro} · B.O. ${c.boEm.split('-').reverse().join('/')}` };
-  const p: Posicao = c.reemprego
-    ? { secao: 'REEMPREGO', perfil: c.perfil, tipo: 'TLS', fabricante: null, classe: 'TLS' }
-    : { secao: 'NOVO', perfil: c.perfil, tipo: 'TLS', fabricante: normalizarFabricante(c.fabricante) ?? 'DIVERSOS', classe: 'NORMAL' };
-  return [lancamento(p, base, -c.quantidade * METROS_TLS, -c.quantidade)];
 }

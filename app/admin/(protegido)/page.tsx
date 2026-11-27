@@ -22,6 +22,7 @@ const SECOES: Secao[] = [
   { href: '/admin/relatorios', nome: 'Relatórios', descricao: 'Movimentações por período' },
   { href: '/admin/portaria', nome: 'Portaria', descricao: 'Cargas e descargas' },
   { href: '/admin/usina', nome: 'Usina', descricao: 'Lançamentos da usina' },
+  { href: '/admin/vagoes', nome: 'Vagões', descricao: 'B.O. do trilheiro e vagões recebidos' },
   { href: '/admin/estoque', nome: 'Estoque', descricao: 'Itens e saldos' },
   { href: '/admin/usuarios', nome: 'Usuários', descricao: 'Contas e senhas' },
   { href: '/admin/lixeira', nome: 'Lixeira', descricao: 'Itens excluídos' },

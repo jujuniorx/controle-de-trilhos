@@ -194,10 +194,31 @@ model Movimentacao {
   // Observação escrita pela Portaria para o Pátio.
   observacaoPortaria String?
 
+  // Remetido de vagão (B.O. do trilheiro), lançado pelo Administrativo.
+  trilheiro        TrilheiroCod?
+  valorNf          Decimal?      @db.Decimal(14, 2)
+  // Desligado: o remetido fica registrado, mas não mexe no estoque de trilhos (já estava na planilha).
+  movimentaEstoque Boolean       @default(true)
+
   remetidoDetalhe RemetidoDetalhe?
   grupos          Grupo[]
   anexos          Anexo[]
   historico       HistoricoAlteracao[]
+  vagoes          VagaoRemetido[]
+}
+
+// Vagões de um remetido de vagão (como no B.O.): série, número e pesos em toneladas.
+model VagaoRemetido {
+  id             String       @id @default(cuid())
+  movimentacaoId String
+  movimentacao   Movimentacao @relation(fields: [movimentacaoId], references: [id])
+  ordem          Int
+  serie          String
+  numero         String
+  pesoLiquido    Decimal?     @db.Decimal(10, 2)
+  pesoBruto      Decimal?     @db.Decimal(10, 2)
+
+  @@index([movimentacaoId])
 }
 
 model RemetidoDetalhe {
@@ -223,6 +244,8 @@ model Grupo {
   tampao         Boolean                 @default(false)
   // Trilho novo: barra lisa ou tala (com furos). Obrigatória no envio de novo e na chegada de vagão.
   formaNovo      FormaNovo?
+  // Remetido de vagão: o grupo é de TLS (barras longas de 312 m); a medição guarda a quantidade de TLS.
+  tls            Boolean                 @default(false)
 
   medicoes Medicao[]
   anexos   Anexo[]

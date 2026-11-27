@@ -9,7 +9,7 @@ import { normalizarLocal } from '@/lib/domain/local';
  */
 
 type DadosMovimentacaoSnapshot = Prisma.MovimentacaoGetPayload<{
-  include: { remetidoDetalhe: true; grupos: { include: { medicoes: true } }; anexos: true; historico: true };
+  include: { remetidoDetalhe: true; grupos: { include: { medicoes: true } }; anexos: true; historico: true; vagoes: true };
 }>;
 
 /** Campos que são datas: no JSON viram texto ISO e precisam voltar a ser Date ao restaurar. */
@@ -56,7 +56,7 @@ export async function tirarSnapshot(movimentacaoId: string): Promise<{
 } | null> {
   const mov = await prisma.movimentacao.findUnique({
     where: { id: movimentacaoId },
-    include: { remetidoDetalhe: true, grupos: { include: { medicoes: true } }, anexos: true, historico: true },
+    include: { remetidoDetalhe: true, grupos: { include: { medicoes: true } }, anexos: true, historico: true, vagoes: true },
   });
   if (!mov) return null;
   // JSON.stringify: Decimal vira texto e Date vira ISO — o Prisma aceita os dois de volta.
@@ -109,7 +109,8 @@ export async function restaurarMovimentacao(
   }
 
   const snap = reviverDatas(registro.dados as unknown as DadosMovimentacaoSnapshot);
-  const { remetidoDetalhe, grupos, anexos, historico, chegadaIdOrigem, ...mov } = snap as typeof snap & { chegadaIdOrigem?: string };
+  // Cópias antigas (de antes dos vagões) não têm a lista: vira lista vazia.
+  const { remetidoDetalhe, grupos, anexos, historico, vagoes = [], chegadaIdOrigem, ...mov } = snap as typeof snap & { chegadaIdOrigem?: string };
 
   await prisma.$transaction(
     async (tx) => {
@@ -135,6 +136,7 @@ export async function restaurarMovimentacao(
         if (medicoes.length > 0) await tx.medicao.createMany({ data: medicoes as Prisma.MedicaoCreateManyInput[] });
       }
       if (anexos.length > 0) await tx.anexo.createMany({ data: anexos as Prisma.AnexoCreateManyInput[] });
+      if (vagoes.length > 0) await tx.vagaoRemetido.createMany({ data: vagoes as Prisma.VagaoRemetidoCreateManyInput[] });
       if (historico.length > 0) {
         await tx.historicoAlteracao.createMany({ data: historico as Prisma.HistoricoAlteracaoCreateManyInput[] });
       }

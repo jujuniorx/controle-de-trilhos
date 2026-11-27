@@ -40,6 +40,7 @@ export async function excluirMovimentacao(
     prisma.grupo.deleteMany({ where: { movimentacaoId } }),
     prisma.historicoAlteracao.deleteMany({ where: { movimentacaoId } }),
     prisma.remetidoDetalhe.deleteMany({ where: { movimentacaoId } }),
+    prisma.vagaoRemetido.deleteMany({ where: { movimentacaoId } }),
     prisma.movimentacao.delete({ where: { id: movimentacaoId } }),
   ]);
 
