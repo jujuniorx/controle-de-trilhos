@@ -76,7 +76,8 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
           <div className="kv-secao">
             <h3 className="kv-secao-titulo">Carga</h3>
             <dl className="kv-grid">
-              <div className="kv-item"><div className="kv-label">Data</div><div className="kv-val">{fmtData(mov.dataMovimentacao)}</div></div>
+              <div className="kv-item"><div className="kv-label">Data de carregamento</div><div className="kv-val">{fmtData(mov.dataCarregamento)}</div></div>
+              <div className="kv-item"><div className="kv-label">Data de chegada</div><div className="kv-val">{fmtData(mov.dataMovimentacao)}</div></div>
               <div className="kv-item"><div className="kv-label">Origem</div><div className="kv-val">{normalizarLocal(mov.origem)}</div></div>
               <div className="kv-item"><div className="kv-label">Responsável no Pátio</div><div className="kv-val">{mov.responsavelPatio}</div></div>
             </dl>
