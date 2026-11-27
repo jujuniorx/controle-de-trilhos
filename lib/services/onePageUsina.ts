@@ -56,25 +56,6 @@ export function horarioMacros(inicio?: string | null, termino?: string | null): 
   return null;
 }
 
-type EnvioTrilho = { trilhoNovoM: number; tampoesM: number; trilheiroNovoM: number; trilheiroReempregoM: number };
-
-/**
- * Envio de trilho numa seção só, com carreta e trilheiro no rótulo. Linha sem nada no período não aparece,
- * e zero vira "—" para o número que importa saltar aos olhos.
- */
-function linhasEnvio(d: EnvioTrilho, s: EnvioTrilho, m: EnvioTrilho): LinhaRelatorio[] {
-  const itens: { rotulo: string; campo: keyof EnvioTrilho }[] = [
-    { rotulo: 'Trilho novo · carreta', campo: 'trilhoNovoM' },
-    { rotulo: 'Trilho novo · trilheiro', campo: 'trilheiroNovoM' },
-    { rotulo: 'Tampões · carreta', campo: 'tampoesM' },
-    { rotulo: 'Reemprego · trilheiro', campo: 'trilheiroReempregoM' },
-  ];
-  const v = (n: number) => (n ? fmtMetros(n) : '—');
-  return itens
-    .filter((i) => d[i.campo] || s[i.campo] || m[i.campo])
-    .map((i, k) => ({ ...(k === 0 ? { secao: 'Envio de trilho (m)' } : {}), rotulo: i.rotulo, dia: v(d[i.campo]), semana: v(s[i.campo]), mes: v(m[i.campo]) }));
-}
-
 export interface CaminhaoTabelaRelatorio {
   nome: string;
   local: string | null;
@@ -341,7 +322,10 @@ export async function montarDadosRelatorio(data: string, desdePedido?: string | 
         linhas: [
           { secao: 'Soldas e cortes', rotulo: 'Soldas (und)', dia: `${estD.totais.soldas}`, semana: `${estS.totais.soldas}`, mes: `${estM.totais.soldas}`, porDia: serie.estaleiro.soldas.map(String) },
           { rotulo: 'Cortes (und)', dia: `${estD.totais.cortes}`, semana: `${estS.totais.cortes}`, mes: `${estM.totais.cortes}`, porDia: serie.estaleiro.cortes.map(String) },
-          ...linhasEnvio(estD.carreta, estS.carreta, estM.carreta),
+          { secao: 'Envio por carreta', rotulo: 'Trilho novo (m)', dia: fmtMetros(estD.carreta.trilhoNovoM), semana: fmtMetros(estS.carreta.trilhoNovoM), mes: fmtMetros(estM.carreta.trilhoNovoM) },
+          { rotulo: 'Tampões (m)', dia: fmtMetros(estD.carreta.tampoesM), semana: fmtMetros(estS.carreta.tampoesM), mes: fmtMetros(estM.carreta.tampoesM) },
+          { secao: 'Envio por trilheiro', rotulo: 'Trilho novo (m)', dia: fmtMetros(estD.carreta.trilheiroNovoM), semana: fmtMetros(estS.carreta.trilheiroNovoM), mes: fmtMetros(estM.carreta.trilheiroNovoM) },
+          { rotulo: 'Reemprego (m)', dia: fmtMetros(estD.carreta.trilheiroReempregoM), semana: fmtMetros(estS.carreta.trilheiroReempregoM), mes: fmtMetros(estM.carreta.trilheiroReempregoM) },
           // Estoque é um retrato do dia: só a coluna do dia tem número.
           { secao: 'Estoque TLS (no dia)', rotulo: ROTULO_TLS.TR68_NOVO, dia: numeroTls(estD.estoqueDoDia.TR68_NOVO), perfil: 'TR68 NOVO', malhas: malhasTls(estD.malhasDoDia.TR68_NOVO), curtaMalhas: malhasTls(estD.barrasCurtasDoDia.TR68_NOVO), curtaTotal: somaTls(estD.barrasCurtasDoDia.TR68_NOVO), semana: '—', mes: '—' },
           { rotulo: ROTULO_TLS.UIC60_NOVO, dia: numeroTls(estD.estoqueDoDia.UIC60_NOVO), perfil: 'UIC60 NOVO', malhas: malhasTls(estD.malhasDoDia.UIC60_NOVO), curtaMalhas: malhasTls(estD.barrasCurtasDoDia.UIC60_NOVO), curtaTotal: somaTls(estD.barrasCurtasDoDia.UIC60_NOVO), semana: '—', mes: '—' },
