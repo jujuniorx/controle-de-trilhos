@@ -34,7 +34,7 @@ const iso = (d: Date) => d.toISOString().slice(0, 10);
 /** Valores de cada dia da semana (segunda a domingo), quando existem; usados no PDF diário. */
 /** cores: uma cor por parte do valor separada por ' / ' (ex.: W61 e W62), para cada parte aparecer na cor da sua composição. */
 /** Linha de um setor. `secao` marca o início de um bloco com título próprio (ex.: Estoque TLS). */
-export interface LinhaRelatorio { rotulo: string; dia: string; semana: string; mes: string; porDia?: string[]; cores?: string[]; secao?: string; /** Envio de trilho: quem enviou e o nome curto da linha (a tela agrupa por quem). */ envio?: { quem: 'Carreta' | 'Trilheiro'; curto: string }; perfil?: string; malhas?: [string, string, string]; curtaMalhas?: [string, string, string]; curtaTotal?: string }
+export interface LinhaRelatorio { rotulo: string; dia: string; semana: string; mes: string; porDia?: string[]; cores?: string[]; secao?: string; perfil?: string; malhas?: [string, string, string]; curtaMalhas?: [string, string, string]; curtaTotal?: string }
 /** etiquetas: motivo de cada dia sem produção (segunda a domingo), escrito embaixo do dia no gráfico ("Feriado", "Folga"). */
 export interface GraficoRelatorio { titulo: string; series: { nome: string; cor: string; valores: number[] }[]; etiquetas?: (string | null)[] }
 /** Grade de produção por dia (um valor por dia da semana), para setores em que o número do dia importa mais que o gráfico. */
@@ -63,16 +63,16 @@ type EnvioTrilho = { trilhoNovoM: number; tampoesM: number; trilheiroNovoM: numb
  * e zero vira "—" para o número que importa saltar aos olhos.
  */
 function linhasEnvio(d: EnvioTrilho, s: EnvioTrilho, m: EnvioTrilho): LinhaRelatorio[] {
-  const itens: { rotulo: string; campo: keyof EnvioTrilho; quem: 'Carreta' | 'Trilheiro'; curto: string }[] = [
-    { rotulo: 'Trilho novo · carreta', campo: 'trilhoNovoM', quem: 'Carreta', curto: 'Trilho novo' },
-    { rotulo: 'Tampões · carreta', campo: 'tampoesM', quem: 'Carreta', curto: 'Tampões' },
-    { rotulo: 'Trilho novo · trilheiro', campo: 'trilheiroNovoM', quem: 'Trilheiro', curto: 'Trilho novo' },
-    { rotulo: 'Reemprego · trilheiro', campo: 'trilheiroReempregoM', quem: 'Trilheiro', curto: 'Reemprego' },
+  const itens: { rotulo: string; campo: keyof EnvioTrilho }[] = [
+    { rotulo: 'Trilho novo · carreta', campo: 'trilhoNovoM' },
+    { rotulo: 'Trilho novo · trilheiro', campo: 'trilheiroNovoM' },
+    { rotulo: 'Tampões · carreta', campo: 'tampoesM' },
+    { rotulo: 'Reemprego · trilheiro', campo: 'trilheiroReempregoM' },
   ];
   const v = (n: number) => (n ? fmtMetros(n) : '—');
   return itens
     .filter((i) => d[i.campo] || s[i.campo] || m[i.campo])
-    .map((i, k) => ({ ...(k === 0 ? { secao: 'Envio de trilho (m)' } : {}), rotulo: i.rotulo, dia: v(d[i.campo]), semana: v(s[i.campo]), mes: v(m[i.campo]), envio: { quem: i.quem, curto: i.curto } }));
+    .map((i, k) => ({ ...(k === 0 ? { secao: 'Envio de trilho (m)' } : {}), rotulo: i.rotulo, dia: v(d[i.campo]), semana: v(s[i.campo]), mes: v(m[i.campo]) }));
 }
 
 export interface CaminhaoTabelaRelatorio {
