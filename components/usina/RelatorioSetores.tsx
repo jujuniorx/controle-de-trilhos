@@ -99,7 +99,12 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
       </section>
     );
   }
+  // Envio de trilho (carreta e trilheiro) sai em dois cartões; o resto do setor segue na tabela.
+  const linhasEnvio = s.linhas.filter((l) => l.envio);
+  const linhasTabela = s.linhas.filter((l) => !l.envio);
+  const envioCards = linhasEnvio.length > 0 ? <EnvioTrilhoBloco linhas={linhasEnvio} mostraDia={mostraDia} mostraMes={mostraMes} rotuloDia={s.rotuloColunaDia ? 'Período' : 'Dia'} /> : null;
   const tabela = (
+    <div>
     <table className="w-full border-collapse text-[13px]">
       <thead>
         <tr className="text-[11px] uppercase tracking-wide text-slate-500">
@@ -110,7 +115,7 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
         </tr>
       </thead>
       <tbody>
-        {s.linhas.map((l) => (
+        {linhasTabela.map((l) => (
           <Fragment key={l.rotulo}>
             {l.secao && (
               <tr>
@@ -127,6 +132,8 @@ export function Setor({ s, rotulosDias, largo = false, mensal = false, colunas =
         ))}
       </tbody>
     </table>
+    {envioCards && <div className="mt-3">{envioCards}</div>}
+    </div>
   );
   // Gráfico diário do setor; sem gráfico, mostra a grade de números quando existir.
   const grafico = mensal ? null : s.grafico ? (
@@ -331,6 +338,39 @@ export function CaminhoesBloco({ s, modo, colunas = TODAS }: { s: SetorRelatorio
         ))}
       </div>
     </section>
+  );
+}
+
+/** Envio de trilho em dois cartões, Carreta e Trilheiro, com dia e no mês de cada linha. */
+export function EnvioTrilhoBloco({ linhas, mostraDia, mostraMes, rotuloDia }: { linhas: LinhaRelatorio[]; mostraDia: boolean; mostraMes: boolean; rotuloDia: string }) {
+  const grupos: { quem: 'Carreta' | 'Trilheiro'; cor: string }[] = [
+    { quem: 'Carreta', cor: '#2563eb' },
+    { quem: 'Trilheiro', cor: '#0d9488' },
+  ];
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {grupos.map((g) => {
+        const itens = linhas.filter((l) => l.envio?.quem === g.quem);
+        return (
+          <div key={g.quem} className="rounded-lg border border-slate-200 p-2.5" style={{ borderTop: `3px solid ${g.cor}` }}>
+            <p className="text-xs font-bold text-slate-900">{g.quem}</p>
+            <div className="mt-1.5 space-y-1.5">
+              {itens.length === 0 && <p className="text-[12px] text-slate-400">Sem envio no período</p>}
+              {itens.map((l) => (
+                <div key={l.rotulo} className="flex items-baseline justify-between gap-2 border-t border-slate-100 pt-1.5 first:border-t-0 first:pt-0">
+                  <span className="text-[12px] text-slate-600">{l.envio?.curto}</span>
+                  <span className="text-right tabular-nums">
+                    {mostraDia && <span className="block text-sm font-bold text-slate-900">{l.dia}</span>}
+                    {mostraMes && <span className="block text-[11px] font-semibold" style={{ color: g.cor }}>{l.mes} no mês</span>}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {mostraDia && itens.length > 0 && <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-400">{rotuloDia}</p>}
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
