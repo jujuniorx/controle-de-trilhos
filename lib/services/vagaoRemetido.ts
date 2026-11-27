@@ -33,6 +33,12 @@ function fabricanteDaLinha(l: LinhaTlsInput): string | null {
 export async function criarRemetidoVagao(input: RemetidoVagaoInput, ator: { userId: string; nome: string }): Promise<string> {
   const [principal, ...extras] = input.nfs;
   const pesos = await Promise.all(input.linhas.map((l) => calcularPesoEstimado(l.quantidade * METROS_TLS, l.perfil)));
+  // Peso líquido real dos vagões do B.O. vale mais que a estimativa: divide entre as linhas pelos metros.
+  const liquidoTotal = input.vagoes.reduce((t, v) => t + (v.pesoLiquido ?? 0), 0);
+  const metrosTotalB0 = input.linhas.reduce((t, l) => t + l.quantidade * METROS_TLS, 0);
+  const pesosInformados = input.linhas.map((l) =>
+    liquidoTotal > 0 && metrosTotalB0 > 0 ? Math.round((liquidoTotal * (l.quantidade * METROS_TLS)) / metrosTotalB0 * 100) / 100 : null,
+  );
 
   const id = await prisma.$transaction(
     async (tx) => {
@@ -72,6 +78,7 @@ export async function criarRemetidoVagao(input: RemetidoVagaoInput, ator: { user
             tls: true,
             metrosTotal: metros,
             pesoCalculado: pesos[i],
+            pesoInformado: pesosInformados[i],
             medicoes: {
               create: { clientId: randomUUID(), modo: 'QTD_COMPRIMENTO', quantidade: l.quantidade, comprimento: METROS_TLS, metros },
             },
