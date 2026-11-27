@@ -146,6 +146,7 @@ export default async function RecebimentoDetalhePage({ params }: { params: Promi
           movimentacaoId={mov.id}
           inicial={{
             dataMovimentacao: mov.dataMovimentacao ? mov.dataMovimentacao.toISOString().slice(0, 10) : '',
+            dataCarregamento: mov.dataCarregamento ? mov.dataCarregamento.toISOString().slice(0, 10) : '',
             origem: mov.origem ?? '',
             tipoTransporte: mov.tipoTransporte,
             placaCavalo: mov.placaCavalo ?? '',

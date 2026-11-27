@@ -20,6 +20,13 @@ export const editarDadosRecebimentoSchema = z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida.')
       .transform((v) => new Date(`${v}T00:00:00.000Z`)),
+    // Data em que a serra carregou os trilhos. Opcional: vazio grava nulo.
+    dataCarregamento: z
+      .string()
+      .regex(/^(\d{4}-\d{2}-\d{2})?$/, 'Data de carregamento inválida.')
+      .transform((v) => (v ? new Date(`${v}T00:00:00.000Z`) : null))
+      .nullable()
+      .optional(),
     origem: z.string().trim().min(1, 'Informe a origem do material.').max(120, 'Origem muito longa.'),
     tipoTransporte: z.enum(['CAMINHAO', 'VAGAO', 'OUTRO']),
     placaCavalo: placaOpcional,

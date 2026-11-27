@@ -5,6 +5,7 @@ import type { EditarDadosRecebimentoInput } from '@/lib/validation/recebimentoEd
 
 const CAMPOS_EDITAVEIS = [
   'dataMovimentacao',
+  'dataCarregamento',
   'origem',
   'tipoTransporte',
   'placaCavalo',
@@ -18,7 +19,7 @@ type CampoEditavel = (typeof CAMPOS_EDITAVEIS)[number];
 
 function paraTexto(campo: CampoEditavel, valor: unknown): string | null {
   if (valor == null || valor === '') return null;
-  if (campo === 'dataMovimentacao' && valor instanceof Date) return valor.toISOString().slice(0, 10);
+  if ((campo === 'dataMovimentacao' || campo === 'dataCarregamento') && valor instanceof Date) return valor.toISOString().slice(0, 10);
   return String(valor);
 }
 

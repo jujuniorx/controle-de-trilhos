@@ -7,6 +7,7 @@ import { IconeEditar } from '@/components/icones/Icones';
 
 export interface DadosEditaveis {
   dataMovimentacao: string; // YYYY-MM-DD ou ''
+  dataCarregamento: string; // YYYY-MM-DD ou ''
   origem: string;
   tipoTransporte: 'CAMINHAO' | 'VAGAO' | 'OUTRO';
   placaCavalo: string;
@@ -65,7 +66,11 @@ export function EditarDadosRecebimentoPainel({ movimentacaoId, inicial }: { movi
       <p className="text-sm font-medium text-ink-muted">Editar dados do recebimento</p>
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="flex flex-col gap-1 text-sm">
-          Data
+          Data de carregamento (serra)
+          <input type="date" className="h-11 w-full" value={dados.dataCarregamento} onChange={(e) => atualizar('dataCarregamento', e.target.value)} />
+        </label>
+        <label className="flex flex-col gap-1 text-sm">
+          Data de chegada (pátio)
           <input type="date" className="h-11 w-full" value={dados.dataMovimentacao} onChange={(e) => atualizar('dataMovimentacao', e.target.value)} />
         </label>
         <label className="flex flex-col gap-1 text-sm">
